@@ -345,3 +345,11 @@ Captures reprises : 1.3-04, E4-01, E4-02, E2-01, E2-02, P1-01 (6 ; md5 inchangé
 • Build : PASS (tsc + vite). Chunks : index 408,96 kB (gzip 119,09), CarteStations 806,33 kB (gzip 219,41), CSS 9,64 + 65,48 kB.
 • E2E Playwright : 25/25 (un seul spec ; `tests/e2e/tests/ft-*.js` sont des scripts de registre, non Playwright). Aucun flaky, aucun `test.fixme`.
 • Régressions : aucune. Corrections : aucune (code applicatif gelé).
+
+## Deploy
+
+• Commit : `b4e2099` (test(m1): consolidation des tests du jalon 1), poussé sur origin/main.
+• Production : https://plein-et-trajet.vercel.app — déploiement Vercel du commit `b4e2099` READY (API Vercel).
+• Smoke réel (bibliothèque Playwright, mobile 390x844, géoloc Albi, utilisateur anonyme : l'appli n'a pas de comptes, aucune requête d'auth, accès par clé anon) : liste Prix chargée (7 stations) → Gazole → tri Plus proche → fiche « Esso Express Albi » → « Coût d'un trajet jusqu'ici » → Trajets avec Arrivée « 246 Avenue Colonel Teyssier, 81000 Albi ». **PASS**.
+• Réseau *.supabase.co (aucun /api) : 7 requêtes, toutes 2xx — `POST /rest/v1/rpc/stations_autour` 200 ×2 ; `GET /rest/v1/prix` 200 ×3 ; `GET /rest/v1/moyennes_nationales` 200 ×2. Aucun échec, aucun non-2xx.
+• Captures : `tests/e2e/delivery/m1-deploy-verify-01.png` (liste + carte SP95-E10), `-02.png` (Gazole, Plus proche), `-03.png` (Trajets pré-rempli).
