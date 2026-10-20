@@ -5,7 +5,8 @@ import { T } from "../lib/textes";
 export function BarreOnglets() {
   const nav = useNavigate();
   const { pathname } = useLocation();
-  const prix = !pathname.startsWith("/trajets");
+  const hors = pathname.startsWith("/moteurs") || pathname.startsWith("/admin"); // écrans d'administration : aucun onglet sélectionné
+  const prix = !hors && !pathname.startsWith("/trajets");
   // flèches gauche/droite : passer d'un onglet à l'autre (motif ARIA « tabs »)
   const fleches = (e: KeyboardEvent<HTMLElement>) => {
     if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
@@ -16,10 +17,10 @@ export function BarreOnglets() {
   };
   return (
     <nav className="tabs" role="tablist" aria-label={T.sections} onKeyDown={fleches}>
-      <button className="tab" role="tab" id="onglet-prix" aria-controls="panneau-prix" aria-selected={prix} tabIndex={prix ? 0 : -1} data-el="onglet-prix" onClick={() => nav("/")}>
+      <button className="tab" role="tab" id="onglet-prix" aria-controls="panneau-prix" aria-selected={prix} tabIndex={prix || hors ? 0 : -1} data-el="onglet-prix" onClick={() => nav("/")}>
         {T.ongletPrix}
       </button>
-      <button className="tab" role="tab" id="onglet-trajets" aria-controls="panneau-trajets" aria-selected={!prix} tabIndex={prix ? -1 : 0} data-el="onglet-trajets" onClick={() => nav("/trajets")}>
+      <button className="tab" role="tab" id="onglet-trajets" aria-controls="panneau-trajets" aria-selected={!hors && !prix} tabIndex={hors || prix ? -1 : 0} data-el="onglet-trajets" onClick={() => nav("/trajets")}>
         {T.ongletTrajets}
       </button>
     </nav>

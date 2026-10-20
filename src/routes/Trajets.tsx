@@ -4,9 +4,9 @@ import { useLocation } from "react-router-dom";
 import { T } from "../lib/textes";
 import { geocoderLieu, geocoderVille } from "../lib/geocodage";
 import { memoriserVille, type Lieu } from "../lib/position";
-import { coutCarburant } from "../lib/calcul";
+import { coutTotal, repartirCouts } from "../lib/pays";
 import { distanceKm } from "../lib/format";
-import { moyenneNationale } from "../lib/donnees";
+import { moyennesParPays } from "../lib/donnees";
 import { sessionAnonyme } from "../lib/session";
 import { ErreurCalcul, enregistrerTrajet, estimerTrajet, listerTrajets, supprimerTrajet, type TrajetEnregistre } from "../lib/trajets";
 import { useVoiture } from "../lib/useVoiture";
@@ -112,9 +112,11 @@ export default function Trajets() {
     try {
       const est = await estimerTrajet(d.depart, d.arrivee, d.vehiculeId, ctrl.signal);
       if (controleur.current !== ctrl) return; // annulé entre-temps
-      const moyenne = await moyenneNationale(est.vehicule.carburant).catch(() => null);
+      const moyennes = await moyennesParPays(est.vehicule.carburant).catch(() => new Map());
       if (controleur.current !== ctrl) return;
-      const cout = moyenne == null ? null : coutCarburant(est.litres, moyenne);
+      const repartition = repartirCouts(est.pays, moyennes, null);
+      const cout = coutTotal(repartition.carburant, est.peages); // carburant de chaque pays + péages (si établis)
+      const moyenne = repartition.carburant == null || est.litres <= 0 ? null : Math.round((repartition.carburant / est.litres) * 1000) / 1000;
       let historiqueEchec = false;
       try {
         await enregistrerTrajet({ depart: d.depart, arrivee: d.arrivee, estimation: est, prixLitre: moyenne, cout });
@@ -123,10 +125,15 @@ export default function Trajets() {
       }
       if (controleur.current !== ctrl) return;
       await rafraichirHistorique();
-      setResultat({ genre: "ok", donnees: { ...noms, estimation: est, moyenne, historiqueEchec, rejoue: !!d.rejoue } });
+      setResultat({ genre: "ok", donnees: { ...noms, estimation: est, moyennes, historiqueEchec, rejoue: !!d.rejoue } });
       setPhase("resultat");
     } catch (e) {
       if (controleur.current !== ctrl || (e instanceof ErreurCalcul && e.code === "annule")) return;
+      if (e instanceof ErreurCalcul && (e.code === "trop_long" || e.code === "hors_couverture")) {
+        setResultat({ genre: "limite", ...noms, motif: e.code });
+        setPhase("resultat");
+        return;
+      }
       const pasDeRoute = e instanceof ErreurCalcul && e.code === "pas_itineraire";
       const memeLieu = pasDeRoute && distanceKm(d.depart, d.arrivee) < 0.2;
       setResultat(pasDeRoute ? { genre: "pas_itineraire", ...noms, memeLieu } : { genre: "erreur", ...noms });

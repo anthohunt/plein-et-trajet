@@ -1,5 +1,6 @@
 // Géocodage IGN Géoplateforme (sans clé, CORS ouvert) : texte saisi → ville et coordonnées.
 import type { Lieu } from "./position";
+import { supabase } from "./supabase";
 
 const URL_RECHERCHE = "https://data.geopf.fr/geocodage/search";
 
@@ -63,11 +64,40 @@ async function chercher(q: string, limite: number, communesSeulement: boolean, s
 
 const AVEC_CHIFFRE = /[\d,]/;
 
-/** Propositions au fil de la frappe : communes d'abord (« Alb » → Albi) ; adresses dès qu'un chiffre est tapé. */
-export function suggererLieux(texte: string, signal?: AbortSignal): Promise<Suggestion[]> {
+const norm = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
+
+interface PropositionEtrangere {
+  label: string;
+  lat: number;
+  lon: number;
+  contexte: string;
+}
+/** functions/v1/lieux (moteur « lieux » : Photon en Europe) : propositions hors de France ; vide si le service ne répond pas. */
+async function propositionsEtrangeres(q: string, signal?: AbortSignal): Promise<Suggestion[]> {
+  const { data, error } = await supabase.functions.invoke("lieux", { body: { action: "suggerer", q }, signal });
+  if (error) return [];
+  const l = (data as { propositions?: PropositionEtrangere[] } | null)?.propositions;
+  return Array.isArray(l) ? l.filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lon) && p.label).map((p) => ({ lat: p.lat, lon: p.lon, label: p.label, contexte: p.contexte })) : [];
+}
+async function lieuEtranger(q: string, signal?: AbortSignal): Promise<Lieu | null> {
+  const { data, error } = await supabase.functions.invoke("lieux", { body: { action: "geocoder", q }, signal });
+  if (error) return null;
+  const l = (data as { lieu?: PropositionEtrangere | null } | null)?.lieu;
+  return l && Number.isFinite(l.lat) && Number.isFinite(l.lon) ? { lat: l.lat, lon: l.lon, label: l.label } : null;
+}
+
+/** Propositions au fil de la frappe : communes d'abord (« Alb » → Albi) ; adresses dès qu'un chiffre est tapé ; lieux étrangers à la suite. */
+export async function suggererLieux(texte: string, signal?: AbortSignal): Promise<Suggestion[]> {
   const q = texte.trim();
-  if (q.length < 2) return Promise.resolve([]);
-  return chercher(q, 6, !AVEC_CHIFFRE.test(q), signal);
+  if (q.length < 2) return [];
+  const [fr, etr] = await Promise.allSettled([chercher(q, 6, !AVEC_CHIFFRE.test(q), signal), AVEC_CHIFFRE.test(q) ? Promise.resolve([] as Suggestion[]) : propositionsEtrangeres(q, signal)]);
+  if (signal?.aborted) throw new DOMException("aborted", "AbortError");
+  const etrangeres = etr.status === "fulfilled" ? etr.value : [];
+  if (fr.status === "rejected") {
+    if (etrangeres.length > 0) return etrangeres;
+    throw fr.reason;
+  }
+  return etrangeres.length > 0 ? [...fr.value.slice(0, 4), ...etrangeres.slice(0, 3)] : fr.value;
 }
 
 /** Lieu correspondant à un texte saisi sans choisir de proposition ; null = introuvable ; lève si le service est injoignable. */
@@ -76,6 +106,10 @@ export async function geocoderLieu(texte: string, signal?: AbortSignal): Promise
   if (q.length < 2) return null;
   if (!AVEC_CHIFFRE.test(q)) {
     const communes = await chercher(q, 1, true, signal);
+    // l'IGN est tolérant (« Barcelone » → « Barcelonne ») : un lieu étranger de même nom l'emporte
+    if (communes[0] && norm(communes[0].label) === norm(q)) return communes[0];
+    const etranger = await lieuEtranger(q, signal).catch(() => null);
+    if (etranger) return etranger;
     if (communes[0]) return communes[0];
   }
   const tous = await chercher(q, 1, false, signal);

@@ -19,3 +19,8 @@ export function sessionAnonyme(): Promise<string> {
   }
   return enCours;
 }
+
+/** Oublie l'identifiant mémorisé (après une connexion ou une déconnexion administrateur). */
+export function oublierSession() {
+  enCours = null;
+}

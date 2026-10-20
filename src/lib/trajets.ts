@@ -4,9 +4,11 @@ import { supabase } from "./supabase";
 import { sessionAnonyme } from "./session";
 import type { Carburant } from "./format";
 import type { Lieu } from "./position";
+import type { Peages, PaysTraverse } from "./pays";
 
 export type TypeTroncon = "autoroute" | "route" | "ville" | "montee";
 export interface Troncon {
+  pays?: string;
   type: TypeTroncon;
   voies: string[];
   km: number;
@@ -24,17 +26,20 @@ export interface Estimation {
   l100: number;
   vehicule: { id: string; libelle: string; carburant: Carburant; masse_kg: number };
   troncons: Troncon[];
+  pays: PaysTraverse[];
+  peages: Peages;
+  itineraire: { fournisseur: string };
   avertissements: string[];
 }
 
-export type CodeErreur = "pas_itineraire" | "indisponible" | "annule";
+export type CodeErreur = "pas_itineraire" | "indisponible" | "annule" | "trop_long" | "hors_couverture";
 export class ErreurCalcul extends Error {
   constructor(public code: CodeErreur) {
     super(code);
   }
 }
 
-/** functions/v1/estimer-trajet — corps {depart:{lat,lon}, arrivee:{lat,lon}, vehicule_id} ; 422 {erreur:"pas_itineraire"} si aucune route. */
+/** functions/v1/estimer-trajet — corps {depart:{lat,lon}, arrivee:{lat,lon}, vehicule_id} ; 422 {erreur:"pas_itineraire"|"trop_long"|"hors_couverture"}. */
 export async function estimerTrajet(depart: Lieu, arrivee: Lieu, vehiculeId: string, signal?: AbortSignal): Promise<Estimation> {
   const { data, error } = await supabase.functions.invoke("estimer-trajet", {
     body: { depart: { lat: depart.lat, lon: depart.lon }, arrivee: { lat: arrivee.lat, lon: arrivee.lon }, vehicule_id: vehiculeId },
@@ -45,11 +50,16 @@ export async function estimerTrajet(depart: Lieu, arrivee: Lieu, vehiculeId: str
     if (error instanceof FunctionsHttpError) {
       const corps = await error.context.json().catch(() => null);
       if (corps?.erreur === "pas_itineraire") throw new ErreurCalcul("pas_itineraire");
+      if (corps?.erreur === "trop_long") throw new ErreurCalcul("trop_long");
+      if (corps?.erreur === "hors_couverture") throw new ErreurCalcul("hors_couverture");
     }
     throw new ErreurCalcul("indisponible");
   }
   const e = data as Estimation | null;
   if (!e || !Number.isFinite(e.km) || !Number.isFinite(e.litres) || !Array.isArray(e.troncons) || !e.vehicule) throw new ErreurCalcul("indisponible");
+  // réponses d'avant le jalon 3 : un seul pays, péages non établis
+  if (!Array.isArray(e.pays) || e.pays.length === 0) e.pays = [{ code: "FR", nom: "France", km: e.km, litres: e.litres }];
+  if (!e.peages) e.peages = { etat: "indisponible", fournisseur: null, lignes: [], total: 0, vignettes: [] };
   return e;
 }
 

@@ -22,12 +22,13 @@ export function distance(km: number): string {
 }
 
 /** Écart au prix moyen national, en centimes : "−5,2 c vs France". */
-export function ecart(p: number, moyenne: number | null | undefined): { texte: string; sens: "lo" | "hi" | "egal" } | null {
+export function ecart(p: number, moyenne: number | null | undefined, nomPays?: string): { texte: string; sens: "lo" | "hi" | "egal" } | null {
   if (moyenne == null || !Number.isFinite(moyenne)) return null;
   const c = Math.round((p - moyenne) * 1000) / 10; // centimes, 1 décimale
-  if (c === 0) return { texte: T.egalFrance, sens: "egal" };
+  const vs = nomPays ? `vs ${nomPays}` : T.vsFrance;
+  if (c === 0) return { texte: nomPays ? `= ${nomPays}` : T.egalFrance, sens: "egal" };
   const v = Math.abs(c).toFixed(1).replace(".", ",");
-  return c < 0 ? { texte: `−${v} c ${T.vsFrance}`, sens: "lo" } : { texte: `+${v} c ${T.vsFrance}`, sens: "hi" };
+  return c < 0 ? { texte: `−${v} c ${vs}`, sens: "lo" } : { texte: `+${v} c ${vs}`, sens: "hi" };
 }
 
 const H = 3600_000;

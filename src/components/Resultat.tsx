@@ -1,6 +1,7 @@
 // S4 Résultat du trajet : coût, litres, km, L/100 km, prix utilisé (« Mettre mon prix »), tronçons dépliables.
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { coutCarburant, euros, fmt, libelleType, validerPrix } from "../lib/calcul";
+import { euros, fmt, libelleType, validerPrix } from "../lib/calcul";
+import { coutTotal, repartirCouts, type MoyennePays } from "../lib/pays";
 import { prix3 } from "../lib/format";
 import type { Estimation } from "../lib/trajets";
 import { T } from "../lib/textes";
@@ -10,13 +11,14 @@ export interface DonneesResultat {
   departLabel: string;
   arriveeLabel: string;
   estimation: Estimation;
-  moyenne: number | null; // prix moyen national du jour (€/L) du carburant de la voiture
+  moyennes: Map<string, MoyennePays>; // prix moyen du jour par pays (€/L) du carburant de la voiture
   historiqueEchec: boolean;
   rejoue: boolean; // trajet de l'historique recalculé au prix du jour (US-3.6)
 }
 export type EtatResultat =
   | { genre: "ok"; donnees: DonneesResultat }
   | { genre: "pas_itineraire"; departLabel: string; arriveeLabel: string; memeLieu?: boolean }
+  | { genre: "limite"; departLabel: string; arriveeLabel: string; motif: "trop_long" | "hors_couverture" }
   | { genre: "erreur"; departLabel: string; arriveeLabel: string };
 
 interface Props {
@@ -50,6 +52,12 @@ export function Resultat({ etat, onRetour, onReessayer }: Props) {
             <p className="d">{etat.memeLieu ? T.pasItineraireMemeLieu : T.pasItineraireDetail}</p>
           </div>
         )}
+        {etat.genre === "limite" && (
+          <div className="etat" data-el="limite-itineraire">
+            <p className="t" role="alert">{etat.motif === "trop_long" ? T.tropLong : T.horsCouverture}</p>
+            <p className="d">{etat.motif === "trop_long" ? T.tropLongDetail : T.horsCouvertureDetail}</p>
+          </div>
+        )}
         {etat.genre === "erreur" && (
           <div className="etat" data-el="calcul-impossible">
             <p className="t" role="alert">{T.calculImpossible}</p>
@@ -74,8 +82,12 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
   const minuteur = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(minuteur.current), []);
 
-  const prix = perso ?? d.moyenne;
-  const cout = prix == null ? null : coutCarburant(e.litres, prix);
+  const repartition = useMemo(() => repartirCouts(e.pays, d.moyennes, perso), [e.pays, d.moyennes, perso]);
+  const multi = e.pays.length > 1;
+  const prix = repartition.lignes[0]?.prix ?? null; // prix affiché dans la plaque : celui du premier pays (le départ)
+  const carburantEuros = repartition.carburant;
+  const cout = coutTotal(carburantEuros, e.peages);
+  const libellePrix = multi ? T.moyennePaysParPays(e.vehicule.carburant) : e.pays[0]?.code === "FR" ? T.moyenneFrance(e.vehicule.carburant) : T.moyennePaysSeul(e.pays[0]?.nom ?? "", e.vehicule.carburant);
   const maxLitres = useMemo(() => Math.max(...e.troncons.map((t) => t.litres), 0.001), [e.troncons]);
 
   const ouvrirEditeur = () => {
@@ -150,7 +162,10 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
             <span className="u" aria-hidden="true">{T.euro}</span>
           </span>
         )}
-        {prix != null && <span className="split" data-el="detail-cout">{T.detailCout(fmt(e.litres, 1), fmt(prix, 3))}</span>}
+        {prix != null && !multi && <span className="split" data-el="detail-cout">{T.detailCout(fmt(e.litres, 1), fmt(prix, 3))}</span>}
+        {carburantEuros != null && e.peages.etat === "ok" && (
+          <span className="split" data-el="repartition-cout">{T.carburantPeages(euros(carburantEuros), euros(e.peages.total))}</span>
+        )}
       </div>
       <div className="kpis" data-el="indicateurs">
         <div className="kpi"><b data-el="kpi-litres">{fmt(e.litres, 1)}</b><span>{T.litres}</span></div>
@@ -159,7 +174,7 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
       </div>
       <div className="price" data-el="prix-perso">
         <div className="l">
-          <span data-el="libelle-prix">{perso != null ? T.monPrix : T.moyenneFrance(e.vehicule.carburant)}</span>
+          <span data-el="libelle-prix">{perso != null ? (multi ? T.monPrixTousPays : T.monPrix) : libellePrix}</span>
           {prix != null && <TotemPrix prix={prix} cleAnim={prix3(prix)} />}
         </div>
         <div className="l">
@@ -200,19 +215,55 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
       </div>
       {e.avertissements.includes("altimetrie_indisponible") && <p className="note" role="status">{T.altiIndispo}</p>}
       {d.historiqueEchec && <p className="note" role="status">{T.sauvegardeHistErreur}</p>}
+      <h2 className="sec">{T.peagesTitre}</h2>
+      <ul className="plist" data-el="detail-peages" data-etat={e.peages.etat}>
+        {e.peages.etat === "ok" && e.peages.lignes.length === 0 && (
+          <li className="pl"><span>{T.aucunPeage}</span><span className="lit">{euros(0)} {T.euro}</span></li>
+        )}
+        {e.peages.etat === "ok" && e.peages.lignes.map((l, i) => (
+          <li className="pl" key={`${l.pays}-${i}`} data-el="ligne-peage">
+            <span><b>{l.pays}</b> {l.libelle}</span>
+            <span className="lit">{l.montant > 0 ? `${euros(l.montant)} ${T.euro}` : T.peageGratuit}</span>
+          </li>
+        ))}
+        {e.peages.etat === "ok" && e.peages.lignes.length > 0 && (
+          <li className="pl tot" data-el="total-peages"><span>{T.peagesTotal}</span><span className="lit">{euros(e.peages.total)} {T.euro}</span></li>
+        )}
+        {e.peages.etat === "indisponible" && (
+          <li className="pl" data-el="peages-indisponibles"><span role="status">{T.peagesIndisponibles}</span><span className="lit">—</span></li>
+        )}
+        {e.peages.vignettes.map((v) => (
+          <li className="pl" key={v.pays} data-el="ligne-vignette"><span><b>{v.pays}</b> {v.libelle}</span></li>
+        ))}
+      </ul>
+      {e.peages.etat === "indisponible" && <p className="note" data-el="peages-indisponibles-detail">{T.peagesIndisponiblesDetail}</p>}
+      <h2 className="sec">{T.paysTitre}</h2>
+      <ul className="plist" data-el="pays-traverses">
+        {repartition.lignes.map((l) => (
+          <li className="pl" key={l.code} data-pays={l.code} data-source={l.source}>
+            <span>
+              <b>{l.code}</b> {l.nom} · {Math.round(l.km)} {T.km} · {l.prix == null ? T.prixAbsent : T.paysLigne2(fmt(l.litres, 1), fmt(l.prix, 3))}
+              {l.source === "ue" && <small className="pl-note" data-el="prix-non-publie"> — {T.prixNonPublie}</small>}
+              {l.source === "estime" && <small className="pl-note"> — {T.prixEstime}</small>}
+            </span>
+            <span className="lit">{l.cout == null ? "—" : `${euros(l.cout)} ${T.euro}`}</span>
+          </li>
+        ))}
+      </ul>
       <h2 className="sec">{T.consommationTitre}</h2>
       <ul className="segs" data-el="troncons">
         {e.troncons.map((t, i) => {
           const nom = libelleType(t.type, t.voies);
           const est = ouvert === i;
           return (
-            <li className="tr" key={t.type} data-troncon={t.type}>
+            <li className="tr" key={`${t.pays ?? ""}-${t.type}-${i}`} data-troncon={t.type}>
               <button id={`troncon-${i}`} type="button" aria-expanded={est} aria-controls={`troncon-${i}-det`} data-el={i === 0 ? "troncon-trajet" : "troncon-trajet-suite"} aria-label={T.tronconLabel(nom, fmt(t.km, 1), fmt(t.litres, 1))} onClick={() => setOuvert(est ? null : i)}>
                 <span className={"tag " + t.type} aria-hidden="true">{nom}</span>
                 <span aria-hidden="true">
                   <span className="tn">
                     {t.voies.length > 0 ? `${t.voies.join(" / ")} · ` : ""}
                     {fmt(t.km, 1)} {T.km}
+                    {multi && t.pays ? ` · ${t.pays}` : ""}
                   </span>
                   <span className="bar"><i style={{ width: `${Math.max(2, (t.litres / maxLitres) * 100)}%` }} /></span>
                 </span>

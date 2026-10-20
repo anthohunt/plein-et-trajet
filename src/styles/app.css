@@ -197,3 +197,32 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 .carlib { margin: 0; font-size: 12px; color: var(--ink); }
 .btn:hover { filter: brightness(1.25); }
 .fld-note { grid-column: 1 / -1; margin: 0; padding: 0 12px 8px; }
+
+/* Jalon 3 : péages, pays traversés */
+.plist { list-style: none; margin: 0; padding: 0 16px 4px; }
+.pl { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.pl b { font-family: var(--f-display); font-size: 13px; letter-spacing: .04em; margin-right: 4px; }
+.pl.tot { font-weight: 600; border-bottom: 0; }
+.pl .lit { font: 600 14px var(--f-digits); white-space: nowrap; }
+.pl-note { display: block; color: var(--muted); font-size: 12px; }
+
+/* S5 Moteurs (administrateur) */
+.topr { display: flex; align-items: center; gap: 10px; }
+.gear { border: 1px solid var(--line); background: transparent; border-radius: 8px; width: 32px; height: 32px; font-size: 16px; line-height: 1; }
+.gear[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.admin { margin-left: auto; font-size: 12px; color: var(--muted); border: 1px dashed var(--line); border-radius: 999px; padding: 3px 10px; }
+.mots { list-style: none; margin: 12px 0 0; padding: 0 16px 8px; display: grid; gap: 10px; }
+.mot { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 8px; }
+.mot h3 { margin: 0; font: 800 18px/1 var(--f-display); text-transform: uppercase; letter-spacing: .03em; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.mot .d { font-size: 13px; color: var(--muted); }
+.mot .r { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.mot select, .mot input { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px; min-width: 0; font-size: 14px; }
+.mot select { flex: 1 1 160px; }
+.mot input { flex: 2 1 180px; font-family: var(--f-digits); }
+.mot button { border: 1px solid var(--line); background: transparent; border-radius: 8px; padding: 8px 10px; font-size: 14px; font-weight: 600; }
+.mot button.save { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.mot button:disabled { opacity: .55; }
+.stt { font: 600 12px var(--f-body); border-radius: 999px; padding: 3px 9px; text-align: right; }
+.stt.ok { background: color-mix(in srgb, var(--cheap) 18%, transparent); color: var(--cheap); }
+.stt.ko { background: color-mix(in srgb, var(--dear) 18%, transparent); color: var(--dear); }
+.stt.wait { background: color-mix(in srgb, var(--muted) 18%, transparent); color: var(--muted); }

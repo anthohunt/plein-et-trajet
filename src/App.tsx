@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { BarreOnglets } from "./components/BarreOnglets";
 import Prix from "./routes/Prix";
 import Trajets from "./routes/Trajets";
+import Moteurs from "./routes/Moteurs";
+import Admin from "./routes/Admin";
+import { useAdmin } from "./lib/admin";
 import { CARBURANTS, type Carburant, type Tri } from "./lib/format";
 import { localiser, type Position } from "./lib/position";
 import { T } from "./lib/textes";
@@ -23,6 +26,9 @@ export default function App() {
   const [position, setPosition] = useState<Position | null>(null);
   const [carburant, setCarburantEtat] = useState<Carburant>(carburantMemorise);
   const [tri, setTri] = useState<Tri>("prix");
+  const { admin } = useAdmin();
+  const nav = useNavigate();
+  const { pathname } = useLocation();
 
   useEffect(() => {
     localiser().then(setPosition);
@@ -45,10 +51,19 @@ export default function App() {
         <h1 className="brand">
           {T.marque} <b>{T.marqueEt}</b> {T.marqueFin}
         </h1>
-        <div className="where" data-el="lieu">{lieu}</div>
+        <div className="topr">
+          <div className="where" data-el="lieu">{lieu}</div>
+          {admin && (
+            <button type="button" className="gear" data-el="bouton-moteurs" aria-label={T.moteursBouton} title={T.moteursTitre} aria-pressed={pathname.startsWith("/moteurs")} onClick={() => nav("/moteurs")}>
+              <span aria-hidden="true">⚙</span>
+            </button>
+          )}
+        </div>
       </header>
       <Routes>
         <Route path="/trajets" element={<Trajets />} />
+        <Route path="/moteurs" element={<Moteurs />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<Prix position={position} carburant={carburant} setCarburant={setCarburant} tri={tri} setTri={setTri} />} />
       </Routes>
       <BarreOnglets />

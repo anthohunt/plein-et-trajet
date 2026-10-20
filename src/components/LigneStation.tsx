@@ -9,9 +9,9 @@ export interface StationAffichee extends Station {
   distanceKm: number;
 }
 
-export function LigneStation({ s, moyenne, carburant, onOuvrir }: { s: StationAffichee; moyenne: number | null; carburant: string; onOuvrir: (s: StationAffichee, el: HTMLElement) => void }) {
+export function LigneStation({ s, moyenne, nomPays, carburant, onOuvrir }: { s: StationAffichee; moyenne: number | null; nomPays?: string; carburant: string; onOuvrir: (s: StationAffichee, el: HTMLElement) => void }) {
   const age = anciennete(s.maj);
-  const e = ecart(s.prix, moyenne);
+  const e = ecart(s.prix, moyenne, nomPays);
   return (
     <li>
       <button type="button" className="row" data-el="ligne-station" data-station={s.id} onClick={(ev) => onOuvrir(s, ev.currentTarget)}>

@@ -1,6 +1,7 @@
 // Lectures Supabase de l'écran Prix et de la fiche station.
 import { supabase } from "./supabase";
 import type { Carburant } from "./format";
+import type { MoyennePays } from "./pays";
 
 export interface Station {
   id: string;
@@ -14,6 +15,7 @@ export interface Station {
   services: string[];
   automate_24_24: boolean;
   distance_km: number;
+  pays?: string;
 }
 
 export interface LignePrix {
@@ -63,4 +65,29 @@ export async function moyenneNationale(carburant: Carburant): Promise<number | n
     .limit(1);
   if (error || !data || data.length === 0) return null;
   return Number(data[0].prix_moyen);
+}
+
+/** rpc/moyennes_par_pays : dernière moyenne connue de chaque pays pour un carburant (France = flux du jour, autres = Bulletin pétrolier UE). */
+export async function moyennesParPays(carburant: Carburant): Promise<Map<string, MoyennePays>> {
+  const { data, error } = await supabase.rpc("moyennes_par_pays", { p_carburant: carburant });
+  if (error || !Array.isArray(data)) throw new Error(error?.message ?? "réponse mal formée");
+  return new Map((data as MoyennePays[]).map((m) => [m.pays, { ...m, prix_moyen: Number(m.prix_moyen) }]));
+}
+
+export interface PaysInfo {
+  code: string;
+  nom: string;
+  flux_stations: boolean;
+}
+/** rest/v1/pays (lecture publique). */
+export async function infoPays(code: string): Promise<PaysInfo | null> {
+  const { data } = await supabase.from("pays").select("code,nom,flux_stations").eq("code", code).maybeSingle();
+  return (data as PaysInfo | null) ?? null;
+}
+
+/** functions/v1/lieux {action:"pays"} : pays d'une position (la France est reconnue sans appel réseau externe). */
+export async function paysDePosition(lat: number, lon: number): Promise<{ code: string; nom: string } | null> {
+  const { data, error } = await supabase.functions.invoke("lieux", { body: { action: "pays", lat, lon } });
+  if (error) return null;
+  return (data as { pays: { code: string; nom: string } | null } | null)?.pays ?? null;
 }
