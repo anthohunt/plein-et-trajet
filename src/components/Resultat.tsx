@@ -234,13 +234,13 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
           <li className="pl tot" data-el="total-peages"><span>{T.peagesTotal}</span><span className="lit">{euros(e.peages.total)} {T.euro}</span></li>
         )}
         {e.peages.etat === "indisponible" && (
-          <li className="pl" data-el="peages-indisponibles"><span role="status">{T.peagesIndisponibles}</span><span className="lit">—</span></li>
+          <li className="pl" data-el="peages-indisponibles"><span role="status">{e.peages.motif === "quota_atteint" ? T.peagesLimiteAtteinte : T.peagesIndisponibles}</span><span className="lit">—</span></li>
         )}
         {e.peages.vignettes.map((v) => (
           <li className="pl" key={v.pays} data-el="ligne-vignette"><span><b>{v.pays}</b> {v.libelle}</span></li>
         ))}
       </ul>
-      {e.peages.etat === "indisponible" && <p className="note" data-el="peages-indisponibles-detail">{T.peagesIndisponiblesDetail}</p>}
+      {e.peages.etat === "indisponible" && <p className="note" data-el="peages-indisponibles-detail">{e.peages.motif === "quota_atteint" ? T.peagesLimiteAtteinteDetail : T.peagesIndisponiblesDetail}</p>}
       <h2 className="sec">{T.paysTitre}</h2>
       <ul className="plist" data-el="pays-traverses">
         {repartition.lignes.map((l) => (
