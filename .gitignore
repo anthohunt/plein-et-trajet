@@ -4,3 +4,7 @@
 node_modules/
 dist/
 tests/e2e/screenshots/
+test-results/
+playwright-report/
+supabase/.temp/
+supabase/.branches/
