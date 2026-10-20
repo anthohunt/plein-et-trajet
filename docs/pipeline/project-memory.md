@@ -1,7 +1,7 @@
-- **Concept** : appli web FR mobile d'abord — prix officiels des stations autour de soi (carte + liste + fiche) et coût d'un trajet (itinéraire IGN en tronçons + modèle physique : WLTP ADEME par phase, arrêts, dénivelé × moyenne nationale du jour, prix perso possible).
-- **Écrans** : S1 Prix, S2 Fiche station, S3 Trajets, S4 Résultat. Deux onglets.
-- **Kit** : spec, plan, tasks, rules vérifiés ; 38 histoires (18 v1 validées + 20 ajoutées) ; couverture UI complète.
-- **Dépôt** : github.com/anthohunt/plein-et-trajet (privé), pushOnEpic.
-- **Déploiement** : Vercel (front) + Supabase dédié (PostGIS, pg_cron, auth anonyme, 3 Edge Functions). Sources sans clé : data.economie.gouv.fr, data.ademe.fr, data.geopf.fr.
-- **Feuille de route** : 2 jalons (Prix autour de moi ; Coût d'un trajet). « Historique et prix perso » fusionné dans le jalon 2 : aucun écran propre.
-- **Hors-périmètre** : GPS, comptes, électrique, aller-retour/partage, multi-voitures, péages.
+- **Concept** : appli web FR mobile d'abord — prix officiels des stations autour de soi et coût d'un trajet (itinéraire IGN en tronçons, conso WLTP ADEME par phase, arrêts, dénivelé).
+- **Prod** : https://plein-et-trajet.vercel.app (Vercel prj_G6FzUAooAuoQRIwMpfACkMVGMFHC, déploiement au push sur main) · Supabase rglrwtkqwihdztgqlbsy (eu-west-3, auth anonyme) · dépôt github.com/anthohunt/plein-et-trajet · secrets dans .env.local (non commité).
+- **Jalon 1 FAIT** (11e7820) : S1 Prix + S2 Fiche. Synchro sync-prix toutes les 10 min (9 815 stations, 35 701 prix, moyennes nationales) ; enseignes récupérées 120 par passage. RPC stations_autour ; carte MapLibre + Plan IGN, pastilles empilées, moitié moins chère vert/orange ; tri, rupture exclue, « non vendu », prix > 48 h atténué, Réessayer, état vide, recentrage, Échap + retour du focus. Carburant mémorisé dans le navigateur.
+- **Tests** : Vitest 24, Playwright 25 sur la prod (tests/e2e/m1-explore.spec.ts) ; seuls E1/E2 simulés. Cas E3/E4 sur vraies stations du jour (échouent si le cas disparaît).
+- **Reste connu** : focus clavier intermittent sur pastilles hors cadre après glisser (MEDIUM) ; Trajets = départ/arrivée seulement.
+- **Rapport** : le générateur standard ne lit pas ce format de cas d'usage → docs/delivery/outils/ (conversion + générateur aux motifs élargis).
+- **Suite** : jalon 2 « Le coût d'un trajet » (voiture ADEME, préférences en base, estimer-trajet, historique), puis jalon 3 « Péages et Europe ».
