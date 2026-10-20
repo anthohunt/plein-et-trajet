@@ -291,12 +291,18 @@ HISTOIRES["US-1.3 — Voir les stations sur la carte"] = async () => {
     return `${ecarts.length} pastilles, chacune à < 3 px de la position réelle de sa station, prix à 3 décimales`;
   }, "chaque station = une pastille à sa position réelle avec son prix");
   const avant = new Set((await lireLignes(p)).map((x) => x.id));
-  // vers l'ouest (Gaillac) : on tire la carte vers la droite, deux fois
-  await glisserCarte(p, 160, 0);
-  await p.waitForTimeout(400);
-  await glisserCarte(p, 160, 0);
-  await p.waitForTimeout(400);
-  await glisserCarte(p, 160, 0, async () => {
+  // vers Gaillac (≈ 20 km à l'ouest) : on tire la carte à la souris, par gestes de ≤ 130 px
+  const GAILLAC = [1.897, 43.9011];
+  const ecart = await p.evaluate((g) => {
+    const m = window.__carte, a = m.project(g), c = m.project(m.getCenter());
+    return { dx: c.x - a.x, dy: c.y - a.y };
+  }, GAILLAC);
+  const n = Math.ceil(Math.max(Math.abs(ecart.dx), Math.abs(ecart.dy)) / 130);
+  for (let i = 0; i < n - 1; i++) {
+    await glisserCarte(p, ecart.dx / n, ecart.dy / n);
+    await p.waitForTimeout(300);
+  }
+  await glisserCarte(p, ecart.dx / n, ecart.dy / n, async () => {
     await capture(p, "US-1.3-03-voir-les-stations-sur-la-carte-avant.png", async () => {
       const c = await centreCarte(p);
       expect(km(c, { lat: ALBI.latitude, lon: ALBI.longitude })).toBeGreaterThan(5);
