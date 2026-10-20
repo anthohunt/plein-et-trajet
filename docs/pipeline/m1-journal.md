@@ -353,3 +353,8 @@ Captures reprises : 1.3-04, E4-01, E4-02, E2-01, E2-02, P1-01 (6 ; md5 inchangé
 • Smoke réel (bibliothèque Playwright, mobile 390x844, géoloc Albi, utilisateur anonyme : l'appli n'a pas de comptes, aucune requête d'auth, accès par clé anon) : liste Prix chargée (7 stations) → Gazole → tri Plus proche → fiche « Esso Express Albi » → « Coût d'un trajet jusqu'ici » → Trajets avec Arrivée « 246 Avenue Colonel Teyssier, 81000 Albi ». **PASS**.
 • Réseau *.supabase.co (aucun /api) : 7 requêtes, toutes 2xx — `POST /rest/v1/rpc/stations_autour` 200 ×2 ; `GET /rest/v1/prix` 200 ×3 ; `GET /rest/v1/moyennes_nationales` 200 ×2. Aucun échec, aucun non-2xx.
 • Captures : `tests/e2e/delivery/m1-deploy-verify-01.png` (liste + carte SP95-E10), `-02.png` (Gazole, Plus proche), `-03.png` (Trajets pré-rempli).
+
+## Annotation & rapport
+- Annotateur : 55/55 captures d'histoires encadrées en rouge (un cadre chacune, coordonnées dans tests/e2e/delivery/m1-annotations.json) ; contrôle du chef sur 2 captures (E4-01, 1.2-02) : cadres justes.
+- Rapport : docs/delivery/m1-delivery-report.html — 19 histoires, 55 étapes, 55 captures intégrées, 0 manquante, commit 7745b20. Le générateur standard ne lit pas le format en liste du cas d'usage ni les identifiants US-1.E1/US-A11Y-001 : rapport produit via une conversion en tableaux et une copie du générateur aux motifs élargis (docs/delivery/outils/). Le cas d'usage d'origine n'est pas modifié.
+- Présentation : le rapport attend les commentaires d'Anthony (boîte de commentaire par étape, bouton « Save comments »).

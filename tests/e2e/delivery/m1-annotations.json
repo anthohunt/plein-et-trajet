@@ -1,0 +1,332 @@
+{
+ "US-1.1-01-ouvrir-les-prix-avant.png": [
+  16,
+  93,
+  357,
+  97
+ ],
+ "US-1.1-02-ouvrir-les-prix-apres.png": [
+  14,
+  100,
+  360,
+  232
+ ],
+ "US-1.1-03-ouvrir-les-prix-avant.png": [
+  340,
+  20,
+  38,
+  22
+ ],
+ "US-1.1-04-ouvrir-les-prix-apres.png": [
+  16,
+  102,
+  356,
+  54
+ ],
+ "US-1.2-01-choisir-mon-carburant-avant.png": [
+  84,
+  53,
+  72,
+  36
+ ],
+ "US-1.2-02-choisir-mon-carburant-apres.png": [
+  16,
+  53,
+  58,
+  36
+ ],
+ "US-1.2-03-choisir-mon-carburant-avant.png": [
+  14,
+  455,
+  358,
+  60
+ ],
+ "US-1.2-04-choisir-mon-carburant-apres.png": [
+  272,
+  53,
+  38,
+  36
+ ],
+ "US-1.3-01-voir-les-stations-sur-la-carte-avant.png": [
+  14,
+  100,
+  360,
+  232
+ ],
+ "US-1.3-02-voir-les-stations-sur-la-carte-apres.png": [
+  148,
+  144,
+  50,
+  34
+ ],
+ "US-1.3-03-voir-les-stations-sur-la-carte-avant.png": [
+  14,
+  100,
+  360,
+  232
+ ],
+ "US-1.3-04-voir-les-stations-sur-la-carte-apres.png": [
+  14,
+  590,
+  358,
+  130
+ ],
+ "US-1.4-01-toucher-une-pastille-avant.png": [
+  14,
+  100,
+  360,
+  232
+ ],
+ "US-1.4-02-toucher-une-pastille-apres.png": [
+  8,
+  433,
+  374,
+  356
+ ],
+ "US-1.4-03-toucher-une-pastille-avant.png": [
+  14,
+  100,
+  360,
+  232
+ ],
+ "US-1.4-04-toucher-une-pastille-apres.png": [
+  14,
+  100,
+  360,
+  232
+ ],
+ "US-1.5-01-trier-la-liste-avant.png": [
+  205,
+  350,
+  82,
+  28
+ ],
+ "US-1.5-02-trier-la-liste-apres.png": [
+  14,
+  388,
+  358,
+  60
+ ],
+ "US-1.5-03-trier-la-liste-avant.png": [
+  292,
+  350,
+  82,
+  28
+ ],
+ "US-1.5-04-trier-la-liste-apres.png": [
+  14,
+  388,
+  358,
+  60
+ ],
+ "US-1.6-01-lire-une-station-dans-la-liste-avant.png": [
+  14,
+  388,
+  358,
+  60
+ ],
+ "US-1.6-02-lire-une-station-dans-la-liste-apres.png": [
+  14,
+  388,
+  358,
+  60
+ ],
+ "US-1.6-03-lire-une-station-dans-la-liste-avant.png": [
+  14,
+  455,
+  358,
+  60
+ ],
+ "US-1.6-04-lire-une-station-dans-la-liste-apres.png": [
+  8,
+  368,
+  374,
+  420
+ ],
+ "US-1.E1-E1-01-declencheur.png": [
+  16,
+  93,
+  357,
+  97
+ ],
+ "US-1.E1-E1-02-resultat.png": [
+  16,
+  405,
+  344,
+  122
+ ],
+ "US-1.E1-E1-03-retour.png": [
+  14,
+  388,
+  358,
+  380
+ ],
+ "US-1.E2-E1-01-declencheur.png": [
+  14,
+  388,
+  358,
+  260
+ ],
+ "US-1.E2-E1-02-resultat.png": [
+  16,
+  418,
+  330,
+  20
+ ],
+ "US-1.E2-E1-03-retour.png": [
+  14,
+  388,
+  358,
+  330
+ ],
+ "US-1.E3-E1-01-declencheur.png": [
+  14,
+  723,
+  358,
+  60
+ ],
+ "US-1.E3-E1-02-resultat.png": [
+  14,
+  723,
+  358,
+  60
+ ],
+ "US-1.E3-E1-03-retour.png": [
+  14,
+  723,
+  358,
+  60
+ ],
+ "US-1.E4-E1-01-declencheur.png": [
+  16,
+  472,
+  357,
+  150
+ ],
+ "US-1.E4-E1-02-resultat.png": [
+  14,
+  386,
+  358,
+  806
+ ],
+ "US-1.E4-E1-03-retour.png": [
+  14,
+  522,
+  358,
+  64
+ ],
+ "US-1.P1-01-recentrer-sur-ma-position-avant.png": [
+  14,
+  386,
+  358,
+  62
+ ],
+ "US-1.P1-02-recentrer-sur-ma-position-apres.png": [
+  14,
+  100,
+  360,
+  232
+ ],
+ "US-2.1-01-fermer-la-fiche-avant.png": [
+  8,
+  350,
+  374,
+  438
+ ],
+ "US-2.1-02-fermer-la-fiche-apres.png": [
+  16,
+  53,
+  56,
+  36
+ ],
+ "US-2.2-01-calculer-un-trajet-vers-la-station-avant.png": [
+  15,
+  733,
+  358,
+  48
+ ],
+ "US-2.2-02-calculer-un-trajet-vers-la-station-apres.png": [
+  86,
+  140,
+  288,
+  50
+ ],
+ "US-2.E1-E1-01-declencheur.png": [
+  14,
+  388,
+  358,
+  60
+ ],
+ "US-2.E1-E1-02-resultat.png": [
+  18,
+  600,
+  355,
+  16
+ ],
+ "US-2.E1-E1-03-retour.png": [
+  14,
+  388,
+  358,
+  60
+ ],
+ "US-A11Y-001-01-m1.png": [
+  208,
+  174,
+  54,
+  32
+ ],
+ "US-A11Y-001-02-m1.png": [
+  8,
+  663,
+  372,
+  72
+ ],
+ "US-A11Y-002-01-m1.png": [
+  8,
+  368,
+  374,
+  418
+ ],
+ "US-A11Y-002-02-m1.png": [
+  8,
+  520,
+  372,
+  70
+ ],
+ "US-A11Y-003-01-m1.png": [
+  8,
+  350,
+  374,
+  438
+ ],
+ "US-A11Y-003-02-m1.png": [
+  6,
+  386,
+  376,
+  70
+ ],
+ "US-A11Y-004-01-m1.png": [
+  206,
+  203,
+  54,
+  28
+ ],
+ "US-A11Y-004-02-m1.png": [
+  8,
+  350,
+  374,
+  438
+ ],
+ "US-PERF-001-01-m1.png": [
+  12,
+  90,
+  366,
+  640
+ ],
+ "US-PERF-001-02-m1.png": [
+  14,
+  388,
+  358,
+  335
+ ]
+}
