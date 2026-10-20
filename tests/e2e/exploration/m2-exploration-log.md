@@ -341,3 +341,18 @@ Identités : chaque contexte de navigateur crée sa propre session anonyme Supab
 - Captures écrites : 61 ; en échec : 0.
 - Fichiers M2 présents dans delivery/ : 61 ; doublons d'octets (md5) : aucun.
 - Erreurs console / page observées pendant la passe : aucune.
+
+## Round 2 — corrections de l'audit (commit déployé a6126b7)
+
+Captures reprises (passe complète rejouée sur la prod, 61/61 ✓, 0 doublon md5) :
+- **US-PERF-001-01/-02** : désormais l'écran d'ouverture Prix. -01 = appli ouverte en 4G simulée (en-tête affiché, liste « Chargement des prix… ») ; -02 = liste des stations affichée avec la durée mesurée (bandeau « liste des stations affichée en 632 ms (7 stations ; budget 2 500 ms) »). Le temps de Trajets (formulaire + marques + historique) est mesuré à côté et noté en complément (non photographié).
+- **US-A11Y-002-01/-02** : preuve sur la VRAIE fiche station (focus sur son titre à l'ouverture au clavier ; retour du focus sur la ligne à la fermeture par Échap). La même règle sur S4 reste vérifiée par assertions (et par l'extrait US-A11Y-002).
+- **US-A11Y-001-01/-02** : l'ordre de tabulation est relevé pendant la passe au clavier et affiché en pastilles numérotées (surcouche de test orange, signalée dans la légende et retirée après la photo) : S3 de 1 Départ à 10 onglet Trajets, S4 de 1 Mettre mon prix à 5 onglet Trajets.
+- **US-3.E3-E1-01** : écran Trajets avec l'historique vide dès la précondition (plus l'écran Prix).
+- **US-3.P2-02** : « Marque mémorisée » visible dès le choix de la marque ; le libellé complet de la motorisation s'affiche aussi sous les sélecteurs (US-3.4-02/03/04, P2-01).
+- **US-3.4-03** : prise après un aller-retour Prix → Trajets (écran recréé, voiture restaurée depuis `preferences`) ; **US-3.4-04** : après rechargement, focus clavier sur Départ ; **US-3.7-02** : annotation « page rechargée (F5) … 1 seul trajet revient de la base » ; **US-4.E2-E1-03** : retour au coût d'origine 40,78 € (saisie 12 refusée, 1,699 appliqué, « Revenir à la moyenne »).
+
+Autres corrections (non photographiées) : bi-carburation ESS+G.P.L. chiffrée au carburant de chaque ligne (essence → SP95-E10, GPL → GPLc, libellés « · essence » / « · GPL » ; réimport : 550 véhicules, Clio : 67 kW essence 5,40 L/100 en SP95-E10 et 74 kW GPL 7,00 L/100 en GPLc ; le réimport ne supprimait pas les anciennes lignes au-delà de 1 000 lignes lues, corrigé) ; Albi → Albi : message « Le départ et l'arrivée sont le même lieu… » (extrait US-4.E1) ; rejouer une ligne sans voiture : message (extrait US-3.6, ligne mise à `vehicule_id = null` par REST avec la session de l'identité de test) ; propositions de lieux : une reprise et message « Propositions indisponibles… » si le service IGN est injoignable.
+
+Tests rejoués : Vitest 80/80, `vite build` 0 erreur, extraits m2 sur la prod **61/61** (1re passe de round 2 : 60/61, un échec intermittent du géocodeur IGN sans proposition, corrigé par la reprise ci-dessus), régression m1 **25/25**.
+Limite d'inscriptions anonymes du projet Supabase : **remise à 30 par heure** (valeur d'origine) à la fin de l'exploration (vérifiée par l'API).
