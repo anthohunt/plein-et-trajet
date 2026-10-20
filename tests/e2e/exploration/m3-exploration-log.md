@@ -90,3 +90,10 @@ Aucune capture du dernier passage n'est identique à une autre (le script le sig
 ### Limites connues
 - Albi → Barcelone : PTV ne renvoie pas de section pour l'AP-7 espagnole dans cette requête ; seuls les péages français (29,00 € TTC) sont comptés — signalé, non inventé.
 - Stadia et FOSSGIS ne calculent pas toujours le même itinéraire (Milan 861 km chez Stadia contre 950 chez FOSSGIS) : seuils des tests élargis.
+
+## Round 3
+
+Entrées écrites au fil de l'eau (une par histoire ou correctif), horodatées UTC.
+
+- 20:58Z — Les 6 échecs M2 non expliqués du dernier passage (US-3.P2, US-A11Y-002 ×2, US-A11Y-003 ×2, US-A11Y-004) : rejoués 3 fois chacun (12 tests, `--repeat-each=3`) = 34 verts sur 36 ; les 2 échecs sont les deux derniers tests de la 3e série (US-A11Y-004 S4 et erreurs) : la liste « Marque » ne s'ouvre pas. À ce moment 31 identités anonymes avaient été créées en 10 minutes (relevé SQL : 236 sur l'heure) alors que la limite d'inscriptions anonymes était à 30 par heure et par IP : cet échec reproductible est l'épuisement de la limite, pas un défaut de l'appli. Pour le passage complet précédent (limite alors à 300) la cause n'est pas prouvée ; le passage complet final de ce round se fait limite relevée à 300 (relue) puis remise à 30 (relue).
+- 20:58Z — Échec « 0,375 contre < 0,06 » (US-4.2 bornes) : le total affiché inclut les péages réels PTV (1,5 € ÷ 4 €/L = 0,375 L d'écart, exactement) ; US-3.5, US-3.6 et US-4.2 (×2) comparent maintenant le coût CARBURANT (total moins péages), commentaire « US-4.4 : le total inclut les péages depuis le jalon 3 », commit séparé « test(m2) » ; 8 tests verts après modification.
