@@ -86,7 +86,13 @@ export function FicheStation({ station, onFermer, onTrajet }: Props) {
         </div>
       )}
       <div className="meta" data-el="fiche-meta">
-        {derniereMaj && <span>{T.majPrix(anciennete(derniereMaj).texte)}</span>}
+        {derniereMaj && (
+          <span data-el="fiche-maj">
+            {anciennete(derniereMaj).ancien
+              ? T.majPrixAncienne(new Date(derniereMaj).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }))
+              : T.majPrix(anciennete(derniereMaj).texte)}
+          </span>
+        )}
         {services.length > 0 && <span>{services.slice(0, 5).join(" · ")}</span>}
         {station.nom && <span>{station.nom}</span>}
       </div>

@@ -28,6 +28,7 @@ export const T = {
   nonVendu: "non vendu",
   rupture: "rupture",
   majPrix: (age: string) => `Prix mis à jour ${age}`,
+  majPrixAncienne: (jjmm: string) => `Derniers prix déclarés le ${jjmm}`,
   trajetJusquIci: "Coût d'un trajet jusqu'ici",
   ficheErreur: "Impossible de charger les prix de cette station.",
   vsFrance: "vs France",
