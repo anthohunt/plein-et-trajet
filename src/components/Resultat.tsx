@@ -71,6 +71,8 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
   const [ouvert, setOuvert] = useState<number | null>(null);
   const champ = useRef<HTMLInputElement>(null);
   const boutonPrix = useRef<HTMLButtonElement>(null);
+  const minuteur = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(minuteur.current), []);
 
   const prix = perso ?? d.moyenne;
   const cout = prix == null ? null : coutCarburant(e.litres, prix);
@@ -81,30 +83,43 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
     requestAnimationFrame(() => champ.current?.focus());
   };
   const revenir = () => {
+    window.clearTimeout(minuteur.current);
     setPerso(null);
     setSaisie("");
     setErreurPrix(false);
     setEditeur(false);
     requestAnimationFrame(() => boutonPrix.current?.focus());
   };
+  // Le prix saisi n'est appliqué qu'une fois la frappe posée (Entrée, sortie du champ ou 0,45 s sans touche) :
+  // taper « 12 » ne passe pas par « 1 » ; une saisie refusée laisse le coût tel qu'il était.
   const surSaisie = (v: string) => {
     setSaisie(v);
+    window.clearTimeout(minuteur.current);
     if (v.trim() === "") {
       setErreurPrix(false);
       return;
     }
     const r = validerPrix(v);
-    if (r.ok) {
-      setPerso(r.valeur);
-      setErreurPrix(false);
-    } else {
-      setErreurPrix(true); // le coût reste celui d'avant
+    if (!r.ok) {
+      setErreurPrix(true);
+      return;
     }
+    setErreurPrix(false);
+    minuteur.current = window.setTimeout(() => setPerso(r.valeur), 450);
+  };
+  const appliquerMaintenant = () => {
+    window.clearTimeout(minuteur.current);
+    const r = validerPrix(saisie);
+    if (saisie.trim() !== "" && r.ok) setPerso(r.valeur);
   };
   const toucheChamp = (ev: KeyboardEvent<HTMLInputElement>) => {
-    if (ev.key === "Escape") {
+    if (ev.key === "Enter") {
+      ev.preventDefault();
+      appliquerMaintenant();
+    } else if (ev.key === "Escape") {
       ev.preventDefault();
       ev.stopPropagation();
+      window.clearTimeout(minuteur.current);
       setErreurPrix(false);
       setSaisie(perso != null ? fmt(perso, 3) : "");
       if (perso == null) setEditeur(false);
@@ -148,7 +163,13 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
           {prix != null && <TotemPrix prix={prix} cleAnim={prix3(prix)} />}
         </div>
         <div className="l">
-          <button ref={boutonPrix} className="link" type="button" data-el={perso != null ? "revenir-moyenne" : "mettre-mon-prix"} aria-expanded={perso == null ? editeur : undefined} onClick={() => (perso != null ? revenir() : editeur ? setEditeur(false) : ouvrirEditeur())}>
+          <button ref={boutonPrix} className="link" type="button" data-el={perso != null ? "revenir-moyenne" : "mettre-mon-prix"} aria-expanded={perso == null ? editeur : undefined} onClick={() => {
+            if (perso != null) revenir();
+            else if (editeur) {
+              window.clearTimeout(minuteur.current);
+              setEditeur(false);
+            } else ouvrirEditeur();
+          }}>
             {perso != null ? T.revenirMoyenne : T.mettreMonPrix}
           </button>
           {editeur && (
@@ -165,6 +186,7 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
                 aria-invalid={erreurPrix || undefined}
                 aria-describedby={erreurPrix ? "perso-erreur" : undefined}
                 onChange={(ev) => surSaisie(ev.target.value)}
+                onBlur={appliquerMaintenant}
                 onKeyDown={toucheChamp}
               />
             </span>

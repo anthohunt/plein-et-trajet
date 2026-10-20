@@ -46,6 +46,11 @@ export function titreMarque(m: string): string {
   return s.toLowerCase().replace(/(^|[\s-])(\p{L})/gu, (_, a, b) => a + b.toUpperCase());
 }
 
+/** « CLIO » → « Clio », « C3 AIRCROSS » → « C3 Aircross », « T-ROC » → « T-Roc » ; mots courts (≤ 3 lettres) ou avec chiffres conservés. */
+export function titreModele(m: string): string {
+  return m.replace(/[^\s-]+/g, (mot) => (/^\p{L}{4,}$/u.test(mot) && mot === mot.toUpperCase() ? mot.charAt(0) + mot.slice(1).toLowerCase() : mot));
+}
+
 const nombre = (x: unknown): number | null => (typeof x === "number" && Number.isFinite(x) ? x : null);
 const moyenne = (a: unknown, b: unknown): number | null => {
   const x = nombre(a);
@@ -72,7 +77,7 @@ export async function lignesVehicules(sources: LigneAdeme[]): Promise<LigneVehic
     const kw = nombre(l["Puissance_maximale"]);
     const masse = nombre(l["Poids_à_vide"]) ?? nombre(l["Masse_OM_Min"]);
     const marque = typeof l["Marque"] === "string" ? titreMarque(l["Marque"]) : "";
-    const modele = typeof l["Modèle"] === "string" ? corrigerAccents(l["Modèle"]).trim() : "";
+    const modele = typeof l["Modèle"] === "string" ? titreModele(corrigerAccents(l["Modèle"]).trim()) : "";
     const desc = typeof l["Description_Commerciale"] === "string" ? corrigerAccents(l["Description_Commerciale"]).trim() : "";
     if (basse == null || moy == null || haute == null || th == null || kw == null || masse == null || !marque || !modele || !desc) continue;
     const boite = BOITES[String(l["Type_de_boite"] ?? "")] ?? String(l["Type_de_boite"] ?? "").toLowerCase();

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { coutCarburant, dateCourte, euros, libelleType, ordreMotorisations, validerPrix } from "../../src/lib/calcul";
-import { lignesVehicules, titreMarque, corrigerAccents } from "../../supabase/functions/_shared/ademe";
+import { lignesVehicules, titreMarque, titreModele, corrigerAccents } from "../../supabase/functions/_shared/ademe";
 
 describe("prix perso (US-4.2, US-4.E2)", () => {
   it.each([
@@ -87,5 +87,17 @@ describe("import ADEME → vehicules", () => {
     expect(titreMarque("PEUGEOT")).toBe("Peugeot");
     expect(corrigerAccents("220i Gran CoupÃ©")).toBe("220i Gran Coupé");
     expect(corrigerAccents("Coupé")).toBe("Coupé");
+  });
+  it("modèles en casse lisible, sigles et références conservés", () => {
+    expect(titreModele("CLIO")).toBe("Clio");
+    expect(titreModele("SANDERO")).toBe("Sandero");
+    expect(titreModele("C3 AIRCROSS")).toBe("C3 Aircross");
+    expect(titreModele("T-ROC")).toBe("T-ROC"); // mots de 3 lettres ou moins conservés
+    expect(titreModele("CR-V")).toBe("CR-V");
+    expect(titreModele("GRAND SCENIC")).toBe("Grand Scenic");
+    expect(titreModele("208")).toBe("208");
+    expect(titreModele("MX-30")).toBe("MX-30");
+    expect(titreModele("Série 3")).toBe("Série 3");
+    expect(titreModele("ID.BUZZ")).toBe("ID.BUZZ");
   });
 });

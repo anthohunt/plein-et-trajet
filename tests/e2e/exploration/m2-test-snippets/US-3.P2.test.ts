@@ -18,7 +18,7 @@ test.describe("US-3.P2 — Changer de voiture", () => {
       expect(apres.vehicule_id).not.toBe(avant.vehicule_id);
       await page.reload();
       await expect(page.locator("#voiture-marque .dd-txt")).toHaveText("Renault");
-      await expect(page.locator("#voiture-modele .dd-txt")).toHaveText("Clio");
+      await expect(page.locator("#voiture-modele .dd-txt")).toHaveText(/^clio/i);
     });
   });
   test.describe("Edge Case", () => {

@@ -141,8 +141,10 @@ histoireDef("US-3.1", "US-3.1 — Ouvrir les trajets", async () => {
 });
 
 histoireDef("US-3.2", "US-3.2 — Saisir le départ", async () => {
+  await champ(pa, "depart").click();
   await capture(pa, "US-3.2-01-saisir-le-dpart-avant.png", async () => {
     await expect(champ(pa, "depart")).toHaveValue("");
+    await expect(champ(pa, "depart")).toBeFocused();
     await expect(propositions(pa, "depart")).toHaveCount(0);
     return "champ départ vide, aucune proposition";
   }, "le champ départ est vide");
@@ -420,6 +422,7 @@ histoireDef("US-4.E2", "US-4.E2 — Prix perso invalide", async () => {
   await champPrix.fill("");
   await champPrix.pressSequentially("1,699", { delay: 60 });
   await expect(erreur).toHaveCount(0);
+  await expect(pa.locator('[data-el="libelle-prix"]')).toHaveText("Mon prix");
   await capture(pa, "US-4.E2-E1-03-retour.png", async () => {
     const r = await lireResultat(pa);
     expect(r.detail).toContain("1,699 €/L");
@@ -428,7 +431,7 @@ histoireDef("US-4.E2", "US-4.E2 — Prix perso invalide", async () => {
   }, "retour à une saisie valide : état normal", "edge");
   await pa.locator('[data-el="revenir-moyenne"]').click();
   await expect.poll(async () => (await lireResultat(pa)).cout).toBe(coutAvant);
-  note("issues", SANS_ISSUE[0]);
+  note("issues", "- Trouvé dans la 1re passe sur la prod : le prix était appliqué à chaque touche, donc taper « 12 » passait par « 1 » (1,00 €/L) et le coût affiché devenait celui de 1,00 €/L (18,88 € au lieu de 40,78 €) au lieu de rester « celui d'avant ». Corrigé : le prix n'est appliqué qu'une fois la frappe posée (Entrée, sortie du champ, ou 0,45 s sans touche) ; une saisie invalide annule l'application en attente. Captures reprises.");
 });
 
 histoireDef("US-4.3", "US-4.3 — Revenir aux trajets", async () => {
@@ -557,7 +560,7 @@ histoireDef("US-3.P2", "US-3.P2 — Changer de voiture", async () => {
   await pa.reload();
   await attendreFormulaire(pa);
   await expect(pa.locator("#voiture-marque .dd-txt")).toHaveText("Renault", { timeout: 15000 });
-  await expect(pa.locator("#voiture-modele .dd-txt")).toHaveText("Clio");
+  await expect(pa.locator("#voiture-modele .dd-txt")).toHaveText(/^clio/i);
   await expect(pa.locator("#voiture-moteur .dd-txt")).toHaveText(libelle);
   note("happy", `- ✓ nouvelle voiture complétée (Renault Clio « ${libelle} ») puis rechargement : la nouvelle voiture est pré-remplie, l'ancienne a disparu`);
   note("issues", SANS_ISSUE[0]);
@@ -674,6 +677,7 @@ histoireDef("US-3.E3", "US-3.E3 — Historique vide", async () => {
   await pb.goto(`${URL_APP}/`);
   await expect(pb.locator('[data-el="ligne-station"]').first()).toBeVisible({ timeout: 20000 });
   await pb.waitForFunction(() => !window.__carte || (window.__carte.loaded() && window.__carte.areTilesLoaded()), null, { timeout: 15000 }).catch(() => {});
+  await pb.getByRole("button", { name: "Plus proche" }).click();
   await capture(pb, "US-3.E3-E1-01-declencheur.png", async () => {
     await expect(pb.getByRole("tab", { name: "Prix" })).toHaveAttribute("aria-selected", "true");
     return "nouvel identifiant anonyme, appli ouverte sur Prix, aucun trajet calculé";

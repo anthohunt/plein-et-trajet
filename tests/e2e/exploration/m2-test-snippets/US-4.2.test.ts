@@ -27,9 +27,10 @@ test.describe("US-4.2 — Mettre mon propre prix", () => {
       const c = page.locator('[data-el="champ-prix-perso"]');
       await c.fill("4,00");
       await expect(page.locator('[data-el="erreur-prix-perso"]')).toHaveCount(0);
-      expect(Math.abs((await lireResultat(page)).cout - r0.litres * 4)).toBeLessThan(0.1);
+      await expect(page.locator('[data-el="libelle-prix"]')).toHaveText("Mon prix");
+      await expect.poll(async () => Math.abs((await lireResultat(page)).cout - r0.litres * 4)).toBeLessThan(0.1);
       await c.fill("0,50");
-      expect(Math.abs((await lireResultat(page)).cout - r0.litres * 0.5)).toBeLessThan(0.1);
+      await expect.poll(async () => Math.abs((await lireResultat(page)).cout - r0.litres * 0.5)).toBeLessThan(0.1);
       await page.locator('[data-el="retour-trajets"]').click();
       await expect(page.locator('[data-el="liste-historique"] .c').first()).toHaveText(`${virgule(r0.cout)} €`);
     });
