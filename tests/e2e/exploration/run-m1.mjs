@@ -68,6 +68,8 @@ async function capture(page, nom, verif, description) {
     ok = false;
     detail = String(e.message).split("\n").slice(0, 3).join(" ");
   }
+  // laisser finir les animations en cours (feuille montante, défilement des chiffres) avant la photo
+  await page.evaluate(() => Promise.race([Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {}))), new Promise((r) => setTimeout(r, 1500))]));
   await page.screenshot({ path: path.join(LIVRAISON, nom) });
   resultats.push({ nom, ok });
   note(`- ${ok ? "✓" : "✗"} \`${nom}\` — ${description}${detail ? ` — ${detail}` : ""}`);
@@ -368,12 +370,12 @@ HISTOIRES["US-1.5 — Trier la liste"] = async () => {
   const p = await ctx.newPage();
   await ouvrirPrix(p);
   await capture(p, "US-1.5-01-trier-la-liste-avant.png", async () => {
-    await expect(p.getByRole("button", { name: "Moins cher" })).toHaveAttribute("aria-pressed", "true");
+    await expect(p.getByRole("button", { name: "Moins cher", exact: true })).toHaveAttribute("aria-pressed", "true");
     const l = await lireLignes(p);
     expect(croissant(l.map((x) => x.prix))).toBe(true);
     return `tri prix : ${l.map((x) => x.prix.toFixed(3)).join(" ≤ ")}`;
   }, "liste triée par prix");
-  await p.getByRole("button", { name: "Plus proche" }).click();
+  await p.getByRole("button", { name: "Plus proche", exact: true }).click();
   await capture(p, "US-1.5-02-trier-la-liste-apres.png", async () => {
     await expect(p.locator('[data-el="liste-stations"]')).toHaveAttribute("data-tri", "distance");
     const l = await lireLignes(p);
@@ -383,10 +385,10 @@ HISTOIRES["US-1.5 — Trier la liste"] = async () => {
   note("\n### Edge case — retour au tri par prix");
   await p.locator('[data-el="liste-stations"]').evaluate((e) => e.closest(".scroll").scrollTo(0, 0));
   await capture(p, "US-1.5-03-trier-la-liste-avant.png", async () => {
-    await expect(p.getByRole("button", { name: "Plus proche" })).toHaveAttribute("aria-pressed", "true");
+    await expect(p.getByRole("button", { name: "Plus proche", exact: true })).toHaveAttribute("aria-pressed", "true");
     return "tri par distance actif";
   }, "tri par distance");
-  await p.getByRole("button", { name: "Moins cher" }).click();
+  await p.getByRole("button", { name: "Moins cher", exact: true }).click();
   await capture(p, "US-1.5-04-trier-la-liste-apres.png", async () => {
     await expect(p.locator('[data-el="liste-stations"]')).toHaveAttribute("data-tri", "prix");
     const l = await lireLignes(p);

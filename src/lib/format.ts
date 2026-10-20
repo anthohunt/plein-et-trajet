@@ -92,3 +92,36 @@ export function nomStation(s: { enseigne?: string | null; nom?: string | null; v
   if (s.nom) return s.nom;
   return ville ? `Station ${ville}` : "Station";
 }
+
+const PETITS = new Set(["de", "des", "du", "la", "le", "les", "et", "d", "l", "en", "sur", "a", "au", "aux"]);
+/** « RELAIS DES FONTANELLES » → « Relais des Fontanelles » (seulement si le texte est tout en majuscules). */
+export function casseTitre(t: string): string {
+  if (t !== t.toUpperCase()) return t;
+  return t
+    .toLowerCase()
+    .split(/(\s+|-|')/)
+    .map((m, i) => (i > 0 && PETITS.has(m) ? m : m.charAt(0).toUpperCase() + m.slice(1)))
+    .join("");
+}
+
+/**
+ * Libellés affichés, sans doublon : deux stations au même libellé « enseigne + ville »
+ * sont distinguées par leur nom officiel (ou, à défaut, leur adresse).
+ */
+export function libellesStations<S extends { id: string; enseigne?: string | null; nom?: string | null; ville?: string | null; adresse?: string | null }>(
+  stations: S[],
+): Map<string, string> {
+  const base = new Map(stations.map((s) => [s.id, nomStation(s)]));
+  const compte = new Map<string, number>();
+  for (const v of base.values()) compte.set(v, (compte.get(v) ?? 0) + 1);
+  const out = new Map<string, string>();
+  for (const s of stations) {
+    const b = base.get(s.id)!;
+    if ((compte.get(b) ?? 0) < 2) out.set(s.id, b);
+    else {
+      const precision = s.nom && s.nom !== b ? casseTitre(s.nom) : s.adresse ? casseTitre(s.adresse) : s.id;
+      out.set(s.id, `${b} · ${precision}`);
+    }
+  }
+  return out;
+}

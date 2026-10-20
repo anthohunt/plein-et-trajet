@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { nomStation, prix3 } from "../lib/format";
+import { prix3 } from "../lib/format";
 import { T } from "../lib/textes";
 import type { StationAffichee } from "./LigneStation";
 
@@ -57,6 +57,8 @@ export default function CarteStations({ position, stations, selection, recentrag
       },
     });
     map.touchZoomRotate.disableRotation();
+    // crédits repliés derrière le bouton « i » pour ne pas couvrir les pastilles
+    map.once("load", () => conteneur.current?.querySelector(".maplibregl-ctrl-attrib")?.classList.remove("maplibregl-compact-show"));
     map.getCanvas().setAttribute("aria-label", T.carteStations);
     map.on("moveend", (e) => {
       // seulement les déplacements de l'utilisateur (glisser, zoom, clavier), pas les recentrages programmés
@@ -104,7 +106,7 @@ export default function CarteStations({ position, stations, selection, recentrag
       b.dataset.el = "pastille-station";
       b.dataset.station = s.id;
       b.dataset.moitie = s.moitie;
-      const label = `${nomStation(s)}, ${prix3(s.prix)} euros le litre, ${s.moitie === "lo" ? T.legendeBas : T.legendeHaut}`;
+      const label = `${s.libelle}, ${prix3(s.prix)} euros le litre, ${s.moitie === "lo" ? T.legendeBas : T.legendeHaut}`;
       b.setAttribute("aria-label", label);
       b.textContent = prix3(s.prix);
       b.addEventListener("click", (ev) => {

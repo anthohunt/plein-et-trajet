@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { anciennete, distance, ecart, moitie, nomStation, partiesPrix, prix3, seuilMoitie, trier } from "../../src/lib/format";
+import { anciennete, casseTitre, distance, ecart, libellesStations, moitie, nomStation, partiesPrix, prix3, seuilMoitie, trier } from "../../src/lib/format";
 
 describe("prix à trois décimales", () => {
   it("formate avec virgule et trois décimales", () => {
@@ -97,5 +97,22 @@ describe("nom de station", () => {
   it("repli sur nom puis ville", () => {
     expect(nomStation({ nom: "RELAIS", ville: "Albi" })).toBe("RELAIS");
     expect(nomStation({ ville: "Albi" })).toBe("Station Albi");
+  });
+});
+
+describe("libellés sans doublon", () => {
+  it("deux stations « TotalEnergies Albi » sont distinguées par leur nom officiel", () => {
+    const l = libellesStations([
+      { id: "1", enseigne: "TotalEnergies", ville: "Albi", nom: "RELAIS DES FONTANELLES" },
+      { id: "2", enseigne: "TotalEnergies", ville: "Albi", nom: "AUTO 81 SARL" },
+      { id: "3", enseigne: "Esso Express", ville: "Albi", nom: "ESSO DU STADE ALBI" },
+    ]);
+    expect(l.get("1")).toBe("TotalEnergies Albi · Relais des Fontanelles");
+    expect(l.get("2")).toBe("TotalEnergies Albi · Auto 81 Sarl");
+    expect(l.get("3")).toBe("Esso Express Albi");
+  });
+  it("casse de titre seulement pour les majuscules", () => {
+    expect(casseTitre("ROUTE DE CORDES")).toBe("Route de Cordes");
+    expect(casseTitre("Carrefour Contact")).toBe("Carrefour Contact");
   });
 });

@@ -1,8 +1,9 @@
-import { anciennete, distance, ecart, nomStation } from "../lib/format";
+import { anciennete, distance, ecart } from "../lib/format";
 import type { Station } from "../lib/donnees";
 import { TotemPrix } from "./TotemPrix";
 
 export interface StationAffichee extends Station {
+  libelle: string;
   prix: number;
   maj: string | null;
   distanceKm: number;
@@ -15,7 +16,7 @@ export function LigneStation({ s, moyenne, carburant, onOuvrir }: { s: StationAf
     <li>
       <button type="button" className="row" data-el="ligne-station" data-station={s.id} onClick={(ev) => onOuvrir(s, ev.currentTarget)}>
         <span>
-          <span className="n">{nomStation(s)}</span>
+          <span className="n">{s.libelle}</span>
           <span className="m">
             {distance(s.distanceKm)} · <span className={age.ancien ? "ancien" : undefined} data-el="anciennete">{age.texte}</span>
             {e && (

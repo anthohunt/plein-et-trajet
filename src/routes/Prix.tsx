@@ -5,7 +5,7 @@ import { SelecteurCarburant } from "../components/SelecteurCarburant";
 import { LigneStation, type StationAffichee } from "../components/LigneStation";
 import { FicheStation } from "../components/FicheStation";
 import type { Zone } from "../components/CarteStations";
-import { distanceKm, moitie, seuilMoitie, trier, type Carburant, type Tri } from "../lib/format";
+import { distanceKm, libellesStations, moitie, seuilMoitie, trier, type Carburant, type Tri } from "../lib/format";
 import { moyenneNationale, prixCarburant, stationsAutour, type Station } from "../lib/donnees";
 import type { Position } from "../lib/position";
 import { T } from "../lib/textes";
@@ -74,10 +74,11 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
   const affichees = useMemo(() => {
     if (etat === "erreur" || !stations || !prix || prix.carburant !== carburant || !position) return [];
     const l: StationAffichee[] = [];
-    for (const s of stations) {
-      const p = prix.parStation.get(s.id);
-      if (!p) continue; // carburant non vendu ou en rupture : absente de la carte et de la liste
-      l.push({ ...s, prix: p.prix, maj: p.maj, distanceKm: distanceKm(position, s) });
+    const vendues = stations.filter((s) => prix.parStation.has(s.id)); // non vendu ou en rupture : absente de la carte et de la liste
+    const libelles = libellesStations(vendues);
+    for (const s of vendues) {
+      const p = prix.parStation.get(s.id)!;
+      l.push({ ...s, libelle: libelles.get(s.id)!, prix: p.prix, maj: p.maj, distanceKm: distanceKm(position, s) });
     }
     return l;
   }, [etat, stations, prix, position, carburant]);

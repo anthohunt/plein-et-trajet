@@ -1,6 +1,6 @@
 // Fiche station (S2) : feuille montante, tous les carburants ou « non vendu », focus et Échap.
 import { useEffect, useRef, useState } from "react";
-import { CARBURANTS, anciennete, distance, nomStation } from "../lib/format";
+import { CARBURANTS, anciennete, distance } from "../lib/format";
 import { prixStation, type LignePrix } from "../lib/donnees";
 import { T } from "../lib/textes";
 import { TotemPrix } from "./TotemPrix";
@@ -22,7 +22,7 @@ export function FicheStation({ station, onFermer, onTrajet }: Props) {
   const [erreur, setErreur] = useState(false);
 
   useEffect(() => {
-    titre.current?.focus();
+    titre.current?.focus({ preventScroll: true });
   }, [station.id]);
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export function FicheStation({ station, onFermer, onTrajet }: Props) {
       <div className="sh-head">
         <div>
           <h3 className="sh-name" id="sh-name" tabIndex={-1} ref={titre}>
-            {nomStation(station)}
+            {station.libelle}
           </h3>
           <div className="meta" data-el="fiche-adresse">
             <span>{adresseComplete(station)}</span>
