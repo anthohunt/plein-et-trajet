@@ -1,12 +1,12 @@
 import { defineConfig } from "@playwright/test";
 
-// Specs consolidées des jalons 1 et 2, jouées contre l'appli déployée (base réelle).
+// Specs consolidées des jalons 1 et 2 et extraits du jalon 3 (un fichier par histoire), joués contre l'appli déployée (base réelle).
 export default defineConfig({
   testDir: "tests/e2e",
-  testMatch: /m[12]-explore\.spec\.ts$/,
+  testMatch: /(m[12]-explore\.spec|m3-test-snippets\/US-[^/]+\.test)\.ts$/,
   timeout: 60_000,
   expect: { timeout: 15_000 },
-  workers: 2,
+  workers: 1, // jalon 3 : les histoires qui modifient la table moteurs ne tournent jamais en parallèle d'un calcul de trajet
   reporter: [["list"]],
   use: {
     baseURL: process.env.APP_URL ?? "https://plein-et-trajet.vercel.app",

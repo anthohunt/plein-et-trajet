@@ -37,7 +37,7 @@ export function ChampLieu({ id, etiquette, placeholder, dataEl, texte, onTexte, 
     const c = new AbortController();
     const t = setTimeout(() => {
       const afficher = (s: Suggestion[]) => {
-        if (c.signal.aborted) return;
+        if (c.signal.aborted || !saisi.current) return; // un lieu déjà choisi n'est pas rouvert par une réponse tardive
         dernier.current = q;
         setIndispo(false);
         setPropositions(s);
@@ -46,6 +46,7 @@ export function ChampLieu({ id, etiquette, placeholder, dataEl, texte, onTexte, 
       };
       suggererLieux(q, c.signal, afficher)
         .then((s) => {
+          if (!saisi.current) return;
           dernier.current = q;
           setIndispo(false);
           setPropositions(s);

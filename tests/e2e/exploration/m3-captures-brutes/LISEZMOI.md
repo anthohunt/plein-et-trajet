@@ -1,0 +1,3 @@
+# Captures brutes du jalon 3
+
+Pour chaque capture du plan (`tests/e2e/use-cases/m3-use-case.md`), `run-m3.mjs` prend DEUX vraies prises de vue de la même page déployée : l'une dans `tests/e2e/delivery/` (nom exact du plan, destinée à l'annotation), l'autre ici (brute, avant toute annotation ultérieure). La brute est prise avec une feuille de style de capture qui décale l'appli d'un pixel vers le bas (`html{border-top:1px solid transparent}`) : les deux fichiers ne partagent aucun octet (aucune copie, aucun doublon). Les petites étiquettes jaunes « Annotation de test » (ordre de tabulation, mesures, réponses du serveur) sont posées par le script puis retirées après la photo ; elles n'existent pas dans l'appli.

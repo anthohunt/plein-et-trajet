@@ -135,7 +135,7 @@ describe("stations espagnoles (MITECO)", () => {
       "2026-10-20T15:53:32.000Z",
     );
     expect(s.length).toBe(1);
-    expect(s[0]).toMatchObject({ id: "ES-1", enseigne: "Repsol", ville: "Barcelona", prix: { Gazole: 1.699, SP95: 1.599 } });
+    expect(s[0]).toMatchObject({ id: "ES-1", enseigne: "Repsol", ville: "Barcelona", prix: { Gazole: 1.699, SP95: 1.599, "SP95-E10": 1.599 } });
     expect(s[0].prix.SP98).toBeUndefined();
   });
 });

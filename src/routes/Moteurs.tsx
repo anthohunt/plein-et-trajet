@@ -66,7 +66,7 @@ export default function Moteurs() {
   };
   const enregistrer = async (m: Moteur) => {
     const d = b[m.service];
-    maj(m.service, { occupe: true });
+    maj(m.service, { occupe: true, etat: "wait", message: T.testEnCours });
     try {
       const r = await enregistrerMoteur(m.service, d.actif, d.secours || null, d.cle, d.cleSecours);
       setMoteurs(r.moteurs);
