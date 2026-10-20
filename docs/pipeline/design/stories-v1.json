@@ -206,5 +206,61 @@
   "title": "Enregistrer le moteur",
   "detail": "Enregistrer le moteur : le prochain calcul utilise ce fournisseur, sans mise à jour du code.",
   "story": "En tant qu'administrateur, j'enregistre un moteur et l'appli l'utilise aussitôt."
+ },
+ {
+  "id": "US-6.1",
+  "screen": "S3",
+  "target": "bouton-enregistrer",
+  "title": "Enregistrer en roulant",
+  "detail": "Enregistrer en roulant : l'écran En route s'ouvre, l'enregistrement démarre et la voiture choisie est rappelée en haut",
+  "story": "En tant que conducteur, avec la voiture choisie, je lance l'enregistrement de ma vitesse pendant que je roule."
+ },
+ {
+  "id": "US-6.2",
+  "screen": "S6",
+  "target": "vitesse-direct",
+  "title": "Suivre en direct",
+  "detail": "Suivre en direct : la vitesse (km/h) et sa courbe des dernières minutes se mettent à jour au moins toutes les 2 secondes, et la distance, la durée, les arrêts, les litres, les L/100 km et le coût carburant (prix moyen du jour du pays) augmentent en conséquence",
+  "story": "En tant que conducteur, je vois en direct ma vitesse, la distance, la durée, les arrêts, les litres et le coût depuis le départ."
+ },
+ {
+  "id": "US-6.3",
+  "screen": "S6",
+  "target": "ecran-allume",
+  "title": "Garder l'écran allumé",
+  "detail": "Garder l'écran allumé : l'écran ne se met pas en veille (verrou d'écran du navigateur)",
+  "story": "En tant que conducteur, l'écran ne se met pas en veille pendant l'enregistrement et je vois si le GPS se perd."
+ },
+ {
+  "id": "US-6.4",
+  "screen": "S6",
+  "target": "bouton-pause",
+  "title": "Mettre en pause",
+  "detail": "Mettre en pause : l'indicateur passe à « En pause », la distance et les litres cessent d'augmenter, et « Reprendre » relance l'enregistrement",
+  "story": "En tant que conducteur, je mets l'enregistrement en pause pendant un arrêt (station, repas) sans compter de distance ni de consommation."
+ },
+ {
+  "id": "US-6.5",
+  "screen": "S6",
+  "target": "bouton-arreter",
+  "title": "Arrêter et voir le coût",
+  "detail": "Arrêter et voir le coût : l'écran Résultat s'ouvre avec le titre « Départ → Arrivée · enregistré » (lieux retrouvés par géocodage inverse), le coût, les litres, les km, les péages réellement franchis, les pays traversés et les tronçons Autoroute / Route / Ville issus du tracé recalé sur la carte",
+  "story": "En tant que conducteur, j'arrête l'enregistrement et j'obtiens le coût calculé sur ma vitesse réelle."
+ },
+ {
+  "id": "US-6.6",
+  "screen": "S4",
+  "target": "courbe-vitesse",
+  "title": "Voir ma courbe de vitesse",
+  "detail": "Voir ma courbe de vitesse : le bloc « Ma vitesse enregistrée » montre la courbe de tout le trajet, la vitesse moyenne et le nombre d'accélérations, et la note explique le calcul sur la vitesse réelle",
+  "story": "En tant que conducteur, sur un trajet enregistré, je vois ma courbe de vitesse, ma vitesse moyenne et le nombre d'accélérations."
+ },
+ {
+  "id": "US-3.9",
+  "screen": "S3",
+  "target": "champ-arrivee",
+  "title": "Aller au Royaume-Uni",
+  "detail": "Aller au Royaume-Uni : le résultat liste le Royaume-Uni parmi les pays traversés avec son prix moyen du jour (Fuel Finder) en euros, ajoute le péage du pont de Dartford s'il est franchi, et indique que la traversée de la Manche (tunnel ou ferry) n'est pas comptée",
+  "story": "En tant que conducteur, je calcule un trajet jusqu'au Royaume-Uni."
  }
 ]

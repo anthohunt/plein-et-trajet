@@ -9,3 +9,4 @@
 - [x] Milestone 1 — Les prix autour de moi (journal : docs/pipeline/m1-journal.md)
 - [x] Milestone 2 — Le coût d'un trajet (journal : docs/pipeline/m2-journal.md)
 - [ ] Milestone 3 — Péages et Europe
+- [ ] Milestone 4 — Enregistrer en roulant et Royaume-Uni (ajouté le 2026-10-20 après validation de la maquette v4)

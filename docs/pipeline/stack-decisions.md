@@ -54,3 +54,9 @@ Toujours sans écart de pile : ce sont des sources externes appelées par les Ed
 - **Véhicules** → base EEA CO2 cars (Discodata, CC BY 4.0) en plus d'ADEME ; modèle road-load + Willans calé sur le WLTP (erreur ≤ 0,2 L/100 km sur 12 versions testées).
 - Secrets des fournisseurs : dans Supabase Vault via l’écran Moteurs, jamais dans `webapp-stack.env` ni dans le code.
 - **Moteurs branchables (décision d'Anthony, 2026-10-20 : « je veux pas que ce soit hardcodé »)** → aucune clé ni aucun fournisseur dans le code ou dans `webapp-stack.env` : table `moteurs` + **Supabase Vault** pour les secrets ; écran S5 réservé à l'administrateur (Supabase Auth, lien magique, claim `admin`). Les clés PTV et Stadia sont collées par Anthony dans cet écran. Le standard Supabase couvre tout (Vault, Auth, RLS, Edge Functions) : pas d'écart.
+
+## Jalon 4 — Enregistrer en roulant et Royaume-Uni (2026-10-20, après validation de la maquette v4)
+Toujours sans écart de pile.
+- **Vitesse enregistrée par l'appli elle-même** (choix d'Anthony : « A ») : Geolocation API (`watchPosition`) + Screen Wake Lock API dans le front React, points stockés en IndexedDB jusqu'à l'arrêt. Une page web perd le GPS quand l'écran s'éteint (Safari iOS surtout) : l'écran est gardé allumé, c'est le contrat affiché à l'utilisateur. Pas d'appli native, pas de boîtier OBD.
+- **Calcul** : le même modèle physique qu'au jalon 3, appliqué seconde par seconde sur la vitesse réelle au lieu des vitesses typiques par tronçon ; recalage du tracé par Valhalla `trace_attributes` (moteur « itineraire », Stadia) ; péages franchis par PTV sur le tracé recalé.
+- **Royaume-Uni** : Fuel Finder (DESNZ, OGL v3) branché comme fournisseur du moteur « Prix des stations », identifiants dans Vault via l'écran Moteurs ; conversion GBP → EUR au taux BCE du jour. La traversée de la Manche n'est pas chiffrée (décision affichée sur la maquette v4).

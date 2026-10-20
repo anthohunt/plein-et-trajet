@@ -790,5 +790,162 @@
    "ÉTANT DONNÉ l'écran Moteurs et un fournisseur qui demande une clé, QUAND je regarde le champ clé, ALORS un lien « Où trouver ma clé » ouvre dans un nouvel onglet la page du fournisseur (PTV : https://developer.myptv.com/en → API Keys ; Stadia : https://client.stadiamaps.com/dashboard/ ; HERE : https://platform.here.com/access/apps ; Tankerkönig : https://creativecommons.tankerkoenig.de/), avec une phrase sur le menu à ouvrir",
    "ÉTANT DONNÉ un fournisseur sans clé, QUAND je regarde sa fiche, ALORS aucun lien de clé n'est affiché"
   ]
+ },
+ {
+  "id": "US-6.1",
+  "title": "Enregistrer en roulant",
+  "story": "En tant que conducteur, avec la voiture choisie, je lance l'enregistrement de ma vitesse pendant que je roule.",
+  "screen": "S3",
+  "target": "bouton-enregistrer",
+  "module": "enregistrement",
+  "type": "main",
+  "source": "mise à jour v4 validée par Anthony 2026-10-20 (« Feu vert »)",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ l'écran Trajets avec une voiture choisie, QUAND j'appuie sur « Enregistrer en roulant » et que j'autorise la localisation, ALORS l'écran En route s'ouvre, l'enregistrement démarre et la voiture choisie est rappelée en haut"
+  ]
+ },
+ {
+  "id": "US-6.2",
+  "title": "Suivre en direct",
+  "story": "En tant que conducteur, je vois en direct ma vitesse, la distance, la durée, les arrêts, les litres et le coût depuis le départ.",
+  "screen": "S6",
+  "target": "vitesse-direct",
+  "module": "enregistrement",
+  "type": "main",
+  "source": "mise à jour v4 validée par Anthony 2026-10-20 (« Feu vert »)",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un enregistrement en cours, QUAND je roule, ALORS la vitesse (km/h) et sa courbe des dernières minutes se mettent à jour au moins toutes les 2 secondes, et la distance, la durée, les arrêts, les litres, les L/100 km et le coût carburant (prix moyen du jour du pays) augmentent en conséquence"
+  ]
+ },
+ {
+  "id": "US-6.3",
+  "title": "Garder l'écran allumé",
+  "story": "En tant que conducteur, l'écran ne se met pas en veille pendant l'enregistrement et je vois si le GPS se perd.",
+  "screen": "S6",
+  "target": "ecran-allume",
+  "module": "enregistrement",
+  "type": "main",
+  "source": "mise à jour v4 validée par Anthony 2026-10-20 (« Feu vert »)",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un enregistrement en cours, QUAND le téléphone reste posé sans toucher l'écran, ALORS l'écran ne se met pas en veille (verrou d'écran du navigateur)",
+   "ÉTANT DONNÉ un enregistrement en cours, QUAND le GPS ne donne plus de position pendant plus de 15 s, ALORS un message « GPS perdu » s'affiche et la distance n'augmente pas jusqu'au retour du signal"
+  ]
+ },
+ {
+  "id": "US-6.4",
+  "title": "Mettre en pause",
+  "story": "En tant que conducteur, je mets l'enregistrement en pause pendant un arrêt (station, repas) sans compter de distance ni de consommation.",
+  "screen": "S6",
+  "target": "bouton-pause",
+  "module": "enregistrement",
+  "type": "main",
+  "source": "mise à jour v4 validée par Anthony 2026-10-20 (« Feu vert »)",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un enregistrement en cours, QUAND j'appuie sur « Pause », ALORS l'indicateur passe à « En pause », la distance et les litres cessent d'augmenter, et « Reprendre » relance l'enregistrement"
+  ]
+ },
+ {
+  "id": "US-6.5",
+  "title": "Arrêter et voir le coût",
+  "story": "En tant que conducteur, j'arrête l'enregistrement et j'obtiens le coût calculé sur ma vitesse réelle.",
+  "screen": "S6",
+  "target": "bouton-arreter",
+  "module": "enregistrement",
+  "type": "main",
+  "source": "mise à jour v4 validée par Anthony 2026-10-20 (« Feu vert »)",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un enregistrement de plus de 1 km, QUAND j'appuie sur « Arrêter et voir le coût », ALORS l'écran Résultat s'ouvre avec le titre « Départ → Arrivée · enregistré » (lieux retrouvés par géocodage inverse), le coût, les litres, les km, les péages réellement franchis, les pays traversés et les tronçons Autoroute / Route / Ville issus du tracé recalé sur la carte",
+   "ÉTANT DONNÉ ce résultat, QUAND je reviens aux Trajets, ALORS le trajet enregistré est en tête de l'historique"
+  ]
+ },
+ {
+  "id": "US-6.6",
+  "title": "Voir ma courbe de vitesse",
+  "story": "En tant que conducteur, sur un trajet enregistré, je vois ma courbe de vitesse, ma vitesse moyenne et le nombre d'accélérations.",
+  "screen": "S4",
+  "target": "courbe-vitesse",
+  "module": "enregistrement",
+  "type": "main",
+  "source": "mise à jour v4 validée par Anthony 2026-10-20 (« Feu vert »)",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ le résultat d'un trajet enregistré, QUAND je le regarde, ALORS le bloc « Ma vitesse enregistrée » montre la courbe de tout le trajet, la vitesse moyenne et le nombre d'accélérations, et la note explique le calcul sur la vitesse réelle",
+   "ÉTANT DONNÉ le résultat d'un trajet calculé (non enregistré), QUAND je le regarde, ALORS ce bloc n'apparaît pas"
+  ]
+ },
+ {
+  "id": "US-6.E1",
+  "title": "Localisation refusée",
+  "story": "En tant que conducteur, si je refuse la localisation, je sais pourquoi rien ne s'enregistre.",
+  "screen": "S3",
+  "target": "bouton-enregistrer",
+  "module": "enregistrement",
+  "type": "edge",
+  "source": "mise à jour v4 validée par Anthony 2026-10-20 (« Feu vert »)",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ l'écran Trajets, QUAND j'appuie sur « Enregistrer en roulant » et que la localisation est refusée, ALORS un message dit que l'enregistrement a besoin de la localisation et comment l'autoriser, et aucun trajet n'est créé"
+  ]
+ },
+ {
+  "id": "US-6.E2",
+  "title": "Trajet trop court",
+  "story": "En tant que conducteur, un enregistrement arrêté presque aussitôt ne pollue pas mon historique.",
+  "screen": "S6",
+  "target": "bouton-arreter",
+  "module": "enregistrement",
+  "type": "edge",
+  "source": "mise à jour v4 validée par Anthony 2026-10-20 (« Feu vert »)",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un enregistrement de moins de 1 km, QUAND j'appuie sur « Arrêter et voir le coût », ALORS un message indique que le trajet est trop court pour être calculé, et rien n'est ajouté à l'historique"
+  ]
+ },
+ {
+  "id": "US-6.E3",
+  "title": "Reprendre après fermeture",
+  "story": "En tant que conducteur, si l'appli se ferme en route, je ne perds pas ce qui a été enregistré.",
+  "screen": "S6",
+  "target": "vitesse-direct",
+  "module": "enregistrement",
+  "type": "edge",
+  "source": "mise à jour v4 validée par Anthony 2026-10-20 (« Feu vert »)",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un enregistrement en cours, QUAND la page est rechargée ou rouverte, ALORS l'appli propose de reprendre l'enregistrement en cours ou de l'arrêter, avec la distance déjà parcourue conservée (points gardés sur le téléphone)"
+  ]
+ },
+ {
+  "id": "US-3.9",
+  "title": "Aller au Royaume-Uni",
+  "story": "En tant que conducteur, je calcule un trajet jusqu'au Royaume-Uni.",
+  "screen": "S3",
+  "target": "champ-arrivee",
+  "module": "royaume-uni",
+  "type": "main",
+  "source": "mise à jour v4 validée par Anthony 2026-10-20 (« Feu vert »)",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ le champ arrivée, QUAND je choisis Londres, Royaume-Uni et calcule, ALORS le résultat liste le Royaume-Uni parmi les pays traversés avec son prix moyen du jour (Fuel Finder) en euros, ajoute le péage du pont de Dartford s'il est franchi, et indique que la traversée de la Manche (tunnel ou ferry) n'est pas comptée"
+  ]
+ },
+ {
+  "id": "US-1.9",
+  "title": "Stations au Royaume-Uni",
+  "story": "En tant que conducteur au Royaume-Uni, je vois les stations autour de moi avec leurs prix.",
+  "screen": "S1",
+  "target": "carte-stations",
+  "module": "royaume-uni",
+  "type": "main",
+  "source": "mise à jour v4 validée par Anthony 2026-10-20 (« Feu vert »)",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ une position à Londres, QUAND j'ouvre l'onglet Prix, ALORS la carte et la liste montrent les stations britanniques autour (Fuel Finder) avec leur prix converti en €/L et le prix d'origine en pence/L dans la fiche"
+  ]
  }
 ]

@@ -10,7 +10,8 @@
   "carte-stations": [
    "US-1.3",
    "US-1.P1",
-   "US-1.8"
+   "US-1.8",
+   "US-1.9"
   ],
   "pastille-station": [
    "US-1.4"
@@ -44,7 +45,8 @@
   "champ-arrivee": [
    "US-3.3",
    "US-3.E1",
-   "US-3.8"
+   "US-3.8",
+   "US-3.9"
   ],
   "choix-voiture": [
    "US-3.4",
@@ -61,6 +63,10 @@
   ],
   "supprimer-trajet": [
    "US-3.7"
+  ],
+  "bouton-enregistrer": [
+   "US-6.1",
+   "US-6.E1"
   ]
  },
  "S4": {
@@ -84,6 +90,9 @@
   "pays-traverses": [
    "US-4.5",
    "US-4.E6"
+  ],
+  "courbe-vitesse": [
+   "US-6.6"
   ]
  },
  "S5": {
@@ -105,6 +114,22 @@
   "enregistrer-moteur": [
    "US-5.5",
    "US-5.E3"
+  ]
+ },
+ "S6": {
+  "vitesse-direct": [
+   "US-6.2",
+   "US-6.E3"
+  ],
+  "ecran-allume": [
+   "US-6.3"
+  ],
+  "bouton-pause": [
+   "US-6.4"
+  ],
+  "bouton-arreter": [
+   "US-6.5",
+   "US-6.E2"
   ]
  }
 }

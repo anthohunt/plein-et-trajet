@@ -36,7 +36,8 @@
     "choix-voiture",
     "bouton-calculer",
     "ligne-historique",
-    "supprimer-trajet"
+    "supprimer-trajet",
+    "bouton-enregistrer"
    ]
   },
   {
@@ -49,7 +50,8 @@
     "prix-perso",
     "retour-trajets",
     "detail-peages",
-    "pays-traverses"
+    "pays-traverses",
+    "courbe-vitesse"
    ]
   },
   {
@@ -63,6 +65,18 @@
     "champ-cle",
     "tester-connexion",
     "enregistrer-moteur"
+   ]
+  },
+  {
+   "id": "S6",
+   "name": "En route",
+   "section": "Trajets",
+   "view": "enregistrement en direct de la vitesse",
+   "interactive_elements": [
+    "vitesse-direct",
+    "ecran-allume",
+    "bouton-pause",
+    "bouton-arreter"
    ]
   }
  ]

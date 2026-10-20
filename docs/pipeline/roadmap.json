@@ -127,6 +127,48 @@
    ],
    "nb_stories": 16,
    "motif_sans_ecran": "S5 Moteurs est l'écran propre du jalon 3. Ses autres histoires enrichissent S1, S3 et S4 (construits aux jalons 1 et 2) : rattachées au jalon 3 par exception à la règle « l'histoire suit son écran », sur décision d'Anthony (évolution du 2026-10-20)."
+  },
+  {
+   "n": 4,
+   "titre": "Enregistrer en roulant et Royaume-Uni",
+   "demontrable": true,
+   "demo": "Je lance l'enregistrement, je roule (trajet GPS rejoué sur l'appli déployée), je suis ma vitesse et mon coût en direct, je fais une pause, j'arrête : le résultat est calculé sur ma vitesse réelle avec ma courbe ; puis je calcule Albi → Londres et je vois les stations de Londres.",
+   "use_case": "tests/e2e/use-cases/m4-use-case.md",
+   "ecrans": [
+    {
+     "id": "S6",
+     "nom": "En route"
+    }
+   ],
+   "ecrans_traverses": [
+    {
+     "id": "S1",
+     "nom": "Prix"
+    },
+    {
+     "id": "S3",
+     "nom": "Trajets"
+    },
+    {
+     "id": "S4",
+     "nom": "Résultat du trajet"
+    }
+   ],
+   "stories": [
+    "US-6.1",
+    "US-6.2",
+    "US-6.3",
+    "US-6.4",
+    "US-6.5",
+    "US-6.6",
+    "US-6.E1",
+    "US-6.E2",
+    "US-6.E3",
+    "US-3.9",
+    "US-1.9"
+   ],
+   "nb_stories": 11,
+   "motif_sans_ecran": "S6 En route est l'écran propre du jalon 4. US-6.1, US-6.6, US-3.9 et US-1.9 enrichissent S3, S4 et S1 : rattachées au jalon 4 par exception à la règle « l'histoire suit son écran », sur décision d'Anthony (évolution du 2026-10-20, « Feu vert »)."
   }
  ],
  "stories_transverses": {
