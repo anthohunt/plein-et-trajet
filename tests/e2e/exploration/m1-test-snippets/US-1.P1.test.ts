@@ -5,10 +5,9 @@ test("US-1.P1 — recentrer ramène la carte sur ma position et recharge la list
   const appels: any[] = [];
   page.on("request", (r) => r.url().includes("/rpc/stations_autour") && appels.push(JSON.parse(r.postData() || "{}")));
   await ouvrirPrix(page);
-  await glisser(page, -170, 60);
-  await page.waitForTimeout(300);
-  await glisser(page, -170, 0);
-  await expect.poll(async () => km(await centre(page), { lat: ALBI.latitude, lon: ALBI.longitude })).toBeGreaterThan(8);
+  await glisser(page, -280, 0); // un glisser vers l'est
+  await expect.poll(async () => km(await centre(page), { lat: ALBI.latitude, lon: ALBI.longitude })).toBeGreaterThan(4);
+  await expect.poll(() => appels.length).toBeGreaterThanOrEqual(2);
   const n = appels.length;
   await page.getByRole("button", { name: "Recentrer sur ma position" }).click();
   await expect.poll(async () => km(await centre(page), { lat: ALBI.latitude, lon: ALBI.longitude })).toBeLessThan(0.1);

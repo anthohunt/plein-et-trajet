@@ -30,3 +30,99 @@
 - Les cas E3/E4 dépendent des données du jour : les extraits se marquent `skip` (et non « passé ») si plus aucune station réelle n'est dans cet état autour d'Albi.
 
 Commit de livraison du code + tests + captures : `7413912` (branche main) ; ce journal est poussé juste après.
+- 12:40Z — Bâtisseur R1 terminé : commit b998a50, prod https://plein-et-trajet.vercel.app READY, 55/55 captures, 9 815 stations synchronisées, mocks E1/E2 seulement, 5 bugs corrigés en exploration.
+
+## Evaluator Journal — Round 1 (Builder Transcript)
+
+**Stats transcript** : 120 messages assistant ; 64 appels d'outils : Bash 55, Read 5 (dont 3 PNG), Write 4 (sync-prix/index.ts, CarteStations.tsx, Prix.tsx, run-m1.mjs) ; le reste des modifications passe par heredoc/python/sed dans Bash (vérifiable, pas de correctif fantôme).
+
+**Couverture captures** : requises (plan, noms .png uniques) 55 ; produites 55 ; manquantes 0. Le « 60 » du brief est faux, le plan en définit 55 (le Builder l'a signalé honnêtement). Noms identiques au plan (comm vide).
+
+**Exploration réelle** : `run-m1.mjs` (844 lignes) exécuté en Bash contre https://plein-et-trajet.vercel.app ; chaque capture passe par `capture()` : assertions DOM puis `page.screenshot` (seul appel de capture ; aucun copyFile/cpSync/rename dans le script). Résultat de run cité (55 OK, 5 en échec avant corrections, puis rejouées). 24/24 Playwright snippets passés (sortie « 24 passed » dans le transcript). 5 bugs trouvés puis corrigés avec commits et redéploiement, captures reprises : cohérent avec les Bash/Edit du transcript.
+
+**Doublons md5 (6 groupes)** : NON copiés. Tous issus d'appels `page.screenshot` distincts sur un état UI identique : US-1.E3 01/02/03 (état liste SP95-E10 ; la ligne « prix du 14/10 » est déjà visible en bas de l'écran, vérifié sur le PNG, les assertions du résultat/retour portent sur le DOM/CSS), US-1.E4 01=03, US-1.2-01=1.6-01=1.E2-01 (état initial identique), 1.1-01=1.E1-01, 1.2-02=1.4-03=1.4-04 (gazole ; la couleur vert/orange est déjà là avant le « après »), 1.5-02=1.5-03. Expliqué par le journal ; faiblesse de valeur démonstrative (avant = après), pas de fraude.
+
+**Comportement** : pas de boucle, erreurs traitées (échecs de run corrigés par correctif réel puis rejeu), journal généré par `note()` pendant l'exécution du script (pas de rédaction après coup d'affirmations non testées), entrées « Issues found » cohérentes avec les commits. Mocks limités à E1/E2 comme prévu. Contrôle de contrat API présent.
+
+**Réserves** : (1) le Builder n'a regardé visuellement que ~20 des 55 PNG (2 planches-contact PIL + smoke.png) ; le reste ne repose que sur les assertions DOM. (2) Snippets sobres (2 à 9 expect), E3/E4 s'auto-skip si les données changent, mais assertions réelles. (3) Journal généré par le script, donc pas un « batch » rédigé a posteriori.
+
+**Skips auto-excusés** : aucun.
+
+**Score** : 5 − 0 (captures) − 0 (log) − 0 (skips) − 0 (fabrication) − 0 (fantôme) − 0 (edge cases) = **5/5 → PASS** (seuil 3).
+
+**Flags pour l'Auditor** :
+• Ouvrir TOUS les PNG (au moins les 35 que le Builder n'a pas vus) : vérifier que les états décrits sont visibles (notamment E3/E4/A11Y/PERF).
+• Cas avant=après identiques (1.4-03/04, 1.5-02/03, E3 01-03) : juger si la preuve visuelle est suffisante ou si une capture du détail (zoom/scroll) manque.
+• Rejouer 2-3 snippets contre la prod ; vérifier que les skips E3/E4 ne masquent rien aujourd'hui.
+• Vérifier les mocks E1/E2 (page.route) et l'absence de fixture en base.
+• Vérifier la fiche US-A11Y-004 (aria-label des pastilles) et le temps PERF réel.
+- Évaluateur R1 : PASS 5/5 (aucune copie de capture ; doublons md5 = états d'écran identiques capturés séparément).
+- Descripteur : 55 descriptions (tests/e2e/delivery/m1-step-descriptions.json). Il signale 13 captures qui ne prouvent pas ce que le plan annonce : 1.2-03/04, 1.3-01, 1.3-03, 1.4-03, 1.E2-01, 1.E3-01/03, 1.E4-01/02/03, A11Y-001-01, A11Y-002-02, A11Y-004-02, PERF-001-01/02. Transmis à l'auditeur.
+
+## Auditor Journal — Round 1
+
+**Verdict : FAIL** — 4 HIGH, 5 MEDIUM, 8 LOW (0 CRITICAL).
+
+**Méthodes réellement utilisées**
+• Lecture des 55 PNG de `tests/e2e/delivery/` (55/55 ouvertes, dont agrandissement PIL de la carte de 1.4-04 et 1.1-02) + md5 des captures.
+• Lecture du code : `src/` en entier, `supabase/migrations/*.sql`, `supabase/functions/sync-prix/index.ts` (extraits), `run-m1.mjs`, extraits Playwright, spec, cas d'usage, journal d'exploration.
+• `npx tsc --noEmit` (0 erreur), `npx vite build` (OK, chunks 406 Ko + 805 Ko), `npx vitest run` (20/20), `npx playwright test` sur la prod (**24/24 passés, 0 skip** : E3 et E4 ont trouvé des données réelles aujourd'hui).
+• Script Playwright bibliothèque écrit pour l'audit (scratchpad `audit-live.mjs`, chromium headless, 390×844 et 1280×800, géoloc Albi) contre https://plein-et-trajet.vercel.app : RLS clé anon (10 écritures), données E3/E4 du jour, chevauchement/rognage des pastilles, ordre Tab + visibilité de l'élément focalisé, retour du focus fiche (clavier), libellés par carburant, changement rapide de carburant, 3 mesures PERF en 4G simulée, rendu sombre, position refusée.
+• Pas de Playwright MCP (absent ici).
+
+**Inventaire des captures** : 55 prévues / 55 produites / 0 manquante ; 55 ouvertes. 6 groupes byte-identiques (1.4-01=1.5-01=E3-01=E3-02=E3-03 ; 1.2-02=1.4-03=1.4-04 ; 1.2-01=1.6-01=E2-01 ; 1.1-01=E1-01 ; 1.5-02=1.5-03 ; E4-01=E4-03). Captures qui ne montrent pas leur affirmation sans autre capture qui la prouve : 1.3-03/04, US-1.E4 (01-03), A11Y-001-01, A11Y-002-02 → HIGH. Partielles mais compensées : 1.3-01, A11Y-004-02 → MEDIUM.
+
+**Couverture des critères (code + comportement live)** : 20 critères M1 — 17 COVERED, 3 PARTIAL (US-1.1 CA2 « dernière ville saisie », US-1.4 CA2 vert/orange, US-A11Y-001 contour visible), 0 UNCOVERED.
+
+**Cas limites** : 5 — 4 COVERED (US-1.E1 mocké, US-1.E2 mocké, US-1.E3, US-2.E1), 1 PARTIAL (US-1.E4 : comportement OK, preuve visuelle contradictoire + libellé ambigu). 0 UNREACHABLE, 0 MISSING.
+
+**Flags de l'Évaluateur R1**
+1. ~20/55 PNG vus par le Bâtisseur → CONFIRMÉ ; les 55 ont été ouvertes ici, 4 captures défaillantes trouvées (HIGH 1-4).
+2. Paires avant/après identiques → 1.5-02/03 ÉCARTÉ (même état par construction : après de l'étape 2 = avant de l'étape 3) ; E3 01-03 ÉCARTÉ (la ligne « Intermarché Cagnac-les-Mines · prix du 14/10 » atténuée est visible sur les trois) ; 1.4-03/04 ÉCARTÉ à LOW (barres orange visibles à l'agrandissement sur 2,417/2,399/2,420/2,383, signal faible).
+3. Skips E3/E4 → ÉCARTÉ pour aujourd'hui : rejoués sur la prod, 0 skip ; 14 lignes > 48 h dans le rayon, 1 rupture gazole (81000004). Risque latent noté (LOW 8).
+4. Mocks E1/E2 → CONFIRMÉS conformes au plan (`page.route` abort / fulfill [] dans run-m1.mjs:496,524 et extraits, unroute ensuite), aucune fixture en base. Libellé des pastilles (A11Y-004) → CONFIRMÉ en live (« Esso Express Albi, 2,191 euros le litre, plus cher »). PERF → CONFIRMÉ : 918 ms, 918 ms (9 Mbit/s, 85 ms), 1 503 ms (4 Mbit/s, 150 ms), cache désactivé.
+
+**Flags du Descripteur** : 1.2-03/04 écarté (LOW 2 : Carrefour Albi lisible avant, absente après) ; 1.3-01 MEDIUM 3 ; 1.3-03 HIGH 1 ; 1.4-03 LOW 6 ; E2-01 écarté (mise en place invisible par nature, E2-02 prouve) ; E3-01/03 écartés ; E4-01/02/03 HIGH 2 ; A11Y-001-01 HIGH 3 ; A11Y-002-02 HIGH 4 ; A11Y-004-02 MEDIUM 4 ; PERF-001-01/02 écartés (LOW 5 : la preuve est la mesure).
+
+**RLS** : clé anon → POST/PATCH/DELETE sur prix, stations, moyennes_nationales = 401 (42501) ; rpc sync_prix_appliquer / recalculer_moyennes / stations_a_enrichir = 401 permission denied ; functions/v1/sync-prix sans secret = 401 ; données inchangées après les essais. OK.
+
+**Problèmes**
+
+1. **HIGH — US-1.3 (CA2)** — `tests/e2e/exploration/run-m1.mjs:301-311`. La capture 1.3-03 « je déplace la carte (non relâché) » montre déjà la nouvelle zone chargée (liste Leclerc Brens / Intermarché Gaillac / Leclerc Gaillac, pastilles de Gaillac) : les n-1 gestes précédents ont chacun été relâchés (moveend → chargement). 1.3-04 montre le même état ; le passage « relâché → nouvelles stations » n'est visible nulle part. À refaire : un seul glisser continu (ou capturer pendant le dernier glisser alors que la liste montre encore Albi), puis capture après relâchement.
+2. **HIGH — US-1.E4** — captures E4-01/02/03 + `src/routes/Prix.tsx:77-78`. E4-01/03 (GPLc) montrent « TotalEnergies Albi » (81000004, 1,5 km) ; E4-02 (Gazole) montre toujours « TotalEnergies Albi » en tête (81000002, 2,1 km, autre station) : l'image semble contredire « elle n'apparaît pas ». Cause produit : `libellesStations(vendues)` ne départage que les stations du carburant affiché ; live, 81000002 et 81000004 portent le même libellé selon le carburant (3 TotalEnergies dans Albi). À refaire : départager sur toutes les stations de la zone (`stations`, pas `vendues`), puis recapturer E4 avec un libellé distinct.
+3. **HIGH — US-A11Y-001** — `src/components/CarteStations.tsx:289-307`. Toutes les pastilles sont focusables, même hors du cadre de la carte : live, Tab n°12 et n°14 tombent sur « Leclerc Lescure-d'Albigeois » et « Intermarché Cagnac-les-Mines » [hors cadre] en SP95-E10 (4/12 hors cadre en Gazole) → focus sans contour visible. A11Y-001-01 montre exactement cet état (aucun contour). L'extrait ne vérifie que `outlineStyle`, pas la visibilité. À refaire : cadrer la carte sur les stations (fitBounds) ou retirer du parcours Tab (tabindex=-1/aria-hidden) les pastilles hors vue ; ajouter au test un contrôle « élément focalisé dans le cadre » ; recapturer avec un contour visible.
+4. **HIGH — US-A11Y-002** — `run-m1.mjs:752-764`. A11Y-002-02 est prise après le sous-test pastille (ouverture clavier puis fermeture à la souris) : aucun contour ni sur la ligne 81990002, ni sur la pastille ; la ligne grisée (Carrefour Albi) n'est qu'un survol. Le comportement est bon (live : après Échap, focus sur la ligne 81990002, contour solid ; après ✕ au clavier, focus sur la pastille 81000001). À refaire : capturer juste après Échap (ligne focalisée visible), puis une capture séparée pour la pastille.
+5. **MEDIUM — US-1.3 / lisibilité carte** — `CarteStations.tsx:234,289-307`. À 390 px (carte 358×230) et à 1280 px (carte 446×230, app plafonnée à 480 px), en Gazole : 3 paires de pastilles se chevauchent (2,383 masquée 27×15 px par 2,355 ; 2,364/2,420 ; 2,417/2,399), 4/12 pastilles rognées par le bord ; en SP95-E10 2/7 rognées. Zoom fixe 11 alors que le rayon de 10 km dépasse le cadre vertical. À faire : gestion des collisions (décalage/regroupement) et cadrage sur les stations.
+6. **MEDIUM — US-1.1 (CA2)** — `src/lib/position.ts:25`. `memoriserVille` n'est appelée nulle part : la branche « dernière ville saisie » est inatteignable (live : `pt-derniere-ville` reste null), seul le repli Albi fonctionne. À faire : la brancher (saisie de lieu, M2) ou consigner le report dans la spec/journal.
+7. **MEDIUM — US-1.4 (CA2)** — `src/lib/format.ts:334-341`. La règle ⌈n/2⌉ avec égalités peut ne produire aucune orange malgré des prix différents : zone de Gaillac (1.3-04) 2,169 / 2,185 / 2,185 → 3 vertes, 0 orange ; SP95-E10 Albi 6 vertes / 1 orange. « Les autres orange » n'est pas tenu dès que le prix médian est partagé. À faire : seuil strict (prix < médiane = vert) ou règle documentée et validée.
+8. **MEDIUM — US-1.3 (CA1)** — capture 1.3-01 : « Chargement des prix… », carte vide, crédits déroulés sous la légende ; la précondition « stations synchronisées » n'est prouvée que par un appel en base. 1.3-02 montre les pastilles, d'où MEDIUM. À refaire si le plan veut un « avant » parlant.
+9. **MEDIUM — US-A11Y-004** — capture A11Y-004-02 + `FicheStation.tsx:75-76`. La fiche est capturée avec ses 6 prix à « … » (chargement non attendu). Live, l'arbre a11y de la fiche en chargement annonce « Gazole … SP95-E10 … » sans texte de chargement. À refaire : attendre `aria-busy=false` avant la capture ; donner au placeholder un libellé (« chargement »).
+10. **LOW — i18n** — chaînes hors `src/lib/textes.ts` : `CarteStations.tsx:235,240-243,296` (crédits, libellés MapLibre, « euros le litre »), `TotemPrix.tsx:140`, `FicheStation.tsx:46` (« Automate 24/24 »), `BarreOnglets.tsx:171` (« Sections »), `Prix.tsx:121`, `Trajets.tsx:470`, `position.ts:222` (« Ma position »), `format.ts:294` (« vs France » alors que `T.vsFrance`, textes.ts:260, est inutilisé).
+11. **LOW — US-1.2** — 1.2-03/04 : Carrefour Albi lisible avant (2e ligne) et absente après, mais rien ne la désigne (à surligner par l'annotateur).
+12. **LOW — US-1.E1/E2** — E1-01 et E2-01 : mise en place du mock invisible par nature (identiques à des captures d'état normal) ; les 02 prouvent.
+13. **LOW — US-1.E3** — E3-03 « retour » : rien à rétablir (données réelles), capture identique aux 01/02.
+14. **LOW — US-PERF-001** — PERF-01 page blanche, PERF-02 tuiles de carte non chargées ; preuve = mesure (recontrôlée : 918-1 503 ms).
+15. **LOW — US-1.4** — 1.4-03 = 1.4-04 ; vert/orange porté par une barre de 3 px seulement (conforme maquette, 2 px), peu lisible à l'œil.
+16. **LOW — US-2.2 / A11Y** — 2.2-02 : contour de focus du champ Arrivée rogné (seuls haut et gauche visibles) ; `BarreOnglets.tsx:171` role=tablist sans tabpanel/aria-controls ni flèches ; crédits MapLibre déroulés avant chargement, sur la légende (1.3-01, PERF-02).
+17. **LOW — tests** — `US-1.E3.test.ts:13`, `US-1.E4.test.ts:8` : `test.skip` si les données du jour n'ont plus le cas → la régression peut passer en silence ; prévoir une fixture de test ou faire échouer le gate sur skip.
+- 12:50Z — Auditeur R1 : FAIL (4 HIGH, 5 MEDIUM, 8 LOW). Boucle : bâtisseur relancé (round 2) avec la liste numérotée de l'auditeur.
+
+## Builder Summary — Round 2
+
+Commits : `fc34a21` (corrections de l'audit R1), `861033d` (focus du titre de fiche, chargement) ; déploiement Vercel READY sur https://plein-et-trajet.vercel.app (vérifié par l'API Vercel).
+
+**Issues de l'auditeur R1**
+1. HIGH US-1.3 — corrigé : un seul glisser continu ; 1.3-03 bouton enfoncé (liste encore Albi, aucun nouvel appel), 1.3-04 après relâchement avec les stations de la nouvelle zone surlignées.
+2. HIGH US-1.E4 — corrigé : `libellesStations(stations)` sur toute la zone (Prix.tsx) ; captures E4 refaites avec « TotalEnergies Albi · Auto 81 Sarl » identifiable et absente en Gazole.
+3. HIGH US-A11Y-001 — corrigé : pastilles hors cadre ou sous la légende / le recentrage / les crédits passent en `tabindex=-1` + `aria-hidden` ; extrait et exploration vérifient « élément focalisé visible dans son cadre » + contour ≥ 2 px ; 001-01/02 refaites.
+4. HIGH US-A11Y-002 — corrigé : 002-02 prise juste après Échap, contour visible sur la ligne d'origine ; le cas pastille est vérifié à part (journal).
+5. MEDIUM carte — corrigé : cadrage centré sur l'utilisateur à l'échelle des stations ≤ 4 km, empilement anti-chevauchement avec tige, légende lisible en bas à gauche, crédits repliés.
+6. MEDIUM US-1.1 — corrigé : géocodage IGN (`src/lib/geocodage.ts`) à la sortie des champs Départ/Arrivée et à « Coût d'un trajet jusqu'ici » → `memoriserVille` ; vérifié (Castres) dans l'exploration et dans un extrait.
+7. MEDIUM US-1.4 — corrigé : nouvelle règle de coupure (`seuilMoitie`), au moins une orange dès deux prix distincts ; 4 tests Vitest ajoutés (23 au total).
+8. MEDIUM 1.3-01 — corrigé : capture après chargement.
+9. MEDIUM US-A11Y-004 — corrigé : statut accessible « Chargement des prix de la station… », capture 004-02 prix chargés.
+LOW — chaînes déplacées dans `textes.ts` ; 1.2-03/04, E1-01, E2-01, E3-02, E4, 1.4-04 et PERF annotés (bandeau « Annotation de test » et surlignage ajoutés par le script, retirés après la photo) ; contour du champ Arrivée entier ; crédits repliés ; onglets ARIA complets (tabpanel, aria-controls, flèches) ; `test.skip` E3/E4 remplacés par un échec explicite. Non traité : LOW 13 (E3-03 « retour » sans état à rétablir, données réelles) et LOW 14 (PERF-01 reste une page blanche par nature, la mesure est annotée).
+
+**Bugs supplémentaires trouvés et corrigés** : glisser relâché sur la légende qui bloquait la carte ; puce GPLc à moitié hors écran à 390 px ; contour de focus du bouton des crédits supprimé par MapLibre ; prix de l'ancien carburant comptés un instant après un changement.
+
+**Vérifications** : `npx vitest run` 23/23, `npx vite build` OK ; exploration sur la prod : 55/55 captures ✓, toutes ouvertes ; extraits Playwright 25/25 (deux passes). `tests/e2e/delivery/m1-step-descriptions.json` mis à jour pour les 22 captures dont le contenu a changé.

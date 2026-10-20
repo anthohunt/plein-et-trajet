@@ -1,0 +1,222 @@
+{
+  "US-1.1-01-ouvrir-les-prix-avant.png": {
+    "action": "L'utilisateur ouvre l'appli, qui s'affiche sur l'onglet Trajets.",
+    "expected": "Il voit le formulaire de nouveau trajet, Départ et Arrivée vides."
+  },
+  "US-1.1-02-ouvrir-les-prix-apres.png": {
+    "action": "L'utilisateur touche l'onglet Prix.",
+    "expected": "Il voit la carte et la liste des stations autour de lui, avec leurs prix."
+  },
+  "US-1.1-03-ouvrir-les-prix-avant.png": {
+    "action": "L'utilisateur refuse la localisation et reste sur l'onglet Trajets.",
+    "expected": "Il voit le formulaire de trajet vide, avec la ville Albi en haut."
+  },
+  "US-1.1-04-ouvrir-les-prix-apres.png": {
+    "action": "L'utilisateur ouvre l'onglet Prix sans localisation.",
+    "expected": "La carte est centrée sur Albi, avec un message l'invitant à activer la localisation."
+  },
+  "US-1.2-01-choisir-mon-carburant-avant.png": {
+    "action": "L'utilisateur consulte les stations avec le carburant SP95-E10 sélectionné.",
+    "expected": "Il voit la liste et les pastilles de la carte en prix SP95-E10."
+  },
+  "US-1.2-02-choisir-mon-carburant-apres.png": {
+    "action": "L'utilisateur touche Gazole dans le sélecteur de carburant.",
+    "expected": "Pastilles et lignes affichent les prix du gazole, le titre devient « Stations · Gazole »."
+  },
+  "US-1.2-03-choisir-mon-carburant-avant.png": {
+    "action": "L'utilisateur consulte la liste SP95-E10, où figure une station qui ne vend pas d'E85.",
+    "expected": "Carrefour Albi est surlignée dans la liste et sur la carte ; un bandeau d'annotation dit qu'elle vend du SP95-E10 mais pas d'E85."
+  },
+  "US-1.2-04-choisir-mon-carburant-apres.png": {
+    "action": "L'utilisateur touche E85.",
+    "expected": "La liste E85 s'affiche ; Carrefour Albi n'y est plus, ni sur la carte (bandeau d'annotation)."
+  },
+  "US-1.3-01-voir-les-stations-sur-la-carte-avant.png": {
+    "action": "L'utilisateur ouvre l'écran Prix ; les stations synchronisées sont chargées.",
+    "expected": "La carte cadrée sur Albi montre les pastilles des stations proches et la liste SP95-E10 en dessous."
+  },
+  "US-1.3-02-voir-les-stations-sur-la-carte-apres.png": {
+    "action": "L'utilisateur regarde la carte des stations.",
+    "expected": "Chaque station est une pastille avec son prix ; une tige relie la pastille à la position réelle de la station."
+  },
+  "US-1.3-03-voir-les-stations-sur-la-carte-avant.png": {
+    "action": "L'utilisateur fait glisser la carte vers le nord (vers Carmaux) sans relâcher.",
+    "expected": "La carte montre la zone de Carmaux pendant le geste ; la liste est encore celle d'Albi."
+  },
+  "US-1.3-04-voir-les-stations-sur-la-carte-apres.png": {
+    "action": "L'utilisateur relâche la carte.",
+    "expected": "Les stations de la nouvelle zone (Système U Blaye-les-Mines, Intermarché Carmaux) sont chargées et surlignées, annoncées par un bandeau d'annotation."
+  },
+  "US-1.4-01-toucher-une-pastille-avant.png": {
+    "action": "L'utilisateur regarde la carte des stations d'Albi.",
+    "expected": "Il voit les pastilles de prix SP95-E10 et la liste en dessous."
+  },
+  "US-1.4-02-toucher-une-pastille-apres.png": {
+    "action": "L'utilisateur touche la pastille d'Esso Express Albi.",
+    "expected": "La fiche Esso Express Albi monte, titre souligné (focus), six carburants avec prix ou « non vendu »."
+  },
+  "US-1.4-03-toucher-une-pastille-avant.png": {
+    "action": "L'utilisateur passe en Gazole, où les prix diffèrent.",
+    "expected": "La carte montre douze pastilles gazole aux prix variés, entourées de vert ou d'orange."
+  },
+  "US-1.4-04-toucher-une-pastille-apres.png": {
+    "action": "L'utilisateur compare les couleurs des pastilles.",
+    "expected": "Les pastilles les moins chères sont entourées de vert, les autres d'orange ; le bandeau d'annotation donne le partage (6 vertes ≤ 2,373 / 6 orange ≥ 2,383)."
+  },
+  "US-1.5-01-trier-la-liste-avant.png": {
+    "action": "L'utilisateur regarde la liste triée par prix.",
+    "expected": "« Moins cher » est actif ; TotalEnergies Albi à 1,99 € est en tête."
+  },
+  "US-1.5-02-trier-la-liste-apres.png": {
+    "action": "L'utilisateur touche « Plus proche » dans le tri.",
+    "expected": "La liste se réordonne par distance, Esso Express à 1,7 km en premier."
+  },
+  "US-1.5-03-trier-la-liste-avant.png": {
+    "action": "L'utilisateur regarde la liste triée par distance.",
+    "expected": "« Plus proche » est actif, les distances croissent de 1,7 à 3,3 km."
+  },
+  "US-1.5-04-trier-la-liste-apres.png": {
+    "action": "L'utilisateur touche « Moins cher » dans le tri.",
+    "expected": "La liste se retrie par prix croissant, TotalEnergies à 1,99 € en tête."
+  },
+  "US-1.6-01-lire-une-station-dans-la-liste-avant.png": {
+    "action": "L'utilisateur affiche la liste des stations.",
+    "expected": "Il voit les stations avec enseigne, distance, ancienneté et prix."
+  },
+  "US-1.6-02-lire-une-station-dans-la-liste-apres.png": {
+    "action": "L'utilisateur lit la ligne d'une station, la première étant survolée.",
+    "expected": "Il voit enseigne, distance, ancienneté, écart à la moyenne France et prix à trois décimales."
+  },
+  "US-1.6-03-lire-une-station-dans-la-liste-avant.png": {
+    "action": "L'utilisateur pointe la ligne de Carrefour Albi dans la liste.",
+    "expected": "La ligne est surlignée, prête à être touchée."
+  },
+  "US-1.6-04-lire-une-station-dans-la-liste-apres.png": {
+    "action": "L'utilisateur touche la ligne de Carrefour Albi.",
+    "expected": "La fiche Carrefour Albi s'ouvre avec adresse, prix et services."
+  },
+  "US-1.E1-E1-01-declencheur.png": {
+    "action": "Le test coupe la lecture des prix (mock) alors que l'appli est sur Trajets.",
+    "expected": "Le formulaire Trajets s'affiche, avec un bandeau d'annotation « MOCK — page.route coupe la lecture des prix »."
+  },
+  "US-1.E1-E1-02-resultat.png": {
+    "action": "L'utilisateur ouvre l'écran Prix, la source des prix ne répondant pas.",
+    "expected": "Un message « Prix indisponibles pour l'instant » et un bouton Réessayer remplacent la liste."
+  },
+  "US-1.E1-E1-03-retour.png": {
+    "action": "La source des prix répond de nouveau et l'utilisateur recharge l'écran.",
+    "expected": "La carte et la liste des stations avec leurs prix réapparaissent normalement."
+  },
+  "US-1.E2-E1-01-declencheur.png": {
+    "action": "Le test fait répondre une liste vide pour l'E85 (mock).",
+    "expected": "La liste SP95-E10 normale s'affiche, avec un bandeau d'annotation « MOCK — page.route renvoie [] pour les prix E85 »."
+  },
+  "US-1.E2-E1-02-resultat.png": {
+    "action": "L'utilisateur choisit E85 dans le sélecteur de carburant.",
+    "expected": "« Aucune station ne vend ce carburant autour de vous » s'affiche, sans pastille sur la carte."
+  },
+  "US-1.E2-E1-03-retour.png": {
+    "action": "Les données E85 reviennent et l'utilisateur regarde de nouveau l'E85.",
+    "expected": "Cinq stations vendant l'E85 réapparaissent sur la carte et dans la liste."
+  },
+  "US-1.E3-E1-01-declencheur.png": {
+    "action": "L'utilisateur ouvre les prix, dont l'un n'a pas été mis à jour depuis plus de 48 h.",
+    "expected": "Il voit la liste SP95-E10 de la zone."
+  },
+  "US-1.E3-E1-02-resultat.png": {
+    "action": "L'utilisateur parcourt la liste SP95-E10.",
+    "expected": "La ligne Intermarché Cagnac-les-Mines est surlignée : « prix du 14/10 » en italique atténué, totem atténué."
+  },
+  "US-1.E3-E1-03-retour.png": {
+    "action": "Les données redeviennent normales et l'utilisateur relit la liste.",
+    "expected": "La liste réapparaît avec les stations et la même mention de prix ancien."
+  },
+  "US-1.E4-E1-01-declencheur.png": {
+    "action": "L'utilisateur affiche le GPLc, que vend la station en rupture de gazole.",
+    "expected": "La ligne « TotalEnergies Albi · Auto 81 Sarl » est surlignée ; un bandeau dit qu'elle est en rupture temporaire de gazole."
+  },
+  "US-1.E4-E1-02-resultat.png": {
+    "action": "L'utilisateur choisit Gazole.",
+    "expected": "La liste gazole triée par prix ne contient pas « TotalEnergies Albi · Auto 81 Sarl » ; les autres TotalEnergies ont un libellé distinct (bandeau)."
+  },
+  "US-1.E4-E1-03-retour.png": {
+    "action": "L'utilisateur revient au GPLc.",
+    "expected": "« TotalEnergies Albi · Auto 81 Sarl » réapparaît, surlignée."
+  },
+  "US-1.P1-01-recentrer-sur-ma-position-avant.png": {
+    "action": "L'utilisateur a déplacé la carte vers Saint-Juéry, loin de sa position.",
+    "expected": "La carte n'affiche plus de pastille, la liste ne montre que quatre stations."
+  },
+  "US-1.P1-02-recentrer-sur-ma-position-apres.png": {
+    "action": "L'utilisateur touche le bouton de recentrage de la carte.",
+    "expected": "La carte revient sur Albi et la liste se recharge avec les stations."
+  },
+  "US-2.1-01-fermer-la-fiche-avant.png": {
+    "action": "L'utilisateur consulte la fiche de TotalEnergies Albi, en gazole.",
+    "expected": "La fiche couvre le bas de l'écran avec les prix de chaque carburant."
+  },
+  "US-2.1-02-fermer-la-fiche-apres.png": {
+    "action": "L'utilisateur ferme la fiche avec le bouton ou la touche Échap.",
+    "expected": "La fiche disparaît et le carburant Gazole reste sélectionné."
+  },
+  "US-2.2-01-calculer-un-trajet-vers-la-station-avant.png": {
+    "action": "L'utilisateur consulte la fiche de TotalEnergies Albi.",
+    "expected": "Il voit les prix et le bouton « Coût d'un trajet jusqu'ici »."
+  },
+  "US-2.2-02-calculer-un-trajet-vers-la-station-apres.png": {
+    "action": "L'utilisateur touche « Coût d'un trajet jusqu'ici ».",
+    "expected": "L'onglet Trajets s'ouvre avec l'arrivée remplie à l'adresse de la station."
+  },
+  "US-2.E1-E1-01-declencheur.png": {
+    "action": "L'utilisateur affiche la liste des stations, dont une ne vend pas de GPLc.",
+    "expected": "Il voit la liste SP95-E10 avec TotalEnergies Albi en tête."
+  },
+  "US-2.E1-E1-02-resultat.png": {
+    "action": "L'utilisateur ouvre la fiche de TotalEnergies Albi.",
+    "expected": "La fiche s'ouvre avec les prix des carburants vendus."
+  },
+  "US-2.E1-E1-03-retour.png": {
+    "action": "L'utilisateur ferme la fiche après l'avoir consultée.",
+    "expected": "La liste réapparaît, TotalEnergies Albi étant surlignée."
+  },
+  "US-A11Y-001-01-m1.png": {
+    "action": "L'utilisateur avance au clavier (Tab) depuis le haut de l'écran Prix.",
+    "expected": "Le focus est sur une pastille de la carte (2,182), entourée d'un contour visible, après les carburants et la carte."
+  },
+  "US-A11Y-001-02-m1.png": {
+    "action": "L'utilisateur revient en arrière avec Maj+Tab depuis l'onglet Prix.",
+    "expected": "Le focus est sur la ligne Intermarché Cagnac-les-Mines, entourée d'un contour visible."
+  },
+  "US-A11Y-002-01-m1.png": {
+    "action": "L'utilisateur ouvre au clavier la fiche d'Intermarché Le Sequestre.",
+    "expected": "La fiche s'ouvre, le titre est focalisé (souligné)."
+  },
+  "US-A11Y-002-02-m1.png": {
+    "action": "L'utilisateur appuie sur Échap.",
+    "expected": "La fiche est fermée ; la ligne Intermarché Le Sequestre qui l'avait ouverte a le focus, contour visible."
+  },
+  "US-A11Y-003-01-m1.png": {
+    "action": "L'utilisateur ouvre la fiche de TotalEnergies Albi.",
+    "expected": "La fiche est affichée au-dessus de la liste."
+  },
+  "US-A11Y-003-02-m1.png": {
+    "action": "L'utilisateur appuie sur la touche Échap.",
+    "expected": "La fiche se ferme et la ligne TotalEnergies porte un contour de focus."
+  },
+  "US-A11Y-004-01-m1.png": {
+    "action": "L'utilisateur parcourt les pastilles de la carte au clavier.",
+    "expected": "Une pastille est entourée d'un contour, avec son prix lisible."
+  },
+  "US-A11Y-004-02-m1.png": {
+    "action": "L'utilisateur ouvre la fiche d'une station et attend le chargement.",
+    "expected": "La fiche TotalEnergies Albi · Relais des Fontanelles montre ses prix chargés ; le bouton fermer est libellé."
+  },
+  "US-PERF-001-01-m1.png": {
+    "action": "L'utilisateur ouvre l'appli en 4G simulée, cache vide.",
+    "expected": "La page est encore blanche ; un bandeau d'annotation indique la mesure lancée (t ≈ 119 ms)."
+  },
+  "US-PERF-001-02-m1.png": {
+    "action": "L'utilisateur attend l'affichage.",
+    "expected": "La liste des stations est affichée ; le bandeau d'annotation donne le temps mesuré (1 099 ms, budget 2 500 ms)."
+  }
+}
