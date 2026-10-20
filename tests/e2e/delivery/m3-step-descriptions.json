@@ -1,226 +1,226 @@
 {
- "US-1.8-01-stations-hors-de-france-avant.png": {
-  "action": "L'utilisateur ouvre l'appli avec sa position réglée sur Barcelone.",
-  "expected": "L'écran Trajets est vide ; un bandeau indique la position Barcelone."
- },
- "US-1.8-02-stations-hors-de-france-apres.png": {
-  "action": "L'utilisateur ouvre l'onglet Prix depuis Barcelone.",
-  "expected": "La liste montre des stations espagnoles, avec prix au litre et écart."
- },
- "US-1.8-03-stations-hors-de-france-avant.png": {
-  "action": "L'utilisateur ouvre l'appli avec sa position réglée sur Bruxelles.",
-  "expected": "L'écran Trajets est vide ; un bandeau indique la position Bruxelles."
- },
- "US-1.8-04-stations-hors-de-france-apres.png": {
-  "action": "L'utilisateur ouvre l'onglet Prix depuis Bruxelles.",
-  "expected": "Un message dit que la Belgique ne publie pas ses prix ; moyenne 1,977."
- },
- "US-3.8-01-partir-l-tranger-avant.png": {
-  "action": "L'utilisateur tape « Barce » dans le champ arrivée, départ Albi.",
-  "expected": "Une liste de villes propose notamment Barcelone, Catalogne, Espagne."
- },
- "US-3.8-02-partir-l-tranger-apres.png": {
-  "action": "L'utilisateur lance le calcul d'Albi vers Barcelone.",
-  "expected": "Coût 79,03 € : France 307 km, Espagne 162 km, péages 16,70 €."
- },
- "US-4.4-01-voir-les-pages-avant.png": {
-  "action": "L'utilisateur regarde le résultat du trajet Albi vers Barcelone.",
-  "expected": "Coût 79,03 € : carburant 62,33 € plus péages 16,70 €."
- },
- "US-4.4-02-voir-les-pages-apres.png": {
-  "action": "L'utilisateur fait défiler jusqu'au détail des péages.",
-  "expected": "Une section d'autoroute à 16,70 €, total péages 16,70 €."
- },
- "US-4.4-03-voir-les-pages-avant.png": {
-  "action": "L'utilisateur regarde le résultat du trajet Albi vers Castres.",
-  "expected": "Coût 6,83 € ; carburant 6,83 €, péages 0,00 €."
- },
- "US-4.4-04-voir-les-pages-apres.png": {
-  "action": "L'utilisateur fait défiler jusqu'au détail des péages.",
-  "expected": "« Aucun péage sur cet itinéraire » est affiché avec 0,00 €."
- },
- "US-4.5-01-voir-les-pays-traverss-avant.png": {
-  "action": "L'utilisateur regarde le résultat du trajet Albi vers Milan.",
-  "expected": "Coût 291,39 € ; liste de péages français dont le tunnel du Fréjus."
- },
- "US-4.5-02-voir-les-pays-traverss-apres.png": {
-  "action": "L'utilisateur fait défiler jusqu'aux pays traversés.",
-  "expected": "France 90,84 € et Italie 46,45 €, avec km, litres et prix."
- },
- "US-4.E4-E1-01-declencheur.png": {
-  "action": "L'utilisateur voit un trajet dont le calcul des péages a échoué.",
-  "expected": "Le détail indique « Péages non disponibles pour l'instant », coût carburant seul."
- },
- "US-4.E4-E1-02-resultat.png": {
-  "action": "L'utilisateur regarde le résultat du trajet Albi vers Bordeaux.",
-  "expected": "Le coût est de 40,82 € ; péages non disponibles, aucun ajouté."
- },
- "US-4.E4-E1-03-retour.png": {
-  "action": "L'utilisateur relance le calcul une fois le service rétabli.",
-  "expected": "Les péages reviennent : 19,80 € d'autoroute, total péages 19,80 €."
- },
- "US-4.E5-E1-01-declencheur.png": {
-  "action": "L'utilisateur saisit un trajet d'Albi vers Lausanne.",
-  "expected": "Le formulaire montre Albi, Lausanne et la liste des trajets récents."
- },
- "US-4.E5-E1-02-resultat.png": {
-  "action": "L'utilisateur fait défiler le résultat du trajet vers Lausanne.",
-  "expected": "Péages 32,60 € et ligne « Vignette suisse obligatoire (non comptée) »."
- },
- "US-4.E5-E1-03-retour.png": {
-  "action": "L'utilisateur revient au formulaire de trajet.",
-  "expected": "Albi → Lausanne apparaît dans les derniers trajets, à 152,46 €."
- },
- "US-4.E6-E1-01-declencheur.png": {
-  "action": "L'utilisateur saisit un trajet d'Albi vers Belgrade.",
-  "expected": "Le formulaire montre Albi, Belgrade et les derniers trajets."
- },
- "US-4.E6-E1-02-resultat.png": {
-  "action": "L'utilisateur fait défiler le résultat du trajet vers Belgrade.",
-  "expected": "La Serbie porte « prix non publié — moyenne européenne appliquée »."
- },
- "US-4.E6-E1-03-retour.png": {
-  "action": "L'utilisateur revient au formulaire de trajet.",
-  "expected": "Albi → Belgrade apparaît dans les derniers trajets, à 466,31 €."
- },
- "US-5.1-01-ouvrir-les-moteurs-avant.png": {
-  "action": "L'administrateur ouvre l'appli sur l'onglet Prix.",
-  "expected": "Le bouton réglages ⚙ est visible en haut à droite."
- },
- "US-5.1-02-ouvrir-les-moteurs-apres.png": {
-  "action": "L'administrateur touche le bouton réglages ⚙.",
-  "expected": "L'écran Moteurs liste six services avec leur fournisseur et leur état."
- },
- "US-5.2-01-choisir-le-fournisseur-avant.png": {
-  "action": "L'administrateur regarde la fiche Péages de l'écran Moteurs.",
-  "expected": "Péages utilise PTV Developer ; l'état est « Enregistré »."
- },
- "US-5.2-02-choisir-le-fournisseur-apres.png": {
-  "action": "L'administrateur choisit HERE comme fournisseur des péages.",
-  "expected": "L'état passe à « Clé à… » ; le champ invite à coller."
- },
- "US-5.3-01-coller-la-cl-avant.png": {
-  "action": "L'administrateur place le curseur dans le champ clé des péages.",
-  "expected": "Le champ, entouré, montre « Clé enregistrée ••••NDEO »."
- },
- "US-5.3-02-coller-la-cl-apres.png": {
-  "action": "L'administrateur colle une clé invalide et la teste.",
-  "expected": "L'état dit « Clé refusée par PTV (401) · clé non enregistrée »."
- },
- "US-5.3-03-coller-la-cl-avant.png": {
-  "action": "L'administrateur regarde la fiche Péages avant de recharger.",
-  "expected": "L'état est « Clé refusée » ; le champ garde ••••NDEO."
- },
- "US-5.3-04-coller-la-cl-apres.png": {
-  "action": "L'administrateur recharge l'écran Moteurs.",
-  "expected": "Seule la fin ••••NDEO du champ apparaît ; un bandeau le confirme."
- },
- "US-5.4-01-tester-la-connexion-avant.png": {
-  "action": "L'administrateur place le curseur sur « Tester la connexion ».",
-  "expected": "Le bouton est entouré ; Péages est « Enregistré », clé ••••NDEO."
- },
- "US-5.4-02-tester-la-connexion-apres.png": {
-  "action": "L'administrateur touche « Tester la connexion » pour les péages.",
-  "expected": "L'état affiche « Connecté · test Albi → Barcelone OK »."
- },
- "US-5.5-01-enregistrer-le-moteur-avant.png": {
-  "action": "L'administrateur choisit HERE comme moteur des péages.",
-  "expected": "HERE est sélectionné ; l'état est « Clé à… », champ vide."
- },
- "US-5.5-02-enregistrer-le-moteur-apres.png": {
-  "action": "L'utilisateur regarde le détail des péages du trajet Albi-Barcelone.",
-  "expected": "Total péages 16,70 € ; rien n'indique le moteur utilisé."
- },
- "US-5.6-01-ou-trouver-ma-cle-avant.png": {
-  "action": "L'administrateur ouvre l'écran Moteurs.",
-  "expected": "Le titre Moteurs et les deux premières fiches s'affichent."
- },
- "US-5.6-02-ou-trouver-ma-cle-apres.png": {
-  "action": "L'administrateur regarde la fiche Péages sous le champ clé.",
-  "expected": "Le lien « Où trouver ma clé » cite « API Keys »."
- },
- "US-5.6-03-lien-stadia.png": {
-  "action": "L'administrateur regarde la fiche Itinéraire fournisseur Stadia.",
-  "expected": "Le lien « Où trouver ma clé » parle du tableau de bord Stadia."
- },
- "US-5.6-04-sans-cle.png": {
-  "action": "L'administrateur regarde les fiches sans clé, comme Voitures.",
-  "expected": "La fiche Voitures dit « Aucune clé nécessaire » et n'a aucun lien."
- },
- "US-5.E1-E1-01-declencheur.png": {
-  "action": "Un visiteur non administrateur ouvre l'appli.",
-  "expected": "L'onglet Prix s'affiche sans bouton réglages ⚙."
- },
- "US-5.E1-E1-02-resultat.png": {
-  "action": "Le visiteur attend l'affichage de la carte et des stations.",
-  "expected": "La carte est vide et les prix sont encore estompés."
- },
- "US-5.E1-E1-03-retour.png": {
-  "action": "Le visiteur regarde l'écran après les essais d'accès refusés.",
-  "expected": "Prix affichés ; un bandeau liste les accès refusés (403, 401)."
- },
- "US-5.E2-E1-01-declencheur.png": {
-  "action": "L'administrateur colle une clé invalide dans le champ des péages.",
-  "expected": "Le champ entouré affiche des points masquant la clé."
- },
- "US-5.E2-E1-02-resultat.png": {
-  "action": "L'administrateur touche « Tester la connexion ».",
-  "expected": "L'état devient « Clé refusée par P… » en rouge."
- },
- "US-5.E2-E1-03-retour.png": {
-  "action": "L'administrateur recharge l'écran Moteurs.",
-  "expected": "« Clé non enregistrée · ancienne clé conservée » ; fournisseur PTV."
- },
- "US-5.E3-E1-01-declencheur.png": {
-  "action": "L'administrateur règle HERE en principal et PTV en secours.",
-  "expected": "HERE est principal, PTV Developer secours, deux clés enregistrées."
- },
- "US-5.E3-E1-02-resultat.png": {
-  "action": "L'utilisateur regarde le détail des péages du trajet vers Bordeaux.",
-  "expected": "Total péages 19,80 € ; rien n'indique quel moteur a répondu."
- },
- "US-5.E3-E1-03-retour.png": {
-  "action": "L'administrateur regarde la fiche Péages après le calcul.",
-  "expected": "Une ligne dit « Bascule HERE → PTV Developer le 20/10 23:08 »."
- },
- "US-A11Y-001-01-m3.png": {
-  "action": "L'utilisateur appuie sur Tab sur l'écran Trajets.",
-  "expected": "Des pastilles numérotées montrent l'ordre des contrôles, de haut en bas."
- },
- "US-A11Y-001-02-m3.png": {
-  "action": "L'utilisateur appuie sur Tab sur l'écran Moteurs.",
-  "expected": "Des pastilles numérotées montrent l'ordre des contrôles ; contour sur l'onglet Prix."
- },
- "US-A11Y-002-01-m3.png": {
-  "action": "L'utilisateur touche une station sur la carte des prix.",
-  "expected": "La fiche s'ouvre ; son titre est entouré, avec les prix par carburant."
- },
- "US-A11Y-002-02-m3.png": {
-  "action": "L'utilisateur ferme la fiche de la station.",
-  "expected": "Retour à la liste ; la première station est surlignée."
- },
- "US-A11Y-003-01-m3.png": {
-  "action": "L'utilisateur ouvre le détail d'un tronçon du résultat.",
-  "expected": "Le tronçon Autoroute AP-7 est déplié, avec vitesse moyenne et dénivelé."
- },
- "US-A11Y-003-02-m3.png": {
-  "action": "L'utilisateur appuie sur Échap.",
-  "expected": "Le tronçon se replie ; son contour de focus reste visible."
- },
- "US-A11Y-004-01-m3.png": {
-  "action": "L'utilisateur parcourt les libellés du résultat Albi-Barcelone.",
-  "expected": "Un bandeau annonce 8 tronçons et « Coût estimé 79,03 euros »."
- },
- "US-A11Y-004-02-m3.png": {
-  "action": "L'utilisateur parcourt les contrôles de l'écran Moteurs.",
-  "expected": "Un bandeau indique 28 contrôles, aucun sans nom ; ⚙ nommé."
- },
- "US-PERF-001-01-m3.png": {
-  "action": "L'utilisateur ouvre l'appli en 4G émulée, depuis Barcelone.",
-  "expected": "La page est vide ; un bandeau précise « cache vide »."
- },
- "US-PERF-001-02-m3.png": {
-  "action": "L'utilisateur attend l'affichage de la liste des stations.",
-  "expected": "La liste s'affiche en 2009 ms ; la carte charge encore."
- }
+  "US-3.8-01-partir-l-tranger-avant.png": {
+    "action": "L'utilisateur tape « Barce » dans l'arrivée, avec Albi au départ.",
+    "expected": "La liste propose plusieurs villes, dont Barcelone, Catalogne, Espagne."
+  },
+  "US-3.8-02-partir-l-tranger-apres.png": {
+    "action": "L'utilisateur choisit Barcelone et lance le calcul.",
+    "expected": "Albi → Barcelone coûte 91,33 € : France 307 km, Espagne 162 km."
+  },
+  "US-4.4-01-voir-les-pages-avant.png": {
+    "action": "L'utilisateur ouvre le résultat du trajet Albi → Barcelone.",
+    "expected": "Coût 91,33 € : carburant 62,33 € plus péages 29,00 €."
+  },
+  "US-4.4-02-voir-les-pages-apres.png": {
+    "action": "L'utilisateur fait défiler jusqu'au détail des péages.",
+    "expected": "Deux gares de péage à 1,70 € et 27,30 €, total 29,00 €."
+  },
+  "US-4.4-03-voir-les-pages-avant.png": {
+    "action": "L'utilisateur ouvre le résultat du trajet Albi → Castres.",
+    "expected": "Coût 6,83 €, uniquement du carburant ; péages 0,00 €."
+  },
+  "US-4.4-04-voir-les-pages-apres.png": {
+    "action": "L'utilisateur fait défiler jusqu'au détail des péages.",
+    "expected": "« Aucun péage sur cet itinéraire » s'affiche avec 0,00 €."
+  },
+  "US-4.5-01-voir-les-pays-traverss-avant.png": {
+    "action": "L'utilisateur ouvre le résultat du trajet Albi → Milan.",
+    "expected": "Coût 216,99 € : carburant 137,29 € et péages 79,70 €."
+  },
+  "US-4.5-02-voir-les-pays-traverss-apres.png": {
+    "action": "L'utilisateur fait défiler jusqu'aux pays traversés.",
+    "expected": "France 90,84 € et Italie 46,45 €, avec km, litres et prix."
+  },
+  "US-4.E4-E1-01-declencheur.png": {
+    "action": "Le service des péages ne répond pas pendant le calcul.",
+    "expected": "Le détail indique « Péages non disponibles pour l'instant »."
+  },
+  "US-4.E4-E1-02-resultat.png": {
+    "action": "L'utilisateur regarde le résultat du trajet Albi → Bordeaux.",
+    "expected": "Le coût de 40,82 € ne comprend que le carburant."
+  },
+  "US-4.E4-E1-03-retour.png": {
+    "action": "Le service des péages répond de nouveau et l'utilisateur recalcule.",
+    "expected": "Les péages reviennent : deux gares, total 24,60 €."
+  },
+  "US-4.E5-E1-01-declencheur.png": {
+    "action": "L'utilisateur saisit un trajet d'Albi vers Lausanne, en Suisse.",
+    "expected": "Le formulaire montre Albi, Lausanne, la voiture et les derniers trajets."
+  },
+  "US-4.E5-E1-02-resultat.png": {
+    "action": "L'utilisateur fait défiler le résultat jusqu'aux péages.",
+    "expected": "Une ligne « Vignette suisse obligatoire (non comptée) » suit le total 38,40 €."
+  },
+  "US-4.E5-E1-03-retour.png": {
+    "action": "L'utilisateur revient à l'écran Trajets.",
+    "expected": "Albi → Lausanne figure en tête des derniers trajets, à 158,26 €."
+  },
+  "US-4.E6-E1-01-declencheur.png": {
+    "action": "L'utilisateur saisit un trajet d'Albi vers Belgrade, en Serbie.",
+    "expected": "Le formulaire montre Albi, Belgrade et les derniers trajets."
+  },
+  "US-4.E6-E1-02-resultat.png": {
+    "action": "L'utilisateur fait défiler le résultat jusqu'aux pays traversés.",
+    "expected": "La Serbie porte « prix non publié — moyenne européenne appliquée »."
+  },
+  "US-4.E6-E1-03-retour.png": {
+    "action": "L'utilisateur revient à l'écran Trajets.",
+    "expected": "Albi → Belgrade figure en tête des derniers trajets, à 392,40 €."
+  },
+  "US-1.8-01-stations-hors-de-france-avant.png": {
+    "action": "L'utilisateur ouvre l'appli en se trouvant à Barcelone.",
+    "expected": "L'écran Trajets s'affiche, vide ; un bandeau rappelle la position Barcelone."
+  },
+  "US-1.8-02-stations-hors-de-france-apres.png": {
+    "action": "L'utilisateur ouvre l'onglet Prix depuis Barcelone.",
+    "expected": "Carte et liste montrent des stations espagnoles avec leur prix au litre."
+  },
+  "US-1.8-03-stations-hors-de-france-avant.png": {
+    "action": "L'utilisateur ouvre l'appli en se trouvant à Bruxelles.",
+    "expected": "L'écran Trajets s'affiche, vide ; un bandeau rappelle la position Bruxelles."
+  },
+  "US-1.8-04-stations-hors-de-france-apres.png": {
+    "action": "L'utilisateur ouvre l'onglet Prix depuis Bruxelles.",
+    "expected": "Message : le pays ne publie pas les prix par station ; moyenne 1,977 €."
+  },
+  "US-5.1-01-ouvrir-les-moteurs-avant.png": {
+    "action": "L'administrateur ouvre l'appli sur l'onglet Prix.",
+    "expected": "Les stations d'Albi s'affichent ; le bouton réglages ⚙ est en haut à droite."
+  },
+  "US-5.1-02-ouvrir-les-moteurs-apres.png": {
+    "action": "L'administrateur touche le bouton réglages ⚙.",
+    "expected": "L'écran Moteurs liste six services, chacun avec fournisseur et état."
+  },
+  "US-5.2-01-choisir-le-fournisseur-avant.png": {
+    "action": "L'administrateur regarde la fiche Péages de l'écran Moteurs.",
+    "expected": "Les péages passent par PTV Developer, état « Enregistré »."
+  },
+  "US-5.2-02-choisir-le-fournisseur-apres.png": {
+    "action": "L'administrateur choisit HERE comme fournisseur des péages.",
+    "expected": "L'état passe à « Clé à coller » et le champ clé est vide."
+  },
+  "US-5.3-01-coller-la-cl-avant.png": {
+    "action": "L'administrateur place le curseur dans le champ clé des péages.",
+    "expected": "Le champ entouré montre seulement la fin de la clé : ••••NDE0."
+  },
+  "US-5.3-02-coller-la-cl-apres.png": {
+    "action": "L'administrateur colle une clé et l'enregistre.",
+    "expected": "Le champ n'affiche toujours que les 4 derniers caractères : ••••NDE0."
+  },
+  "US-5.3-03-coller-la-cl-avant.png": {
+    "action": "L'administrateur regarde la fiche Péages avant de recharger.",
+    "expected": "L'état dit « Clé refusée par PTV (401) » ; le champ garde ••••NDE0."
+  },
+  "US-5.3-04-coller-la-cl-apres.png": {
+    "action": "L'administrateur recharge l'écran Moteurs.",
+    "expected": "Seule la fin ••••NDE0 apparaît ; la clé complète n'est nulle part."
+  },
+  "US-5.4-01-tester-la-connexion-avant.png": {
+    "action": "L'administrateur se place sur « Tester la connexion » des péages.",
+    "expected": "Le bouton est entouré ; la clé PTV ••••NDE0 est enregistrée."
+  },
+  "US-5.4-02-tester-la-connexion-apres.png": {
+    "action": "L'administrateur touche « Tester la connexion ».",
+    "expected": "L'état affiche « Connecté · test Albi → Barcelone OK »."
+  },
+  "US-5.5-01-enregistrer-le-moteur-avant.png": {
+    "action": "L'administrateur choisit HERE comme fournisseur des péages.",
+    "expected": "HERE est sélectionné, mais l'état reste « Clé à coller »."
+  },
+  "US-5.5-02-enregistrer-le-moteur-apres.png": {
+    "action": "L'utilisateur recalcule Albi → Barcelone et lit les péages.",
+    "expected": "Total péages 29,00 € ; l'écran ne dit pas quel service a répondu."
+  },
+  "US-5.E1-E1-01-declencheur.png": {
+    "action": "Un simple utilisateur ouvre l'appli.",
+    "expected": "L'onglet Prix s'affiche sans le bouton réglages ⚙."
+  },
+  "US-5.E1-E1-02-resultat.png": {
+    "action": "L'appli finit de s'ouvrir pour ce simple utilisateur.",
+    "expected": "Toujours pas de bouton ⚙ ; les prix de la liste chargent encore."
+  },
+  "US-5.E1-E1-03-retour.png": {
+    "action": "Le simple utilisateur tente de lire ou modifier les moteurs.",
+    "expected": "Un bandeau montre ses accès refusés ; les prix s'affichent normalement."
+  },
+  "US-5.E2-E1-01-declencheur.png": {
+    "action": "L'administrateur colle une clé invalide dans le champ des péages.",
+    "expected": "Le champ entouré affiche la clé masquée par des points."
+  },
+  "US-5.E2-E1-02-resultat.png": {
+    "action": "L'administrateur touche « Tester la connexion ».",
+    "expected": "L'état passe en rouge : « Clé refusée par PTV (401) »."
+  },
+  "US-5.E2-E1-03-retour.png": {
+    "action": "L'administrateur recharge l'écran Moteurs.",
+    "expected": "« Clé non enregistrée, ancienne clé conservée » ; PTV reste le fournisseur."
+  },
+  "US-5.E3-E1-01-declencheur.png": {
+    "action": "L'administrateur règle HERE en principal et PTV en secours.",
+    "expected": "La fiche Péages montre HERE, secours PTV Developer, deux clés enregistrées."
+  },
+  "US-5.E3-E1-02-resultat.png": {
+    "action": "Le service principal tombe pendant le calcul d'Albi → Bordeaux.",
+    "expected": "Les péages s'affichent quand même : total 24,60 €."
+  },
+  "US-5.E3-E1-03-retour.png": {
+    "action": "L'administrateur rouvre la fiche Péages après le calcul.",
+    "expected": "Une ligne note « Bascule HERE → PTV Developer le 21/10 00:21 »."
+  },
+  "US-A11Y-001-01-m3.png": {
+    "action": "L'utilisateur parcourt l'écran Trajets avec la touche Tab.",
+    "expected": "Des numéros montrent l'ordre du focus, de haut en bas."
+  },
+  "US-A11Y-001-02-m3.png": {
+    "action": "L'utilisateur parcourt l'écran Moteurs avec la touche Tab.",
+    "expected": "Des numéros montrent l'ordre ; un contour entoure l'onglet Prix."
+  },
+  "US-A11Y-002-01-m3.png": {
+    "action": "L'utilisateur ouvre la fiche d'une station de Barcelone.",
+    "expected": "La fiche s'ouvre sur son titre, avec les prix par carburant."
+  },
+  "US-A11Y-002-02-m3.png": {
+    "action": "L'utilisateur ferme la fiche de la station.",
+    "expected": "La fiche disparaît ; la première station de la liste est surlignée."
+  },
+  "US-A11Y-003-01-m3.png": {
+    "action": "L'utilisateur ouvre le détail d'un tronçon du trajet Albi → Barcelone.",
+    "expected": "Le tronçon AP-7 se déplie : vitesse moyenne, arrêts et dénivelé."
+  },
+  "US-A11Y-003-02-m3.png": {
+    "action": "L'utilisateur appuie sur Échap.",
+    "expected": "Le détail du tronçon se replie ; son contour reste visible."
+  },
+  "US-A11Y-004-01-m3.png": {
+    "action": "L'utilisateur parcourt avec un lecteur d'écran le résultat Albi → Barcelone.",
+    "expected": "Un bandeau confirme 8 tronçons annoncés et « Coût estimé 91,33 euros »."
+  },
+  "US-A11Y-004-02-m3.png": {
+    "action": "L'utilisateur parcourt avec un lecteur d'écran l'écran Moteurs.",
+    "expected": "Un bandeau confirme 28 contrôles, tous nommés, dont « Moteurs (administration) »."
+  },
+  "US-PERF-001-01-m3.png": {
+    "action": "L'utilisateur ouvre l'appli depuis Barcelone sur une connexion mobile lente.",
+    "expected": "La page est encore blanche ; un bandeau précise « cache vide »."
+  },
+  "US-PERF-001-02-m3.png": {
+    "action": "L'utilisateur attend l'affichage des stations.",
+    "expected": "La liste apparaît en 2212 ms ; la carte charge encore."
+  },
+  "US-5.6-01-ou-trouver-ma-cle-avant.png": {
+    "action": "L'administrateur ouvre l'écran Moteurs.",
+    "expected": "Le titre Moteurs et les deux premières fiches s'affichent."
+  },
+  "US-5.6-02-ou-trouver-ma-cle-apres.png": {
+    "action": "L'administrateur regarde la fiche Péages sous le champ clé.",
+    "expected": "Le lien « Où trouver ma clé » renvoie au menu « API Keys »."
+  },
+  "US-5.6-03-lien-stadia.png": {
+    "action": "L'administrateur regarde la fiche Itinéraire, branchée sur Stadia Maps.",
+    "expected": "Le lien « Où trouver ma clé » renvoie au tableau de bord Stadia Maps."
+  },
+  "US-5.6-04-sans-cle.png": {
+    "action": "L'administrateur regarde la fiche Voitures, qui n'a pas besoin de clé.",
+    "expected": "Voitures indique « Aucune clé nécessaire », sans lien de clé."
+  }
 }

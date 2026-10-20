@@ -14,6 +14,8 @@
 
 - 22:05Z — Chef : auditeur round 2 = FAIL (2 HIGH : péages tarifés sur l'itinéraire de PTV et non sur le tracé affiché ; textes de l'écran Moteurs écrits dans la fonction serveur. 2 MEDIUM : S5 coupé à 390 px ; US-5.3 jamais collée par l'interface). Contre-évaluation non lancée (le skill la réserve à un PASS). C'est le 4e cycle : le skill prévoit de demander à Anthony après 3 cycles, mais son plan de nuit (docs/pipeline/plan-nuit-2026-10-20.md, « tout autonome ») l'exclut et les défauts sont précis et réparables → bâtisseur round 4 lancé par le lanceur d'agents du VPS avec les points 1–9.
 - 22:38Z — Bâtisseur round 4 terminé : péages tarifés sur le tracé affiché (Milan 79,70 € sans Fréjus, Barcelone 29,00 €, stables ×2), écran Moteurs en codes + textes.ts, S5 contenu à 360/390 px, US-5.3 collée par l'interface, LOW 5–9 ; captures 56/56 refaites ; Playwright prod 146 ok / 2 ignorés (HERE) / 2 échecs (M1 US-1.E4 sans rupture réelle ; M2 US-3.6 « Calcul impossible », 6/6 vert au rejeu, cause non prouvée) ; Vault et garde-fous relus ; estimer-trajet v11 déployée avant la prise du verrou (mkdir refusé), verrou pris ensuite par root.
+- 22:44Z — Descripteur (cycle 4) : 56 descriptions, 27 écarts
+- 22:53Z — Évaluateur R1 (cycle 4) : PASS 3/5 (56/56 captures, md5 et chiffres recoupés, clé non exposée ; −1 US-3.6 non diagnostiqué alors que les journaux étaient lisibles, −1 tenue 390/360 px sans assertion versionnée)
 
 ## Builder Summary
 
@@ -454,3 +456,80 @@ Aucun ancien test m1/m2 modifié.
 - Libellés « Péage » et « (estimation : maximum de la fourchette) » encore écrits dans `_shared/peages.ts` (lignes de péage HERE, pas l'écran Moteurs).
 - Le texte d'aide du champ clé reste coupé dans le champ à 390 px (« coller pour : »). La fin ••••NDE0 se lit.
 - LOW 10–16 non traités.
+
+## Descripteur — cycle 4
+
+56 descriptions réécrites d'après les captures du round 4 (≤ 15 mots, vérifié par script). Captures où l'image NE MONTRE PAS (ou mal) ce que le plan annonce — 27 :
+
+- US-1.8-01 : écran Trajets vide avec bandeau Barcelone, pas l'écran Prix annoncé.
+- US-1.8-03 : même chose avec Bruxelles.
+- US-1.8-02 : stations espagnoles « date inconnue », comparaison coupée (« −22,0 c vs »).
+- US-4.4-02 : détail et total des péages visibles, mais pas le coût total ; l'ajout ne se lit que sur US-4.4-01.
+- US-4.E4-E1-01 : montre déjà le résultat en erreur, pas une mise en place.
+- US-4.E4-E1-03 : péages revenus (24,60 €), mais le coût total est hors cadre : l'ajout au total ne se voit pas.
+- US-4.E5-E1-01 : trajet Albi → Lausanne, pas Albi → Milan via Genève.
+- US-4.E5-E1-02 : vignette visible ; la Suisse porte aussi « prix non publié — moyenne européenne appliquée ».
+- US-4.E5-E1-03 : liste des derniers trajets ; aucun retour à l'état normal visible.
+- US-4.E6-E1-03 : même chose pour Belgrade.
+- US-5.3-02 : pareille à US-5.3-01 sans le contour ; aucun collage visible, fin ••••NDE0 inchangée (même clé recollée).
+- US-5.3-03 : état « Clé refusée par PTV (401) » laissé par un autre test, pas une clé enregistrée active.
+- US-5.5-01 : HERE choisi mais « Clé à coller », champ vide : moteur non enregistré (BLOQUÉ-CLÉ HERE).
+- US-5.5-02 : péages 29,00 €, identiques à PTV ; rien ne montre que HERE a répondu.
+- US-5.6-02 : texte « API Keys » lisible, adresse developer.myptv.com non visible.
+- US-5.6-03 : adresse client.stadiamaps.com non visible ; aucune bascule montrée, Stadia déjà actif.
+- US-5.E1-E1-02 : prix de la liste encore en chargement.
+- US-5.E1-E1-03 : le bandeau donne modification et suppression à 200 (0 ligne) au lieu d'un refus ; il masque le haut (⚙).
+- US-5.E2-E1-03 : « Clé refusée par HERE (401) » alors que la clé testée était celle de PTV.
+- US-5.E3-E1-01 : rôles inversés : HERE principal, PTV secours (plan : PTV en panne, HERE en secours).
+- US-5.E3-E1-02 : résultat Bordeaux sans indication du service qui a répondu.
+- US-5.E3-E1-03 : bascule HERE → PTV, déclenchée par une clé HERE refusée (401), pas par une panne de PTV.
+- US-A11Y-001-02 : seuls Trajets (-01) et Moteurs (-02) sont parcourus ; Prix et Résultat manquent.
+- US-A11Y-002-02 : le retour du focus ne se voit que par un fond gris sur la première ligne de liste.
+- US-A11Y-003-01 : un tronçon déplié, pas une fiche ouverte.
+- US-A11Y-003-02 : Échap replie un tronçon ; aucune fiche ne se ferme.
+- US-PERF-001-02 : liste prête en 2212 ms, mais la carte affiche encore « Chargement des prix… ».
+
+Identiques voulus (non comptés) : US-3.8-02 = US-4.4-01 ; US-5.3-03 ≈ US-5.3-04 (bandeau en plus).
+
+## Evaluator Journal — Round 1, cycle 4 (Builder Transcript)
+
+Transcript lu : `36106da2-…jsonl` (22:03:43–22:39:23Z), consigne et rendu `m3-batisseur-r4`, commits `4340df0..6baa5b7`.
+
+**Stats** : 116 appels d'outils (Bash 106, Read 4, WebSearch 3, WebFetch 2, ToolSearch 1) sur 110 tours, soit 1,05 appel par tour (104 tours à un seul appel : le groupage demandé n'a pas été fait, mais les commandes Bash enchaînent souvent plusieurs gestes). 3 erreurs d'outil (exit 2 sur `which supabase`, `ValueError` d'un remplacement Python, `deno check` en échec à #48), toutes reprises et corrigées dans le tour suivant. Aucune boucle.
+
+**Couverture des captures** : 56/56 du plan (`m3-use-case.md`), livraison ET brutes présentes ; toutes écrites entre 22:18:23 et 22:22:30Z par `run-m3.mjs` (vrais `page.screenshot()`, `run-m3.mjs:103,110`), lancé sous `lourd` sur la prod. Aucun cp/mv/copyFile de PNG dans les 106 commandes. md5 recalculés : les 56 paires (livraison, brute) correspondent EXACTEMENT aux empreintes déclarées dans le journal d'exploration (0 écart). Doublons recalculés = doublons déclarés : livraison US-3.8-02 = US-4.4-01 ; brutes US-1.8-01 = -03, US-3.8-02 = US-4.4-01, US-5.3-03 = -04, US-5.6-01 = US-A11Y-004-02-m3. 43 livraisons sont identiques à leur brute (aucune étiquette posée, comportement voulu du script, déjà 45/56 au round 3). Captures vues : US-5.3-02 montre « Clé enregistrée ••••NDE0 — coller pour : » (texte d'aide coupé, déclaré) ; US-5.E2-E1-02 montre « CLÉ REFUSÉE PAR PTV (401) » lisible en entier à 390 px. État vérifié avant chaque capture : oui (chaque `capture()` porte ses `expect`, ex. `run-m3.mjs:582-591`).
+
+**Recoupement des chiffres du rendu avec les sorties du transcript**
+- Albi → Milan 79,70 € ×2, sans Fréjus : sortie #36 (22:09:23 et 22:09:26, estimer-trajet déployé, stadia, ptv ok 79.7, 9 sections). 122,20 € sans points : sonde #24 (0 passage, section « Tunnel du Fréjus 55.5 »). Vrai.
+- Albi → Barcelone 29,00 € ×2 : #36 (22:09:27, 22:09:29). Vrai. Recalcul indépendant 79,7 / 29 : #26. Vrai.
+- vitest 131/131 : #58. tsc OK : #96 (après l'échec TS2550 de #57, corrigé en #58). vite build OK : #57. deno check estimer-trajet + moteurs : #96. Vrai.
+- Playwright 146 passés / 2 ignorés (US-5.5, US-5.E3, BLOQUÉ-CLÉ HERE) / 2 échecs : #98 et `pw.out:38,51,210`. Vrai.
+- Mesure S5 390/360 px : #71 (cartes 16–374 et 16–344, scrollWidth = largeur, aucune pastille coupée, admin éphémère 0). Vrai.
+- État final : Vault = cle_ptv, cle_stadia, sync_prix_secret, 0 FAUX- (#107) ; fins NDE0/961b (#108) ; péages ptv sans secours, itinéraire stadia + valhalla-public (#107) ; limite anonymes 30 relue (#107, montée à 300 en #80) ; 0 admin éphémère. Vrai.
+- « 9 captures m3 aux mêmes octets qu'au round 3 » : #92 (28 identiques sur 75, dont 9 du jalon 3). Vrai.
+- Aucun fichier `m1-explore.spec.ts`, `m2-explore.spec.ts`, `m2-aides.mjs` modifié depuis 4340df0 : vrai.
+
+**Corrections fantômes** : aucune. Chaque commit cité porte le diff annoncé : ad2da02 (peages.ts, itineraire-europe.ts, estimer-trajet, test unitaire, recalcul indépendant), c804f4c (moteurs/index.ts sans phrase d'état, `T.etatMoteur`, migration 20261021150000 appliquée, colonnes `code`/`params` relues en #61), bbf4def (app.css), 2bfdff7 (Resultat.tsx, motif `quota_atteint`), 4e47ade (US-5.3 collée), dec52e8 (m3-decisions T3.5) ; description « Prix » en base relue par moi : RO et GB y figurent. Lignes 3 et 84 du journal d'exploration corrigées (diff vérifié).
+
+**Sécurité (clé PTV)** : AUCUNE exposition trouvée. Recherche par motif (suite base64 de ≥ 12 caractères suivie de la fin connue, et suite hexadécimale ≥ 16 + fin Stadia) dans le dépôt (suivi et non suivi, hors node_modules/.git), `/tmp/r4probe`, `/tmp/claude-1000`, le transcript et ses `tool-results`, `journal-actions.md` : seules occurrences = « ••••NDE0 » (affichage voulu), des UUID de messages et des SHA-256 (faux positifs), et deux copies de transcripts r2/r3 où la fin apparaît au milieu de blocs base64 d'images de 650 Ko. Pas de trace Playwright (`playwright.config.ts` sans `trace`), `test-results/` vide. La clé ne passe que par `page.evaluate(navigator.clipboard.writeText)` et des comparaisons booléennes.
+
+**Comportement / dérobades**
+- Échec US-1.E4 (M1) : cause constatée (assertion « aucune rupture gazole réelle dans le rayon », `pw.out:160-170`), hors code.
+- Échec US-3.6 « voiture disparue » (M2) : constat juste (« Calcul impossible pour l'instant », error-context lu en #100), mais la cause est restée non prouvée. Après 4 requêtes de journaux ratées et la lecture du changelog Supabase (#101–#105), le bâtisseur a abandonné en écrivant « l'API a changé de format ». Le point était réparable : la table unifiée `logs` se filtre par la colonne `source` (et non `source_name`). Je l'ai interrogée en lecture seule : entre 22:23 et 22:35Z, aucun POST estimer-trajet non-2xx dans `function_edge_logs` (seulement 2 × 422, les tests « trop long »). Aucun log d'erreur dans `function_logs`. Régression du correctif péages : PEU PROBABLE. Une erreur de péages est rattrapée côté serveur (`estimer-trajet/index.ts:311-314` → « indisponible »). « Calcul impossible » demande une erreur hors péages (`Trajets.tsx:112-139` ; `rafraichirHistorique` n'y est pas rattrapé). `geom.flat()` ajouté au chemin IGN ne peut pas lever d'exception. Elle n'est cependant pas exclue, car le nombre de lignes de journal paraît partiel. **−1 (dérobade sur un point réparable)**.
+- Verrou de livraison (#32–#35) : à 22:08:51Z, la commande `mkdir VERROU && echo … ; node scripts/deploy-fn.mjs estimer-trajet` est partie avec un `;`. Le `mkdir` a été refusé (`/home/claude/la-boucle-preuves` appartient à root, 755) et estimer-trajet v11 a quand même été déployée sans verrou. Le verrou n'existait pas (vérifié en #31) et aucun autre agent ne livrait. Le bâtisseur a vu le refus et contrôlé les droits (#33) et l'historique (#34). Il a pris le verrou par `ssh root@100.112.75.26` à 22:09:08Z (#35) puis l'a journalisé comme correction. moteurs v8 et le push Vercel ont été faits sous verrou, retiré en #114 et relu absent. L'écart est déclaré tel quel, sans maquillage.
+- Journal d'exploration : écrit au fil des commits, en 5 rafales (22:10, 22:15–16, 22:24, 22:37Z), chacune juste après son correctif, via `journal-round.mjs`. Ce n'est pas un bloc unique. L'entrée « Correctif 7 » (22:15:44Z) précède de 12 s l'édition de `m3-decisions.md` (#69).
+- Cas limites : la tenue à 390/360 px (MEDIUM 3) n'est prouvée que par une sonde jetable `/tmp/r4probe/mesure-s5.mjs`, non versionnée. Aucune assertion de largeur dans `run-m3.mjs` ni dans les extraits : rien n'empêchera une régression. De même, la stabilité « ×2 » des montants n'est prouvée que par `/tmp/r4probe/direct.mjs`. **−1 (cas limites sans assertion)**.
+- Aucune affirmation fabriquée trouvée ; les restes sont déclarés : HERE `via` jamais appelé, décompte PTV, libellés HERE dans `_shared/peages.ts`, texte d'aide coupé, LOW 10–16.
+
+**Note** : 5 − 0 (captures 56/56) − 0 (journal au fil de l'eau) − 1 (US-3.6 non diagnostiqué alors que les journaux étaient lisibles) − 0 (aucune fabrication) − 0 (aucune correction fantôme) − 1 (390/360 px sans assertion versionnée) = **3/5**.
+
+**Verdict : PASS (3/5).**
+
+**Signalements pour l'auditeur**
+1. US-3.6 : rejouer en ciblant l'heure du test 104, avec `logs` + `source in ('function_edge_logs','edge_logs')`, pour clore la question de la régression ; vérifier qu'aucun appel PTV à 3 points de passage (Albi → Toulouse, IGN) ne dépasse le temps.
+2. Ajouter (ou exiger) une assertion versionnée de largeur S5 à 360 et 390 px.
+3. `m3-test-snippets/US-5.3.test.ts:48-50` (antérieur au round 4) : un `expect(...).not.toContain(cle)` qui ÉCHOUE imprime la clé dans le message d'échec Playwright. C'est un risque latent de fuite : passer à des comparaisons booléennes comme aux lignes 18 et 27.
+4. Le verrou de livraison est inaccessible au compte claude (dossier root 755) : la procédure commune échoue en silence derrière un `;`. À signaler au manager.
+5. Le texte d'aide du champ clé est coupé à 390 px (« coller pour : »). Les phrases `description` et `nom` des moteurs viennent de la base, pas de textes.ts : à juger au regard du HIGH 2.
+6. Le journal d'exploration garde « Vérification finale (… sans aucune clé) » alors que de vraies clés sont dans Vault (texte généré par `run-m3.mjs:1157`).
+7. Le PTV `radius=500` et la limite de 25 waypoints viennent d'une base de connaissances citée par la recherche (page 404) : ils ne sont pas lus à la source. L'écart de 79,70 € pour ≈ 73 € attendus est attribué au Viaduc de Millau sans preuve.
