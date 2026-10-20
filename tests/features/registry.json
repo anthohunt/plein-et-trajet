@@ -39,6 +39,14 @@
    "script": "tests/e2e/tests/ft-005.js",
    "testMode": "browser",
    "status": "draft"
+  },
+  {
+   "id": "FT-006",
+   "title": "Moteurs : fournisseurs, clés, test, bascule",
+   "file": "FT-006-moteurs.test.js",
+   "script": "tests/e2e/tests/ft-006.js",
+   "testMode": "browser",
+   "status": "draft"
   }
  ]
 }

@@ -166,5 +166,45 @@
   "title": "Voir les pays traversés",
   "detail": "Les pays traversés : km, litres et prix moyen du jour de chaque pays, coût carburant par pays.",
   "story": "En tant que conducteur, je vois pour chaque pays traversé les km, les litres et le prix moyen du jour appliqué."
+ },
+ {
+  "id": "US-5.1",
+  "screen": "S5",
+  "target": "bouton-moteurs",
+  "title": "Ouvrir les moteurs",
+  "detail": "Le bouton moteurs (⚙), visible du seul administrateur, ouvre l'écran Moteurs.",
+  "story": "En tant qu'administrateur, j'ouvre l'écran Moteurs depuis le bouton ⚙."
+ },
+ {
+  "id": "US-5.2",
+  "screen": "S5",
+  "target": "choix-fournisseur",
+  "title": "Choisir le fournisseur",
+  "detail": "Le choix du fournisseur de chaque service (péages, itinéraire…).",
+  "story": "En tant qu'administrateur, je choisis le fournisseur branché pour chaque service."
+ },
+ {
+  "id": "US-5.3",
+  "screen": "S5",
+  "target": "champ-cle",
+  "title": "Coller la clé",
+  "detail": "Le champ clé : masqué, stocké chiffré, jamais réaffiché (4 derniers caractères).",
+  "story": "En tant qu'administrateur, je colle la clé d'API d'un fournisseur ; elle n'est jamais réaffichée."
+ },
+ {
+  "id": "US-5.4",
+  "screen": "S5",
+  "target": "tester-connexion",
+  "title": "Tester la connexion",
+  "detail": "Tester la connexion : un vrai appel au fournisseur, connecté, clé refusée ou quota.",
+  "story": "En tant qu'administrateur, je teste la connexion d'un moteur avant de l'enregistrer."
+ },
+ {
+  "id": "US-5.5",
+  "screen": "S5",
+  "target": "enregistrer-moteur",
+  "title": "Enregistrer le moteur",
+  "detail": "Enregistrer le moteur : le prochain calcul utilise ce fournisseur, sans mise à jour du code.",
+  "story": "En tant qu'administrateur, j'enregistre un moteur et l'appli l'utilise aussitôt."
  }
 ]

@@ -657,5 +657,123 @@
    "ÉTANT DONNÉ ma position à Barcelone, QUAND j'ouvre l'onglet Prix, ALORS la carte des stations et la liste affichent les stations espagnoles avec leurs prix officiels",
    "ÉTANT DONNÉ ma position dans un pays qui ne publie pas ses prix, QUAND j'ouvre l'onglet Prix, ALORS un message indique « Ce pays ne publie pas les prix station par station » et affiche le prix moyen national"
   ]
+ },
+ {
+  "id": "US-5.1",
+  "title": "Ouvrir les moteurs",
+  "story": "En tant qu'administrateur, j'ouvre l'écran Moteurs depuis le bouton ⚙.",
+  "detail": "Le bouton moteurs (⚙), visible du seul administrateur, ouvre l'écran Moteurs.",
+  "screen": "S5",
+  "target": "bouton-moteurs",
+  "module": "moteurs",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ je suis connecté comme administrateur, QUAND je touche le bouton moteurs ⚙, ALORS l'écran Moteurs liste les 6 services avec leur fournisseur et leur état"
+  ]
+ },
+ {
+  "id": "US-5.2",
+  "title": "Choisir le fournisseur",
+  "story": "En tant qu'administrateur, je choisis le fournisseur branché pour chaque service.",
+  "detail": "Le choix du fournisseur de chaque service (péages, itinéraire…).",
+  "screen": "S5",
+  "target": "choix-fournisseur",
+  "module": "moteurs",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ l'écran Moteurs, QUAND je choisis HERE au lieu de PTV pour les péages dans le choix du fournisseur, ALORS l'état passe à « Clé à coller » si HERE demande une clé, sinon « Prêt · sans clé »"
+  ]
+ },
+ {
+  "id": "US-5.3",
+  "title": "Coller la clé",
+  "story": "En tant qu'administrateur, je colle la clé d'API d'un fournisseur ; elle n'est jamais réaffichée.",
+  "detail": "Le champ clé : masqué, stocké chiffré, jamais réaffiché (4 derniers caractères).",
+  "screen": "S5",
+  "target": "champ-cle",
+  "module": "moteurs",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ le champ clé des péages, QUAND je colle une clé et j'enregistre, ALORS la clé est stockée chiffrée côté serveur et le champ n'affiche plus que ses 4 derniers caractères",
+   "ÉTANT DONNÉ une clé enregistrée, QUAND je recharge l'écran, ALORS la clé complète n'apparaît nulle part, ni dans la page ni dans les réponses réseau"
+  ]
+ },
+ {
+  "id": "US-5.4",
+  "title": "Tester la connexion",
+  "story": "En tant qu'administrateur, je teste la connexion d'un moteur avant de l'enregistrer.",
+  "detail": "Tester la connexion : un vrai appel au fournisseur, connecté, clé refusée ou quota.",
+  "screen": "S5",
+  "target": "tester-connexion",
+  "module": "moteurs",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ une clé PTV valide collée, QUAND je touche Tester la connexion, ALORS un vrai calcul de test est envoyé à PTV et l'état affiche « Connecté »"
+  ]
+ },
+ {
+  "id": "US-5.5",
+  "title": "Enregistrer le moteur",
+  "story": "En tant qu'administrateur, j'enregistre un moteur et l'appli l'utilise aussitôt.",
+  "detail": "Enregistrer le moteur : le prochain calcul utilise ce fournisseur, sans mise à jour du code.",
+  "screen": "S5",
+  "target": "enregistrer-moteur",
+  "module": "moteurs",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ le moteur péages basculé sur HERE et enregistré, QUAND je calcule Albi → Barcelone, ALORS les péages viennent de HERE sans redéploiement de l'appli"
+  ]
+ },
+ {
+  "id": "US-5.E1",
+  "title": "Moteurs invisibles aux visiteurs",
+  "story": "En tant que simple utilisateur, je ne vois ni n'atteins l'écran Moteurs.",
+  "screen": "S5",
+  "target": "bouton-moteurs",
+  "module": "moteurs",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un appareil non administrateur, QUAND l'appli s'ouvre, ALORS le bouton moteurs n'est pas affiché et toute lecture ou écriture de la table des moteurs est refusée par le serveur"
+  ]
+ },
+ {
+  "id": "US-5.E2",
+  "title": "Clé refusée",
+  "story": "En tant qu'administrateur, une clé invalide est signalée et n'est pas enregistrée comme active.",
+  "screen": "S5",
+  "target": "tester-connexion",
+  "module": "moteurs",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ une clé invalide collée, QUAND je touche Tester la connexion, ALORS l'état affiche « Clé refusée par PTV (401) » et Enregistrer garde l'ancien fournisseur actif"
+  ]
+ },
+ {
+  "id": "US-5.E3",
+  "title": "Bascule de secours",
+  "story": "En tant que conducteur, si le moteur principal tombe, le calcul passe par le moteur de secours.",
+  "screen": "S5",
+  "target": "enregistrer-moteur",
+  "module": "moteurs",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ PTV en panne et HERE enregistré en secours, QUAND je calcule un trajet, ALORS les péages viennent de HERE et l'écran Moteurs note la bascule avec l'heure"
+  ]
  }
 ]

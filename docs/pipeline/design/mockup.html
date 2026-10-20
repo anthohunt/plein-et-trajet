@@ -145,6 +145,22 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
 .pl{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
 .pl b{font-family:var(--f-display);font-size:13px;letter-spacing:.04em;margin-right:4px}
 .pl.tot{font-weight:600;border-bottom:0}
+.topr{display:flex;align-items:center;gap:10px}
+.gear{border:1px solid var(--line);background:transparent;border-radius:8px;width:32px;height:32px;font-size:16px;line-height:1}
+.admin{margin-left:auto;font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:999px;padding:3px 10px}
+.mots{list-style:none;margin:12px 0 0;padding:0 16px 8px;display:grid;gap:10px}
+.mot{border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:8px}
+.mot h3{margin:0;font:800 18px/1 var(--f-display);text-transform:uppercase;letter-spacing:.03em;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.mot .d{font-size:13px;color:var(--muted)}
+.mot .r{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.mot select,.mot input{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px;min-width:0;font-size:14px}
+.mot select{flex:1 1 160px}.mot input{flex:2 1 180px;font-family:var(--f-digits)}
+.mot button{border:1px solid var(--line);background:transparent;border-radius:8px;padding:8px 10px;font-size:14px;font-weight:600}
+.mot button.save{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.stt{font:600 12px var(--f-body);border-radius:999px;padding:3px 9px;white-space:nowrap}
+.stt.ok{background:color-mix(in srgb,var(--cheap) 18%,transparent);color:var(--cheap)}
+.stt.ko{background:color-mix(in srgb,var(--dear) 18%,transparent);color:var(--dear)}
+.stt.wait{background:color-mix(in srgb,var(--muted) 18%,transparent);color:var(--muted)}
 /* onglets */
 .tabs{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);background:var(--surface)}
 .tab{border:0;background:transparent;padding:12px 0 14px;font:800 17px/1 var(--f-display);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);position:relative}
@@ -172,7 +188,7 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
 <div class="layout">
 <!-- ============ APPLI ============ -->
 <div class="app" id="app">
-  <div class="top"><div class="brand">Plein <b>&amp;</b> Trajet</div><div class="where" id="where">Albi · 81000</div></div>
+  <div class="top"><div class="brand">Plein <b>&amp;</b> Trajet</div><div class="topr"><div class="where" id="where">Albi · 81000</div><button type="button" class="gear" id="gear" data-el="bouton-moteurs" aria-label="Moteurs (administration)" title="Moteurs">⚙</button></div></div>
 
   <!-- S1 PRIX -->
   <section class="screen" data-screen="S1">
@@ -261,6 +277,17 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
     </div>
   </section>
 
+  <!-- S5 MOTEURS (admin) -->
+  <section class="screen" data-screen="S5" hidden>
+    <div class="scroll">
+      <div class="rhead"><button class="back" type="button" id="back-mot">← Retour</button><span class="admin">Réservé à l'administrateur</span></div>
+      <div class="route">Moteurs</div>
+      <p class="rsub">Chaque service de l'appli passe par un fournisseur branché ici. Changer de fournisseur ou de clé ne demande aucune mise à jour du code.</p>
+      <ul class="mots" id="mots"></ul>
+      <p class="note">Les clés sont stockées chiffrées sur le serveur et ne sont jamais réaffichées : seuls leurs 4 derniers caractères le sont.</p>
+    </div>
+  </section>
+
   <nav class="tabs" role="tablist">
     <button class="tab" role="tab" aria-selected="true" data-el="onglet-prix" id="tab-prix">Prix</button>
     <button class="tab" role="tab" aria-selected="false" data-el="onglet-trajets" id="tab-trajets">Trajets</button>
@@ -298,9 +325,14 @@ const STORIES=[
  ["US-4.3","S4","retour-trajets","Revenir aux trajets","Le calcul a rejoint l'historique."],
  ["US-3.8","S3","champ-arrivee","Partir à l'étranger","Arrivée hors de France (Barcelone, Milan) : l'itinéraire traverse plusieurs pays."],
  ["US-4.4","S4","detail-peages","Voir les péages","Chaque section payante avec son montant TTC, et le total ajouté au coût."],
- ["US-4.5","S4","pays-traverses","Voir les pays traversés","Km, litres et prix moyen du jour de chaque pays, et le coût carburant par pays."]
+ ["US-4.5","S4","pays-traverses","Voir les pays traversés","Km, litres et prix moyen du jour de chaque pays, et le coût carburant par pays."],
+ ["US-5.1","S5","bouton-moteurs","Ouvrir les moteurs","Le bouton ⚙, visible du seul administrateur, ouvre l'écran Moteurs."],
+ ["US-5.2","S5","choix-fournisseur","Choisir le fournisseur","Pour chaque service (péages, itinéraire…), on choisit le fournisseur branché."],
+ ["US-5.3","S5","champ-cle","Coller la clé","La clé d'API est masquée, stockée chiffrée, jamais réaffichée (4 derniers caractères)."],
+ ["US-5.4","S5","tester-connexion","Tester la connexion","Un vrai appel au fournisseur : connecté, clé refusée ou quota."],
+ ["US-5.5","S5","enregistrer-moteur","Enregistrer le moteur","Le prochain calcul utilise ce fournisseur, sans mise à jour du code."]
 ];
-const SCREENNAMES={S1:"Prix",S2:"Fiche station",S3:"Trajets",S4:"Résultat du trajet"};
+const SCREENNAMES={S1:"Prix",S2:"Fiche station",S3:"Trajets",S4:"Résultat du trajet",S5:"Moteurs"};
 
 const FUELS=["Gazole","SP95-E10","SP95","SP98","E85","GPLc"];
 const NAT={"Gazole":2.367,"SP95-E10":2.161,"SP95":2.214,"SP98":2.271,"E85":1.068,"GPLc":1.159};
@@ -400,12 +432,36 @@ function renderHist(){
   $("#hist").innerHTML=hist.length?hist.map((h,i)=>{const t=compute(h.dep,h.arr);return '<li class="hrow"><button type="button" class="go" data-h="'+i+'"'+(i===0?' data-el="ligne-historique"':'')+'><span class="t">'+h.dep+' → '+h.arr+'</span><br><span class="m">'+Math.round(t.km)+' km · '+h.when+'</span></button><span class="c">'+fmt(fuelCost(t)+t.peage,2)+' €</span><button type="button" class="x" data-del="'+i+'"'+(i===0?' data-el="supprimer-trajet"':'')+' aria-label="Supprimer ce trajet">✕</button></li>';}).join(""):'<li class="empty">Aucun trajet pour l\'instant. Calcule ton premier trajet ci-dessus.</li>';
 }
 
+/* ---------- MOTEURS ---------- */
+const MOTEURS=[
+ {id:"prix",nom:"Prix des stations",d:"Prix station par station, synchronisés toutes les 10 min.",f:[["france","France · flux officiel (sans clé)",0],["espagne","Espagne · MITECO (sans clé)",0],["allemagne","Allemagne · Tankerkönig",1]],sel:"france",cle:null,etat:"ok",msg:"Connecté · 9 815 stations"},
+ {id:"moyennes",nom:"Prix moyens par pays",d:"Moyenne du jour de chaque pays traversé.",f:[["bulletin","Bulletin pétrolier UE (sans clé)",0]],sel:"bulletin",cle:null,etat:"ok",msg:"Connecté · semaine du 12/10"},
+ {id:"itineraire",nom:"Itinéraire",d:"Tracé, tronçons, pente et altitude.",f:[["stadia","Stadia Maps · Europe",1],["ign","IGN · France seule (sans clé)",0],["here","HERE · Europe",1]],sel:"stadia",cle:"7f3a",etat:"ok",msg:"Connecté · 1,2 % du quota"},
+ {id:"peages",nom:"Péages",d:"Montant des péages voiture, TTC.",f:[["ptv","PTV Developer",1],["here","HERE",1]],sel:"ptv",cle:null,etat:"wait",msg:"Clé à coller"},
+ {id:"voitures",nom:"Voitures",d:"Masse, puissance, consommation officielle par version.",f:[["ademe-eea","ADEME + EEA (sans clé)",0]],sel:"ademe-eea",cle:null,etat:"ok",msg:"Connecté · 3 604 + 41 220 versions"},
+ {id:"lieux",nom:"Recherche de lieux",d:"Propositions au fil de la frappe.",f:[["photon","Photon · Europe (sans clé)",0],["ign","IGN · France (sans clé)",0]],sel:"photon",cle:null,etat:"ok",msg:"Connecté"}
+];
+const ETAT={ok:"ok",ko:"ko",wait:"wait"};
+function renderMoteurs(){
+  $("#mots").innerHTML=MOTEURS.map((m,i)=>{const f=m.f.find(x=>x[0]===m.sel);const needKey=f&&f[2];
+    return '<li class="mot" data-m="'+i+'"><h3>'+m.nom+'<span class="stt '+m.etat+'">'+m.msg+'</span></h3><div class="d">'+m.d+'</div>'+
+    '<div class="r"><label class="sr" for="f-'+m.id+'" hidden>Fournisseur</label><select id="f-'+m.id+'" data-act="four"'+(i===3?' data-el="choix-fournisseur"':'')+'>'+m.f.map(x=>'<option value="'+x[0]+'"'+(x[0]===m.sel?' selected':'')+'>'+x[1]+'</option>').join("")+'</select></div>'+
+    (needKey?'<div class="r"><input id="k-'+m.id+'" type="password" autocomplete="off" placeholder="'+(m.cle?'Clé enregistrée ••••'+m.cle+' — coller pour remplacer':'Coller la clé d\'API')+'" data-act="cle"'+(i===3?' data-el="champ-cle"':'')+'></div>':'<div class="d">Aucune clé nécessaire.</div>')+
+    '<div class="r"><button type="button" data-act="test"'+(i===3?' data-el="tester-connexion"':'')+'>Tester la connexion</button><button type="button" class="save" data-act="save"'+(i===3?' data-el="enregistrer-moteur"':'')+'>Enregistrer</button></div></li>';}).join("");
+}
+$("#mots")?.addEventListener("click",e=>{const b=e.target.closest("button[data-act]");if(!b)return;const li=b.closest(".mot"),m=MOTEURS[+li.dataset.m];const inp=li.querySelector("input");const v=inp?inp.value.trim():"";const f=m.f.find(x=>x[0]===m.sel);
+  if(b.dataset.act==="test"){ if(f[2]&&!v&&!m.cle){m.etat="ko";m.msg="Aucune clé : colle-la d'abord";} else if(v&&v.length<12){m.etat="ko";m.msg="Clé refusée par "+f[1].split(" ·")[0]+" (401)";} else {m.etat="ok";m.msg="Connecté · test Albi → Barcelone OK";} renderMoteurs(); }
+  if(b.dataset.act==="save"){ if(v){m.cle=v.slice(-4);} m.etat=m.etat==="ko"?"ko":"ok";m.msg=m.etat==="ok"?"Enregistré · utilisé dès le prochain calcul":m.msg; renderMoteurs(); }
+});
+$("#mots")?.addEventListener("change",e=>{const sel=e.target.closest('select[data-act="four"]');if(!sel)return;const m=MOTEURS[+sel.closest(".mot").dataset.m];m.sel=sel.value;const f=m.f.find(x=>x[0]===m.sel);m.etat=f[2]?"wait":"ok";m.msg=f[2]?"Clé à coller":"Prêt · sans clé";renderMoteurs();});
+
 /* ---------- NAVIGATION ---------- */
 function show(id){
   const base=id==="S2"?"S1":id;
   document.querySelectorAll("[data-screen]").forEach(s=>s.hidden=s.dataset.screen!==base);
   $("#tab-prix").setAttribute("aria-selected",base==="S1"||base==="S2");
   $("#tab-trajets").setAttribute("aria-selected",base==="S3"||base==="S4");
+  $("#gear").setAttribute("aria-pressed",base==="S5");
   if(id==="S2"){if(!$("#sheet").classList.contains("open"))openSheet(0);}else closeSheet();
 }
 
@@ -429,6 +485,8 @@ $("#segs").addEventListener("click",e=>{const b=e.target.closest(".tr>button");i
 $("#perso-btn").addEventListener("click",()=>{const w=$("#perso-wrap");if(w.hidden){w.hidden=false;$("#perso").focus();$("#perso-btn").textContent="Revenir à la moyenne";}else{w.hidden=true;persoPrice=null;$("#perso").value="";$("#perso-btn").textContent="Mettre mon prix";renderCost();}});
 $("#perso").addEventListener("input",e=>{const v=parseFloat(e.target.value.replace(",","."));persoPrice=v>0&&v<5?v:null;renderCost();});
 $("#back").addEventListener("click",()=>show("S3"));
+$("#gear").addEventListener("click",()=>show("S5"));
+$("#back-mot").addEventListener("click",()=>show("S1"));
 
 /* ---------- HISTOIRES ---------- */
 const groups={};STORIES.forEach(s=>(groups[s[1]]=groups[s[1]]||[]).push(s));
@@ -445,6 +503,6 @@ $("#storylist").addEventListener("click",e=>{
 
 try{const s=JSON.parse(localStorage.getItem("pt-car")||"null");if(s&&CARS[s.marque]&&CARS[s.marque][s.modele])car=s;}catch(e){}
 ["marque","modele","moteur"].forEach(id=>$("#"+id).addEventListener("change",()=>{try{localStorage.setItem("pt-car",JSON.stringify(car));}catch(e){}}));
-renderFuels();renderStations();renderCar();renderHist();
+renderFuels();renderStations();renderCar();renderHist();renderMoteurs();
 })();
 </script>

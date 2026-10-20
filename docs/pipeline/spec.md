@@ -25,7 +25,7 @@ Coût total = carburant + péages. Péages voiture TTC par section (PTV Develope
 
 - **Jalon 1 — Les prix autour de moi** (écrans S1, S2) : J'ouvre l'appli à Albi, je vois les vraies stations sur la carte et dans la liste avec leurs prix officiels du jour, je change de carburant, je trie, j'ouvre une fiche. 14 histoires.
 - **Jalon 2 — Le coût d'un trajet** (écrans S3, S4) : Je choisis ma voiture, je calcule Albi → Bordeaux, je vois le coût, les tronçons et leur consommation, je mets mon prix, je retrouve le trajet dans l'historique. 19 histoires.
-- **Jalon 3 — Péages et Europe** (écrans ) : Je calcule Albi → Barcelone puis Albi → Milan : le coût total ajoute les péages réels, chaque pays traversé a son prix moyen du jour, et à Barcelone la carte montre les stations espagnoles. 7 histoires.
+- **Jalon 3 — Péages, Europe et moteurs** (écrans S5) : Je branche ma clé PTV dans l'écran Moteurs, je calcule Albi → Barcelone puis Albi → Milan : le coût total ajoute les péages réels, chaque pays traversé a son prix moyen du jour, et à Barcelone la carte montre les stations espagnoles. 15 histoires.
 - Transverses (5) : Accessibilité et performance s'appliquent à tous les écrans : vérifiées à chaque jalon, auditées au durcissement.
 
 ## Histoires utilisateur
@@ -109,6 +109,22 @@ Coût total = carburant + péages. Péages voiture TTC par section (PTV Develope
 - ÉTANT DONNÉ ma position à Barcelone, QUAND j'ouvre l'onglet Prix, ALORS la carte des stations et la liste affichent les stations espagnoles avec leurs prix officiels
 - ÉTANT DONNÉ ma position dans un pays qui ne publie pas ses prix, QUAND j'ouvre l'onglet Prix, ALORS un message indique « Ce pays ne publie pas les prix station par station » et affiche le prix moyen national
 
+**US-5.1 — Ouvrir les moteurs** (S5) — En tant qu'administrateur, j'ouvre l'écran Moteurs depuis le bouton ⚙.
+- ÉTANT DONNÉ je suis connecté comme administrateur, QUAND je touche le bouton moteurs ⚙, ALORS l'écran Moteurs liste les 6 services avec leur fournisseur et leur état
+
+**US-5.2 — Choisir le fournisseur** (S5) — En tant qu'administrateur, je choisis le fournisseur branché pour chaque service.
+- ÉTANT DONNÉ l'écran Moteurs, QUAND je choisis HERE au lieu de PTV pour les péages dans le choix du fournisseur, ALORS l'état passe à « Clé à coller » si HERE demande une clé, sinon « Prêt · sans clé »
+
+**US-5.3 — Coller la clé** (S5) — En tant qu'administrateur, je colle la clé d'API d'un fournisseur ; elle n'est jamais réaffichée.
+- ÉTANT DONNÉ le champ clé des péages, QUAND je colle une clé et j'enregistre, ALORS la clé est stockée chiffrée côté serveur et le champ n'affiche plus que ses 4 derniers caractères
+- ÉTANT DONNÉ une clé enregistrée, QUAND je recharge l'écran, ALORS la clé complète n'apparaît nulle part, ni dans la page ni dans les réponses réseau
+
+**US-5.4 — Tester la connexion** (S5) — En tant qu'administrateur, je teste la connexion d'un moteur avant de l'enregistrer.
+- ÉTANT DONNÉ une clé PTV valide collée, QUAND je touche Tester la connexion, ALORS un vrai calcul de test est envoyé à PTV et l'état affiche « Connecté »
+
+**US-5.5 — Enregistrer le moteur** (S5) — En tant qu'administrateur, j'enregistre un moteur et l'appli l'utilise aussitôt.
+- ÉTANT DONNÉ le moteur péages basculé sur HERE et enregistré, QUAND je calcule Albi → Barcelone, ALORS les péages viennent de HERE sans redéploiement de l'appli
+
 ### Cas limites
 
 **US-1.E1 — Source des prix injoignable** (S1) — En tant que conducteur, si les prix ne peuvent pas être chargés, je vois un message clair et un bouton Réessayer.
@@ -155,6 +171,15 @@ Coût total = carburant + péages. Péages voiture TTC par section (PTV Develope
 
 **US-4.E6 — Pays sans prix moyen** (S4) — En tant que conducteur, si un pays traversé n'a pas de prix moyen connu, je le sais.
 - ÉTANT DONNÉ un pays traversé absent des moyennes (ex. Serbie), QUAND le résultat s'affiche, ALORS sa ligne dans les pays traversés porte « prix non publié — moyenne européenne appliquée » et le prix utilisé
+
+**US-5.E1 — Moteurs invisibles aux visiteurs** (S5) — En tant que simple utilisateur, je ne vois ni n'atteins l'écran Moteurs.
+- ÉTANT DONNÉ un appareil non administrateur, QUAND l'appli s'ouvre, ALORS le bouton moteurs n'est pas affiché et toute lecture ou écriture de la table des moteurs est refusée par le serveur
+
+**US-5.E2 — Clé refusée** (S5) — En tant qu'administrateur, une clé invalide est signalée et n'est pas enregistrée comme active.
+- ÉTANT DONNÉ une clé invalide collée, QUAND je touche Tester la connexion, ALORS l'état affiche « Clé refusée par PTV (401) » et Enregistrer garde l'ancien fournisseur actif
+
+**US-5.E3 — Bascule de secours** (S5) — En tant que conducteur, si le moteur principal tombe, le calcul passe par le moteur de secours.
+- ÉTANT DONNÉ PTV en panne et HERE enregistré en secours, QUAND je calcule un trajet, ALORS les péages viennent de HERE et l'écran Moteurs note la bascule avec l'heure
 
 ### Paires
 

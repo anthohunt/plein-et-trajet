@@ -1,6 +1,6 @@
 {
  "approuve": true,
- "date": "2026-10-20T13:25:41+00:00",
+ "date": "2026-10-20T15:19:19+00:00",
  "run": "prix-carburant-trajets-2026-10-20-114307",
  "par": "agent (pré-vol autonome) après validation du mockup par Anthony le 2026-10-20",
  "source_de_verite": "docs/pipeline/design/mockup.html",
@@ -87,11 +87,16 @@
   },
   {
    "n": 3,
-   "titre": "Péages et Europe",
+   "titre": "Péages, Europe et moteurs",
    "demontrable": true,
-   "demo": "Je calcule Albi → Barcelone puis Albi → Milan : le coût total ajoute les péages réels, chaque pays traversé a son prix moyen du jour, et à Barcelone la carte montre les stations espagnoles.",
+   "demo": "Je branche ma clé PTV dans l'écran Moteurs, je calcule Albi → Barcelone puis Albi → Milan : le coût total ajoute les péages réels, chaque pays traversé a son prix moyen du jour, et à Barcelone la carte montre les stations espagnoles.",
    "use_case": "tests/e2e/use-cases/m3-use-case.md",
-   "ecrans": [],
+   "ecrans": [
+    {
+     "id": "S5",
+     "nom": "Moteurs"
+    }
+   ],
    "ecrans_traverses": [
     {
      "id": "S1",
@@ -113,10 +118,18 @@
     "US-4.E4",
     "US-4.E5",
     "US-4.E6",
-    "US-1.8"
+    "US-1.8",
+    "US-5.1",
+    "US-5.2",
+    "US-5.3",
+    "US-5.4",
+    "US-5.5",
+    "US-5.E1",
+    "US-5.E2",
+    "US-5.E3"
    ],
-   "nb_stories": 7,
-   "motif_sans_ecran": "Évolution demandée par Anthony après validation (2026-10-20, choix A : un jalon 3 après le coût de trajet en France). Elle enrichit S1, S3 et S4, construits aux jalons 1 et 2 ; ses histoires y sont rattachées par exception à la règle « l'histoire suit son écran », pour ne pas retarder le jalon 2."
+   "nb_stories": 15,
+   "motif_sans_ecran": "S5 Moteurs est l'écran propre du jalon 3. Ses autres histoires enrichissent S1, S3 et S4 (construits aux jalons 1 et 2) : rattachées au jalon 3 par exception à la règle « l'histoire suit son écran », sur décision d'Anthony (évolution du 2026-10-20)."
   }
  ],
  "stories_transverses": {
@@ -137,10 +150,10 @@
   }
  ],
  "controles": {
-  "ecrans_total": 4,
+  "ecrans_total": 5,
   "ecrans_places_une_fois": true,
-  "stories_total": 45,
-  "stories_placees_ou_transverses": 45,
+  "stories_total": 53,
+  "stories_placees_ou_transverses": 53,
   "stories_en_double": 0,
   "stories_jouees_par_un_pas_numerote": true,
   "jalons_demontrables": [
@@ -165,6 +178,7 @@
  "corrections": [
   "Jalon « Historique et prix perso » fusionné dans le jalon 2 (aucun écran propre).",
   "Dépôt GitHub privé créé, aucun remote n'existait.",
-  "2026-10-20 : jalon 3 « Péages et Europe » ajouté à la demande d'Anthony (maquette v2 validée) ; sans écran propre, il enrichit S1/S3/S4 — exception écrite dans roadmap.json."
+  "2026-10-20 : jalon 3 « Péages et Europe » ajouté à la demande d'Anthony (maquette v2 validée) ; sans écran propre, il enrichit S1/S3/S4 — exception écrite dans roadmap.json.",
+  "2026-10-20 : écran S5 Moteurs (fournisseurs et clés branchables, rien en dur) ajouté au jalon 3 à la demande d'Anthony."
  ]
 }

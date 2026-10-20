@@ -52,4 +52,5 @@ Toujours sans écart de pile : ce sont des sources externes appelées par les Ed
 - **Moyennes par pays** → Bulletin pétrolier UE (xlsx hebdo, CC BY 4.0, UE-27) ; Royaume-Uni = moyenne Fuel Finder ; Norvège = SSB.
 - **Stations hors de France** → flux officiels testés dans 10 pays + Royaume-Uni (détail dans tasks.md T3.5).
 - **Véhicules** → base EEA CO2 cars (Discodata, CC BY 4.0) en plus d'ADEME ; modèle road-load + Willans calé sur le WLTP (erreur ≤ 0,2 L/100 km sur 12 versions testées).
-- Nouveaux secrets, dans `webapp-stack.env` : `PTV_API_KEY`, `STADIA_API_KEY` (et `HERE_API_KEY` si le recours est activé).
+- Secrets des fournisseurs : dans Supabase Vault via l’écran Moteurs, jamais dans `webapp-stack.env` ni dans le code.
+- **Moteurs branchables (décision d'Anthony, 2026-10-20 : « je veux pas que ce soit hardcodé »)** → aucune clé ni aucun fournisseur dans le code ou dans `webapp-stack.env` : table `moteurs` + **Supabase Vault** pour les secrets ; écran S5 réservé à l'administrateur (Supabase Auth, lien magique, claim `admin`). Les clés PTV et Stadia sont collées par Anthony dans cet écran. Le standard Supabase couvre tout (Vault, Auth, RLS, Edge Functions) : pas d'écart.

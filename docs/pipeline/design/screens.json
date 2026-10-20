@@ -51,6 +51,19 @@
     "detail-peages",
     "pays-traverses"
    ]
+  },
+  {
+   "id": "S5",
+   "name": "Moteurs",
+   "section": "Administration",
+   "view": "réglages des fournisseurs, réservé à l'administrateur",
+   "interactive_elements": [
+    "bouton-moteurs",
+    "choix-fournisseur",
+    "champ-cle",
+    "tester-connexion",
+    "enregistrer-moteur"
+   ]
   }
  ]
 }
