@@ -89,7 +89,7 @@ async function tester(db: Db, fournisseur: string, cleSaisie: string | null): Pr
   } catch (e) {
     if (e instanceof ErreurItineraire) {
       if (e.code === "cle_refusee") return { etat: "ko", message: `Clé refusée par ${nomCourt} (${e.message.split(" ")[1] ?? 401})` };
-      return { etat: "ko", message: `${nomCourt} ne répond pas` };
+      return { etat: "ko", message: `${nomCourt} ne répond pas (${e.message.replace(/^indisponible\s*/, "").slice(0, 60) || "erreur"})` };
     }
     return { etat: "ko", message: messageErreurPeages(nomCourt, e) };
   }

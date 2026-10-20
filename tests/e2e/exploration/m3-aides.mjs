@@ -5,7 +5,7 @@ import crypto from "node:crypto";
 import * as base from "./m2-aides.mjs";
 
 export * from "./m2-aides.mjs";
-const { env, URL_APP } = base;
+const { env, URL_APP, rest } = base;
 
 export const BARCELONE = { latitude: 41.3874, longitude: 2.1686 };
 export const BRUXELLES = { latitude: 50.8503, longitude: 4.3517 };

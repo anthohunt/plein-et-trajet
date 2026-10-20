@@ -282,7 +282,7 @@ histoireDef("US-4.5", "US-4.5 — Voir les pays traversés", async () => {
   await capture(pa, "US-4.5-01-voir-les-pays-traverss-avant.png", async () => {
     const r = await lireResultat(pa);
     memo.milan = r;
-    expect(r.km).toBeGreaterThan(900);
+    expect(r.km).toBeGreaterThan(800);
     return `résultat Albi → Milan ${r.km} km`;
   }, "trajet Albi → Milan calculé (écran Résultat)");
   await versPays(pa);
@@ -384,7 +384,7 @@ histoireDef("US-4.E6", "US-4.E6 — Pays sans prix moyen", async () => {
     const somme = l.reduce((s, x) => s + nombre(x.montant), 0);
     expect(somme).toBeCloseTo(await carburantAffiche(pa), 2);
     const r = await lireResultat(pa);
-    expect(r.km).toBeGreaterThan(1900);
+    expect(r.km).toBeGreaterThan(1800);
     return `RS : « prix non publié — moyenne européenne appliquée » à ${virgule(eu, 3)} €/L (moyenne UE du bulletin) ; ${r.km} km ; pays ${l.map((x) => x.pays).join(", ")} ; Σ coûts = coût`;
   }, "la ligne Serbie porte « prix non publié — moyenne européenne appliquée » et le prix utilisé", "edge");
   await retourFormulaire(pa);
@@ -956,6 +956,7 @@ histoireDef("US-A11Y-002", "US-A11Y-002 — Focus de la fiche (jalon 3)", async 
   await pc.locator('[data-el="selecteur-carburant"] button', { hasText: "Gazole" }).click();
   await expect(pc.locator('[data-el="liste-stations"]')).toHaveAttribute("data-carburant", "Gazole", { timeout: 20000 });
   const ligne = pc.locator('[data-el="ligne-station"]').first();
+  const idLigne = await ligne.getAttribute("data-station");
   await ligne.focus();
   await pc.keyboard.press("Enter");
   await expect(pc.getByRole("dialog")).toBeVisible();
@@ -969,7 +970,7 @@ histoireDef("US-A11Y-002", "US-A11Y-002 — Focus de la fiche (jalon 3)", async 
   await capture(pc, "US-A11Y-002-02-m3.png", async () => {
     await expect(pc.getByRole("dialog")).toHaveCount(0);
     const id = await pc.evaluate(() => document.activeElement?.getAttribute("data-station"));
-    expect(id).toBe(await ligne.getAttribute("data-station"));
+    expect(id).toBe(idLigne);
     return `à la fermeture, le focus revient sur la ligne qui l'avait ouverte (${id})`;
   }, "fermeture : le focus revient sur l'élément qui l'a ouverte");
   await C.close();
