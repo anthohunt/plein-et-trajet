@@ -126,3 +126,116 @@ LOW — chaînes déplacées dans `textes.ts` ; 1.2-03/04, E1-01, E2-01, E3-02, 
 **Bugs supplémentaires trouvés et corrigés** : glisser relâché sur la légende qui bloquait la carte ; puce GPLc à moitié hors écran à 390 px ; contour de focus du bouton des crédits supprimé par MapLibre ; prix de l'ancien carburant comptés un instant après un changement.
 
 **Vérifications** : `npx vitest run` 23/23, `npx vite build` OK ; exploration sur la prod : 55/55 captures ✓, toutes ouvertes ; extraits Playwright 25/25 (deux passes). `tests/e2e/delivery/m1-step-descriptions.json` mis à jour pour les 22 captures dont le contenu a changé.
+- 13:15Z — Bâtisseur R2 terminé : prod 9b29a9c READY, 23/23 unitaires, 25/25 Playwright prod, 55 captures refaites (22 au contenu changé), 4 HIGH + 5 MEDIUM déclarés corrigés. Point de vigilance du chef : bandeaux/surlignages injectés par le script de test dans certaines captures — à juger par l'évaluateur et l'auditeur.
+
+## Evaluator Journal — Round 1 (Builder Transcript) — itération 2
+
+**Verdict : PASS — 5/5.** Transcript `builder-r2.jsonl` lignes 307-558 : 42 Bash, 15 Read (tous des PNG), 1 Write (CarteStations.tsx), plusieurs éditions Python assertées (`assert a in s`).
+
+**Stats** : 4 HIGH + 5 MEDIUM → 9/9 avec changement de code réel et relance. Exploration complète rejouée deux fois sur la prod (55/55 ✓ ; `rm -f delivery/*.png` avant, puis 56 fichiers = 55 + json). Playwright : échecs réels rencontrés puis corrigés (US-1.3, A11Y-001 « visible dans son cadre : GPLc », 1.6, focus crédits, P1 flaky) → 24/24 puis 50/50 (--repeat-each=2). Vitest 23/23 (4 tests ajoutés). Build + déploiement Vercel vérifiés (fc34a21, 861033d).
+
+**Vérification par point**
+• HIGH 1 (1.3-03) : un seul `glisserCarte` continu, capture pendant le geste avec assertion « aucun nouvel appel, liste = Albi » ; 1.3-04 après relâchement. PNG ouvertes : 03 montre la liste Albi, carte déplacée ; réel.
+• HIGH 2 (E4) : `libellesStations(stations)` (Prix.tsx), libellé « TotalEnergies Albi · Auto 81 Sarl ». E4-02 : « Relais des Fo… » en tête, bandeau explicite l'absence. OK.
+• HIGH 3 (A11Y-001) : `tabindex`/`aria-hidden` sur pastilles hors cadre (CarteStations.tsx:70-71,179) + contrôle « visible dans son cadre » ajouté, preuve : échec observé puis corrigé. 001-01 montre un contour noir visible.
+• HIGH 4 (A11Y-002) : 002-02 juste après Échap, contour noir sur la ligne Intermarché Le Sequestre. OK.
+• MEDIUM carte (empilement, cadrage ≤ 4 km, crédits repliés) : PNG carte lisible, 0 chevauchement visible. OK.
+• MEDIUM US-1.1 : `geocodage.ts` + `memoriserVille` appelée dans Prix.tsx:190 et Trajets.tsx:25 (avant : nulle part). Réel.
+• MEDIUM US-1.4 : `seuilMoitie` (format.ts:72) + 4 tests Vitest.
+• MEDIUM 1.3-01 et A11Y-004 : recapture après chargement ; statut accessible ajouté.
+• Pas de fix fantôme.
+
+**Verdict sur les surcouches injectées** : LÉGITIME (annotation, pas fabrication). Code `run-m1.mjs:90-101` : `annoter()` pose un div orange portant le préfixe fixe « Annotation de test — » (`data-annotation-test`), `surligner()` un contour pointillé orange (`data-surligne-test`) ; les deux sont retirés après `page.screenshot` (l.80-84) et annoncés dans le log d'exploration. Les textes sont calculés à partir de mesures réelles (t1/t PERF = `Date.now()` ; liste des nouvelles stations lue dans le DOM ; plages de prix lues sur les pastilles) ; aucun prix, état, message ou couleur d'appli n'est simulé. PNG ouvertes (1.3-04, E4-02, PERF-02) : bandeau clairement distinct de l'UI. Note : la valeur PERF d'annotation (1099 ms) = celle du log (l.384), cohérente.
+
+**Réserves mineures (non pénalisées)**
+• Le bandeau recouvre le bas de la liste : sur 1.3-04 et E4-02 la ligne « nouvelle » (Blaye-les-Mines) est masquée derrière l'annotation ; seule la pastille surlignée en haut de carte est visible. À regarder par l'Auditeur.
+• Vérification visuelle du Bâtisseur faite par planches contact (6 planches de 10 vignettes, deux fois) et non PNG par PNG : suffisant pour juger la présence, limité pour les détails fins.
+• Aucune copie/renommage de PNG : captures produites directement par `page.screenshot` dans `delivery/`.
+
+**LOW non traités** : 13 (E3-03, données réelles, rien à rétablir) et 14 (PERF-01 page blanche, mesure annotée) : justifiés et déclarés, non retenus comme skips fixables. LOW 10, 11, 12, 15, 16, 17 traités.
+
+**Barème** : départ 5 ; captures manquantes 0 ; log batch présent ; skips excusés 0 ; fabrication 0 ; fix fantôme 0 ; cas limites avec assertions (E1/E2 mockés déclarés, E3/E4 échec explicite au lieu de skip). **Score 5/5.**
+
+**Flags pour l'Auditeur** : (1) rouvrir 1.3-04 et E4-01/02 : l'annotation masque la ligne désignée, vérifier que la preuve reste lisible ; (2) confirmer sur la prod le tabindex=-1 des pastilles hors cadre en Gazole ; (3) confirmer que le géocodage IGN est appelé réellement (Castres) et ne bloque pas hors ligne ; (4) l'annotateur (étape 4.5) ne doit pas doubler les surlignages déjà dans les PNG.
+- Évaluateur R1 itération 2 : PASS 5/5 (9 corrections réelles, bandeaux « Annotation de test — » jugés légitimes, aucune donnée simulée).
+- Descripteur round 2 : 55 descriptions réécrites. Reste signalé : 1.3-04 et E4-02 (bandeau qui masque la zone prouvée), E1-01 (capture sur l'onglet Trajets), E4-01 (rupture visible seulement dans le bandeau), A11Y-001-01 et A11Y-004-01/02 (preuve d'accessibilité invisible à l'image). Transmis à l'auditeur R2.
+
+## Auditor Journal — Round 2
+
+**Verdict : FAIL** — 1 HIGH, 2 MEDIUM, 9 LOW (0 CRITICAL). Les 4 HIGH et 5 MEDIUM du round 1 sont corrigés dans le produit (vérifié sur la prod 9b29a9c). Il reste une capture qui ne prouve pas son étape (E4-02).
+
+**Méthodes réellement lancées**
+• J'ai ouvert les 55 PNG de `tests/e2e/delivery/` (les 55 ont été refaites à 13:09-13:10) et calculé leurs md5 (5 groupes identiques, tous des états d'écran identiques par construction).
+• J'ai lu le diff `src/` entre b998a50 et 9b29a9c (CarteStations.tsx, geocodage.ts, Trajets.tsx, format.ts `seuilMoitie`, FicheStation.tsx, BarreOnglets.tsx), le Builder Summary R2, le journal d'exploration (section « Round 2 ») et l'Évaluateur R1 itération 2.
+• `npx tsc --noEmit` : 0 erreur. `npx vite build` : OK. `npx vitest run` : 23/23. `npx playwright test` sur la prod : **25/25 passés**.
+• Script Playwright d'audit `audit-live2.mjs` (scratchpad, chromium headless) lancé contre https://plein-et-trajet.vercel.app en 390×844 et en 1280×800, pour SP95-E10, Gazole, E85 et GPLc. Il mesure : chevauchements, pastilles rognées ou sous un contrôle avec leur `tabindex` et `aria-hidden`, même mesure après un glisser, 24 Tab avec la visibilité et le contour de l'élément focalisé, A11Y-002 au clavier, arbre d'accessibilité de la fiche en chargement (réponse retardée de 1,5 s), fiche de la station en rupture, libellés en Gazole, géocodage réel de « Castres » puis rechargement sans localisation, géocodage coupé (abort), 3 mesures PERF, RLS clé anon (7 écritures).
+• Pas de Playwright MCP.
+
+**Inventaire des captures** : 55 prévues / 55 produites / 55 ouvertes / 0 manquante. Une seule capture ne prouve pas son étape : E4-02 (HIGH 1). Deux sont partielles : 1.3-04 et E4-01 (MEDIUM).
+
+**Couverture des critères** : 20 critères M1 → **20 COVERED**, 0 PARTIAL, 0 UNCOVERED. Les trois PARTIAL du round 1 sont levés :
+• US-1.1 CA2 : Castres géocodé, mémorisé, carte centrée 43.609/2.245, stations de Castres.
+• US-1.4 CA2 : 6 vertes et 6 orange en Gazole, au moins une orange partout.
+• A11Y-001 : 0 élément focalisé hors cadre ou sans contour sur 24 Tab, en SP95-E10 comme en Gazole.
+
+**Cas limites** : 5. Quatre sont COVERED (E1, E2, E3, 2.E1). E4 est COVERED en comportement (absente en Gazole, « GAZOLE rupture » dans sa fiche, libellé « TotalEnergies Albi · Auto 81 Sarl ») mais PARTIAL en preuve (HIGH 1).
+
+**Revérification des points du round 1 (prod)**
+• H1 US-1.3 : corrigé. 1.3-03 montre la liste d'Albi pendant le glisser. 1.3-04 : voir MEDIUM 2.
+• H2 US-1.E4 : corrigé dans le produit (libellés distincts sur toute la zone). La preuve reste insuffisante : HIGH 1.
+• H3 A11Y-001 : corrigé. Toutes les pastilles rognées ou sous un contrôle sont en `tabindex=-1` + `aria-hidden=true` : en Gazole 3 sur 12 à 390 px, 2 sur 12 à 1280 px, 4 et 5 après glisser. Aucune pastille focusable invisible.
+• H4 A11Y-002 : corrigé. 002-02 montre le contour sur Intermarché Le Sequestre. En live, après Échap le focus revient sur la ligne 81990002.
+• M5 carte : corrigé. 0 chevauchement dans les 10 mesures (2 largeurs × 4 carburants + 2 après glisser).
+• M6 US-1.1 : corrigé (voir plus haut). Géocodage coupé : rien ne casse, la ville précédente (Castres) est gardée.
+• M7 US-1.4 : corrigé (`seuilMoitie`, format.ts).
+• M8 1.3-01 : corrigé (écran chargé).
+• M9 A11Y-004 : corrigé. En chargement, la fiche annonce `status: Chargement des prix de la station…` et 004-02 a ses prix chargés.
+• RLS : 401 sur les 7 écritures.
+• PERF : 930 ms et 928 ms (9 Mbit/s, 85 ms), 1 528 ms (4 Mbit/s, 150 ms).
+
+**Points à trancher**
+• **(a) Bandeaux « Annotation de test — » et contours pointillés.** Ils sont légitimes comme annotations (préfixe fixe, distincts de l'interface, retirés après la photo, aucune donnée simulée), mais ils ne valent jamais preuve : seul ce que montre l'appli compte.
+  – Sur **1.3-04**, le bandeau cache les lignes nouvelles de la liste (Système U Blaye-les-Mines et Intermarché Carmaux sont sous le bandeau). La preuve visible se réduit à la pastille surlignée en haut de carte, à moitié rognée, et à la disparition de TotalEnergies en tête de liste. → MEDIUM 2.
+  – Sur **E4-02**, le bandeau couvre la 6e ligne, et 7 des 12 lignes Gazole ne sont pas à l'écran : l'absence de la station n'est pas visible. → HIGH 1.
+  – Sur 1.2-03/04, 1.4-04, E1-01, E2-01, E3-02, E4-03 et PERF : le bandeau ne cache rien de ce qui prouve l'étape. Pas de problème.
+• **(b) E1-01 sur l'onglet Trajets.** Acceptable. L'action de l'étape 2 est « l'écran Prix s'ouvre », il faut donc partir d'ailleurs ; « (écran Prix) » est l'écran de l'histoire. → LOW 1.
+• **(c) E4-01, rupture visible seulement dans le bandeau.** Insuffisant : l'appli peut le montrer elle-même, la fiche de 81000004 affiche « GAZOLE rupture » (vérifié en live). → MEDIUM 1.
+• **(d) A11Y-001-01, A11Y-004-01/02.** Un libellé accessible ne se voit pas sur une capture. Les preuves suffisantes sont les assertions des extraits (A11Y-004 : regex sur le libellé de chaque pastille et de chaque totem, boutons icônes libellés), la mesure live (libellés « Esso Express Albi, 2,191 euros le litre, plus cher », arbre d'accessibilité de la fiche) et le journal d'exploration. Pas de capture supplémentaire nécessaire ; une note qui afficherait le libellé dans l'image n'apporterait rien de plus qu'un texte de test. A11Y-001-01 montre bien un contour visible (pastille 2,182) ; l'ordre est prouvé par l'extrait et par ma séquence de 24 Tab. → écarté.
+• **(e)** Confirmé sur la prod : les pastilles Gazole hors cadre sont en `tabindex=-1` (`aria-hidden=true`), et le géocodage IGN de Castres marche (200 sur data.geopf.fr/geocodage, `pt-derniere-ville` = Castres 43.609392/2.245482, message « carte centrée sur Castres »).
+• **(f) Pour l'annotateur (étape 4.5).** Ces PNG contiennent déjà des surcouches de test ; il ne faut pas les doubler, ni annoter par-dessus la zone qu'elles couvrent :
+  – 1.2-03 : contour pointillé sur la ligne et la pastille Carrefour Albi + bandeau.
+  – 1.2-04 : bandeau.
+  – 1.3-04 : contour pointillé sur la pastille du haut et sur une ligne sous le bandeau + bandeau.
+  – 1.4-04 : bandeau.
+  – E1-01, E2-01, E4-02, PERF-01, PERF-02 : bandeau.
+  – E3-02 : contour pointillé sur la ligne Cagnac.
+  – E4-01 : contour pointillé sur la ligne Auto 81 Sarl + bandeau.
+  – E4-03 : contour pointillé sur la ligne Auto 81 Sarl.
+
+**Problèmes**
+
+1. **HIGH — US-1.E4** — capture E4-02 (`run-m1.mjs`, étape E4-02). Le critère est « elle n'apparaît pas dans la liste triée par prix ». La capture ne montre que 5 lignes sur 12, et le bandeau couvre la 6e : l'absence n'est pas visible. Les autres captures de l'étape ne la prouvent pas non plus. Comportement correct en live (`[data-station="81000004"]` = 0 en Gazole). À refaire : capturer toute la liste (`fullPage`, ou hauteur du conteneur agrandie, ou deux captures en défilant) avec le bandeau hors de la liste, par exemple en haut ou dans une capture séparée.
+2. **MEDIUM — US-1.E4** — capture E4-01. La rupture de gazole n'apparaît que dans le bandeau. À refaire : ouvrir la fiche de 81000004 pour montrer « GAZOLE rupture » (affichage de l'appli, vérifié en live), puis passer en Gazole.
+3. **MEDIUM — US-1.3 (CA2)** — capture 1.3-04. Le bandeau masque les deux nouvelles lignes de la liste ; la preuve visible se réduit à une pastille surlignée à moitié rognée en haut de carte. À refaire : faire défiler la liste jusqu'aux nouvelles stations, ou placer le bandeau ailleurs, pour que les lignes Système U Blaye-les-Mines et Intermarché Carmaux soient visibles.
+4. **LOW — US-1.E1** — E1-01 est sur l'onglet Trajets : cohérent avec l'action « l'écran Prix s'ouvre », le bandeau déclare le mock. Rien à refaire.
+5. **LOW — US-1.4** — en SP95-E10 Albi (1,990 / 2,182 ×5 / 2,191) : 1 verte et 6 orange. Les deux coupures possibles sont aussi loin de la moitié, et la règle choisit la plus stricte. Conforme à la règle documentée et à « au moins une orange » ; à faire valider si l'on préfère 6 vertes et 1 orange.
+6. **LOW — US-1.6** — à 390 px, les libellés longs sont tronqués (« TotalEnergies Albi · Relais des Fo… ») ; le nom complet est dans la fiche.
+7. **LOW — données** — l'enseigne brute « Indépendant sans enseigne » s'affiche comme marque (P1-01 : « Indépendant sans enseigne Saus… ») ; mieux vaut le nom de la station.
+8. **LOW — i18n** — `src/lib/format.ts:37` et suivantes (« date inconnue », « prix du », « il y a ») restent hors de `textes.ts`. Le reste a été déplacé.
+9. **LOW — captures** — E2-01 et E2-02 : la moitié gauche du fond de carte n'est pas chargée (tuiles IGN), sans effet sur la preuve.
+10. **LOW — US-1.E3** — E3-03 « retour » : rien à rétablir (inchangé, déclaré).
+11. **LOW — US-PERF-001** — PERF-01 reste une page blanche par nature ; la preuve est la mesure (recontrôlée, 928 à 1 528 ms).
+12. **LOW — annotateur** — surcouches de test déjà présentes dans 12 PNG (liste au point (f)) : ne pas les doubler.
+- 13:25Z — Auditeur R2 : FAIL (1 HIGH, 2 MEDIUM, 9 LOW). Les 9 défauts du round 1 sont corrigés sur la prod ; il reste 3 défauts de captures (E4-02, E4-01, 1.3-04). Bâtisseur relancé, cycle 3 sur 3.
+
+## Builder Summary — Round 3
+
+Commits : `5a91be5` (LOW 7 et 8), `192cbde` (libellé de date de la fiche) ; déploiement Vercel READY (192cbde) sur https://plein-et-trajet.vercel.app.
+
+1. **HIGH E4-02** — corrigé. Capture du même nom, sans suffixe, prise avec une fenêtre agrandie à 1 376 px pour cette seule photo : les 12 lignes Gazole sont visibles et aucune n'est « TotalEnergies Albi · Auto 81 Sarl ». Le bandeau est sous la liste et le script vérifie qu'il ne couvre aucune ligne.
+2. **MEDIUM E4-01** — corrigé. Fiche de 81000004 ouverte : l'appli affiche « GAZOLE rupture ».
+3. **MEDIUM 1.3-04** — corrigé. La liste défile jusqu'à Système U Blaye-les-Mines et Intermarché Carmaux, toutes deux lisibles au-dessus du bandeau (vérifié par le script).
+LOW 7 : « Indépendant sans enseigne » n'est plus pris pour une marque (nom officiel à la place, 48 stations concernées), avec un test Vitest. LOW 8 : derniers textes de `format.ts` déplacés dans `textes.ts`. LOW 9 : attente de l'état « idle » de la carte avant E2-01/02.
+En plus : « Prix mis à jour prix du JJ/MM » remplacé par « Derniers prix déclarés le JJ/MM » dans la fiche.
+
+Captures reprises : 1.3-04, E4-01, E4-02, E2-01, E2-02, P1-01 (6 ; md5 inchangé pour les 49 autres) ; toutes ouvertes ; entrées mises à jour dans `m1-step-descriptions.json`. Vitest 24/24, build OK, extraits Playwright sur la prod 25/25.

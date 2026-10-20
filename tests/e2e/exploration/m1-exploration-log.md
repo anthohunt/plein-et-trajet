@@ -398,3 +398,52 @@ Toutes les captures sont reprises (les 55). Les bandeaux orange « Annotation de
   8. 1.3-01 montre l'écran chargé.
   9. US-A11Y-004 — chargement de la fiche annoncé par un statut « Chargement des prix de la station… » ; 004-02 prise prix chargés.
 - Bugs trouvés en plus pendant ce round : relâcher un glisser au-dessus de la légende laissait la carte « collée » au pointeur (légende sans pointeur désormais) ; puces de carburant qui débordaient à 390 px (GPLc à moitié hors écran) ; contour de focus du bouton de crédits masqué par MapLibre ; course entre changement de carburant et attribut de comptage des pastilles.
+
+
+# Round 3 — captures reprises après l'audit R2 (commit 5a91be5, production)
+
+Seules les captures listées ci-dessous sont réécrites (variable SEULES du script) ; les autres étapes des mêmes histoires sont rejouées avec leurs assertions mais leurs PNG ne sont pas touchés.
+
+## US-1.3 — Voir les stations sur la carte
+
+### Happy path
+- ✓ `US-1.3-04-voir-les-stations-sur-la-carte-apres.png` — relâché : les stations de la nouvelle zone se chargent — nouvel appel stations_autour(43.992, 2.153, 9424 m) ; 2 nouvelles stations, ex. Système U Blaye-les-Mines
+
+### Issues found
+- aucune
+
+## US-1.E2 — Aucune station pour ce carburant
+
+### Edge case — MOCKED: page.route('**/rest/v1/prix*carburant=eq.E85*', fulfill []) — il existe de vraies stations E85 autour d'Albi
+- ✓ `US-1.E2-E1-01-declencheur.png` — aucune station du rayon ne vend E85 (MOCKED) — MOCKED: réponse vide pour E85 ; liste en SP95-E10
+- ✓ `US-1.E2-E1-02-resultat.png` — je choisis E85 : liste vide, carte sans pastille — « Aucune station ne vend ce carburant autour de vous. », 0 pastille
+
+### Issues found
+- aucune
+
+## US-1.P1 — Recentrer sur ma position
+
+### Happy path
+- ✓ `US-1.P1-01-recentrer-sur-ma-position-avant.png` — carte déplacée — carte déplacée à 15.8 km de ma position
+
+### Issues found
+- aucune
+
+## US-1.E4 — Station en rupture
+
+### Edge case — données réelles (pas de fixture) : rupture temporaire de gazole déclarée dans le flux officiel
+- ✓ `US-1.E4-E1-01-declencheur.png` — une station en rupture temporaire de gazole : sa fiche affiche « GAZOLE rupture » — fiche « TotalEnergies Albi · Auto 81 Sarl » (81000004) ouverte en GPLc : ligne GAZOLE « rupture » affichée par l'appli (en base : Gazole rupture=true)
+- ✓ `US-1.E4-E1-02-resultat.png` — je choisis Gazole : elle n'apparaît pas (liste complète) — en Gazole, les 12 lignes triées par prix sont toutes à l'écran (fenêtre agrandie à 1376 px de haut pour cette seule capture), aucune n'est « TotalEnergies Albi · Auto 81 Sarl », le bandeau ne couvre aucune ligne
+
+### Issues found
+- aucune
+
+## Bilan Round 3
+
+- **6 PNG réécrits** (vérifié par md5 : aucun autre n'a changé), tous par `page.screenshot` sur la production, tous ouverts : 1.3-04, E4-01, E4-02, E2-01, E2-02, P1-01.
+- E4-02 : nom de fichier du plan conservé, sans suffixe ; la fenêtre est agrandie à 1 376 px de haut pour cette seule capture afin que les 12 lignes Gazole soient à l'écran ; le script vérifie que le bandeau ne couvre aucune ligne.
+- E4-01 : la rupture est montrée par l'appli (fiche ouverte, « GAZOLE rupture ») ; plus de bandeau.
+- 1.3-04 : la liste défile jusqu'aux deux nouvelles stations, le script vérifie qu'elles sont au-dessus du bandeau.
+- E2-01/02 : le script attend l'état « idle » de la carte (tuiles chargées et dessinées) avant la photo.
+- P1-01 : reprise parce que le libellé a changé (« Candeo Sarl » au lieu de « Indépendant sans enseigne », LOW 7).
+- Vu en reprenant E4-01 et corrigé (commit 192cbde) : la fiche affichait « Prix mis à jour prix du 14/10 » ; elle affiche maintenant « Derniers prix déclarés le 14/10 ».
