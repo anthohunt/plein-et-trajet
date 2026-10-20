@@ -5,6 +5,7 @@ import { T } from "../lib/textes";
 import { geocoderLieu, geocoderVille } from "../lib/geocodage";
 import { memoriserVille, type Lieu } from "../lib/position";
 import { coutCarburant } from "../lib/calcul";
+import { distanceKm } from "../lib/format";
 import { moyenneNationale } from "../lib/donnees";
 import { sessionAnonyme } from "../lib/session";
 import { ErreurCalcul, enregistrerTrajet, estimerTrajet, listerTrajets, supprimerTrajet, type TrajetEnregistre } from "../lib/trajets";
@@ -43,6 +44,7 @@ export default function Trajets() {
   const [trajets, setTrajets] = useState<TrajetEnregistre[]>([]);
   const [etatHist, setEtatHist] = useState<EtatHistorique>("chargement");
   const [erreurSuppression, setErreurSuppression] = useState(false);
+  const [erreurRejeu, setErreurRejeu] = useState(false);
   const voiture = useVoiture();
   const champDepart = useRef<HTMLInputElement>(null);
   const champArrivee = useRef<HTMLInputElement>(null);
@@ -125,7 +127,9 @@ export default function Trajets() {
       setPhase("resultat");
     } catch (e) {
       if (controleur.current !== ctrl || (e instanceof ErreurCalcul && e.code === "annule")) return;
-      setResultat({ genre: e instanceof ErreurCalcul && e.code === "pas_itineraire" ? "pas_itineraire" : "erreur", ...noms });
+      const pasDeRoute = e instanceof ErreurCalcul && e.code === "pas_itineraire";
+      const memeLieu = pasDeRoute && distanceKm(d.depart, d.arrivee) < 0.2;
+      setResultat(pasDeRoute ? { genre: "pas_itineraire", ...noms, memeLieu } : { genre: "erreur", ...noms });
       setPhase("resultat");
     }
   };
@@ -176,7 +180,11 @@ export default function Trajets() {
   };
 
   const rejouer = async (t: TrajetEnregistre) => {
-    if (!t.vehicule_id) return;
+    setErreurRejeu(false);
+    if (!t.vehicule_id) {
+      setErreurRejeu(true);
+      return;
+    }
     retourFocus.current = `trajet:${t.id}`;
     await lancer({
       depart: { lat: t.depart_lat, lon: t.depart_lon, label: t.depart_label },
@@ -273,7 +281,7 @@ export default function Trajets() {
             {verif ? T.verification : T.calculer}
           </button>
         </form>
-        <Historique etat={etatHist} trajets={trajets} occupe={verif} erreurSuppression={erreurSuppression} onRejouer={rejouer} onSupprimer={supprimer} />
+        <Historique etat={etatHist} trajets={trajets} occupe={verif} erreurSuppression={erreurSuppression} erreurRejeu={erreurRejeu} onRejouer={rejouer} onSupprimer={supprimer} />
       </div>
     </section>
   );

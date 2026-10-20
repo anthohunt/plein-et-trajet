@@ -48,6 +48,13 @@ async function capture(page, nom, verif, description, section = "happy") {
     ok = false;
     detail = String(e.message).split("\n").slice(0, 4).join(" ");
   }
+  await page.evaluate(() => new Promise((ok) => {
+    const m = window.__carte;
+    if (!m) return ok();
+    const t0 = Date.now();
+    const f = () => (m.loaded() && m.areTilesLoaded() && !m.isMoving() ? setTimeout(ok, 200) : Date.now() - t0 > 6000 ? ok() : setTimeout(f, 100));
+    f();
+  })).catch(() => {});
   await attendreAnimations(page);
   const ecrire = !SEULES || SEULES.has(nom);
   if (ecrire) await page.screenshot({ path: path.join(LIVRAISON, nom) });
@@ -70,6 +77,25 @@ async function annoter(page, texte, { bas = 70 } = {}) {
   }, { t: texte, bas });
 }
 
+// ordre de tabulation relevé pendant la passe au clavier (attribut posé sur chaque élément focalisé) → pastilles numérotées, annotation de test retirée après la photo
+async function marquerOrdre(page, n) {
+  await page.evaluate((k) => document.activeElement.setAttribute("data-ordre-test", String(k)), n);
+}
+async function pastillesOrdre(page) {
+  await page.evaluate(() => {
+    document.querySelector(".scroll")?.scrollTo(0, 0);
+    document.querySelectorAll("[data-ordre-test]").forEach((e) => {
+      const r = e.getBoundingClientRect();
+      if (r.width === 0 || r.bottom < 0 || r.top > innerHeight) return;
+      const d = document.createElement("div");
+      d.setAttribute("data-annotation-test", "");
+      d.textContent = e.getAttribute("data-ordre-test");
+      Object.assign(d.style, { position: "fixed", left: Math.max(2, r.left - 6) + "px", top: Math.max(2, r.top - 6) + "px", zIndex: 9999, background: "#ffb000", color: "#15181a", font: "800 12px/1 sans-serif", minWidth: "20px", height: "20px", display: "grid", placeItems: "center", borderRadius: "10px", boxShadow: "0 1px 4px rgba(0,0,0,.4)" });
+      document.body.appendChild(d);
+    });
+  });
+}
+const retirerOrdre = (page) => page.evaluate(() => document.querySelectorAll("[data-ordre-test]").forEach((e) => e.removeAttribute("data-ordre-test")));
 const S4 = (p, etat) => p.locator(`[data-screen="S4"][data-etat="${etat}"]`);
 const avertissements = [];
 function surveiller(page, etiquette) {
@@ -255,14 +281,20 @@ histoireDef("US-3.4", "US-3.4 — Choisir ma voiture", async () => {
     expect(p).toMatchObject({ marque: "Peugeot", modele: "208", vehicule_id: opts[cible].id, carburant: v.carburant });
     return `voiture enregistrée dans \`preferences\` (vehicule_id ${p.vehicule_id}, carburant ${p.carburant}) ; carburant affiché : « ${v.carburant} · ${v.masse_kg} kg » ; mention « Voiture mémorisée »`;
   }, "Peugeot → 208 → 208 (101ch) mécanique : voiture enregistrée, carburant affiché");
-  await viderFocus(pa);
+  await pa.getByRole("tab", { name: "Prix" }).click();
+  await expect(pa.locator('[data-el="ligne-station"]').first()).toBeVisible({ timeout: 20000 });
+  await pa.getByRole("tab", { name: "Trajets" }).click();
+  await attendreFormulaire(pa);
+  await expect(pa.locator("#voiture-moteur .dd-txt")).toHaveText("208 (101ch) · mécanique", { timeout: 15000 });
   await capture(pa, "US-3.4-03-choisir-ma-voiture-avant.png", async () => {
     await expect(pa.locator('[data-el="voiture-memorisee"]')).toBeVisible();
-    return "voiture mémorisée visible sur l'écran Trajets (focus retiré du sélecteur)";
-  }, "une voiture est mémorisée");
+    await expect(pa.locator('[data-el="voiture-libelle"]')).toHaveText("208 (101ch) · mécanique");
+    return "après un aller-retour Prix → Trajets (écran recréé, départ et arrivée vides) : la voiture revient depuis `preferences`, libellé complet « 208 (101ch) · mécanique » sous les sélecteurs, mention « Voiture mémorisée »";
+  }, "une voiture est mémorisée (écran Trajets rouvert)");
   await pa.reload();
   await attendreFormulaire(pa);
   await expect(pa.locator("#voiture-moteur .dd-txt")).toHaveText("208 (101ch) · mécanique", { timeout: 15000 });
+  await pa.keyboard.press("Tab");
   await capture(pa, "US-3.4-04-choisir-ma-voiture-apres.png", async () => {
     await expect(pa.locator("#voiture-marque .dd-txt")).toHaveText("Peugeot");
     await expect(pa.locator("#voiture-modele .dd-txt")).toHaveText("208");
@@ -424,15 +456,17 @@ histoireDef("US-4.E2", "US-4.E2 — Prix perso invalide", async () => {
   await expect(erreur).toHaveCount(0);
   await expect(pa.locator('[data-el="libelle-prix"]')).toHaveText("Mon prix");
   await pa.keyboard.press("Tab"); // la saisie est validée en quittant le champ
-  await capture(pa, "US-4.E2-E1-03-retour.png", async () => {
-    const r = await lireResultat(pa);
-    expect(r.detail).toContain("1,699 €/L");
-    await expect(pa.locator('[data-el="erreur-prix-perso"]')).toHaveCount(0);
-    await expect(pa.locator('[data-el="libelle-prix"]')).toHaveText("Mon prix");
-    return `saisie corrigée à 1,699 puis champ quitté (Tab) : le message a disparu, coût recalculé ${virgule(r.cout)} €`;
-  }, "retour à une saisie valide : état normal", "edge");
+  expect((await lireResultat(pa)).detail).toContain("1,699 €/L");
   await pa.locator('[data-el="revenir-moyenne"]').click();
   await expect.poll(async () => (await lireResultat(pa)).cout).toBe(coutAvant);
+  await annoter(pa, `retour à l'état normal : saisie « 12 » refusée, puis 1,699 appliqué, puis « Revenir à la moyenne » : coût d'origine ${virgule(coutAvant)} €`, { bas: 70 });
+  await capture(pa, "US-4.E2-E1-03-retour.png", async () => {
+    const r = await lireResultat(pa);
+    expect(r.cout).toBe(coutAvant);
+    await expect(pa.locator('[data-el="erreur-prix-perso"]')).toHaveCount(0);
+    await expect(pa.locator('[data-el="libelle-prix"]')).toContainText("Moyenne France du jour");
+    return `message disparu, coût revenu à la valeur d'origine ${virgule(r.cout)} € (prix moyen ${virgule(etat.moyenne, 3)} €/L)`;
+  }, "retour à une saisie valide : état normal", "edge");
   note("issues", "- Trouvé dans la 1re passe sur la prod : le prix était appliqué à chaque touche, donc taper « 12 » passait par « 1 » (1,00 €/L) et le coût affiché devenait celui de 1,00 €/L (18,88 € au lieu de 40,78 €) au lieu de rester « celui d'avant ». Corrigé : le prix n'est appliqué qu'une fois la frappe posée (Entrée, sortie du champ, ou 0,45 s sans touche) ; une saisie invalide annule l'application en attente. Captures reprises.");
 });
 
@@ -522,6 +556,7 @@ histoireDef("US-3.7", "US-3.7 — Supprimer un trajet", async () => {
   await pa.reload();
   await attendreFormulaire(pa);
   await expect(lignesHistorique(pa)).toHaveCount(1);
+  await annoter(pa, "page rechargée (F5) après la suppression : 1 seul trajet revient de la base", { bas: 70 });
   await capture(pa, "US-3.7-02-supprimer-un-trajet-apres.png", async () => {
     const l = await lignes(pa);
     expect(l[0].texte).toContain("Albi → Bordeaux");
@@ -544,12 +579,13 @@ histoireDef("US-3.P2", "US-3.P2 — Changer de voiture", async () => {
   await expect(pa.locator("#voiture-modele .dd-txt")).toHaveText("Modèle");
   await expect(pa.locator("#voiture-moteur .dd-txt")).toHaveText("Motorisation");
   await expect(pa.locator('[data-el="voiture-memorisee"]')).toHaveCount(0);
+  await expect(pa.locator('[data-el="marque-memorisee"]')).toHaveText("Marque mémorisée");
   await expect.poll(async () => (await dbPreference(pa))?.marque).toBe("Renault");
   await capture(pa, "US-3.P2-02-changer-de-voiture-apres.png", async () => {
     const p = await dbPreference(pa);
     expect(p).toMatchObject({ marque: "Renault", modele: null, vehicule_id: null });
     await expect(pa.locator("#voiture-moteur")).toBeDisabled();
-    return `marque Renault ; modèle et motorisation réinitialisés (« Modèle », « Motorisation ») ; \`preferences\` : marque=Renault, modèle et vehicule_id vidés (l'ancienne voiture n'est plus mémorisée)`;
+    return `marque Renault ; modèle et motorisation réinitialisés (« Modèle », « Motorisation »), mention visible « Marque mémorisée » ; \`preferences\` : marque=Renault, modèle et vehicule_id vidés (l'ancienne voiture n'est plus mémorisée)`;
   }, "je choisis Renault : modèle et motorisation se réinitialisent, la nouvelle voiture est mémorisée");
   await choisirDansListe(pa, "voiture-modele", "Modèle", "Clio");
   await pa.waitForFunction(() => { const e = document.getElementById("voiture-moteur"); return e && !e.disabled && !/Chargement/.test(e.textContent); });
@@ -676,14 +712,17 @@ histoireDef("US-3.E3", "US-3.E3 — Historique vide", async () => {
   const B = await contexte();
   const pb = await B.newPage();
   surveiller(pb, "B");
-  await pb.goto(`${URL_APP}/`);
-  await expect(pb.locator('[data-el="ligne-station"]').first()).toBeVisible({ timeout: 20000 });
-  await pb.waitForFunction(() => !window.__carte || (window.__carte.loaded() && window.__carte.areTilesLoaded()), null, { timeout: 15000 }).catch(() => {});
-  await pb.getByRole("button", { name: "Plus proche" }).click();
+  await pb.goto(`${URL_APP}/trajets`);
+  await attendreFormulaire(pb);
+  await expect(pb.locator('[data-el="historique-vide"]')).toBeVisible();
+  await pb.locator("#bouton-calculer").hover();
   await capture(pb, "US-3.E3-E1-01-declencheur.png", async () => {
-    await expect(pb.getByRole("tab", { name: "Prix" })).toHaveAttribute("aria-selected", "true");
-    return "nouvel identifiant anonyme, appli ouverte sur Prix, aucun trajet calculé";
-  }, "aucun trajet calculé (nouvelle identité)", "edge");
+    await expect(pb.getByRole("tab", { name: "Trajets" })).toHaveAttribute("aria-selected", "true");
+    await expect(lignesHistorique(pb)).toHaveCount(0);
+    return "nouvel identifiant anonyme, écran Trajets ouvert : formulaire vide et section « Derniers trajets » sans aucun trajet calculé";
+  }, "aucun trajet calculé (écran Trajets, nouvelle identité)", "edge");
+  await pb.getByRole("tab", { name: "Prix" }).click();
+  await expect(pb.locator('[data-el="ligne-station"]').first()).toBeVisible({ timeout: 20000 });
   await pb.getByRole("tab", { name: "Trajets" }).focus(); // ouverture au clavier (Entrée) : l'onglet garde son contour de focus
   await pb.keyboard.press("Enter");
   await attendreFormulaire(pb);
@@ -691,7 +730,7 @@ histoireDef("US-3.E3", "US-3.E3 — Historique vide", async () => {
   await capture(pb, "US-3.E3-E1-02-resultat.png", async () => {
     await expect(pb.locator('[data-el="historique-vide"] .t')).toHaveText("Aucun trajet pour l'instant");
     await expect(pb.locator('[data-el="historique-vide"] .d')).toContainText("Calculer le coût");
-    return "« Aucun trajet pour l'instant » + invitation « Choisis un départ, une arrivée et ta voiture, puis touche « Calculer le coût » : ton premier trajet apparaîtra ici. »";
+    return "onglet Trajets rouvert depuis Prix : « Aucun trajet pour l'instant » + invitation « Choisis un départ, une arrivée et ta voiture, puis touche « Calculer le coût » : ton premier trajet apparaîtra ici. »";
   }, "j'ouvre l'onglet Trajets", "edge");
   const s = await session(pb);
   const base = await rest("trajets?select=id", s.jeton);
@@ -767,31 +806,20 @@ histoireDef("TRANSVERSES", "Histoires transverses (US-A11Y-001 … 004)", async 
     await pa.keyboard.press("Tab");
     const o = await etatFocus(pa);
     vus.push(o);
-    expect(o.contour, `contour : ${o.nom}`).toBe(true);
-    expect(o.visible, `visible : ${o.nom}`).toBe(true);
-    if (o.id === "bouton-calculer") break;
-  }
-  expect(noms(vus)).toEqual(["Départ", "Inverser les deux lieux", "Arrivée", "Marque", "Modèle", "Motorisation", "Calculer le coût"]);
-  await capture(pa, "US-A11Y-001-01-m2.png", async () => {
-    expect(vus.map((v) => v.i)).toEqual([...vus.map((v) => v.i)].sort((a, b) => a - b));
-    return `S3 — Tab depuis le haut : ${noms(vus).join(" → ")} (ordre de lecture = ordre du DOM, chaque contrôle avec contour ≥ 2 px et visible) ; focus actuellement sur « Calculer le coût »`;
-  }, "S3 : Tab fait parcourir les contrôles dans l'ordre de lecture, contour visible");
-  const suite = [];
-  for (let i = 0; i < 12; i++) {
-    await pa.keyboard.press("Tab");
-    const o = await etatFocus(pa);
-    suite.push(o);
+    await marquerOrdre(pa, vus.length);
     expect(o.contour, `contour : ${o.nom}`).toBe(true);
     expect(o.visible, `visible : ${o.nom}`).toBe(true);
     if (o.nom === "Trajets") break;
   }
-  expect(suite.at(-1).nom).toBe("Trajets");
-  const tout = [...vus, ...suite];
-  expect(tout.map((v) => v.i)).toEqual([...tout.map((v) => v.i)].sort((a, b) => a - b));
-  for (let i = 0; i < suite.length; i++) await pa.keyboard.press("Shift+Tab");
-  const retour = await etatFocus(pa);
-  expect(retour.id).toBe("bouton-calculer");
-  note("happy", `- ✓ suite de l'ordre sur S3 : ${suite.map((o) => o.nom).join(" → ")} ; Maj+Tab ramène exactement sur « Calculer le coût » (ordre inverse)`);
+  expect(noms(vus).slice(0, 7)).toEqual(["Départ", "Inverser les deux lieux", "Arrivée", "Marque", "Modèle", "Motorisation", "Calculer le coût"]);
+  expect(vus.at(-1).nom).toBe("Trajets");
+  expect(vus.map((v) => v.i)).toEqual([...vus.map((v) => v.i)].sort((a, b) => a - b));
+  await pastillesOrdre(pa);
+  await capture(pa, "US-A11Y-001-01-m2.png", async () => `S3 — ordre de tabulation relevé pendant la passe au clavier, pastilles numérotées posées par le test : ${noms(vus).map((n, k) => `${k + 1} ${n}`).join(" → ")} (ordre de lecture = ordre du DOM ; contour ≥ 2 px et élément visible vérifiés à chaque Tab ; le focus final est sur l'onglet « Trajets »)`, "S3 : Tab fait parcourir les contrôles dans l'ordre de lecture (pastilles d'ordre = annotation de test)");
+  await retirerOrdre(pa);
+  for (let i = 0; i < vus.length - 1; i++) await pa.keyboard.press("Shift+Tab");
+  expect((await etatFocus(pa)).nom).toBe("Départ");
+  note("happy", `- ✓ Maj+Tab depuis l'onglet « Trajets » ramène exactement sur « Départ » (ordre inverse, ${vus.length - 1} pas)`);
 
   // ---------- US-A11Y-004 sur S3 : noms accessibles (preuve non visible → annotation de test, retirée après la photo)
   en("US-A11Y-004");
@@ -807,16 +835,14 @@ histoireDef("TRANSVERSES", "Histoires transverses (US-A11Y-001 … 004)", async 
 
   // ---------- ouverture de S4 au clavier : US-A11Y-002 (focus sur le titre)
   const avant = appelsCalcul;
-  await pa.keyboard.press("Enter"); // focus sur « Calculer le coût »
+  await pa.locator("#bouton-calculer").focus();
+  await pa.keyboard.press("Enter");
   await expect(S4(pa, "ok")).toBeVisible({ timeout: 45000 });
   expect(appelsCalcul).toBe(avant + 1);
   en("US-A11Y-002");
   await expect(pa.locator('[data-el="route-titre"]')).toBeFocused();
-  await capture(pa, "US-A11Y-002-01-m2.png", async () => {
-    const o = await etatFocus(pa);
-    expect(o.contour).toBe(true);
-    return `S4 ouvert au clavier (Entrée sur « Calculer le coût ») : le focus va sur le titre « ${await pa.locator('[data-el="route-titre"]').innerText()} » (souligné) ; le bouton Calculer n'existe plus à l'écran`;
-  }, "S4 s'ouvre : le focus va sur son titre");
+  expect((await etatFocus(pa)).contour).toBe(true);
+  note("edge", `- ✓ même règle sur S4 (preuve en plus de la fiche) : ouvert au clavier (Entrée sur « Calculer le coût »), le focus va sur le titre « ${await pa.locator('[data-el="route-titre"]').innerText()} » (souligné)`);
 
   // ---------- US-A11Y-001 sur S4
   en("US-A11Y-001");
@@ -825,20 +851,18 @@ histoireDef("TRANSVERSES", "Histoires transverses (US-A11Y-001 … 004)", async 
     await pa.keyboard.press("Tab");
     const o = await etatFocus(pa);
     s4.push(o);
+    await marquerOrdre(pa, s4.length);
     expect(o.contour, `contour : ${o.nom}`).toBe(true);
     expect(o.visible, `visible : ${o.nom}`).toBe(true);
-    if (o.id === "troncon-0") {
-      await capture(pa, "US-A11Y-001-02-m2.png", async () => {
-        expect(s4.map((v) => v.i)).toEqual([...s4.map((v) => v.i)].sort((a, b) => a - b));
-        return `S4 — depuis le titre, Tab : ${noms(s4).join(" → ")} ; contour visible sur le tronçon focalisé ; le bouton « Retour aux trajets » précède le titre (Maj+Tab)`;
-      }, "S4 : Tab parcourt prix perso et tronçons dans l'ordre, contour visible");
-    }
     if (o.nom === "Trajets") break;
   }
   expect(s4.at(-1).nom).toBe("Trajets");
   expect(s4.map((v) => v.i)).toEqual([...s4.map((v) => v.i)].sort((a, b) => a - b));
+  await pastillesOrdre(pa);
+  await capture(pa, "US-A11Y-001-02-m2.png", async () => `S4 — depuis le titre, ordre de tabulation relevé (pastilles numérotées posées par le test) : ${noms(s4).map((n, k) => `${k + 1} ${n}`).join(" → ")} ; le bouton « Retour aux trajets » précède le titre (Maj+Tab) ; contour et visibilité vérifiés à chaque pas`, "S4 : Tab parcourt prix perso, tronçons puis onglet dans l'ordre (pastilles d'ordre = annotation de test)");
+  await retirerOrdre(pa);
   for (let i = 0; i < s4.length; i++) await pa.keyboard.press("Shift+Tab");
-  note("happy", `- ✓ suite complète de S4 : ${noms(s4).join(" → ")} (ordre du DOM, contours et visibilité vérifiés à chaque pas)`);
+  note("happy", `- ✓ suite complète de S4 : ${noms(s4).join(" → ")} (ordre du DOM)`);
 
   // ---------- US-A11Y-003 : Échap replie le tronçon ouvert
   en("US-A11Y-003");
@@ -881,18 +905,38 @@ histoireDef("TRANSVERSES", "Histoires transverses (US-A11Y-001 … 004)", async 
   await annoter(pa, `noms lus : « ${nomsS4.cout} » · « ${nomsS4.prix} » · « ${nomsS4.retour} » · « ${nomsS4.troncons[0]} »`, { bas: 70 });
   await capture(pa, "US-A11Y-004-02-m2.png", async () => `S4 : coût annoncé « ${nomsS4.cout} », prix « ${nomsS4.prix} », bouton retour « ${nomsS4.retour} », tronçons « ${nomsS4.troncons.join(" ; ")} » (type, km et litres, sans doublon de lecture) ; le bandeau orange est une annotation de test`, "S4 : chaque prix et chaque tronçon est annoncé en entier");
 
-  // ---------- retour clavier : US-A11Y-002 (focus rendu à l'élément ouvrant)
+  // ---------- US-A11Y-002 sur S4 (retour clavier) puis sur la VRAIE fiche station (preuve photographiée)
   en("US-A11Y-002");
   await pa.locator('[data-el="retour-trajets"]').focus();
   await pa.keyboard.press("Enter");
   await expect(pa.locator('[data-screen="S3"]')).toBeVisible();
   await expect(pa.locator("#bouton-calculer")).toBeFocused();
-  await capture(pa, "US-A11Y-002-02-m2.png", async () => {
-    const o = await etatFocus(pa);
+  note("edge", "- ✓ même règle sur S4 : Entrée sur « Retour aux trajets » → le focus revient sur « Calculer le coût », l'élément qui avait ouvert le résultat");
+  const C = await contexte();
+  const pc = await C.newPage();
+  surveiller(pc, "C");
+  await pc.goto(`${URL_APP}/`);
+  const ligneStation = pc.locator('[data-el="ligne-station"]').first();
+  await expect(ligneStation).toBeVisible({ timeout: 20000 });
+  await ligneStation.focus();
+  await pc.keyboard.press("Enter");
+  await expect(pc.locator("#sh-name")).toBeFocused();
+  const nomStation = (await pc.locator("#sh-name").innerText()).trim();
+  await capture(pc, "US-A11Y-002-01-m2.png", async () => {
+    const o = await etatFocus(pc);
     expect(o.contour).toBe(true);
-    return "S4 fermé au clavier (Entrée sur « Retour aux trajets ») : le focus revient sur « Calculer le coût », l'élément qui avait ouvert le résultat, contour visible";
+    await expect(pc.locator('[data-el="fiche-station"]')).toBeVisible();
+    return `fiche station réelle ouverte au clavier (Entrée sur la ligne) : le focus est sur son titre « ${nomStation} » (souligné) ; même règle vérifiée sur S4`;
+  }, "la fiche s'ouvre : le focus va sur son titre");
+  await pc.keyboard.press("Escape");
+  await expect(pc.locator('[data-el="fiche-station"]')).toHaveCount(0);
+  await expect(ligneStation).toBeFocused();
+  await capture(pc, "US-A11Y-002-02-m2.png", async () => {
+    const o = await etatFocus(pc);
+    expect(o.contour).toBe(true);
+    return `fiche fermée (Échap) : le focus est revenu sur la ligne « ${nomStation} » qui l'avait ouverte, contour visible`;
   }, "à la fermeture, le focus revient sur l'élément qui l'a ouvert");
-  note("edge", "- ✓ la fiche station (jalon 1) garde ses règles : titre focalisé à l'ouverture, retour du focus, Échap (rejoué par tests/e2e/m1-explore.spec.ts)");
+  await C.close();
   for (const id of ["US-A11Y-001", "US-A11Y-002", "US-A11Y-003", "US-A11Y-004"]) {
     en(id);
     note("issues", SANS_ISSUE[0]);
@@ -901,44 +945,47 @@ histoireDef("TRANSVERSES", "Histoires transverses (US-A11Y-001 … 004)", async 
 });
 
 histoireDef("US-PERF-001", "US-PERF-001 — Ouverture rapide", async () => {
-  async function froid(url, pret) {
+  async function froid() {
     const ctx = await contexte();
     const p = await ctx.newPage();
     const cdp = await ctx.newCDPSession(p);
     await cdp.send("Network.enable");
     await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
+    // 4G : 9 Mbit/s descendant, 1,5 Mbit/s montant, 85 ms de latence
     await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 85, downloadThroughput: (9 * 1024 * 1024) / 8, uploadThroughput: (1.5 * 1024 * 1024) / 8 });
-    const t0 = Date.now();
-    await p.goto(url, { waitUntil: "commit" });
-    const t1 = Date.now() - t0;
-    await pret(p);
-    return { ctx, p, t0, t1, t: Date.now() - t0 };
+    return { ctx, p };
   }
-  // mesures de contrôle (non photographiées) : l'écran Prix du jalon 1
-  const prix = await froid(`${URL_APP}/`, (p) => p.locator('[data-el="ligne-station"]').first().waitFor({ timeout: 20000 }));
-  note("edge", `- ✓ contrôle : l'écran Prix (jalon 1) affiche sa liste en ${prix.t} ms en 4G simulée, session neuve`);
-  await prix.ctx.close();
-  // l'écran du jalon : Trajets (formulaire + historique + liste des marques), identité neuve, cache vide
-  const ctx = await contexte();
-  const p = await ctx.newPage();
-  const cdp = await ctx.newCDPSession(p);
-  await cdp.send("Network.enable");
-  await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
-  await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 85, downloadThroughput: (9 * 1024 * 1024) / 8, uploadThroughput: (1.5 * 1024 * 1024) / 8 });
+  // ---- l'écran d'ouverture de l'appli : Prix et sa liste de stations (la mesure de la spec)
+  const { ctx, p } = await froid();
   const t0 = Date.now();
-  await p.goto(`${URL_APP}/trajets`, { waitUntil: "commit" });
+  await p.goto(`${URL_APP}/`, { waitUntil: "commit" });
+  await p.locator(".brand").waitFor({ timeout: 15000 });
   const t1 = Date.now() - t0;
-  await annoter(p, `4G simulée (9 Mbit/s, 85 ms), cache vide, identité neuve : navigation lancée, t = ${t1} ms`);
-  await capture(p, "US-PERF-001-01-m2.png", async () => `navigation vers /trajets lancée en 4G simulée, cache désactivé, t=${t1} ms`, "j'ouvre l'appli sur l'écran Trajets (4G simulée)");
-  await attendreFormulaire(p);
+  await annoter(p, `4G simulée (9 Mbit/s, 85 ms), cache vide, session neuve : appli ouverte, en-tête affiché à t = ${t1} ms`);
+  await capture(p, "US-PERF-001-01-m2.png", async () => {
+    await expect(p.locator(".brand")).toBeVisible();
+    return `ouverture de l'appli en 4G simulée, cache désactivé : en-tête « Plein & Trajet » affiché à t=${t1} ms (liste des stations pas encore chargée : ${(await p.locator('[data-el="ligne-station"]').count())} ligne)`;
+  }, "j'ouvre l'appli (4G simulée)");
+  await p.locator('[data-el="ligne-station"]').first().waitFor({ timeout: 15000 });
   const t = Date.now() - t0;
-  await annoter(p, `formulaire, liste des marques et historique prêts en ${t} ms (budget 2 500 ms)`);
+  const nbLignes = await p.locator('[data-el="ligne-station"]').count();
+  await p.waitForFunction(() => !window.__carte || window.__carte.areTilesLoaded?.(), null, { timeout: 8000 }).catch(() => {});
+  await annoter(p, `liste des stations affichée en ${t} ms (${nbLignes} stations ; budget 2 500 ms)`);
   await capture(p, "US-PERF-001-02-m2.png", async () => {
     expect(t).toBeLessThan(2500);
-    await expect(p.locator('[data-el="historique-vide"]')).toBeVisible();
-    return `Trajets prêt (formulaire, ${await p.locator("#voiture-marque").innerText()}, historique chargé) en ${t} ms < 2 500 ms ; l'écran Prix mesuré à côté : ${prix.t} ms`;
-  }, "l'écran est utilisable en moins de 2,5 s");
+    await expect(p.locator('[data-el="ligne-station"]').first()).toBeVisible();
+    return `liste des stations (${nbLignes} lignes avec prix) affichée ${t} ms après l'ouverture < 2 500 ms (4G simulée, session neuve, cache vide)`;
+  }, "la liste des stations est affichée en moins de 2,5 s");
   await ctx.close();
+  // ---- complément : l'écran du jalon, Trajets (formulaire + marques + historique), non photographié
+  const b = await froid();
+  const u0 = Date.now();
+  await b.p.goto(`${URL_APP}/trajets`, { waitUntil: "commit" });
+  await attendreFormulaire(b.p);
+  const tt = Date.now() - u0;
+  expect(tt).toBeLessThan(2500);
+  note("edge", `- ✓ complément : l'écran Trajets (formulaire, liste des marques, historique) est prêt en ${tt} ms en 4G simulée, identité neuve, cache vide`);
+  await b.ctx.close();
   note("issues", SANS_ISSUE[0]);
 });
 

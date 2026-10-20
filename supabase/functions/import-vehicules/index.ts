@@ -31,8 +31,13 @@ Deno.serve(async (req) => {
   }
   // retire les lignes disparues de la source (les trajets/préférences qui y pointaient passent à null)
   const ids = new Set(lignes.map((l) => l.id));
-  const { data: existants } = await db.from("vehicules").select("id");
-  const obsoletes = (existants ?? []).map((e) => e.id as string).filter((id) => !ids.has(id));
+  const existants: string[] = [];
+  for (let debut = 0; ; debut += 1000) {
+    const { data } = await db.from("vehicules").select("id").order("id").range(debut, debut + 999); // la lecture est plafonnée à 1 000 lignes
+    existants.push(...(data ?? []).map((e) => e.id as string));
+    if (!data || data.length < 1000) break;
+  }
+  const obsoletes = existants.filter((id) => !ids.has(id));
   for (let i = 0; i < obsoletes.length; i += 200) await db.from("vehicules").delete().in("id", obsoletes.slice(i, i + 200));
   return Response.json({ source: d.results.length, importes: lignes.length, supprimes: obsoletes.length });
 });

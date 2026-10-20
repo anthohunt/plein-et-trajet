@@ -1,0 +1,246 @@
+{
+  "US-3.1-01-ouvrir-les-trajets-avant.png": {
+    "action": "L'utilisateur est sur l'onglet Prix.",
+    "expected": "La carte et la liste des stations s'affichent, onglet Prix actif."
+  },
+  "US-3.1-02-ouvrir-les-trajets-apres.png": {
+    "action": "L'utilisateur touche l'onglet Trajets.",
+    "expected": "Le formulaire Nouveau trajet et « Aucun trajet pour l'instant » s'affichent."
+  },
+  "US-3.2-01-saisir-le-dpart-avant.png": {
+    "action": "L'utilisateur touche le champ Départ, encore vide.",
+    "expected": "Le champ Départ est entouré, avec « Ville ou adresse » en grisé."
+  },
+  "US-3.2-02-saisir-le-dpart-apres.png": {
+    "action": "L'utilisateur tape « Alb » dans le champ Départ.",
+    "expected": "Une liste propose Albi, Albertville, Albert, Albias et d'autres lieux."
+  },
+  "US-3.3-01-saisir-l-arrive-avant.png": {
+    "action": "L'utilisateur a choisi Albi au départ et laisse l'arrivée vide.",
+    "expected": "Départ « Albi » rempli ; Arrivée affiche encore « Ville ou adresse »."
+  },
+  "US-3.3-02-saisir-l-arrive-apres.png": {
+    "action": "L'utilisateur tape « Bord » dans le champ Arrivée.",
+    "expected": "Une liste propose Bordeaux, Bordères-sur-l'Échez, Bordes, Bords et d'autres lieux."
+  },
+  "US-3.4-01-choisir-ma-voiture-avant.png": {
+    "action": "L'utilisateur a rempli Albi et Bordeaux, sans choisir de voiture.",
+    "expected": "Marque est vide, Modèle et Motorisation sont grisés."
+  },
+  "US-3.4-02-choisir-ma-voiture-apres.png": {
+    "action": "L'utilisateur choisit Peugeot, puis 208, puis une motorisation.",
+    "expected": "« Voiture mémorisée » apparaît avec « SP95-E10 · 1090 kg »."
+  },
+  "US-3.4-03-choisir-ma-voiture-avant.png": {
+    "action": "L'utilisateur a une voiture mémorisée : Peugeot 208.",
+    "expected": "Le formulaire montre Peugeot, 208 et « Voiture mémorisée »."
+  },
+  "US-3.4-04-choisir-ma-voiture-apres.png": {
+    "action": "L'utilisateur rouvre l'appli.",
+    "expected": "Départ et Arrivée sont vides ; Peugeot 208 est déjà choisie."
+  },
+  "US-3.5-01-calculer-le-cot-avant.png": {
+    "action": "L'utilisateur a rempli Albi, Bordeaux et sa Peugeot 208.",
+    "expected": "Le bouton « Calculer le coût » est visible, l'historique est vide."
+  },
+  "US-3.5-02-calculer-le-cot-apres.png": {
+    "action": "L'utilisateur touche « Calculer le coût ».",
+    "expected": "Le résultat affiche 40,78 €, 18,9 L, 317 km et 6,0 L/100 km."
+  },
+  "US-3.6-01-rejouer-un-ancien-trajet-avant.png": {
+    "action": "L'utilisateur voit un trajet dans l'historique.",
+    "expected": "La ligne « Albi → Bordeaux, 317 km, 40,78 € » est affichée."
+  },
+  "US-3.6-02-rejouer-un-ancien-trajet-apres.png": {
+    "action": "L'utilisateur touche la ligne de l'historique.",
+    "expected": "Le trajet recalculé au prix moyen du jour s'affiche : 40,78 €."
+  },
+  "US-3.7-01-supprimer-un-trajet-avant.png": {
+    "action": "L'utilisateur voit deux trajets dans l'historique.",
+    "expected": "« Bordeaux → Albi » et « Albi → Bordeaux » sont listés, avec une croix."
+  },
+  "US-3.7-02-supprimer-un-trajet-apres.png": {
+    "action": "L'utilisateur touche la croix du trajet Bordeaux → Albi.",
+    "expected": "Il ne reste que « Albi → Bordeaux » dans l'historique."
+  },
+  "US-3.E1-E1-01-declencheur.png": {
+    "action": "L'utilisateur tape « zzzz » dans le champ Arrivée.",
+    "expected": "Arrivée contient « zzzz » ; aucun message d'erreur pour l'instant."
+  },
+  "US-3.E1-E1-02-resultat.png": {
+    "action": "L'utilisateur touche « Calculer le coût ».",
+    "expected": "Le champ Arrivée est marqué « Lieu introuvable » en rouge."
+  },
+  "US-3.E1-E1-03-retour.png": {
+    "action": "L'utilisateur remplace « zzzz » par « Toulouse ».",
+    "expected": "Le message d'erreur a disparu ; le formulaire est de nouveau normal."
+  },
+  "US-3.E2-E1-01-declencheur.png": {
+    "action": "L'utilisateur a rempli Albi et Bordeaux, sans voiture.",
+    "expected": "Marque est vide ; Modèle et Motorisation sont grisés."
+  },
+  "US-3.E2-E1-02-resultat.png": {
+    "action": "L'utilisateur touche « Calculer le coût » sans voiture.",
+    "expected": "« Choisis ta voiture » s'affiche en rouge ; le champ Marque est cerné."
+  },
+  "US-3.E2-E1-03-retour.png": {
+    "action": "L'utilisateur choisit Dacia, Sandero et une motorisation.",
+    "expected": "L'erreur a disparu ; « Voiture mémorisée » s'affiche avec le carburant GPLc."
+  },
+  "US-3.E3-E1-01-declencheur.png": {
+    "action": "L'utilisateur est sur l'onglet Prix, sans trajet calculé.",
+    "expected": "La liste des stations s'affiche ; le focus est sur l'onglet Trajets."
+  },
+  "US-3.E3-E1-02-resultat.png": {
+    "action": "L'utilisateur ouvre l'onglet Trajets.",
+    "expected": "« Aucun trajet pour l'instant » s'affiche avec l'invitation à calculer."
+  },
+  "US-3.E3-E1-03-retour.png": {
+    "action": "L'utilisateur touche le champ Arrivée du formulaire.",
+    "expected": "Le formulaire est vide et normal, l'historique garde son message d'accueil."
+  },
+  "US-3.E4-E1-01-declencheur.png": {
+    "action": "L'utilisateur choisit Peugeot, puis le modèle 208.",
+    "expected": "Marque et Modèle sont remplis ; Motorisation affiche encore son libellé."
+  },
+  "US-3.E4-E1-02-resultat.png": {
+    "action": "L'utilisateur ouvre la liste des motorisations.",
+    "expected": "Cinq motorisations avec puissance et carburant ; la première est « Proposée »."
+  },
+  "US-3.E4-E1-03-retour.png": {
+    "action": "L'utilisateur referme la liste sans rien choisir.",
+    "expected": "La liste a disparu ; le champ Motorisation est entouré, encore vide."
+  },
+  "US-3.P1-01-inverser-dpart-et-arrive-avant.png": {
+    "action": "L'utilisateur voit Albi au départ et Bordeaux à l'arrivée.",
+    "expected": "Départ « Albi » et Arrivée « Bordeaux » sont affichés."
+  },
+  "US-3.P1-02-inverser-dpart-et-arrive-apres.png": {
+    "action": "L'utilisateur touche le bouton d'inversion des deux lieux.",
+    "expected": "Départ devient « Bordeaux » et Arrivée devient « Albi »."
+  },
+  "US-3.P2-01-changer-de-voiture-avant.png": {
+    "action": "L'utilisateur a une Peugeot 208 mémorisée.",
+    "expected": "Peugeot, 208 et sa motorisation sont affichées dans le formulaire."
+  },
+  "US-3.P2-02-changer-de-voiture-apres.png": {
+    "action": "L'utilisateur choisit la marque Renault.",
+    "expected": "Marque affiche Renault ; Modèle est à choisir, Motorisation est grisée."
+  },
+  "US-4.1-01-comprendre-le-calcul-avant.png": {
+    "action": "L'utilisateur voit le résultat du trajet Albi → Bordeaux.",
+    "expected": "Trois tronçons repliés : autoroute 17,5 L, route 0,5 L, ville 0,9 L."
+  },
+  "US-4.1-02-comprendre-le-calcul-apres.png": {
+    "action": "L'utilisateur touche le tronçon autoroute.",
+    "expected": "Il se déplie : 105 km/h, 0 arrêt, +1020 m, 5,9 L/100 km."
+  },
+  "US-4.1-03-comprendre-le-calcul-avant.png": {
+    "action": "L'utilisateur voit le tronçon autoroute déplié.",
+    "expected": "Les détails de vitesse, arrêts et dénivelé sont visibles sous l'autoroute."
+  },
+  "US-4.1-04-comprendre-le-calcul-apres.png": {
+    "action": "L'utilisateur touche à nouveau le tronçon autoroute.",
+    "expected": "Le tronçon se replie et les détails disparaissent."
+  },
+  "US-4.2-01-mettre-mon-propre-prix-avant.png": {
+    "action": "L'utilisateur voit le coût au prix moyen France.",
+    "expected": "Coût 40,78 € ; moyenne France 2,16 €/L et « Mettre mon prix »."
+  },
+  "US-4.2-02-mettre-mon-propre-prix-apres.png": {
+    "action": "L'utilisateur touche « Mettre mon prix » et saisit 1,699.",
+    "expected": "Le coût passe à 32,08 € ; le libellé devient « Mon prix »."
+  },
+  "US-4.2-03-mettre-mon-propre-prix-avant.png": {
+    "action": "L'utilisateur voit son prix perso de 1,699 €/L appliqué.",
+    "expected": "« Mon prix » 1,69 €/L, coût 32,08 €, « Revenir à la moyenne »."
+  },
+  "US-4.2-04-mettre-mon-propre-prix-apres.png": {
+    "action": "L'utilisateur touche « Revenir à la moyenne ».",
+    "expected": "Le coût revient à 40,78 € avec « Moyenne France du jour »."
+  },
+  "US-4.3-01-revenir-aux-trajets-avant.png": {
+    "action": "L'utilisateur voit le résultat du trajet Albi → Bordeaux.",
+    "expected": "Le coût 40,78 € et le bouton « ← Trajets » sont affichés."
+  },
+  "US-4.3-02-revenir-aux-trajets-apres.png": {
+    "action": "L'utilisateur touche le bouton « ← Trajets ».",
+    "expected": "Le formulaire s'affiche ; « Albi → Bordeaux 40,78 € » est dans l'historique."
+  },
+  "US-4.E1-E1-01-declencheur.png": {
+    "action": "L'utilisateur tape « Bastia » comme arrivée, depuis Albi.",
+    "expected": "Départ Albi, Arrivée Bastia ; voiture Renault Clio et historique visibles."
+  },
+  "US-4.E1-E1-02-resultat.png": {
+    "action": "L'utilisateur touche « Calculer le coût » pour Albi → Bastia.",
+    "expected": "« Pas d'itinéraire routier entre ces deux lieux » s'affiche, sans aucun coût."
+  },
+  "US-4.E1-E1-03-retour.png": {
+    "action": "L'utilisateur touche « ← Trajets ».",
+    "expected": "Le formulaire revient avec Albi et Bastia ; l'historique est inchangé."
+  },
+  "US-4.E2-E1-01-declencheur.png": {
+    "action": "L'utilisateur touche « Mettre mon prix ».",
+    "expected": "Un champ de saisie €/L, cerné, s'ouvre avec 1,699 en grisé."
+  },
+  "US-4.E2-E1-02-resultat.png": {
+    "action": "L'utilisateur saisit 12 dans le champ du prix.",
+    "expected": "« Entre un prix entre 0,50 et 4,00 €/L » s'affiche ; coût inchangé 40,78 €."
+  },
+  "US-4.E2-E1-03-retour.png": {
+    "action": "L'utilisateur saisit 1,699, un prix valide.",
+    "expected": "Le message a disparu ; « Mon prix » 1,69 €/L, coût 32,08 €."
+  },
+  "US-4.E3-E1-01-declencheur.png": {
+    "action": "L'utilisateur a rempli Albi, Toulouse et sa Renault Clio.",
+    "expected": "Le formulaire est prêt, avec le bouton « Calculer le coût »."
+  },
+  "US-4.E3-E1-02-resultat.png": {
+    "action": "L'utilisateur touche Calculer et attend la réponse.",
+    "expected": "« Calcul de l'itinéraire… » s'affiche avec une barre et un bouton Annuler."
+  },
+  "US-4.E3-E1-03-retour.png": {
+    "action": "L'utilisateur touche Annuler.",
+    "expected": "Le formulaire revient avec Albi → Toulouse ; aucun résultat n'est affiché."
+  },
+  "US-A11Y-001-01-m2.png": {
+    "action": "L'utilisateur appuie sur la touche Tab dans le formulaire.",
+    "expected": "Le bouton « Calculer le coût » reçoit un contour visible."
+  },
+  "US-A11Y-001-02-m2.png": {
+    "action": "L'utilisateur appuie sur Tab sur l'écran du résultat.",
+    "expected": "Le tronçon autoroute reçoit un contour visible."
+  },
+  "US-A11Y-002-01-m2.png": {
+    "action": "L'utilisateur arrive sur le résultat Albi → Toulouse.",
+    "expected": "Le titre Albi → Toulouse est souligné, signe qu'il a le focus."
+  },
+  "US-A11Y-002-02-m2.png": {
+    "action": "L'utilisateur revient au formulaire depuis le résultat.",
+    "expected": "« Albi → Toulouse » est dans l'historique ; « Calculer » a le focus."
+  },
+  "US-A11Y-003-01-m2.png": {
+    "action": "L'utilisateur voit le tronçon autoroute déplié.",
+    "expected": "Vitesse, arrêts et dénivelé sont affichés sous le tronçon autoroute."
+  },
+  "US-A11Y-003-02-m2.png": {
+    "action": "L'utilisateur appuie sur Échap.",
+    "expected": "Le tronçon autoroute se replie ; il garde son contour de focus."
+  },
+  "US-A11Y-004-01-m2.png": {
+    "action": "L'utilisateur parcourt le formulaire avec un lecteur d'écran.",
+    "expected": "Une bulle liste les noms lus : Départ, Arrivée, Calculer le coût, etc."
+  },
+  "US-A11Y-004-02-m2.png": {
+    "action": "L'utilisateur parcourt le résultat avec un lecteur d'écran.",
+    "expected": "Une bulle annonce « Coût estimé 5,60 euros » et « Retour aux trajets »."
+  },
+  "US-PERF-001-01-m2.png": {
+    "action": "L'utilisateur ouvre l'appli sur une connexion 4G simulée.",
+    "expected": "L'écran est encore vide ; une bulle indique t = 119 ms."
+  },
+  "US-PERF-001-02-m2.png": {
+    "action": "L'utilisateur attend que l'appli ait fini de se charger.",
+    "expected": "Le formulaire et l'historique sont prêts en 768 ms."
+  }
+}

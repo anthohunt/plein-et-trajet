@@ -11,11 +11,12 @@ interface Props {
   trajets: TrajetEnregistre[];
   occupe: boolean;
   erreurSuppression: boolean;
+  erreurRejeu: boolean;
   onRejouer: (t: TrajetEnregistre) => void;
   onSupprimer: (t: TrajetEnregistre) => void;
 }
 
-export function Historique({ etat, trajets, occupe, erreurSuppression, onRejouer, onSupprimer }: Props) {
+export function Historique({ etat, trajets, occupe, erreurSuppression, erreurRejeu, onRejouer, onSupprimer }: Props) {
   return (
     <section aria-labelledby="titre-historique" data-el="historique" data-etat={etat}>
       <h2 className="sec" id="titre-historique">{T.derniersTrajets}</h2>
@@ -27,6 +28,7 @@ export function Historique({ etat, trajets, occupe, erreurSuppression, onRejouer
           <p className="d">{T.histVideInvite}</p>
         </div>
       )}
+      {erreurRejeu && <p className="err-msg hist-msg" role="alert" data-el="erreur-rejeu">{T.rejeuSansVoiture}</p>}
       {erreurSuppression && <p className="err-msg hist-msg" role="alert">{T.histSuppressionErreur}</p>}
       {etat === "ok" && trajets.length > 0 && (
         <ul className="hist" data-el="liste-historique">

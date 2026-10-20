@@ -17,4 +17,14 @@ test.describe("US-4.E1 — Itinéraire impossible", () => {
       expect(await dbTrajets(page)).toEqual([]);
     });
   });
+  test.describe("Même lieu", () => {
+    test("US-4.E1 — Albi → Albi : message adapté (même lieu), pas de « île sans liaison routière »", async ({ page }) => {
+      await formulairePret(page, "Albi", "Albi");
+      await page.locator("#bouton-calculer").click();
+      await expect(S4(page, "pas_itineraire")).toBeVisible({ timeout: 45000 });
+      await expect(page.locator('[data-el="pas-itineraire"] .t')).toHaveText("Pas d'itinéraire routier entre ces deux lieux");
+      await expect(page.locator('[data-el="pas-itineraire"] .d')).toContainText("sont le même lieu");
+      await expect(page.locator('[data-el="pas-itineraire"] .d')).not.toContainText("île");
+    });
+  });
 });

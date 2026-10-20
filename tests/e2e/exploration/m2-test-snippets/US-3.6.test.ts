@@ -1,4 +1,4 @@
-import { test, expect, trajetCalcule, compterCalculs, moyenneDuJour, lireResultat, dbTrajets, S4, lignesHistorique } from "./_aides";
+import { test, expect, env, session, attendreFormulaire, trajetCalcule, compterCalculs, moyenneDuJour, lireResultat, dbTrajets, S4, lignesHistorique } from "./_aides";
 
 test.describe("US-3.6 — Rejouer un ancien trajet", () => {
   test.describe("Happy Path", () => {
@@ -30,6 +30,24 @@ test.describe("US-3.6 — Rejouer un ancien trajet", () => {
       await page.locator('[data-el="retour-trajets"]').click();
       await expect(page.locator("button.go").first()).toBeFocused();
       await expect(lignesHistorique(page)).toHaveCount(1);
+    });
+  });
+  test.describe("Voiture disparue", () => {
+    test("US-3.6 — rejouer une ligne dont la voiture n'est plus en base : message, aucun calcul", async ({ page }) => {
+      const calculs = compterCalculs(page);
+      await trajetCalcule(page, "Albi", "Toulouse");
+      await page.locator('[data-el="retour-trajets"]').click();
+      const { jeton } = await session(page);
+      const id = (await dbTrajets(page))[0].id;
+      const r = await fetch(`${env.VITE_SUPABASE_URL}/rest/v1/trajets?id=eq.${id}`, { method: "PATCH", headers: { apikey: env.VITE_SUPABASE_ANON_KEY, Authorization: `Bearer ${jeton}`, "Content-Type": "application/json" }, body: JSON.stringify({ vehicule_id: null }) });
+      expect(r.ok).toBe(true);
+      await page.reload();
+      await attendreFormulaire(page);
+      const avant = calculs.n;
+      await page.locator('[data-el="ligne-historique"]').click();
+      await expect(page.locator('[data-el="erreur-rejeu"]')).toContainText("n'est plus dans la base");
+      expect(calculs.n).toBe(avant);
+      await expect(page.locator('[data-screen="S3"]')).toBeVisible();
     });
   });
 });

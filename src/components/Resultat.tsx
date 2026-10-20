@@ -16,7 +16,7 @@ export interface DonneesResultat {
 }
 export type EtatResultat =
   | { genre: "ok"; donnees: DonneesResultat }
-  | { genre: "pas_itineraire"; departLabel: string; arriveeLabel: string }
+  | { genre: "pas_itineraire"; departLabel: string; arriveeLabel: string; memeLieu?: boolean }
   | { genre: "erreur"; departLabel: string; arriveeLabel: string };
 
 interface Props {
@@ -47,7 +47,7 @@ export function Resultat({ etat, onRetour, onReessayer }: Props) {
         {etat.genre === "pas_itineraire" && (
           <div className="etat" data-el="pas-itineraire">
             <p className="t" role="alert">{T.pasItineraire}</p>
-            <p className="d">{T.pasItineraireDetail}</p>
+            <p className="d">{etat.memeLieu ? T.pasItineraireMemeLieu : T.pasItineraireDetail}</p>
           </div>
         )}
         {etat.genre === "erreur" && (

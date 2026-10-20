@@ -70,6 +70,20 @@ describe("import ADEME → vehicules", () => {
     expect(l[0].motorisation).toBe("208 (101ch) · mécanique");
     expect(l[0].id).toMatch(/^[0-9a-f]{16}$/);
   });
+  it("bi-carburation : deux lignes de même libellé → essence (SP95-E10) et GPL (GPLc), libellés distincts, une seule ligne → essence", async () => {
+    const bi = { ...base, Marque: "RENAULT", "Modèle": "CLIO", Description_Commerciale: "CLIO (101ch)", Energie: "ESS+G.P.L." };
+    const l = await lignesVehicules([
+      { ...bi, Puissance_maximale: 67, Conso_moyenne_vitesse_Min: 5.1, Conso_moyenne_vitesse_Max: 5.7 },
+      { ...bi, Puissance_maximale: 74, Conso_moyenne_vitesse_Min: 6.6, Conso_moyenne_vitesse_Max: 7.3 },
+      { ...bi, Description_Commerciale: "KANGOO (102ch)", "Modèle": "KANGOO", Puissance_maximale: 75 },
+    ]);
+    const clio = l.filter((x) => x.modele === "Clio").sort((a, b) => a.puissance_kw - b.puissance_kw);
+    expect(clio.map((x) => x.carburant)).toEqual(["SP95-E10", "GPLc"]);
+    expect(clio[0].motorisation).toBe("CLIO (101ch) · mécanique · essence");
+    expect(clio[1].motorisation).toBe("CLIO (101ch) · mécanique · GPL");
+    expect(clio[0].conso_moyenne).toBeLessThan(clio[1].conso_moyenne);
+    expect(l.find((x) => x.modele === "Kangoo")?.carburant).toBe("SP95-E10");
+  });
   it("exclut l'électrique, l'hybride rechargeable et les lignes sans consommation", async () => {
     const l = await lignesVehicules([
       { ...base, Energie: "ELECTRIC" },
@@ -79,7 +93,7 @@ describe("import ADEME → vehicules", () => {
       { ...base, Energie: "SUPERETHANOL", Description_Commerciale: "208 flex" },
       { ...base, Energie: "ESS+G.P.L.", Description_Commerciale: "208 GPL" },
     ]);
-    expect(l.map((x) => x.carburant).sort()).toEqual(["E85", "GPLc", "Gazole"]);
+    expect(l.map((x) => x.carburant).sort()).toEqual(["E85", "Gazole", "SP95-E10"]);
   });
   it("marques lisibles et accents réparés", () => {
     expect(titreMarque("B.M.W.")).toBe("BMW");

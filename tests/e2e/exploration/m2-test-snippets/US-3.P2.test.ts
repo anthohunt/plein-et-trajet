@@ -30,4 +30,14 @@ test.describe("US-3.P2 — Changer de voiture", () => {
       await expect(page.locator('[data-el="voiture-memorisee"]')).toHaveCount(0);
     });
   });
+  test.describe("Indicateur", () => {
+    test("US-3.P2 — après le choix de la marque, « Marque mémorisée » est visible ; le libellé complet de la motorisation s'affiche sous les sélecteurs", async ({ page }) => {
+      await ouvrirTrajets(page);
+      await choisirDansListe(page, "voiture-marque", "Marque", "Renault");
+      await expect(page.locator('[data-el="marque-memorisee"]')).toHaveText("Marque mémorisée");
+      await choisirVoiture(page, "Peugeot", "208", "208 (101ch) · mécanique");
+      await expect(page.locator('[data-el="voiture-libelle"]')).toHaveText("208 (101ch) · mécanique");
+      await expect(page.locator('[data-el="marque-memorisee"]')).toHaveCount(0);
+    });
+  });
 });

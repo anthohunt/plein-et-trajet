@@ -29,4 +29,17 @@ test.describe("US-A11Y-002 — Focus du résultat (S4, équivalent de la fiche)"
       await expect(page.locator("button.go").first()).toBeFocused();
     });
   });
+  test.describe("Fiche station (jalon 1, règle du plan)", () => {
+    test("US-A11Y-002 — fiche réelle ouverte au clavier : focus sur le titre ; Échap : retour sur la ligne ouvrante", async ({ page }) => {
+      await page.goto("/");
+      const ligne = page.locator('[data-el="ligne-station"]').first();
+      await expect(ligne).toBeVisible();
+      await ligne.focus();
+      await page.keyboard.press("Enter");
+      await expect(page.locator("#sh-name")).toBeFocused();
+      await page.keyboard.press("Escape");
+      await expect(page.locator('[data-el="fiche-station"]')).toHaveCount(0);
+      await expect(ligne).toBeFocused();
+    });
+  });
 });

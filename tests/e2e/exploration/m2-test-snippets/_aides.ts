@@ -4,7 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 import * as a from "../m2-aides.mjs";
 
 export const {
-  URL_APP, rest, session, moyenneDuJour, virgule, nombreFr, ouvrirTrajets, attendreFormulaire, champ, propositions, saisirLieu,
+  URL_APP, env, rest, session, moyenneDuJour, virgule, nombreFr, ouvrirTrajets, attendreFormulaire, champ, propositions, saisirLieu,
   choisirDansListe, choisirVoiture, calculer, lireResultat, lignesHistorique, etatFocus,
 } = a as any;
 

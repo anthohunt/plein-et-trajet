@@ -20,9 +20,11 @@ export function ChoixVoiture({ v, erreur }: { v: EtatVoiture; erreur: string | n
         <ListeDeroulante id="voiture-modele" nom={T.champModele} placeholder={T.champModele} options={optsModeles} valeur={v.modele} onChoix={v.choisirModele} desactive={!v.marque} chargement={!!v.marque && v.modeles.length === 0 && !v.erreur} />
         <ListeDeroulante id="voiture-moteur" nom={T.champMotorisation} placeholder={T.champMotorisation} options={optsMoteurs} valeur={v.vehicule?.id ?? null} onChoix={v.choisirVehicule} desactive={!v.modele} chargement={!!v.modele && v.motorisations.length === 0 && !v.erreur} />
       </div>
+      {v.vehicule && <p className="carlib" data-el="voiture-libelle">{v.vehicule.motorisation}</p>}
       <div className="carnote">
         <span data-el="voiture-info">{v.vehicule ? `${v.vehicule.carburant} · ${v.vehicule.masse_kg} kg` : ""}</span>
         {v.vehicule && <span data-el="voiture-memorisee">{T.voitureMemorisee}</span>}
+        {!v.vehicule && v.marque && <span data-el="marque-memorisee">{T.marqueMemorisee}</span>}
       </div>
       {v.erreur && <p className="err-msg" role="alert">{T.voitureIndisponible}</p>}
       {erreur && (
