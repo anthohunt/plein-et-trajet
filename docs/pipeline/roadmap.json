@@ -122,9 +122,10 @@
     "US-5.5",
     "US-5.E1",
     "US-5.E2",
-    "US-5.E3"
+    "US-5.E3",
+    "US-5.6"
    ],
-   "nb_stories": 15,
+   "nb_stories": 16,
    "motif_sans_ecran": "S5 Moteurs est l'écran propre du jalon 3. Ses autres histoires enrichissent S1, S3 et S4 (construits aux jalons 1 et 2) : rattachées au jalon 3 par exception à la règle « l'histoire suit son écran », sur décision d'Anthony (évolution du 2026-10-20)."
   }
  ],

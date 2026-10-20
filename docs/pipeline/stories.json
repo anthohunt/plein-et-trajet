@@ -775,5 +775,20 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ PTV en panne et HERE enregistré en secours, QUAND je calcule un trajet, ALORS les péages viennent de HERE et l'écran Moteurs note la bascule avec l'heure"
   ]
+ },
+ {
+  "id": "US-5.6",
+  "title": "Où trouver ma clé",
+  "story": "En tant qu'administrateur, à côté du champ clé de chaque fournisseur, j'ai le lien vers la page où créer ou retrouver cette clé.",
+  "screen": "S5",
+  "target": "champ-cle",
+  "module": "moteurs",
+  "type": "main",
+  "source": "correction Anthony 2026-10-21",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ l'écran Moteurs et un fournisseur qui demande une clé, QUAND je regarde le champ clé, ALORS un lien « Où trouver ma clé » ouvre dans un nouvel onglet la page du fournisseur (PTV : https://developer.myptv.com/en → API Keys ; Stadia : https://client.stadiamaps.com/dashboard/ ; HERE : https://platform.here.com/access/apps ; Tankerkönig : https://creativecommons.tankerkoenig.de/), avec une phrase sur le menu à ouvrir",
+   "ÉTANT DONNÉ un fournisseur sans clé, QUAND je regarde sa fiche, ALORS aucun lien de clé n'est affiché"
+  ]
  }
 ]

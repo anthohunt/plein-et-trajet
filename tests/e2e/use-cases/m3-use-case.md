@@ -158,3 +158,10 @@ En tant que conducteur, si le moteur principal tombe, le calcul passe par le mot
 - **US-A11Y-003 — Touche Échap** : 1. sur chaque écran du jalon, j'appuie sur Échap — capture `US-A11Y-003-01-m3.png` ; 2. constater : la fiche se ferme — capture `US-A11Y-003-02-m3.png`
 - **US-A11Y-004 — Libellés lisibles** : 1. sur chaque écran du jalon, je parcours les pastilles et les prix — capture `US-A11Y-004-01-m3.png` ; 2. constater : chaque pastille annonce station et prix en euros, chaque bouton icône a un libellé — capture `US-A11Y-004-02-m3.png`
 - **US-PERF-001 — Ouverture rapide** : 1. sur chaque écran du jalon, j'ouvre l'appli — capture `US-PERF-001-01-m3.png` ; 2. constater : la liste des stations est affichée en moins de 2,5 s — capture `US-PERF-001-02-m3.png`
+
+## US-5.6 — Où trouver ma clé (correction d'Anthony, 2026-10-21)
+
+1. Partir de : l'écran Moteurs, connecté administrateur (écran Moteurs) — capture `US-5.6-01-ou-trouver-ma-cle-avant.png`
+2. Faire : regarder la fiche Péages (PTV) ; constater : le lien « Où trouver ma clé » sous le champ clé pointe vers https://developer.myptv.com/en avec la consigne « menu API Keys » — capture `US-5.6-02-ou-trouver-ma-cle-apres.png`
+3. Faire : basculer la fiche Itinéraire sur Stadia ; constater : le lien pointe vers https://client.stadiamaps.com/dashboard/ — capture `US-5.6-03-lien-stadia.png`
+4. Faire : regarder une fiche sans clé (Voitures) ; constater : aucun lien de clé — capture `US-5.6-04-sans-cle.png`
