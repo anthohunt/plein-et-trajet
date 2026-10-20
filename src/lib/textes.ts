@@ -60,6 +60,7 @@ export const T = {
   departPlaceholder: "Ville ou adresse",
   arriveePlaceholder: "Ville ou adresse",
   propositionsLieux: "Propositions de lieux",
+  propositionsIndisponibles: "Propositions indisponibles pour l'instant : tu peux saisir le lieu en entier.",
   lieuIntrouvable: "Lieu introuvable",
   lieuManquant: "Saisis un lieu",
   lieuVerifIndispo: "Impossible de vérifier ce lieu pour l'instant",

@@ -31,7 +31,15 @@ interface Feature {
 
 async function chercher(q: string, limite: number, communesSeulement: boolean, signal?: AbortSignal): Promise<Suggestion[]> {
   const url = `${URL_RECHERCHE}?q=${encodeURIComponent(q)}&limit=${limite}&index=address${communesSeulement ? "&type=municipality" : ""}`;
-  const r = await fetch(url, { signal });
+  let r = await fetch(url, { signal }).catch((e) => {
+    if (signal?.aborted) throw e;
+    return null;
+  });
+  if (!r || r.status === 429 || r.status >= 500) {
+    // une seule reprise : le service public est parfois lent à répondre
+    await new Promise((ok) => setTimeout(ok, 400));
+    r = await fetch(url, { signal });
+  }
   if (!r.ok) throw new Error(`géocodage HTTP ${r.status}`);
   let d: unknown;
   try {

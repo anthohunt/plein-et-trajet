@@ -21,6 +21,7 @@ export function ChampLieu({ id, etiquette, placeholder, dataEl, texte, onTexte, 
   const [propositions, setPropositions] = useState<Suggestion[]>([]);
   const [ouvert, setOuvert] = useState(false);
   const [actif, setActif] = useState(-1);
+  const [indispo, setIndispo] = useState(false);
   const idListe = useId();
   const idErreur = `${id}-erreur`;
   const dernier = useRef("");
@@ -38,12 +39,14 @@ export function ChampLieu({ id, etiquette, placeholder, dataEl, texte, onTexte, 
       suggererLieux(q, c.signal)
         .then((s) => {
           dernier.current = q;
+          setIndispo(false);
           setPropositions(s);
           setActif(-1);
           setOuvert(s.length > 0);
         })
         .catch(() => {
-          /* service injoignable ou requête remplacée : pas de proposition, la saisie libre reste possible */
+          // requête remplacée par la frappe suivante : rien à dire ; service injoignable : on le signale, la saisie libre reste possible
+          if (!c.signal.aborted) setIndispo(true);
         });
     }, 180);
     return () => {
@@ -126,6 +129,7 @@ export function ChampLieu({ id, etiquette, placeholder, dataEl, texte, onTexte, 
           ))}
         </ul>
       )}
+      {indispo && !erreur && <p className="note fld-note" role="status" data-el={`${dataEl}-indispo`}>{T.propositionsIndisponibles}</p>}
       {erreur && (
         <p className="err-msg" id={idErreur} role="alert" data-el={`${dataEl}-erreur`}>
           {erreur}

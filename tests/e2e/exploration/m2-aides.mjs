@@ -62,7 +62,13 @@ export async function saisirLieu(page, nom, texte, choix) {
   await c.fill("");
   await c.pressSequentially(texte, { delay: 30 });
   if (choix) {
-    await expect(propositions(page, nom).filter({ hasText: choix }).first()).toBeVisible({ timeout: 10000 });
+    const visible = await propositions(page, nom).filter({ hasText: choix }).first().waitFor({ timeout: 8000 }).then(() => true, () => false);
+    if (!visible) {
+      // le géocodeur public est parfois lent : on retape une fois (comportement d'un utilisateur)
+      await c.fill("");
+      await c.pressSequentially(texte, { delay: 60 });
+    }
+    await expect(propositions(page, nom).filter({ hasText: choix }).first()).toBeVisible({ timeout: 12000 });
     await propositions(page, nom).filter({ hasText: choix }).first().click();
     await expect(c).toHaveValue(choix);
   }

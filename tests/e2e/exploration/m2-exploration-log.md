@@ -160,7 +160,7 @@ Identités : chaque contexte de navigateur crée sa propre session anonyme Supab
 ## US-3.6 — Rejouer un ancien trajet
 
 ### Happy Path
-- ✓ `US-3.6-01-rejouer-un-ancien-trajet-avant.png` — un trajet est dans l'historique — ligne d'historique « Albi → Bordeaux 317 km · 20 oct. » (enregistrée le 2026-10-20T15:02:01.421+00:00)
+- ✓ `US-3.6-01-rejouer-un-ancien-trajet-avant.png` — un trajet est dans l'historique — ligne d'historique « Albi → Bordeaux 317 km · 20 oct. » (enregistrée le 2026-10-20T15:05:17.586+00:00)
 - ✓ `US-3.6-02-rejouer-un-ancien-trajet-apres.png` — je touche la ligne : recalcul au prix moyen du jour, résultat affiché — recalcul réel (nouvel appel estimer-trajet) : 317 km, 18.9 L, coût 40,78 € au prix moyen du jour 2,160 €/L ; la ligne d'historique est mise à jour (pas de doublon), horodatage avancé
 
 ### Edge Case
@@ -239,7 +239,7 @@ Identités : chaque contexte de navigateur crée sa propre session anonyme Supab
 
 ### Edge Case
 - ✓ `US-4.E3-E1-01-declencheur.png` — un calcul qui dure plus d'une seconde — Albi → Toulouse prêt à calculer ; la réponse réelle d'estimer-trajet sera retardée de 3 s (MOCKED: délai ajouté, requête réelle)
-- ✓ `US-4.E3-E1-02-resultat.png` — j'attends — après 1354 ms : « Calcul de l'itinéraire… » avec bouton Annuler (focus dessus) ; aucun résultat affiché
+- ✓ `US-4.E3-E1-02-resultat.png` — j'attends — après 1371 ms : « Calcul de l'itinéraire… » avec bouton Annuler (focus dessus) ; aucun résultat affiché
 - ✓ `US-4.E3-E1-03-retour.png` — Annuler : retour au formulaire — Annuler ramène au formulaire, champs conservés, focus sur Calculer
 - ✓ 4,5 s plus tard (réponse réelle arrivée après l'annulation) : toujours le formulaire, historique inchangé (1 trajet en base)
 
@@ -290,7 +290,7 @@ Identités : chaque contexte de navigateur crée sa propre session anonyme Supab
 ## US-A11Y-002 — Focus de la fiche (interprétation : l'écran Résultat S4)
 
 ### Happy Path
-- ✗ `US-A11Y-002-01-m2.png` — la fiche s'ouvre : le focus va sur son titre — expect(received).toBe(expected) // Object.is equality  Expected: true Received: false
+- ✓ `US-A11Y-002-01-m2.png` — la fiche s'ouvre : le focus va sur son titre — fiche station réelle ouverte au clavier (Entrée sur la ligne) : le focus est sur son titre « TOTALENERGIES ALBI · RELAIS DES FONTANELLES » (souligné) ; même règle vérifiée sur S4
 - ✓ `US-A11Y-002-02-m2.png` — à la fermeture, le focus revient sur l'élément qui l'a ouvert — fiche fermée (Échap) : le focus est revenu sur la ligne « TOTALENERGIES ALBI · RELAIS DES FONTANELLES » qui l'avait ouverte, contour visible
 
 ### Edge Case
@@ -327,17 +327,17 @@ Identités : chaque contexte de navigateur crée sa propre session anonyme Supab
 ## US-PERF-001 — Ouverture rapide
 
 ### Happy Path
-- ✓ `US-PERF-001-01-m2.png` — j'ouvre l'appli (4G simulée) — ouverture de l'appli en 4G simulée, cache désactivé : en-tête « Plein & Trajet » affiché à t=426 ms (liste des stations pas encore chargée : 0 ligne)
-- ✓ `US-PERF-001-02-m2.png` — la liste des stations est affichée en moins de 2,5 s — liste des stations (7 lignes avec prix) affichée 872 ms après l'ouverture < 2 500 ms (4G simulée, session neuve, cache vide)
+- ✓ `US-PERF-001-01-m2.png` — j'ouvre l'appli (4G simulée) — ouverture de l'appli en 4G simulée, cache désactivé : en-tête « Plein & Trajet » affiché à t=419 ms (liste des stations pas encore chargée : 0 ligne)
+- ✓ `US-PERF-001-02-m2.png` — la liste des stations est affichée en moins de 2,5 s — liste des stations (7 lignes avec prix) affichée 632 ms après l'ouverture < 2 500 ms (4G simulée, session neuve, cache vide)
 
 ### Edge Case
-- ✓ complément : l'écran Trajets (formulaire, liste des marques, historique) est prêt en 775 ms en 4G simulée, identité neuve, cache vide
+- ✓ complément : l'écran Trajets (formulaire, liste des marques, historique) est prêt en 767 ms en 4G simulée, identité neuve, cache vide
 
 ### Issues Found
 - aucune sur la version déployée à cette passe.
 
 ## Contrôles de fin de passe
 
-- Captures écrites : 61 ; en échec : 1 (US-A11Y-002-01-m2.png).
+- Captures écrites : 61 ; en échec : 0.
 - Fichiers M2 présents dans delivery/ : 61 ; doublons d'octets (md5) : aucun.
 - Erreurs console / page observées pendant la passe : aucune.
