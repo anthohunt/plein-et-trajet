@@ -1,4 +1,4 @@
-import { test, expect, connecterAdmin, carte, etatCarte, modifieLesMoteurs, restService } from "./_aides";
+import { test, expect, connecterAdmin, carte, etatCarte, modifieLesMoteurs, restService, sqlGestion } from "./_aides";
 
 test.describe("US-5.E2 — Clé refusée", () => {
   modifieLesMoteurs();
@@ -19,7 +19,9 @@ test.describe("US-5.E2 — Clé refusée", () => {
       await carte(page, "peages").locator('[data-el="enregistrer-moteur"]').click();
       await expect(etatCarte(page, "peages")).toContainText("Clé refusée par HERE (401)", { timeout: 30000 });
       await expect(etatCarte(page, "peages")).toContainText("fournisseur actif inchangé");
+      await expect(etatCarte(page, "peages")).toContainText("clé non enregistrée");
       expect((await restService("moteurs?select=actif&service=eq.peages")).corps[0].actif).toBe("ptv");
+      expect((await sqlGestion("select count(*)::int as n from vault.secrets"))[0].n).toBe(0);
       await page.reload();
       await expect(page.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
       await expect(carte(page, "peages").locator('[data-el="choix-fournisseur"]')).toHaveValue("ptv");

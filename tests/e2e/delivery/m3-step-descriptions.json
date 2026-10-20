@@ -1,0 +1,210 @@
+{
+ "US-1.8-01-stations-hors-de-france-avant.png": {
+  "action": "L'utilisateur ouvre l'appli avec sa position réglée sur Barcelone.",
+  "expected": "L'écran Trajets est vide, un bandeau indique la position de test : Barcelone."
+ },
+ "US-1.8-02-stations-hors-de-france-apres.png": {
+  "action": "L'utilisateur ouvre l'onglet Prix depuis Barcelone.",
+  "expected": "La carte et la liste montrent des stations espagnoles avec leurs prix au litre."
+ },
+ "US-1.8-03-stations-hors-de-france-avant.png": {
+  "action": "L'utilisateur ouvre l'appli avec sa position réglée sur Bruxelles.",
+  "expected": "L'écran Trajets est vide, un bandeau indique la position de test : Bruxelles."
+ },
+ "US-1.8-04-stations-hors-de-france-apres.png": {
+  "action": "L'utilisateur ouvre l'onglet Prix depuis Bruxelles.",
+  "expected": "Un message dit que le pays ne publie pas ses prix, avec la moyenne belge."
+ },
+ "US-3.8-01-partir-l-tranger-avant.png": {
+  "action": "L'utilisateur tape « Barce » dans le champ arrivée, départ Albi.",
+  "expected": "Une liste de villes propose notamment Barcelone, Catalogne, Espagne."
+ },
+ "US-3.8-02-partir-l-tranger-apres.png": {
+  "action": "L'utilisateur lance le calcul d'Albi vers Barcelone.",
+  "expected": "Le coût est de 62,55 €, passant par la France et l'Espagne ; péages indisponibles."
+ },
+ "US-4.4-01-voir-les-pages-avant.png": {
+  "action": "L'utilisateur regarde le résultat du trajet Albi vers Barcelone.",
+  "expected": "Le coût total s'affiche avec un bandeau « Péages non disponibles pour l'instant »."
+ },
+ "US-4.4-02-voir-les-pages-apres.png": {
+  "action": "L'utilisateur fait défiler le résultat pour lire le détail des péages.",
+  "expected": "Les péages sont indisponibles, sans montant ; le détail par route de consommation suit."
+ },
+ "US-4.4-03-voir-les-pages-avant.png": {
+  "action": "L'utilisateur regarde le résultat d'un court trajet Albi vers Castres.",
+  "expected": "Le coût est de 6,83 €, carburant seul, péages à 0,00 €."
+ },
+ "US-4.4-04-voir-les-pages-apres.png": {
+  "action": "L'utilisateur fait défiler le résultat jusqu'au détail des péages.",
+  "expected": "« Aucun péage sur cet itinéraire » est affiché, avec 0,00 €."
+ },
+ "US-4.5-01-voir-les-pays-traverss-avant.png": {
+  "action": "L'utilisateur regarde le résultat du trajet Albi vers Milan.",
+  "expected": "Le coût est de 137,20 € pour 952 km ; péages indisponibles."
+ },
+ "US-4.5-02-voir-les-pays-traverss-apres.png": {
+  "action": "L'utilisateur lit la liste des pays traversés.",
+  "expected": "Chaque pays affiche km, litres, prix et coût ; le total fait 137,20 €."
+ },
+ "US-4.E4-E1-01-declencheur.png": {
+  "action": "L'administrateur ouvre l'écran Moteurs, où les péages attendent une clé.",
+  "expected": "Les péages affichent « Clé à coller » et un incident « clé manquante »."
+ },
+ "US-4.E4-E1-02-resultat.png": {
+  "action": "L'utilisateur lance un calcul alors que les péages sont en panne.",
+  "expected": "Le coût carburant s'affiche (40,78 €) ; les péages sont indiqués indisponibles."
+ },
+ "US-4.E4-E1-03-retour.png": {
+  "action": "L'utilisateur revient à un trajet normal, Albi vers Castres.",
+  "expected": "Le résultat s'affiche normalement, péages à 0,00 €, sans message d'erreur."
+ },
+ "US-4.E5-E1-01-declencheur.png": {
+  "action": "L'utilisateur prépare un trajet Albi vers Lausanne, en Suisse.",
+  "expected": "Le formulaire est rempli avec la voiture ; trois trajets récents sont listés."
+ },
+ "US-4.E5-E1-02-resultat.png": {
+  "action": "L'utilisateur lit le détail des péages du trajet vers la Suisse.",
+  "expected": "La ligne « Vignette suisse obligatoire (non comptée) » apparaît, péages indisponibles."
+ },
+ "US-4.E5-E1-03-retour.png": {
+  "action": "L'utilisateur revient au formulaire de trajets après le calcul.",
+  "expected": "Le formulaire reste rempli et Albi vers Lausanne figure dans les derniers trajets."
+ },
+ "US-4.E6-E1-01-declencheur.png": {
+  "action": "L'utilisateur prépare un trajet de Trieste vers Belgrade.",
+  "expected": "Le formulaire est rempli avec la voiture ; les trajets récents sont listés."
+ },
+ "US-4.E6-E1-02-resultat.png": {
+  "action": "L'utilisateur lit les pays traversés entre Trieste et Belgrade.",
+  "expected": "La Serbie porte « prix non publié — moyenne européenne appliquée », avec son prix."
+ },
+ "US-4.E6-E1-03-retour.png": {
+  "action": "L'utilisateur revient au formulaire de trajets après le calcul.",
+  "expected": "Trieste vers Belgrade, 72,61 €, apparaît en tête des derniers trajets."
+ },
+ "US-5.1-01-ouvrir-les-moteurs-avant.png": {
+  "action": "L'administrateur ouvre l'appli sur l'onglet Prix ; le bouton ⚙ est visible.",
+  "expected": "La carte et la liste affichent « Chargement des prix… »."
+ },
+ "US-5.1-02-ouvrir-les-moteurs-apres.png": {
+  "action": "L'administrateur touche le bouton ⚙ en haut à droite.",
+  "expected": "L'écran Moteurs s'ouvre et liste les services avec leur état « prêt »."
+ },
+ "US-5.2-01-choisir-le-fournisseur-avant.png": {
+  "action": "L'administrateur regarde la section Péages de l'écran Moteurs.",
+  "expected": "Le fournisseur est PTV Developer et l'état est « Clé à coller »."
+ },
+ "US-5.2-02-choisir-le-fournisseur-apres.png": {
+  "action": "L'administrateur choisit HERE comme fournisseur des péages.",
+  "expected": "Le choix passe à HERE ; l'état reste « Clé à coller »."
+ },
+ "US-5.3-01-coller-la-cl-avant.png": {
+  "action": "L'administrateur regarde le champ clé des péages, encore vide.",
+  "expected": "Le champ clé est vide, état « Clé à coller »."
+ },
+ "US-5.3-02-coller-la-cl-apres.png": {
+  "action": "L'administrateur colle une clé de test et l'enregistre.",
+  "expected": "Seul « ••••7d3f » est visible ; l'état dit « Clé refusée par PTV »."
+ },
+ "US-5.3-03-coller-la-cl-avant.png": {
+  "action": "L'administrateur regarde la clé déjà enregistrée dans l'écran Moteurs.",
+  "expected": "Le champ indique « Clé enregistrée ••••7d3f » et l'état « refusée »."
+ },
+ "US-5.3-04-coller-la-cl-apres.png": {
+  "action": "L'administrateur recharge l'écran Moteurs.",
+  "expected": "Seuls les 4 derniers caractères de la clé sont visibles ; une note le confirme."
+ },
+ "US-5.4-01-tester-la-connexion-avant.png": {
+  "action": "L'administrateur regarde la section Péages, sans clé collée.",
+  "expected": "Le champ clé est vide et l'état est « Clé à coller »."
+ },
+ "US-5.4-02-tester-la-connexion-apres.png": {
+  "action": "L'administrateur touche « Tester la connexion » sans avoir collé de clé.",
+  "expected": "L'état indique « Aucune clé : colle-la d'abord » ; aucun test réel n'a lieu."
+ },
+ "US-5.5-01-enregistrer-le-moteur-avant.png": {
+  "action": "L'administrateur choisit HERE pour les péages, sans clé collée.",
+  "expected": "HERE est choisi, l'état reste « Clé à coller » et rien n'est enregistré."
+ },
+ "US-5.5-02-enregistrer-le-moteur-apres.png": {
+  "action": "L'utilisateur calcule Albi vers Barcelone après la tentative de bascule.",
+  "expected": "Les péages restent indisponibles ; le bandeau précise que la bascule n'a pas abouti."
+ },
+ "US-5.E1-E1-01-declencheur.png": {
+  "action": "Un utilisateur sans droits ouvre l'appli sur l'onglet Prix.",
+  "expected": "Les stations d'Albi s'affichent ; aucun bouton ⚙ en haut à droite."
+ },
+ "US-5.E1-E1-02-resultat.png": {
+  "action": "L'utilisateur sans droits attend le chargement de l'appli.",
+  "expected": "La carte et la liste affichent « Chargement des prix… », toujours sans bouton ⚙."
+ },
+ "US-5.E1-E1-03-retour.png": {
+  "action": "L'utilisateur sans droits retrouve l'écran des prix chargé.",
+  "expected": "Les stations s'affichent ; un bandeau note les accès aux moteurs refusés par le serveur."
+ },
+ "US-5.E2-E1-01-declencheur.png": {
+  "action": "L'administrateur colle une clé volontairement fausse dans le champ des péages.",
+  "expected": "Le champ contient des points masqués ; l'état est « Clé à coller »."
+ },
+ "US-5.E2-E1-02-resultat.png": {
+  "action": "L'administrateur touche « Tester la connexion » avec la fausse clé.",
+  "expected": "L'état affiche « Clé refusée par PTV (401) »."
+ },
+ "US-5.E2-E1-03-retour.png": {
+  "action": "L'administrateur revient à l'écran Moteurs après le refus.",
+  "expected": "Le champ est vide, PTV reste le fournisseur ; un bandeau le confirme."
+ },
+ "US-5.E3-E1-01-declencheur.png": {
+  "action": "L'administrateur regarde les péages avec PTV et HERE en secours.",
+  "expected": "Le secours est HERE, deux clés sont enregistrées ; PTV est « refusée »."
+ },
+ "US-5.E3-E1-02-resultat.png": {
+  "action": "L'utilisateur calcule un trajet alors que PTV est en panne.",
+  "expected": "Les péages restent indisponibles ; un bandeau dit que HERE est parcouru."
+ },
+ "US-5.E3-E1-03-retour.png": {
+  "action": "L'administrateur revient à l'écran Moteurs après le calcul.",
+  "expected": "PTV est « refusée », HERE en secours ; aucune note de bascule avec heure."
+ },
+ "US-A11Y-001-01-m3.png": {
+  "action": "L'utilisateur ouvre l'écran Moteurs avant d'utiliser la touche Tab.",
+  "expected": "L'écran Moteurs s'affiche, sans aucun contour de focus."
+ },
+ "US-A11Y-001-02-m3.png": {
+  "action": "L'utilisateur appuie plusieurs fois sur Tab dans l'écran Moteurs.",
+  "expected": "Des pastilles numérotées marquent l'ordre des contrôles, du bouton ⚙ vers le bas."
+ },
+ "US-A11Y-002-01-m3.png": {
+  "action": "L'utilisateur touche une station sur la carte des prix.",
+  "expected": "Une fiche s'ouvre avec le nom, l'adresse et les prix de chaque carburant."
+ },
+ "US-A11Y-002-02-m3.png": {
+  "action": "L'utilisateur ferme la fiche de la station.",
+  "expected": "La liste est de retour, la station ouverte est surlignée."
+ },
+ "US-A11Y-003-01-m3.png": {
+  "action": "L'utilisateur ouvre la fiche d'une station espagnole.",
+  "expected": "La fiche de Galp Sant Adrià de Besòs est ouverte avec ses prix."
+ },
+ "US-A11Y-003-02-m3.png": {
+  "action": "L'utilisateur appuie sur Échap.",
+  "expected": "La fiche est fermée ; la station concernée a un contour visible."
+ },
+ "US-A11Y-004-01-m3.png": {
+  "action": "L'utilisateur parcourt les pastilles de prix de la carte et de la liste.",
+  "expected": "La carte et la liste montrent les prix en euros ; aucun libellé n'est visible."
+ },
+ "US-A11Y-004-02-m3.png": {
+  "action": "L'utilisateur parcourt les boutons de l'écran Moteurs.",
+  "expected": "Un bandeau annonce 26 contrôles tous nommés ; le bouton ⚙ est « Moteurs »."
+ },
+ "US-PERF-001-01-m3.png": {
+  "action": "L'utilisateur ouvre l'appli en 4G simulée, position Barcelone.",
+  "expected": "La page est entièrement blanche, avec seulement un bandeau de test."
+ },
+ "US-PERF-001-02-m3.png": {
+  "action": "L'utilisateur attend l'affichage de la liste des stations.",
+  "expected": "La liste apparaît en 1989 ms ; la carte charge encore."
+ }
+}

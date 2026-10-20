@@ -1,11 +1,12 @@
-import { test, expect, formulaire, TRIESTE, BELGRADE, calculer, lignesListe, cout, nombre, rest, virgule } from "./_aides";
+import { test, expect, formulaire, ALBI_, BELGRADE, calculer, lignesListe, cout, nombre, rest, virgule } from "./_aides";
 
 test.describe("US-4.E6 — Pays sans prix moyen", () => {
   test.describe("Edge Case", () => {
-    test("US-4.E6 — Trieste → Belgrade : la Serbie porte « prix non publié — moyenne européenne appliquée » et le prix de la moyenne UE", async ({ page }) => {
-      await formulaire(page, TRIESTE, BELGRADE);
+    test("US-4.E6 — Albi → Belgrade (1 960 km) : la Serbie porte « prix non publié — moyenne européenne appliquée » et le prix de la moyenne UE", async ({ page }) => {
+      await formulaire(page, ALBI_, BELGRADE);
       await calculer(page);
       const l = await lignesListe(page, "pays-traverses");
+      expect(l.map((x: any) => x.pays)).toEqual(["FR", "IT", "SI", "HR", "RS"]);
       const rs = l.find((x: any) => x.pays === "RS");
       expect(rs).toBeTruthy();
       expect(rs.texte).toContain("prix non publié — moyenne européenne appliquée");

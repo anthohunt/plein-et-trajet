@@ -1,4 +1,4 @@
-import { test, expect, BARCELONE, formulaire, ALBI_, BARCELONE_, calculer } from "./_aides";
+import { test, expect, BARCELONE, formulaire, ALBI_, BARCELONE_, calculer, ouvrirTrajets, champ, propositions, saisirLieu } from "./_aides";
 
 test.describe("US-A11Y-003 — Touche Échap (jalon 3)", () => {
   test.describe("Happy Path", () => {
@@ -24,6 +24,16 @@ test.describe("US-A11Y-003 — Touche Échap (jalon 3)", () => {
       await page.keyboard.press("Escape");
       await expect(t).toHaveAttribute("aria-expanded", "false");
       await expect(t).toBeFocused();
+    });
+  });
+  test.describe("Edge Case (S3)", () => {
+    test("US-A11Y-003 — S3 : Échap ferme la liste de propositions de lieux (« Barce » propose Barcelone)", async ({ page }) => {
+      await ouvrirTrajets(page);
+      await saisirLieu(page, "depart", "Albi", "Albi");
+      await champ(page, "arrivee").pressSequentially("Barce", { delay: 40 });
+      await expect(propositions(page, "arrivee").first()).toBeVisible({ timeout: 20000 });
+      await page.keyboard.press("Escape");
+      await expect(propositions(page, "arrivee")).toHaveCount(0);
     });
   });
 });

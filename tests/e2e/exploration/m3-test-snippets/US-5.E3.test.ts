@@ -1,4 +1,4 @@
-import { test, expect, connecterAdmin, carte, modifieLesMoteurs, restService, formulaire, ALBI_, BORDEAUX, calculer } from "./_aides";
+import { test, expect, connecterAdmin, carte, modifieLesMoteurs, injecterCle, restService, formulaire, ALBI_, BORDEAUX, calculer } from "./_aides";
 
 test.describe("US-5.E3 — Bascule de secours", () => {
   modifieLesMoteurs();
@@ -8,11 +8,12 @@ test.describe("US-5.E3 — Bascule de secours", () => {
       test.skip(true, "BLOQUÉ-CLÉ : la bascule RÉUSSIE exige une clé HERE valide ; la chaîne actif → secours est couverte par m3-europe.test.ts (executerChaine)");
     });
     test("US-5.E3 — chaîne réelle PTV → HERE parcourue : les deux refusent (401), l'incident est noté avec l'heure, le coût carburant reste", async ({ page }) => {
+      // amorce serveur : une clé collée à l'écran est testée avant d'être écrite (donc refusée), les clés factices sont rangées côté serveur
+      await injecterCle("ptv", "cle-ptv-factice-0001");
+      await injecterCle("here", "cle-here-factice-0002");
       await connecterAdmin(page);
       await expect(page.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
-      await carte(page, "peages").locator('[data-el="champ-cle"]').fill("cle-ptv-factice-0001");
       await carte(page, "peages").locator('[data-el="choix-secours-peages"]').selectOption("here");
-      await carte(page, "peages").locator('[data-el="champ-cle-secours-peages"]').fill("cle-here-factice-0002");
       await carte(page, "peages").locator('[data-el="enregistrer-moteur"]').click();
       await expect(carte(page, "peages").locator('[data-el="enregistrer-moteur"]')).toBeEnabled({ timeout: 45000 });
       expect((await restService("moteurs?select=actif,secours&service=eq.peages")).corps[0]).toEqual({ actif: "ptv", secours: "here" });

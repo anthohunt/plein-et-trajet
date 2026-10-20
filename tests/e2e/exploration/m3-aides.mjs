@@ -75,3 +75,10 @@ export async function trajetEurope(page, depart, arrivee, { departChoix = depart
 export async function lignesListe(page, dataEl) {
   return page.locator(`[data-el="${dataEl}"] li`).evaluateAll((els) => els.map((e) => ({ pays: e.dataset.pays ?? null, source: e.dataset.source ?? null, texte: e.innerText.replace(/\s+/g, " ").trim(), montant: (e.querySelector(".lit")?.textContent ?? "").trim() })));
 }
+
+/** Range une clé dans Vault par la fonction serveur (rôle service) : amorce d'un état « clé enregistrée » sans passer par le test d'un fournisseur. */
+export async function injecterCle(fournisseur, cle) {
+  const r = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/moteur_cle_enregistrer`, { method: "POST", headers: { apikey: env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify({ p_fournisseur: fournisseur, p_cle: cle }) });
+  if (!r.ok) throw new Error(`moteur_cle_enregistrer ${r.status}`);
+  return r.json();
+}

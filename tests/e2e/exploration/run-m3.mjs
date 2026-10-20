@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   BARCELONE, BRUXELLES, RACINE, URL_APP, ALBI, OPTIONS_CONTEXTE, appelerMoteurs, attendreAnimations, attendreFormulaire, calculer, carte, champ, choisirVoiture, connecterAdmin,
-  env, etatCarte, etatFocus, lignesListe, lireResultat, moyenneDuJour, nombre, ouvrirMoteurs, ouvrirTrajets, propositions, reinitialiserMoteurs, rest, restService,
+  env, etatCarte, etatFocus, injecterCle, lignesListe, lireResultat, moyenneDuJour, nombre, ouvrirMoteurs, ouvrirTrajets, propositions, reinitialiserMoteurs, rest, restService,
   saisirLieu, session, sha, sqlGestion, virgule,
 } from "./m3-aides.mjs";
 
@@ -49,16 +49,20 @@ function ecrireHistoire(id) {
 const SANS_ISSUE = ["- aucune sur la version déployée à cette passe."];
 const BLOQUE = (txt) => note("issues", `- BLOQUÉ-CLÉ : ${txt}`);
 
-async function annoter(page, texte, { bas = 70 } = {}) {
-  await page.evaluate(({ t, bas }) => {
+// Étiquettes de test (réponse réseau, mesure, ordre de tabulation) : posées APRÈS la prise brute, en haut de l'écran, retirées juste après.
+let enAttente = [];
+async function poserEtiquette(page, texte) {
+  await page.evaluate((t) => {
     const d = document.createElement("div");
     d.setAttribute("data-annotation-test", "");
     d.textContent = "Annotation de test — " + t;
-    Object.assign(d.style, { position: "fixed", left: "8px", right: "8px", bottom: bas + "px", zIndex: 9999, background: "#ffb000", color: "#15181a", font: "600 11px/1.3 sans-serif", padding: "6px 8px", borderRadius: "6px", boxShadow: "0 2px 8px rgba(0,0,0,.3)" });
+    Object.assign(d.style, { position: "fixed", left: "4px", right: "4px", top: "4px", zIndex: 9999, background: "#ffb000", color: "#15181a", font: "600 10px/1.25 sans-serif", padding: "4px 6px", borderRadius: "6px", boxShadow: "0 2px 8px rgba(0,0,0,.3)" });
     document.body.appendChild(d);
-  }, { t: texte, bas });
+  }, texte);
 }
-async function pastillesOrdre(page) {
+const annoter = async (_page, texte) => { enAttente.push({ genre: "texte", texte }); };
+const pastillesOrdre = async () => { enAttente.push({ genre: "ordre" }); };
+async function poserOrdre(page) {
   await page.evaluate(() => {
     document.querySelector(".scroll")?.scrollTo(0, 0);
     document.querySelectorAll("[data-ordre-test]").forEach((e) => {
@@ -74,8 +78,10 @@ async function pastillesOrdre(page) {
 }
 
 /**
- * Deux prises de vue de la même page : l'une dans delivery/ (nom exact du plan), l'autre dans m3-captures-brutes/.
- * La brute est prise avec une feuille de style de capture qui décale l'appli d'un pixel : deux fichiers, aucun octet partagé.
+ * Deux vraies prises de vue de la même page, sans retouche : la BRUTE (dans m3-captures-brutes/, propre : ni étiquette ni décalage)
+ * puis la capture de LIVRAISON (dans delivery/, nom exact du plan) ; seule la livraison peut recevoir une étiquette de test en haut
+ * de l'écran (quand la preuve ne peut pas se voir dans l'interface : réponse réseau, mesure, ordre de tabulation).
+ * Si deux étapes montrent légitimement le même écran, les octets peuvent coïncider : on ne fabrique aucune différence, on le note.
  */
 async function capture(page, nom, verif, description, section = "happy") {
   let ok = true;
@@ -94,28 +100,28 @@ async function capture(page, nom, verif, description, section = "happy") {
     f();
   })).catch(() => {});
   await attendreAnimations(page);
-  // deux prises de vue ; si l'une reproduit octet pour octet une autre capture (même écran dans deux étapes), une étiquette
-  // « Annotation de test » portant le nom de l'étape est posée avant la photo : chaque fichier reste une capture distincte
-  const prises = async () => [await page.screenshot(), await page.screenshot({ style: "html{border-top:1px solid transparent !important}" })];
-  let [liv, brute] = await prises();
-  const autres = empreintes(nom);
-  if (autres.has(sha(liv)) || autres.has(sha(brute)) || sha(liv) === sha(brute)) {
-    await annoter(page, `${nom.replace(/\.png$/, "")} — ${description}`.slice(0, 150), { bas: 64 });
-    [liv, brute] = await prises();
-    if (sha(liv) === sha(brute)) brute = await page.screenshot({ style: "html{border-top:2px solid transparent !important}" });
-    if (sha(liv) === sha(brute)) brute = await page.screenshot({ omitBackground: true }); // page sans mise en page (about:blank) : fond transparent
+  const brute = await page.screenshot();
+  const etiquettes = enAttente;
+  enAttente = [];
+  for (const e of etiquettes) {
+    if (e.genre === "texte") await poserEtiquette(page, e.texte);
+    else await poserOrdre(page);
   }
-  fs.writeFileSync(path.join(LIVRAISON, nom), liv);
-  fs.writeFileSync(path.join(BRUTES, nom), brute);
+  const liv = await page.screenshot();
   await page.evaluate(() => document.querySelectorAll("[data-annotation-test]").forEach((e) => e.remove()));
+  fs.writeFileSync(path.join(BRUTES, nom), brute);
+  fs.writeFileSync(path.join(LIVRAISON, nom), liv);
+  const autres = empreintes(nom);
+  const memes = [...autres.entries()].filter(([h]) => h === sha(liv) || h === sha(brute)).map(([, n]) => n);
+  const rappel = memes.length ? ` — même écran que ${[...new Set(memes)].join(", ")} : deux étapes du plan montrent légitimement le même état, aucune différence fabriquée` : "";
   resultats.push({ nom, ok });
-  note(section, `- ${ok ? "✓" : "✗"} \`${nom}\` — ${description}${detail ? ` — ${detail}` : ""}`);
+  note(section, `- ${ok ? "✓" : "✗"} \`${nom}\` — ${description}${detail ? ` — ${detail}` : ""}${rappel}`);
   return ok;
 }
 /** Empreintes de toutes les captures déjà écrites (livraison et brutes), sauf celles du même nom (réécrites). */
 function empreintes(sauf) {
-  const m = new Set();
-  for (const d of [LIVRAISON, BRUTES]) for (const f of fs.readdirSync(d)) if (f !== sauf && f.endsWith(".png")) m.add(sha(fs.readFileSync(path.join(d, f))));
+  const m = new Map();
+  for (const d of [LIVRAISON, BRUTES]) for (const f of fs.readdirSync(d)) if (f !== sauf && f.startsWith("US-") && f.endsWith(".png") && /US-(3\.8|4\.[45]|4\.E[456]|1\.8|5\.|A11Y.*-m3|PERF.*-m3)/.test(f)) m.set(sha(fs.readFileSync(path.join(d, f))), f);
   return m;
 }
 const avertissements = [];
@@ -282,27 +288,30 @@ histoireDef("US-4.5", "US-4.5 — Voir les pays traversés", async () => {
 
 // ================================================================= US-4.E4
 histoireDef("US-4.E4", "US-4.E4 — Péages indisponibles", async () => {
-  // mise en place RÉELLE : aucune clé PTV n'existe, le fournisseur actif des péages n'a donc aucune clé
+  // mise en place RÉELLE : aucune clé PTV n'existe, le fournisseur actif des péages n'a donc aucune clé (cause lue sur l'écran Moteurs)
   await connecterAdmin(pb);
-  await etatCarte(pb, "peages").waitFor();
   await carte(pb, "peages").scrollIntoViewIfNeeded();
-  await capture(pb, "US-4.E4-E1-01-declencheur.png", async () => {
+  await verifier("cause réelle lisible dans l'écran Moteurs : péages = PTV, « Clé à coller »", async () => {
     await expect(etatCarte(pb, "peages")).toHaveText("Clé à coller");
-    return "écran Moteurs : péages = PTV Developer, état « Clé à coller » (le service de péages est réellement hors service faute de clé) — pas de mock";
-  }, "le service de péages est réellement en erreur (aucune clé active)", "edge");
-  await retourFormulaire(pa).catch(() => {});
+    note("edge", "- ✓ (hors capture) écran Moteurs : péages = PTV Developer, état « Clé à coller » : le service de péages est réellement hors service faute de clé — pas de mock.");
+  });
   await formulaireEurope(pa, { saisie: "Albi", label: "Albi" }, { saisie: "Bord", label: "Bordeaux", contexte: "Gironde" });
   await calculer(pa);
   await versPeages(pa);
+  await capture(pa, "US-4.E4-E1-01-declencheur.png", async () => {
+    await expect(pa.locator('[data-el="peages-indisponibles"]')).toContainText("Péages non disponibles pour l'instant");
+    await expect(pa.locator('[data-el="total-peages"]')).toHaveCount(0);
+    return "écran Résultat Albi → Bordeaux (autoroute A62) : le détail des péages dit « Péages non disponibles pour l'instant » (service réellement sans clé) ; aucun total de péages";
+  }, "le service de péages est en erreur : écran Résultat, bloc Péages", "edge");
+  await enHaut(pa);
   await capture(pa, "US-4.E4-E1-02-resultat.png", async () => {
     const r = await lireResultat(pa);
     const moyFr = await moyenneDuJour("SP95-E10");
     expect(r.cout).toBeCloseTo(Math.round(r.litres * moyFr * 100) / 100, 1); // coût carburant seul
-    await expect(pa.locator('[data-el="peages-indisponibles"]')).toContainText("Péages non disponibles pour l'instant");
-    await expect(pa.locator('[data-el="total-peages"]')).toHaveCount(0);
+    await expect(pa.locator('[data-el="repartition-cout"]')).toHaveCount(0);
     memo.bordeaux = r;
-    return `Albi → Bordeaux (autoroute A62 : péage à établir) : coût carburant ${virgule(r.cout)} € affiché, « Péages non disponibles pour l'instant », aucun péage ajouté au total`;
-  }, "le coût carburant s'affiche, « Péages non disponibles pour l'instant », rien ajouté au total", "edge");
+    return `coût affiché ${virgule(r.cout)} € = carburant seul (${virgule(r.litres, 1)} L × ${virgule(moyFr, 3)} €/L) ; rien n'est ajouté au total pour les péages`;
+  }, "le coût carburant s'affiche et rien n'est ajouté au total", "edge");
   await retourFormulaire(pa);
   await formulaireEurope(pa, { saisie: "Albi", label: "Albi" }, { saisie: "Castr", label: "Castres", contexte: "Tarn" });
   await calculer(pa);
@@ -310,8 +319,8 @@ histoireDef("US-4.E4", "US-4.E4 — Péages indisponibles", async () => {
   await capture(pa, "US-4.E4-E1-03-retour.png", async () => {
     await expect(pa.locator('[data-el="detail-peages"]')).toContainText("Aucun péage sur cet itinéraire");
     await expect(pa.locator('[data-el="peages-indisponibles"]')).toHaveCount(0);
-    return "retour à l'état normal : un trajet sans autoroute payante affiche à nouveau « Aucun péage sur cet itinéraire » (le calcul des péages d'un trajet à autoroute reste, lui, indisponible sans clé)";
-  }, "retour à l'état normal", "edge");
+    return "retour à l'état normal sur UN AUTRE trajet (Albi → Castres) : on ne peut pas rétablir un service dont la clé n'existe pas ; le trajet Albi → Bordeaux, lui, reste « péages non disponibles » tant qu'aucune clé n'est collée";
+  }, "retour à l'état normal (autre trajet, sans autoroute payante)", "edge");
 });
 
 // ================================================================= US-4.E5
@@ -342,12 +351,12 @@ histoireDef("US-4.E5", "US-4.E5 — Vignette sur le trajet", async () => {
 // ================================================================= US-4.E6
 histoireDef("US-4.E6", "US-4.E6 — Pays sans prix moyen", async () => {
   await ouvrirTrajets(pa);
-  await choisirLieu(pa, "depart", "Tries", "Trieste", "Italie");
+  await saisirLieu(pa, "depart", "Albi", "Albi");
   await choisirLieu(pa, "arrivee", "Belgr", "Belgrade", "Serbie");
   await choisirVoiture(pa);
   await capture(pa, "US-4.E6-E1-01-declencheur.png", async () => {
     await expect(champ(pa, "arrivee")).toHaveValue("Belgrade");
-    return "arrivée Belgrade (Serbie, absente du Bulletin pétrolier UE) ; départ Trieste : le routeur public refuse Albi → Belgrade (1 960 km, erreur 154 « distance au-delà de la limite »), affichée « Trajet trop long »";
+    return "Albi → Belgrade (Serbie, absente du Bulletin pétrolier UE) : trajet de 1 960 km, tracé découpé en morceaux de ≤ 800 km pour Valhalla";
   }, "un pays traversé absent des moyennes (Serbie)", "edge");
   await calculer(pa);
   await versPays(pa);
@@ -359,25 +368,32 @@ histoireDef("US-4.E6", "US-4.E6 — Pays sans prix moyen", async () => {
     const eu = Number((await rest("moyennes_nationales?select=prix_moyen&pays=eq.EU&carburant=eq.SP95-E10&order=jour.desc&limit=1"))[0].prix_moyen);
     expect(rs.texte).toContain(virgule(eu, 3));
     expect(l.filter((x) => x.pays !== "RS").every((x) => !x.texte.includes("prix non publié"))).toBe(true);
+    expect(l.map((x) => x.pays)).toEqual(["FR", "IT", "SI", "HR", "RS"]);
     const somme = l.reduce((s, x) => s + nombre(x.montant), 0);
     expect(somme).toBeCloseTo(await cout(pa), 2);
-    return `RS : « prix non publié — moyenne européenne appliquée » à ${virgule(eu, 3)} €/L (moyenne UE du bulletin) ; pays traversés ${l.map((x) => x.pays).join(", ")} ; Σ coûts = coût`;
+    const r = await lireResultat(pa);
+    expect(r.km).toBeGreaterThan(1900);
+    return `RS : « prix non publié — moyenne européenne appliquée » à ${virgule(eu, 3)} €/L (moyenne UE du bulletin) ; ${r.km} km ; pays ${l.map((x) => x.pays).join(", ")} ; Σ coûts = coût`;
   }, "la ligne Serbie porte « prix non publié — moyenne européenne appliquée » et le prix utilisé", "edge");
-  // trajet trop long pour le routeur public : message clair (cas réel rencontré)
   await retourFormulaire(pa);
   await capture(pa, "US-4.E6-E1-03-retour.png", async () => {
     await expect(pa.locator('[data-el="liste-historique"] li').first()).toContainText("Belgrade");
-    return "retour au formulaire ; le trajet Trieste → Belgrade est en tête de l'historique";
+    return "retour au formulaire ; le trajet Albi → Belgrade est en tête de l'historique";
   }, "retour à l'état normal", "edge");
-  // cas limite réel rencontré : Albi → Belgrade dépasse la limite du routeur public
-  await choisirLieu(pa, "depart", "Albi", "Albi", "Tarn").catch(() => {});
-  await choisirLieu(pa, "arrivee", "Belgr", "Belgrade", "Serbie");
-  await pa.locator("#bouton-calculer").click();
-  await verifier("Albi → Belgrade : message « Trajet trop long »", async () => {
-    await expect(pa.locator('[data-el="limite-itineraire"]')).toContainText("Trajet trop long pour le moteur d'itinéraire actuel", { timeout: 60000 });
-    note("edge", "- ✓ Albi → Belgrade (1 960 km) : « Trajet trop long pour le moteur d'itinéraire actuel » (erreur réelle 154 de Valhalla, pas d'invention) — pas de capture au plan.");
-  });
-  await retourFormulaire(pa).catch(() => {});
+  // autres longs trajets du plan : Rome et Lisbonne (tracé au-delà de 1 000 km : découpé), vérifiés sans capture
+  for (const [nom, saisie, label, ctx, pays] of [["Rome", "Rome", "Rome", "Italie", ["FR", "IT"]], ["Lisbonne", "Lisb", "Lisbonne", "Portugal", ["FR", "ES", "PT"]]]) {
+    await verifier(`Albi → ${nom} (tracé > 1 000 km)`, async () => {
+      await retourFormulaire(pa).catch(() => {});
+      await ouvrirTrajets(pa);
+      await saisirLieu(pa, "depart", "Albi", "Albi");
+      await choisirLieu(pa, "arrivee", saisie, label, ctx);
+      await choisirVoiture(pa).catch(() => {});
+      await calculer(pa);
+      const l = (await lignesListe(pa, "pays-traverses")).map((x) => x.pays);
+      expect(l).toEqual(pays);
+      note("edge", `- ✓ (hors capture) Albi → ${nom} : ${(await lireResultat(pa)).km} km, pays ${l.join(", ")} — avant le correctif, « Trajet trop long » à tort.`);
+    });
+  }
 });
 
 // ================================================================= US-1.8
@@ -439,7 +455,40 @@ histoireDef("US-1.8", "US-1.8 — Stations hors de France", async () => {
     return `message + « ${t} » (Bulletin pétrolier UE : BE ${virgule(be, 3)} €/L)`;
   }, "message « Ce pays ne publie pas les prix station par station » et prix moyen national");
   await D.close();
-  note("issues", "- Dépendance : seule l'Espagne est synchronisée (flux MITECO via le relais Vercel `api/relais-es` : le serveur du ministère n'accepte que TLS 1.2 à échange RSA statique, refusé par Deno/rustls — « Connection reset by peer »). IT, PT, SI, HR, AT, DE, DK, RO, UK : non branchés à cette passe (T3.5) ; ces pays affichent donc le message « Ce pays ne publie pas… » alors que certains publient — écart signalé.");
+  // round 2 : les autres pays branchés (Rome, Lisbonne, Vienne, Ljubljana, Zagreb) et un pays non branché (Berlin), vérifiés en vrai ; vues complémentaires dans m3-captures-pays/
+  const VILLES = [
+    ["rome", "Rome", 41.9028, 12.4964, "IT-", "Gazole"], ["lisbonne", "Lisbonne", 38.7223, -9.1393, "PT-", "Gazole"], ["vienne", "Vienne", 48.2082, 16.3738, "AT-", "Gazole"],
+    ["ljubljana", "Ljubljana", 46.0569, 14.5058, "SI-", "Gazole"], ["zagreb", "Zagreb", 45.815, 15.9819, "HR-", "Gazole"],
+  ];
+  for (const [cle, nom, latitude, longitude, prefixe, carburant] of VILLES) {
+    await verifier(`stations à ${nom}`, async () => {
+      const V = await contexte({ geolocation: { latitude, longitude } });
+      const pv = await V.newPage();
+      await pv.goto(`${URL_APP}/`);
+      await pv.locator('[data-el="selecteur-carburant"] button', { hasText: carburant }).click();
+      await expect(pv.locator('[data-el="liste-stations"]')).toHaveAttribute("data-carburant", carburant, { timeout: 30000 });
+      const l = pv.locator('[data-el="ligne-station"]');
+      await expect(l.first()).toBeVisible({ timeout: 30000 });
+      const n = await l.count();
+      const ids = await l.evaluateAll((els) => els.map((e) => e.getAttribute("data-station")));
+      expect(ids.every((i) => i.startsWith(prefixe))).toBe(true);
+      await expect(pv.locator('[data-el="pays-sans-flux"]')).toHaveCount(0);
+      await pv.screenshot({ path: path.join(ICI, "m3-captures-pays", `US-1.8-${cle}.png`) });
+      note("happy", `- ✓ (vue complémentaire m3-captures-pays/US-1.8-${cle}.png) à ${nom} : ${n} stations « ${prefixe}… » en liste (${carburant}), premier prix ${await l.first().locator(".totem").getAttribute("aria-label")}, aucun message « pays sans flux ».`);
+      await V.close();
+    });
+  }
+  await verifier("Berlin : pays non branché, libellé vrai", async () => {
+    const V = await contexte({ geolocation: { latitude: 52.52, longitude: 13.405 } });
+    const pv = await V.newPage();
+    await pv.goto(`${URL_APP}/`);
+    await expect(pv.locator('[data-el="pays-sans-flux"]')).toContainText("Prix station par station pas encore disponibles pour ce pays", { timeout: 30000 });
+    await expect(pv.locator('[data-el="pays-sans-flux"]')).not.toContainText("ne publie pas");
+    await pv.screenshot({ path: path.join(ICI, "m3-captures-pays", "US-1.8-berlin-non-branche.png") });
+    note("edge", `- ✓ (vue complémentaire m3-captures-pays/US-1.8-berlin-non-branche.png) Berlin (Allemagne : flux Tankerkönig à clé, pas encore branché) : « Prix station par station pas encore disponibles pour ce pays » + prix moyen national ; la phrase de la spec est réservée aux pays qui ne publient pas (Bruxelles).`);
+    await V.close();
+  });
+  note("issues", "- Dépendance : stations synchronisées par pg_cron — ES (flux MITECO via le relais Vercel `api/relais-es` : TLS 1.2 à échange RSA statique refusé par Deno), IT (Osservaprezzi, ~50 villes × 30 km), PT (DGEG), SI (goriva.si), HR (mzoe-gor.hr, lat/long inversés remis à l'endroit), AT (E-Control : les 10 moins chères par requête, 20 points × 2 carburants), DK (API OK, une seule enseigne), IS (gasvaktin, cours ISK du jour). Non branchés : DE (clé Tankerkönig), RO (certificat TLS invalide), GB (CSV à URL signée).");
 });
 
 // ================================================================= US-5.1
@@ -453,12 +502,14 @@ histoireDef("US-5.1", "US-5.1 — Ouvrir les moteurs", async () => {
     return `connecté par lien magique (${u.email}, app_metadata.role = admin) ; bouton ⚙ visible dans l'en-tête`;
   }, "connecté comme administrateur : le bouton ⚙ est affiché");
   await ouvrirMoteurs(pb);
+  await pb.setViewportSize({ width: 390, height: 2300 }); // fenêtre haute : les 6 services sur une seule capture
   await capture(pb, "US-5.1-02-ouvrir-les-moteurs-apres.png", async () => {
     const noms = (await pb.locator('[data-el="moteur"] h3').allInnerTexts()).map((t) => t.split("\n")[0].trim());
     expect(noms).toEqual(["PRIX DES STATIONS", "PRIX MOYENS PAR PAYS", "ITINÉRAIRE", "PÉAGES", "VOITURES", "RECHERCHE DE LIEUX"]);
     const etats = await pb.locator('[data-el="etat-moteur"]').allInnerTexts();
     return `6 services : ${noms.map((n, i) => `${n} (${etats[i]})`).join(" ; ")}`;
-  }, "l'écran Moteurs liste les 6 services avec leur fournisseur et leur état");
+  }, "l'écran Moteurs liste les 6 services avec leur fournisseur et leur état (fenêtre haute 390×2300)");
+  await pb.setViewportSize({ width: 390, height: 844 });
 });
 
 // ================================================================= US-5.2
@@ -488,6 +539,9 @@ histoireDef("US-5.3", "US-5.3 — Coller la clé", async () => {
   pb.on("response", async (r) => {
     if (/supabase\.co/.test(r.url())) reponses.push({ url: r.url().replace(/https:\/\/[^/]+/, ""), corps: await r.text().catch(() => "") });
   });
+  await reinitialiserMoteurs();
+  await pb.reload();
+  await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
   await carte(pb, "peages").scrollIntoViewIfNeeded();
   await capture(pb, "US-5.3-01-coller-la-cl-avant.png", async () => {
     const champCle = carte(pb, "peages").locator('[data-el="champ-cle"]');
@@ -495,30 +549,37 @@ histoireDef("US-5.3", "US-5.3 — Coller la clé", async () => {
     await expect(champCle).toHaveAttribute("type", "password");
     return "champ clé des péages vide (type password) : « Coller la clé d'API »";
   }, "le champ clé des péages");
+  // une clé factice collée est TESTÉE avant d'être écrite : le vrai PTV la refuse, elle n'est donc PAS rangée (l'ancienne clé, s'il y en a une, est conservée)
   await carte(pb, "peages").locator('[data-el="champ-cle"]').fill(FAUSSE);
   await carte(pb, "peages").locator('[data-el="enregistrer-moteur"]').click();
   await attendreEnregistrement(pb, "peages");
-  await expect(carte(pb, "peages").locator('[data-el="champ-cle"]')).toHaveAttribute("placeholder", /••••7d3f/, { timeout: 20000 });
   await capture(pb, "US-5.3-02-coller-la-cl-apres.png", async () => {
-    const ph = await carte(pb, "peages").locator('[data-el="champ-cle"]').getAttribute("placeholder");
-    expect(ph).toBe("Clé enregistrée ••••7d3f — coller pour remplacer");
-    expect(await carte(pb, "peages").locator('[data-el="champ-cle"]').inputValue()).toBe("");
-    // stockage : Vault (secret chiffré) + 4 derniers caractères
-    const [{ fin }] = await sqlGestion("select fin from public.cles_fournisseurs where fournisseur = 'ptv'");
-    expect(fin).toBe("7d3f");
-    const [v] = await sqlGestion("select secret <> '" + FAUSSE + "' as chiffre, length(secret) as n from vault.secrets where name = 'cle_ptv'");
-    expect(v.chiffre).toBe(true);
     const msg = await etatCarte(pb, "peages").innerText();
-    return `clé rangée dans Supabase Vault (secret chiffré en base ≠ clé en clair, ${v.n} car.), fin enregistrée « ${fin} » ; champ : « ${ph} » ; état : « ${msg} » (la clé factice est refusée par le vrai PTV : le fournisseur actif ne change pas)`;
-  }, "la clé est stockée chiffrée côté serveur ; le champ n'affiche plus que ses 4 derniers caractères");
+    expect(msg).toContain("Clé refusée par PTV (401)");
+    expect(msg).toContain("clé non enregistrée");
+    await expect(carte(pb, "peages").locator('[data-el="champ-cle"]')).toHaveAttribute("placeholder", "Coller la clé d'API");
+    const [{ n }] = await sqlGestion("select count(*)::int as n from vault.secrets where name = 'cle_ptv'");
+    expect(n).toBe(0);
+    return `BLOQUÉ-CLÉ (partie « rangée chiffrée après enregistrement ») : sans clé PTV valide, aucune clé collée ne peut être acceptée ; état réel : « ${msg} », Vault : ${n} secret ; le stockage chiffré et le masquage sont prouvés ci-dessous sur une clé amorcée côté serveur`;
+  }, "une clé collée est testée avant d'être écrite (clé factice refusée, rien n'est rangé)");
+  // amorce serveur : la fonction `moteur_cle_enregistrer` (rôle service) range une clé factice dans Vault, comme le ferait un enregistrement réussi
+  await injecterCle("ptv", FAUSSE);
   await pb.reload();
   await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
   await carte(pb, "peages").scrollIntoViewIfNeeded();
   await capture(pb, "US-5.3-03-coller-la-cl-avant.png", async () => {
-    await expect(carte(pb, "peages").locator('[data-el="champ-cle"]')).toHaveAttribute("placeholder", /••••7d3f/);
-    return "clé enregistrée (rechargement de l'écran)";
-  }, "une clé enregistrée");
-  await verifier("la clé complète n'apparaît nulle part (page, champs, réponses réseau)", async () => {
+    const ph = await carte(pb, "peages").locator('[data-el="champ-cle"]').getAttribute("placeholder");
+    expect(ph).toBe("Clé enregistrée ••••7d3f — coller pour remplacer");
+    const [{ fin }] = await sqlGestion("select fin from public.cles_fournisseurs where fournisseur = 'ptv'");
+    expect(fin).toBe("7d3f");
+    const [v] = await sqlGestion("select secret <> '" + FAUSSE + "' as chiffre, length(secret) as n from vault.secrets where name = 'cle_ptv'");
+    expect(v.chiffre).toBe(true);
+    return `clé rangée dans Supabase Vault (secret chiffré en base ≠ clé en clair, ${v.n} car.), fin « ${fin} » ; amorcée côté serveur (SEED : une clé collée à l'écran est maintenant testée avant d'être écrite) ; champ : « ${ph} »`;
+  }, "une clé enregistrée : le champ n'affiche que ses 4 derniers caractères");
+  await verifier("la clé complète n'apparaît nulle part (page, champs, stockage, réponses réseau)", async () => {
+    reponses.length = 0;
+    await pb.reload();
+    await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
     const html = await pb.content();
     const champs = await pb.locator("input").evaluateAll((els) => els.map((e) => e.value + "|" + (e.getAttribute("placeholder") ?? "")));
     const stockage = await pb.evaluate(() => JSON.stringify({ ...localStorage }) + JSON.stringify({ ...sessionStorage }));
@@ -526,18 +587,17 @@ histoireDef("US-5.3", "US-5.3 — Coller la clé", async () => {
     expect(champs.join("\n")).not.toContain(FAUSSE);
     expect(stockage).not.toContain(FAUSSE);
     expect(reponses.some((r) => r.corps.includes(FAUSSE))).toBe(false);
-    memo.reponses = reponses.length;
   });
+  await carte(pb, "peages").scrollIntoViewIfNeeded();
   await capture(pb, "US-5.3-04-coller-la-cl-apres.png", async () => {
     const lister = reponses.filter((r) => r.url.includes("/functions/v1/moteurs"));
     expect(lister.length).toBeGreaterThan(0);
     expect(reponses.some((r) => r.corps.includes(FAUSSE))).toBe(false);
-    expect(lister.every((r) => !/FAUSSE|7d3f.*FAUSSE/.test(r.corps))).toBe(true);
-    const aVu = lister.some((r) => r.corps.includes('"cle_fin":"7d3f"'));
-    expect(aVu).toBe(true);
-    await annoter(pb, `clé complète absente de la page, des champs, du stockage local et de ${reponses.length} réponses réseau lues ; seule « cle_fin: 7d3f » circule`, { bas: 62 });
+    expect(lister.some((r) => r.corps.includes('"cle_fin":"7d3f"'))).toBe(true);
+    await annoter(pb, `clé complète absente de la page, des champs, du stockage local et de ${reponses.length} réponses réseau lues depuis le rechargement ; seule « cle_fin: 7d3f » circule`);
     return `${reponses.length} réponses réseau (dont ${lister.length} de la fonction moteurs) lues : la clé complète n'y figure pas, seule la fin « 7d3f » ; page, champs et stockage du navigateur : absente`;
   }, "après rechargement, la clé complète n'apparaît nulle part (page, réseau)");
+  BLOQUE("US-5.3 (étape 2 : « je colle une clé et j'enregistre → rangée chiffrée ») : il manque une clé PTV valide ; une clé non validée n'est volontairement plus écrite dans Vault. Le stockage chiffré, la fin de 4 caractères et l'absence de la clé dans la page et le réseau sont prouvés sur une clé amorcée côté serveur.");
 });
 
 // ================================================================= US-5.4
@@ -696,7 +756,9 @@ histoireDef("US-5.E2", "US-5.E2 — Clé refusée", async () => {
     await expect(carte(pb, "peages").locator('[data-el="choix-fournisseur"]')).toHaveValue("ptv");
     const l = await restService("moteurs?select=actif&service=eq.peages");
     expect(l.corps[0].actif).toBe("ptv");
-    return "HERE + clé invalide + Enregistrer : refusé par le vrai HERE (401), le fournisseur actif reste PTV après rechargement (base : actif = ptv)";
+    const [{ n }] = await sqlGestion("select count(*)::int as n from vault.secrets");
+    expect(n).toBe(0); // la clé invalide n'a pas été écrite
+    return `HERE + clé invalide + Enregistrer : refusé par le vrai HERE (401), « clé non enregistrée », le fournisseur actif reste PTV après rechargement (base : actif = ptv ; Vault : ${n} secret)`;
   }, "Enregistrer garde l'ancien fournisseur actif (PTV)", "edge");
 });
 
@@ -706,16 +768,20 @@ histoireDef("US-5.E3", "US-5.E3 — Bascule de secours", async () => {
   await pb.reload();
   await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
   await carte(pb, "peages").scrollIntoViewIfNeeded();
-  await carte(pb, "peages").locator('[data-el="champ-cle"]').fill("cle-ptv-factice-0001");
+  // amorce serveur : clés factices rangées dans Vault (une clé collée à l'écran est maintenant testée avant d'être écrite, donc refusée)
+  await injecterCle("ptv", "cle-ptv-factice-0001");
+  await injecterCle("here", "cle-here-factice-0002");
+  await pb.reload();
+  await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
+  await carte(pb, "peages").scrollIntoViewIfNeeded();
   await carte(pb, "peages").locator('[data-el="choix-secours-peages"]').selectOption("here");
-  await carte(pb, "peages").locator('[data-el="champ-cle-secours-peages"]').fill("cle-here-factice-0002");
   await carte(pb, "peages").locator('[data-el="enregistrer-moteur"]').click();
   await attendreEnregistrement(pb, "peages");
   await capture(pb, "US-5.E3-E1-01-declencheur.png", async () => {
     await expect(carte(pb, "peages").locator('[data-el="choix-secours-peages"]')).toHaveValue("here");
     const l = await restService("moteurs?select=actif,secours&service=eq.peages");
     expect(l.corps[0]).toEqual({ actif: "ptv", secours: "here" });
-    return "péages : PTV actif (clé refusée = fournisseur principal hors service), HERE enregistré en secours. Le plan suppose une panne PTV simulée côté fonction (page.route impossible côté serveur) ; ici les deux fournisseurs sont réellement injoignables faute de clé valide";
+    return "péages : PTV actif (clé amorcée refusée par le vrai PTV = fournisseur principal hors service), HERE enregistré en secours (clé amorcée). Le plan suppose une panne PTV simulée côté fonction (page.route impossible côté serveur) ; ici les deux fournisseurs sont réellement injoignables faute de clé valide";
   }, "PTV en panne et HERE enregistré en secours", "edge");
   await retourFormulaire(pa).catch(() => {});
   await formulaireEurope(pa, { saisie: "Albi", label: "Albi" }, { saisie: "Bord", label: "Bordeaux", contexte: "Gironde" });
@@ -740,44 +806,75 @@ histoireDef("US-5.E3", "US-5.E3 — Bascule de secours", async () => {
 });
 
 // ================================================================= Transverses
-histoireDef("US-A11Y-001", "US-A11Y-001 — Navigation au clavier (jalon 3)", async () => {
+/** Parcours Tab depuis le haut de la page jusqu'aux onglets : relève chaque contrôle focalisé et le numérote (pastilles posées à la capture). */
+async function tabulation(page, max = 60) {
+  await page.evaluate(() => document.querySelectorAll("[data-ordre-test]").forEach((e) => e.removeAttribute("data-ordre-test")));
+  await page.evaluate(() => document.activeElement?.blur?.());
+  await page.locator("body").click({ position: { x: 5, y: 5 } });
+  const ordre = [];
+  for (let i = 0; i < max; i++) {
+    await page.keyboard.press("Tab");
+    const e = await etatFocus(page);
+    await page.evaluate((k) => document.activeElement.setAttribute("data-ordre-test", String(k)), i + 1);
+    ordre.push(e);
+    if (e.id.startsWith("onglet")) break;
+  }
+  return ordre;
+}
+const resumeOrdre = (o) => o.slice(0, 14).map((e) => e.nom).join(" → ");
+
+histoireDef("US-A11Y-001", "US-A11Y-001 — Navigation au clavier (jalon 3 : S1, S3, S4, S5)", async () => {
+  // S3 : formulaire (champs de lieux, inversion, voiture, calcul, historique)
+  await ouvrirTrajets(pa);
+  const ordreS3 = await tabulation(pa);
+  await pastillesOrdre();
+  await capture(pa, "US-A11Y-001-01-m3.png", async () => {
+    expect(ordreS3.length).toBeGreaterThan(7);
+    expect(ordreS3.every((e) => e.contour && e.nom)).toBe(true);
+    const i = (id) => ordreS3.findIndex((e) => e.id === id);
+    expect(i("dep")).toBeLessThan(i("arr"));
+    expect(i("arr")).toBeLessThan(i("voiture-marque"));
+    expect(i("voiture-marque")).toBeLessThan(i("bouton-calculer"));
+    return `S3 Trajets : ${ordreS3.length} contrôles parcourus (${resumeOrdre(ordreS3)}…), tous avec contour visible, dans l'ordre de lecture (départ, arrivée, voiture, calcul)`;
+  }, "Tab : ordre de lecture et contour visible sur S3 Trajets");
+  // S4 : résultat d'un trajet Europe (nouveaux blocs Péages et Pays traversés : aucun contrôle caché ; tronçons atteignables)
+  await formulaireEurope(pa, { saisie: "Albi", label: "Albi" }, { saisie: "Castr", label: "Castres", contexte: "Tarn" });
+  await calculer(pa);
+  await verifier("S4 : Tab parcourt retour, prix perso et tronçons avec contour visible", async () => {
+    const o = await tabulation(pa);
+    expect(o.every((e) => e.contour && e.nom)).toBe(true);
+    const i = (id) => o.findIndex((e) => e.id === id);
+    expect(i("troncon-0")).toBeGreaterThan(0);
+    note("happy", `- ✓ (hors capture) S4 Résultat : ${o.length} contrôles (${resumeOrdre(o)}…), contour visible partout, tronçons atteints dans l'ordre.`);
+  });
+  // S1 : prix
+  await pa.goto(`${URL_APP}/`);
+  await expect(pa.locator('[data-el="ligne-station"]').first()).toBeVisible({ timeout: 20000 });
+  await verifier("S1 : Tab parcourt carburants, carte, tri et liste avec contour visible", async () => {
+    const o = await tabulation(pa);
+    expect(o.every((e) => e.contour && e.nom)).toBe(true);
+    note("happy", `- ✓ (hors capture) S1 Prix : ${o.length} contrôles (${resumeOrdre(o)}…), contour visible partout.`);
+  });
+  // S5 : moteurs
   await pb.reload();
   await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
-  await pb.evaluate(() => document.activeElement?.blur?.());
-  await capture(pb, "US-A11Y-001-01-m3.png", async () => "écran Moteurs (S5) avant le parcours au clavier", "écran Moteurs avant Tab");
-  const ordre = [];
-  await pb.locator("body").click({ position: { x: 5, y: 5 } });
-  for (let i = 0; i < 40; i++) {
-    await pb.keyboard.press("Tab");
-    const e = await etatFocus(pb);
-    await pb.evaluate((k) => document.activeElement.setAttribute("data-ordre-test", String(k)), i + 1);
-    ordre.push(e);
-    if (/Trajets|Prix/.test(e.nom) && e.id.startsWith("onglet")) break;
-  }
-  await pb.evaluate(() => document.activeElement.setAttribute("data-ordre-test", "")); // dernier élément
-  await verifier("Tab : chaque contrôle a un contour visible et un nom", async () => {
-    expect(ordre.every((e) => e.contour && e.nom)).toBe(true);
-  });
-  await pastillesOrdre(pb);
+  const ordre = await tabulation(pb);
+  await pastillesOrdre();
   await capture(pb, "US-A11Y-001-02-m3.png", async () => {
     const noms = ordre.map((e) => e.nom);
     expect(ordre.length).toBeGreaterThan(15);
-    expect(ordre.every((e) => e.contour)).toBe(true);
-    expect(noms[0]).toMatch(/Moteurs|Retour/);
-    // l'ordre suit la lecture : ⚙, Retour, puis les cartes de haut en bas
+    expect(ordre.every((e) => e.contour && e.nom)).toBe(true);
     const i = (id) => ordre.findIndex((e) => e.id === id);
     expect(i("mot-prix-f")).toBeLessThan(i("mot-itineraire-f"));
     expect(i("mot-itineraire-f")).toBeLessThan(i("mot-peages-f"));
     expect(i("mot-peages-f")).toBeLessThan(i("mot-lieux-f"));
-    return `${ordre.length} contrôles parcourus : ${noms.slice(0, 14).join(" → ")}… ; tous avec contour visible, dans l'ordre de lecture`;
-  }, "Tab/Maj+Tab : ordre de lecture et contour visible sur l'écran Moteurs");
-  await pb.evaluate(() => document.querySelectorAll("[data-ordre-test]").forEach((e) => e.removeAttribute("data-ordre-test")));
-  // Maj+Tab revient en arrière
+    return `S5 Moteurs : ${ordre.length} contrôles (${noms.slice(0, 12).join(" → ")}…), tous avec contour visible, dans l'ordre de lecture`;
+  }, "Tab : ordre de lecture et contour visible sur S5 Moteurs");
   await verifier("Maj+Tab revient au contrôle précédent", async () => {
+    await pb.evaluate(() => document.querySelectorAll("[data-ordre-test]").forEach((e) => e.removeAttribute("data-ordre-test")));
     const avant = await etatFocus(pb);
     await pb.keyboard.press("Shift+Tab");
-    const apres = await etatFocus(pb);
-    expect(apres.id).not.toBe(avant.id);
+    expect((await etatFocus(pb)).i).not.toBe(avant.i);
   });
 });
 
@@ -808,62 +905,106 @@ histoireDef("US-A11Y-002", "US-A11Y-002 — Focus de la fiche (jalon 3)", async 
   await C.close();
 });
 
-histoireDef("US-A11Y-003", "US-A11Y-003 — Touche Échap (jalon 3)", async () => {
+histoireDef("US-A11Y-003", "US-A11Y-003 — Touche Échap (jalon 3 : S1, S3, S4)", async () => {
+  // S4 : tronçon déplié d'un trajet Europe
+  await ouvrirTrajets(pa);
+  await saisirLieu(pa, "depart", "Albi", "Albi");
+  await choisirLieu(pa, "arrivee", "Barce", "Barcelone", "Espagne");
+  await choisirVoiture(pa);
+  await calculer(pa);
+  const t = pa.locator("#troncon-4");
+  await t.focus();
+  await pa.keyboard.press("Enter");
+  await expect(t).toHaveAttribute("aria-expanded", "true");
+  await capture(pa, "US-A11Y-003-01-m3.png", async () => {
+    const det = await pa.locator('[data-el="troncon-detail"]:visible').innerText();
+    return `S4 Résultat Albi → Barcelone : tronçon espagnol déplié (« ${det.replace(/\s+/g, " ").trim()} »)`;
+  }, "un tronçon déplié sur S4");
+  await pa.keyboard.press("Escape");
+  await capture(pa, "US-A11Y-003-02-m3.png", async () => {
+    await expect(t).toHaveAttribute("aria-expanded", "false");
+    await expect(t).toBeFocused();
+    return "Échap replie le tronçon (aria-expanded=false) et le focus reste sur lui";
+  }, "Échap replie le tronçon sur S4");
+  // S3 : la liste de propositions de lieux se ferme
+  await verifier("S3 : Échap ferme les propositions de lieux", async () => {
+    await retourFormulaire(pa);
+    const c = champ(pa, "arrivee");
+    await c.fill("");
+    await c.pressSequentially("Barce", { delay: 40 });
+    await expect(propositions(pa, "arrivee").first()).toBeVisible({ timeout: 20000 });
+    await pa.keyboard.press("Escape");
+    await expect(propositions(pa, "arrivee")).toHaveCount(0);
+    note("happy", "- ✓ (hors capture) S3 : « Barce » ouvre les propositions (dont Barcelone), Échap les ferme.");
+  });
+  // S1 : la fiche d'une station espagnole se ferme
   const C = await contexte({ geolocation: BARCELONE });
   const pc = await C.newPage();
   surveiller(pc, "C3");
   await pc.goto(`${URL_APP}/`);
   await expect(pc.locator('[data-el="ligne-station"]').first()).toBeVisible({ timeout: 20000 });
-  await pc.locator('[data-el="ligne-station"]').first().focus();
-  await pc.keyboard.press("Enter");
-  await expect(pc.getByRole("dialog")).toBeVisible();
-  await capture(pc, "US-A11Y-003-01-m3.png", async () => "fiche d'une station espagnole ouverte", "la fiche est ouverte");
-  await pc.keyboard.press("Escape");
-  await capture(pc, "US-A11Y-003-02-m3.png", async () => {
+  await verifier("S1 : Échap ferme la fiche d'une station espagnole", async () => {
+    await pc.locator('[data-el="ligne-station"]').first().focus();
+    await pc.keyboard.press("Enter");
+    await expect(pc.getByRole("dialog")).toBeVisible();
+    await pc.keyboard.press("Escape");
     await expect(pc.getByRole("dialog")).toHaveCount(0);
-    return "Échap ferme la fiche";
-  }, "Échap ferme la fiche");
-  // tronçon déplié sur le résultat d'un trajet Europe : Échap le replie
-  await retourFormulaire(pa).catch(() => {});
-  await formulaireEurope(pa, { saisie: "Albi", label: "Albi" }, { saisie: "Barce", label: "Barcelone", contexte: "Espagne" });
-  await calculer(pa);
-  await verifier("Échap replie le tronçon déplié (trajet Europe)", async () => {
-    const t = pa.locator("#troncon-4");
-    await t.focus();
-    await pa.keyboard.press("Enter");
-    await expect(t).toHaveAttribute("aria-expanded", "true");
-    await pa.keyboard.press("Escape");
-    await expect(t).toHaveAttribute("aria-expanded", "false");
-    note("happy", "- ✓ (hors capture) trajet Albi → Barcelone : tronçon espagnol déplié, Échap le replie et rend le focus au tronçon.");
+    note("happy", "- ✓ (hors capture) S1 : fiche d'une station espagnole ouverte au clavier, Échap la ferme.");
   });
   await C.close();
 });
 
-histoireDef("US-A11Y-004", "US-A11Y-004 — Libellés lisibles (jalon 3)", async () => {
+histoireDef("US-A11Y-004", "US-A11Y-004 — Libellés lisibles (jalon 3 : S1, S3, S4, S5)", async () => {
+  // S1 : pastilles et prix annoncés (stations espagnoles)
   const C = await contexte({ geolocation: BARCELONE });
   const pc = await C.newPage();
   surveiller(pc, "C4");
   await pc.goto(`${URL_APP}/`);
-  await expect(pc.locator('[data-el="ligne-station"]').first()).toBeVisible({ timeout: 20000 });
   await pc.locator('[data-el="pastille-station"]').first().waitFor({ timeout: 20000 });
-  await capture(pc, "US-A11Y-004-01-m3.png", async () => "stations espagnoles : carte et liste", "stations espagnoles avant la lecture des libellés");
-  const pastilles = await pc.locator('[data-el="pastille-station"]').evaluateAll((els) => els.map((e) => e.getAttribute("aria-label") ?? ""));
-  const lignes = await pc.locator('[data-el="ligne-station"] .totem').evaluateAll((els) => els.map((e) => e.getAttribute("aria-label") ?? ""));
-  // écran Moteurs : chaque contrôle a un nom accessible
+  await verifier("S1 : pastilles et prix des stations espagnoles annoncés en euros", async () => {
+    const pastilles = await pc.locator('[data-el="pastille-station"]').evaluateAll((els) => els.map((e) => e.getAttribute("aria-label") ?? ""));
+    const prix = await pc.locator('[data-el="ligne-station"] .totem').evaluateAll((els) => els.map((e) => e.getAttribute("aria-label") ?? ""));
+    expect(pastilles.length).toBeGreaterThan(5);
+    expect(pastilles.every((p) => /, \d,\d{3} euros le litre, (moins cher|plus cher)$/.test(p))).toBe(true);
+    expect(prix.every((l) => /euros le litre/.test(l))).toBe(true);
+    note("happy", `- ✓ (hors capture) S1 Barcelone : ${pastilles.length} pastilles (ex. « ${pastilles[0]} »), ${prix.length} prix de liste annoncés en euros.`);
+  });
+  await C.close();
+  // S3 : chaque champ et bouton a un nom
+  await ouvrirTrajets(pa);
+  await verifier("S3 : champs, boutons et listes nommés", async () => {
+    const sansNom = await pa.evaluate(() => [...document.querySelectorAll("[data-screen='S3'] button, [data-screen='S3'] select, [data-screen='S3'] input")].filter((e) => !(e.getAttribute("aria-label") || e.labels?.[0]?.textContent?.trim() || e.textContent?.trim())).length);
+    expect(sansNom).toBe(0);
+    await expect(pa.locator('[data-el="inverser"]')).toHaveAttribute("aria-label", "Inverser les deux lieux");
+    note("happy", `- ✓ (hors capture) S3 : ${await pa.locator("[data-screen='S3'] button, [data-screen='S3'] input").count()} contrôles, ${sansNom} sans nom ; bouton d'inversion « Inverser les deux lieux ».`);
+  });
+  // S4 : résultat Europe : tronçons, plaques de prix et boutons nommés
+  await saisirLieu(pa, "depart", "Albi", "Albi");
+  await choisirLieu(pa, "arrivee", "Barce", "Barcelone", "Espagne");
+  await choisirVoiture(pa);
+  await calculer(pa);
+  const troncons = await pa.locator('[data-el="troncons"] button').evaluateAll((els) => els.map((e) => e.getAttribute("aria-label") ?? ""));
+  const plaques = await pa.locator("[data-screen='S4'] .totem").evaluateAll((els) => els.map((e) => e.getAttribute("aria-label") ?? ""));
+  await annoter(pa, `S4 : ${troncons.length} tronçons annoncés (ex. « ${troncons[0]} »), plaques de prix « ${plaques.join(" ; ")} »`);
+  await capture(pa, "US-A11Y-004-01-m3.png", async () => {
+    expect(troncons.length).toBeGreaterThan(5);
+    expect(troncons.every((l) => /, \d+,\d km, \d+,\d litres$/.test(l))).toBe(true);
+    expect(plaques.every((l) => /euros/.test(l))).toBe(true);
+    await expect(pa.locator('[data-el="retour-trajets"]')).toHaveAttribute("aria-label", "Retour aux trajets");
+    return `S4 : ${troncons.length} tronçons annoncés « nom, km, litres » ; plaques : ${plaques.join(" ; ")} ; bouton « Retour aux trajets »`;
+  }, "libellés sur S4 Résultat : tronçons, plaques de prix, retour");
+  // S5 : chaque contrôle nommé
   await pb.reload();
   await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
   const sansNom = await pb.evaluate(() => [...document.querySelectorAll("button, select, input")].filter((e) => !(e.getAttribute("aria-label") || e.labels?.[0]?.textContent?.trim() || e.textContent?.trim())).length);
   const gear = await pb.locator('[data-el="bouton-moteurs"]').getAttribute("aria-label");
-  await verifier("pastilles et prix annoncés en euros ; contrôles de S5 nommés", async () => {
-    expect(pastilles.length).toBeGreaterThan(5);
-    expect(pastilles.every((p) => /, \d,\d{3} euros le litre, (moins cher|plus cher)$/.test(p))).toBe(true);
-    expect(lignes.every((l) => /euros le litre/.test(l))).toBe(true);
+  const total = await pb.locator("button, select, input").count();
+  await annoter(pb, `S5 : ${total} contrôles, ${sansNom} sans nom accessible ; ⚙ = « ${gear} »`);
+  await capture(pb, "US-A11Y-004-02-m3.png", async () => {
     expect(sansNom).toBe(0);
     expect(gear).toBe("Moteurs (administration)");
-  });
-  await annoter(pb, `S5 : ${await pb.locator("button, select, input").count()} contrôles, ${sansNom} sans nom ; ⚙ = « ${gear} »`, { bas: 62 });
-  await capture(pb, "US-A11Y-004-02-m3.png", async () => `${pastilles.length} pastilles annoncées (ex. « ${pastilles[0]} ») ; ${lignes.length} prix de liste annoncés en euros ; écran Moteurs : ${sansNom} contrôle sans nom ; bouton ⚙ nommé « ${gear} »`, "libellés : pastilles, prix et contrôles de l'écran Moteurs");
-  await C.close();
+    return `S5 Moteurs : ${total} contrôles, ${sansNom} sans nom ; bouton ⚙ nommé « ${gear} »`;
+  }, "libellés sur S5 Moteurs");
 });
 
 histoireDef("US-PERF-001", "US-PERF-001 — Ouverture rapide (jalon 3)", async () => {

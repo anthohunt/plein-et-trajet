@@ -30,11 +30,16 @@ test.describe("US-3.8 — Partir à l'étranger", () => {
       await expect(page.locator('[data-el="champ-arrivee-erreur"]')).toHaveText("Lieu introuvable");
       await expect(page.locator('[data-screen="S4"]')).toHaveCount(0);
     });
-    test("US-3.8 — trajet trop long pour le routeur public : message clair, pas de coût (Albi → Belgrade, 1 960 km)", async ({ page }) => {
-      await formulaire(page, ALBI_, ["Belgr", "Belgrade", "Serbie"]);
-      await page.locator("#bouton-calculer").click();
-      await expect(page.locator('[data-el="limite-itineraire"]')).toContainText("Trajet trop long pour le moteur d'itinéraire actuel", { timeout: 60000 });
-      await expect(page.locator('[data-el="cout"]')).toHaveCount(0);
+    test("US-3.8 — Albi → Rome (1 338 km, tracé découpé pour Valhalla) aboutit : France puis Italie", async ({ page }) => {
+      await formulaire(page, ALBI_, ["Rome", "Rome", "Italie"]);
+      await calculer(page);
+      expect((await lignesListe(page, "pays-traverses")).map((l: any) => l.pays)).toEqual(["FR", "IT"]);
+      expect((await lireResultat(page)).km).toBeGreaterThan(1300);
+    });
+    test("US-3.8 — Albi → Lisbonne (1 343 km) aboutit : France, Espagne, Portugal", async ({ page }) => {
+      await formulaire(page, ALBI_, ["Lisb", "Lisbonne", "Portugal"]);
+      await calculer(page);
+      expect((await lignesListe(page, "pays-traverses")).map((l: any) => l.pays)).toEqual(["FR", "ES", "PT"]);
     });
   });
 });
