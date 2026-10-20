@@ -1,9 +1,9 @@
 import { defineConfig } from "@playwright/test";
 
-// Spec du jalon 1 et extraits du jalon 2, joués contre l'appli déployée (base réelle).
+// Specs consolidées des jalons 1 et 2, jouées contre l'appli déployée (base réelle).
 export default defineConfig({
   testDir: "tests/e2e",
-  testMatch: /(m1-explore\.spec|m2-test-snippets\/US-[^/]+\.test)\.ts$/,
+  testMatch: /m[12]-explore\.spec\.ts$/,
   timeout: 60_000,
   expect: { timeout: 15_000 },
   workers: 2,

@@ -32,12 +32,12 @@
     "expected": "« Voiture mémorisée » apparaît avec « SP95-E10 · 1090 kg »."
   },
   "US-3.4-03-choisir-ma-voiture-avant.png": {
-    "action": "L'utilisateur a une voiture mémorisée : Peugeot 208.",
-    "expected": "Le formulaire montre Peugeot, 208 et « Voiture mémorisée »."
+    "action": "L'utilisateur a une Peugeot 208 mémorisée, sans lieux saisis.",
+    "expected": "Départ et Arrivée vides ; Peugeot, 208 et « Voiture mémorisée » affichés."
   },
   "US-3.4-04-choisir-ma-voiture-apres.png": {
     "action": "L'utilisateur rouvre l'appli.",
-    "expected": "Départ et Arrivée sont vides ; Peugeot 208 est déjà choisie."
+    "expected": "Peugeot 208 et sa motorisation sont déjà choisies, « Voiture mémorisée »."
   },
   "US-3.5-01-calculer-le-cot-avant.png": {
     "action": "L'utilisateur a rempli Albi, Bordeaux et sa Peugeot 208.",
@@ -57,11 +57,11 @@
   },
   "US-3.7-01-supprimer-un-trajet-avant.png": {
     "action": "L'utilisateur voit deux trajets dans l'historique.",
-    "expected": "« Bordeaux → Albi » et « Albi → Bordeaux » sont listés, avec une croix."
+    "expected": "Bordeaux → Albi et Albi → Bordeaux sont listés, chacun avec une croix."
   },
   "US-3.7-02-supprimer-un-trajet-apres.png": {
-    "action": "L'utilisateur touche la croix du trajet Bordeaux → Albi.",
-    "expected": "Il ne reste que « Albi → Bordeaux » dans l'historique."
+    "action": "L'utilisateur supprime Bordeaux → Albi, puis recharge la page.",
+    "expected": "Seul Albi → Bordeaux reste ; repère ajouté pour la lecture."
   },
   "US-3.E1-E1-01-declencheur.png": {
     "action": "L'utilisateur tape « zzzz » dans le champ Arrivée.",
@@ -85,11 +85,11 @@
   },
   "US-3.E2-E1-03-retour.png": {
     "action": "L'utilisateur choisit Dacia, Sandero et une motorisation.",
-    "expected": "L'erreur a disparu ; « Voiture mémorisée » s'affiche avec le carburant GPLc."
+    "expected": "L'erreur a disparu ; « Voiture mémorisée » avec le carburant SP95-E10."
   },
   "US-3.E3-E1-01-declencheur.png": {
-    "action": "L'utilisateur est sur l'onglet Prix, sans trajet calculé.",
-    "expected": "La liste des stations s'affiche ; le focus est sur l'onglet Trajets."
+    "action": "L'utilisateur, nouveau venu, n'a encore calculé aucun trajet.",
+    "expected": "Formulaire vide ; l'historique affiche « Aucun trajet pour l'instant »."
   },
   "US-3.E3-E1-02-resultat.png": {
     "action": "L'utilisateur ouvre l'onglet Trajets.",
@@ -125,7 +125,7 @@
   },
   "US-3.P2-02-changer-de-voiture-apres.png": {
     "action": "L'utilisateur choisit la marque Renault.",
-    "expected": "Marque affiche Renault ; Modèle est à choisir, Motorisation est grisée."
+    "expected": "Renault est mémorisée ; Modèle est à choisir, Motorisation est grisée."
   },
   "US-4.1-01-comprendre-le-calcul-avant.png": {
     "action": "L'utilisateur voit le résultat du trajet Albi → Bordeaux.",
@@ -153,7 +153,7 @@
   },
   "US-4.2-03-mettre-mon-propre-prix-avant.png": {
     "action": "L'utilisateur voit son prix perso de 1,699 €/L appliqué.",
-    "expected": "« Mon prix » 1,69 €/L, coût 32,08 €, « Revenir à la moyenne »."
+    "expected": "« Mon prix » 1,699 €/L, coût 32,08 €, « Revenir à la moyenne »."
   },
   "US-4.2-04-mettre-mon-propre-prix-apres.png": {
     "action": "L'utilisateur touche « Revenir à la moyenne ».",
@@ -185,11 +185,11 @@
   },
   "US-4.E2-E1-02-resultat.png": {
     "action": "L'utilisateur saisit 12 dans le champ du prix.",
-    "expected": "« Entre un prix entre 0,50 et 4,00 €/L » s'affiche ; coût inchangé 40,78 €."
+    "expected": "« Entre un prix entre 0,50 et 4,00 €/L » ; coût inchangé 40,78 €."
   },
   "US-4.E2-E1-03-retour.png": {
-    "action": "L'utilisateur saisit 1,699, un prix valide.",
-    "expected": "Le message a disparu ; « Mon prix » 1,69 €/L, coût 32,08 €."
+    "action": "L'utilisateur saisit 1,699, puis touche « Revenir à la moyenne ».",
+    "expected": "Message disparu ; coût d'origine 40,78 € ; repère ajouté pour la lecture."
   },
   "US-4.E3-E1-01-declencheur.png": {
     "action": "L'utilisateur a rempli Albi, Toulouse et sa Renault Clio.",
@@ -204,20 +204,20 @@
     "expected": "Le formulaire revient avec Albi → Toulouse ; aucun résultat n'est affiché."
   },
   "US-A11Y-001-01-m2.png": {
-    "action": "L'utilisateur appuie sur la touche Tab dans le formulaire.",
-    "expected": "Le bouton « Calculer le coût » reçoit un contour visible."
+    "action": "L'utilisateur parcourt le formulaire avec la touche Tab.",
+    "expected": "Le focus suit l'ordre de lecture, du Départ à l'onglet Trajets."
   },
   "US-A11Y-001-02-m2.png": {
-    "action": "L'utilisateur appuie sur Tab sur l'écran du résultat.",
-    "expected": "Le tronçon autoroute reçoit un contour visible."
+    "action": "L'utilisateur parcourt le résultat Albi → Toulouse avec Tab.",
+    "expected": "Le focus passe par « Mettre mon prix », les trois tronçons, puis Trajets."
   },
   "US-A11Y-002-01-m2.png": {
-    "action": "L'utilisateur arrive sur le résultat Albi → Toulouse.",
-    "expected": "Le titre Albi → Toulouse est souligné, signe qu'il a le focus."
+    "action": "L'utilisateur ouvre la fiche de la station TotalEnergies Albi.",
+    "expected": "La fiche s'ouvre ; son titre porte le focus, souligné."
   },
   "US-A11Y-002-02-m2.png": {
-    "action": "L'utilisateur revient au formulaire depuis le résultat.",
-    "expected": "« Albi → Toulouse » est dans l'historique ; « Calculer » a le focus."
+    "action": "L'utilisateur ferme la fiche de la station.",
+    "expected": "Le focus revient sur la ligne TotalEnergies Albi de la liste."
   },
   "US-A11Y-003-01-m2.png": {
     "action": "L'utilisateur voit le tronçon autoroute déplié.",
@@ -229,18 +229,18 @@
   },
   "US-A11Y-004-01-m2.png": {
     "action": "L'utilisateur parcourt le formulaire avec un lecteur d'écran.",
-    "expected": "Une bulle liste les noms lus : Départ, Arrivée, Calculer le coût, etc."
+    "expected": "Chaque contrôle a un nom lu : Départ, Inverser, Supprimer… (repère de lecture)."
   },
   "US-A11Y-004-02-m2.png": {
     "action": "L'utilisateur parcourt le résultat avec un lecteur d'écran.",
-    "expected": "Une bulle annonce « Coût estimé 5,60 euros » et « Retour aux trajets »."
+    "expected": "Il entend « Coût estimé 10,99 euros » et « Retour aux trajets »."
   },
   "US-PERF-001-01-m2.png": {
     "action": "L'utilisateur ouvre l'appli sur une connexion 4G simulée.",
-    "expected": "L'écran est encore vide ; une bulle indique t = 119 ms."
+    "expected": "« Chargement des prix… » ; l'en-tête apparaît dès 419 ms."
   },
   "US-PERF-001-02-m2.png": {
-    "action": "L'utilisateur attend que l'appli ait fini de se charger.",
-    "expected": "Le formulaire et l'historique sont prêts en 768 ms."
+    "action": "L'utilisateur attend la fin du chargement.",
+    "expected": "Carte et liste des stations prêtes en 632 ms, sous 2,5 s."
   }
 }
