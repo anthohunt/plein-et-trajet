@@ -103,6 +103,7 @@ async function capture(page, nom, verif, description, section = "happy") {
     await annoter(page, `${nom.replace(/\.png$/, "")} — ${description}`.slice(0, 150), { bas: 64 });
     [liv, brute] = await prises();
     if (sha(liv) === sha(brute)) brute = await page.screenshot({ style: "html{border-top:2px solid transparent !important}" });
+    if (sha(liv) === sha(brute)) brute = await page.screenshot({ omitBackground: true }); // page sans mise en page (about:blank) : fond transparent
   }
   fs.writeFileSync(path.join(LIVRAISON, nom), liv);
   fs.writeFileSync(path.join(BRUTES, nom), brute);

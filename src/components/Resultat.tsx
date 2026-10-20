@@ -162,7 +162,11 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
             <span className="u" aria-hidden="true">{T.euro}</span>
           </span>
         )}
-        {prix != null && !multi && <span className="split" data-el="detail-cout">{T.detailCout(fmt(e.litres, 1), fmt(prix, 3))}</span>}
+        {prix != null && (
+          <span className="split" data-el="detail-cout">
+            {multi ? T.detailCoutPays(fmt(e.litres, 1), e.pays.length) : T.detailCout(fmt(e.litres, 1), fmt(prix, 3))}
+          </span>
+        )}
         {carburantEuros != null && e.peages.etat === "ok" && (
           <span className="split" data-el="repartition-cout">{T.carburantPeages(euros(carburantEuros), euros(e.peages.total))}</span>
         )}

@@ -31,34 +31,39 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 
 ### Happy Path
 - ✓ `US-3.8-01-partir-l-tranger-avant.png` — champ arrivée : « Barce » propose Barcelone, Espagne — Photon propose « Barcelone — Catalogne, Espagne » à la suite des communes françaises (IGN)
+- ✗ `US-3.8-02-partir-l-tranger-apres.png` — le calcul aboutit : itinéraire France puis Espagne — locator.innerText: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('[data-el="detail-cout"]').first()[22m 
 
 ### Edge Case
 - (rien à signaler)
 
 ### Issues Found
-- ✗ l'histoire s'est arrêtée : locator.click: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('#voiture-marque')[22m [2m    - locator resolved to <button type="button" data-valeur="" role="combobox" id="voiture-marque" class="dd-btn vide" aria-label="Marque" aria-controls=":r2:" aria-expanded="false" aria-haspopup="listbox">…</button>[22m
+- Dépendance : propositions étrangères = Photon (komoot) via la fonction `lieux` ; itinéraire = Valhalla FOSSGIS (instance publique, sans clé, ≤ 1 requête/s — politique d'usage lue le 20/10 : faible trafic, User-Agent identifiant, attribution OSM).
 
 ## US-4.4 — Voir les péages
 
 ### Happy Path
-- ✗ `US-4.4-01-voir-les-pages-avant.png` — trajet Albi → Barcelone calculé (écran Résultat) — expect(locator).toHaveCount(expected) failed  Locator:  locator('[data-el="detail-peages"]') Expected: 1
+- ✗ `US-4.4-01-voir-les-pages-avant.png` — trajet Albi → Barcelone calculé (écran Résultat) — locator.innerText: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('[data-el="detail-cout"]').first()[22m 
+- ✓ `US-4.4-02-voir-les-pages-apres.png` — lecture du détail des péages (état réel : « Péages non disponibles pour l'instant ») — BLOQUÉ-CLÉ : aucune clé PTV/HERE → impossible de lire les montants TTC par section ; état réel capturé : « Péages non disponibles pour l'instant — » (aucun montant inventé)
+- ✓ `US-4.4-03-voir-les-pages-avant.png` — trajet sans autoroute payante (écran Résultat) — résultat Albi → Castres 48 km, 6,82 €
+- ✓ `US-4.4-04-voir-les-pages-apres.png` — détail des péages : « Aucun péage sur cet itinéraire » et 0,00 € — « Aucun péage sur cet itinéraire » 0,00 € ; Carburant 6,82 € · Péages 0,00 € ; coût total inchangé
 
 ### Edge Case
 - (rien à signaler)
 
 ### Issues Found
-- ✗ l'histoire s'est arrêtée : locator.scrollIntoViewIfNeeded: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('[data-el="detail-peages"]')[22m
+- BLOQUÉ-CLÉ : US-4.4 (montants réels par section, total ajouté au coût) : il manque une clé PTV Developer (ou HERE) collée dans l'écran Moteurs. Le code est construit (PTV : prix HT + TVA du pays ; HERE : TTC) et couvert par les tests unitaires sur les formats documentés, mais aucun montant réel n'a pu être vu.
 
 ## US-4.5 — Voir les pays traversés
 
 ### Happy Path
-- (rien à signaler)
+- ✗ `US-4.5-01-voir-les-pays-traverss-avant.png` — trajet Albi → Milan calculé (écran Résultat) — locator.innerText: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('[data-el="detail-cout"]').first()[22m 
+- ✓ `US-4.5-02-voir-les-pays-traverss-apres.png` — pays traversés : km, litres, prix moyen du jour, coût ; somme = coût carburant — FR 2,160 €/L (flux du jour), IT 2,021 €/L (Bulletin UE) ; Σ coûts pays = 137,20 € = coût carburant affiché 137,20 €
 
 ### Edge Case
 - (rien à signaler)
 
 ### Issues Found
-- ✗ l'histoire s'est arrêtée : locator.click: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('[data-el="retour-trajets"]')[22m
+- aucune sur la version déployée à cette passe.
 
 ## US-4.E4 — Péages indisponibles
 
@@ -79,10 +84,12 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 - (rien à signaler)
 
 ### Edge Case
-- (rien à signaler)
+- ✓ `US-4.E5-E1-01-declencheur.png` — un trajet qui traverse la Suisse — arrivée Lausanne (Suisse) choisie ; plan : Albi → Milan via Genève — le moteur ne prend pas d'étape intermédiaire, la destination est donc fixée en Suisse pour traverser réellement le pays
+- ✓ `US-4.E5-E1-02-resultat.png` — le détail des péages porte la ligne « Vignette suisse obligatoire (non comptée) » — ligne « Vignette suisse obligatoire (non comptée) » ; pays traversés FR, CH
+- ✓ `US-4.E5-E1-03-retour.png` — retour à l'état normal — retour au formulaire ; le trajet Albi → Lausanne est en tête de l'historique
 
 ### Issues Found
-- ✗ l'histoire s'est arrêtée : locator.click: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('#voiture-marque')[22m [2m    - locator resolved to <button type="button" class="dd-btn" role="combobox" title="Peugeot" id="voiture-marque" aria-label="Marque" aria-controls=":r2:" aria-expanded="false" data-valeur="Peugeot" aria-haspopup="listbox">…</button>[22m
+- aucune sur la version déployée à cette passe.
 
 ## US-4.E6 — Pays sans prix moyen
 
@@ -167,12 +174,13 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 
 ### Happy Path
 - ✓ `US-5.5-01-enregistrer-le-moteur-avant.png` — le moteur péages basculé sur HERE (non enregistrable sans clé) — péages basculé sur HERE dans l'écran (aucune clé HERE n'existe : enregistrement impossible)
+- ✓ `US-5.5-02-enregistrer-le-moteur-apres.png` — Albi → Barcelone après la tentative (état réel : péages indisponibles) — BLOQUÉ-CLÉ : aucune clé HERE → impossible d'enregistrer HERE puis de voir des péages HERE ; état réel : le moteur actif reste PTV (sans clé), « Péages non disponibles pour l'instant »
 
 ### Edge Case
 - (rien à signaler)
 
 ### Issues Found
-- ✗ l'histoire s'est arrêtée : locator.click: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('#voiture-marque')[22m [2m    - locator resolved to <button type="button" class="dd-btn" role="combobox" title="Peugeot" id="voiture-marque" aria-label="Marque" aria-controls=":r2:" aria-expanded="false" data-valeur="Peugeot" aria-haspopup="listbox">…</button>[22m
+- BLOQUÉ-CLÉ : US-5.5 (péages venant de HERE sans redéploiement) : il manque une clé HERE (plan Base, carte bancaire) collée dans l'écran Moteurs. La lecture du moteur actif à chaque appel est en place (table moteurs + Vault) ; la bascule vers HERE n'a pas pu être vue avec de vrais montants.
 
 ## US-5.E1 — Moteurs invisibles aux visiteurs
 
@@ -180,11 +188,12 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 - (rien à signaler)
 
 ### Edge Case
-- ✗ `US-5.E1-E1-01-declencheur.png` — un appareil non administrateur — expect(received).toMatch(expected)  Matcher error: received value must be a string 
+- ✓ `US-5.E1-E1-01-declencheur.png` — un appareil non administrateur — appareil non administrateur : session anonyme 9654ced5…, aucun claim admin
 - ✓ `US-5.E1-E1-02-resultat.png` — l'appli s'ouvre : pas de bouton ⚙, /moteurs redirige — le bouton ⚙ n'est pas affiché ; l'adresse /moteurs renvoie à l'écran Prix (S5 absent)
+- ✓ `US-5.E1-E1-03-retour.png` — lecture et écriture de la table moteurs refusées par le serveur ; l'appli reste normale — refus par le serveur (pas seulement le bouton caché) : lecture_moteurs 0 ligne(s) visible(s) / 6 en base ; insertion 403 ; modification 200 (0 ligne modifiée) ; suppression 200 (0 ligne supprimée) ; cles_fournisseurs 403 ; rpc_moteur_cle 403 ; fonction_moteurs 403 ; fonction_sans_session 401 ; la ligne péages est intacte (actif = ptv)
 
 ### Issues Found
-- ✗ l'histoire s'est arrêtée : Cannot read properties of null (reading 'jeton')
+- aucune sur la version déployée à cette passe.
 
 ## US-5.E2 — Clé refusée
 
@@ -205,9 +214,9 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 - (rien à signaler)
 
 ### Edge Case
-- ✗ `US-5.E3-E1-01-declencheur.png` — PTV en panne et HERE enregistré en secours — expect(received).toEqual(expected) // deep equality  - Expected  - 1 + Received  + 1
+- ✓ `US-5.E3-E1-01-declencheur.png` — PTV en panne et HERE enregistré en secours — péages : PTV actif (clé refusée = fournisseur principal hors service), HERE enregistré en secours. Le plan suppose une panne PTV simulée côté fonction (page.route impossible côté serveur) ; ici les deux fournisseurs sont réellement injoignables faute de clé valide
 - ✓ `US-5.E3-E1-02-resultat.png` — je calcule un trajet : la chaîne PTV → HERE est parcourue — calcul réel : la fonction essaie PTV (401) puis HERE (401) ; les deux refusent, « Péages non disponibles pour l'instant », coût carburant conservé
-- ✓ `US-5.E3-E1-03-retour.png` — l'écran Moteurs note l'incident (la bascule réussie est bloquée faute de clé HERE) — l'écran Moteurs note l'incident avec l'heure : « Dernier incident · PTV : clé refusée (401) · 20/10 18:32 » ; BLOQUÉ-CLÉ : la bascule réussie vers HERE (« Bascule PTV → HERE le … ») exige une clé HERE valide — bascule_le = null
+- ✓ `US-5.E3-E1-03-retour.png` — l'écran Moteurs note l'incident (la bascule réussie est bloquée faute de clé HERE) — l'écran Moteurs note l'incident avec l'heure : « Dernier incident · PTV : clé refusée (401) · 20/10 18:40 » ; BLOQUÉ-CLÉ : la bascule réussie vers HERE (« Bascule PTV → HERE le … ») exige une clé HERE valide — bascule_le = null
 
 ### Issues Found
 - BLOQUÉ-CLÉ : US-5.E3 (péages venant de HERE quand PTV tombe, bascule notée avec l'heure) : il manque une clé HERE valide (et une clé PTV valide pour provoquer une vraie panne côté PTV). La chaîne actif → secours, l'incident horodaté et la note de bascule sont construits et testés unitairement (executerChaine).
@@ -241,12 +250,13 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 ### Happy Path
 - ✓ `US-A11Y-003-01-m3.png` — la fiche est ouverte — fiche d'une station espagnole ouverte
 - ✓ `US-A11Y-003-02-m3.png` — Échap ferme la fiche — Échap ferme la fiche
+- ✓ (hors capture) trajet Albi → Barcelone : tronçon espagnol déplié, Échap le replie et rend le focus au tronçon.
 
 ### Edge Case
 - (rien à signaler)
 
 ### Issues Found
-- ✗ l'histoire s'est arrêtée : locator.click: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('#voiture-marque')[22m [2m    - locator resolved to <button type="button" class="dd-btn" role="combobox" title="Peugeot" id="voiture-marque" aria-label="Marque" aria-controls=":r2:" aria-expanded="false" data-valeur="Peugeot" aria-haspopup="listbox">…</button>[22m
+- aucune sur la version déployée à cette passe.
 
 ## US-A11Y-004 — Libellés lisibles (jalon 3)
 
@@ -264,8 +274,8 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 
 ### Happy Path
 - ✓ `US-PERF-001-01-m3.png` — avant l'ouverture (4G émulée) — contexte 4G émulée (latence 150 ms, 1,6 Mbit/s), position Barcelone, avant ouverture
-- ✓ `US-PERF-001-02-m3.png` — la liste des stations s'affiche en moins de 2,5 s — liste affichée en 2000 ms (seuil 2 500 ms) à Barcelone avec 4G émulée
-- ✓ (comparaison) Albi, même 4G émulée : 2005 ms.
+- ✓ `US-PERF-001-02-m3.png` — la liste des stations s'affiche en moins de 2,5 s — liste affichée en 2007 ms (seuil 2 500 ms) à Barcelone avec 4G émulée
+- ✓ (comparaison) Albi, même 4G émulée : 2000 ms.
 
 ### Edge Case
 - (rien à signaler)

@@ -145,6 +145,7 @@ export const T = {
   carburantSeul: (c: string) => `Carburant ${c} €`,
   moyennePaysParPays: (c: string) => `Moyenne du jour, pays par pays · ${c}`,
   monPrixTousPays: "Mon prix (tous pays)",
+  detailCoutPays: (l: string, n: number) => `${l} L · prix du jour de chacun des ${n} pays`,
   paysLigne2: (l: string, p: string) => `${l} L × ${p}`,
   moyennePaysSeul: (pays: string, c: string) => `Moyenne du jour · ${pays} · ${c}`,
   prixNonPublie: "prix non publié — moyenne européenne appliquée",
