@@ -22,6 +22,7 @@
   --p-bg:#1d1a17;--p-ink:#ece6dd;--p-muted:#a69b8f;--p-line:#36302a;--p-accent:#d39566;--p-hl:#3a2e22;color-scheme:dark}
 
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{background:var(--ground);color:var(--ink);font:16px/1.45 var(--f-body);padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -139,6 +140,11 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
 .tr .lit{font:600 14px var(--f-digits)}
 .note{margin:0 16px 14px;font-size:12px;color:var(--muted)}
 
+.split{font-size:14px;color:var(--muted)}.split b{color:var(--ink);font-family:var(--f-digits)}
+.plist{list-style:none;margin:0;padding:0 16px 4px}
+.pl{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.pl b{font-family:var(--f-display);font-size:13px;letter-spacing:.04em;margin-right:4px}
+.pl.tot{font-weight:600;border-bottom:0}
 /* onglets */
 .tabs{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);background:var(--surface)}
 .tab{border:0;background:transparent;padding:12px 0 14px;font:800 17px/1 var(--f-display);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);position:relative}
@@ -212,7 +218,7 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
           <div class="fld"><label for="dep">Départ</label><input id="dep" list="lieux" value="Albi" data-el="champ-depart" autocomplete="off"></div>
           <div class="fld"><label for="arr">Arrivée</label><input id="arr" list="lieux" value="Bordeaux" data-el="champ-arrivee" autocomplete="off"></div>
         </div>
-        <datalist id="lieux"><option value="Albi"><option value="Bordeaux"><option value="Toulouse"><option value="Castres"><option value="Rodez"><option value="Montpellier"></datalist>
+        <datalist id="lieux"><option value="Albi"><option value="Bordeaux"><option value="Toulouse"><option value="Castres"><option value="Rodez"><option value="Montpellier"><option value="Barcelone"><option value="Milan"></datalist>
         <div data-el="choix-voiture" style="display:grid;gap:6px">
           <div class="car">
             <select id="marque" aria-label="Marque"></select>
@@ -234,7 +240,7 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
       <div class="rhead"><button class="back" type="button" data-el="retour-trajets" id="back">← Trajets</button></div>
       <div class="route" id="r-route">Albi → Bordeaux</div>
       <p class="rsub" id="r-car"></p>
-      <div class="costbox"><span class="totem big" id="r-cost"></span></div>
+      <div class="costbox"><span class="totem big" id="r-cost"></span><span class="split" id="r-split"></span></div>
       <div class="kpis">
         <div class="kpi"><b id="r-l">—</b><span>litres</span></div>
         <div class="kpi"><b id="r-km">—</b><span>km</span></div>
@@ -245,9 +251,13 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
         <div class="l"><button class="link" type="button" id="perso-btn">Mettre mon prix</button>
           <span id="perso-wrap" hidden><label for="perso" style="font-size:13px;color:var(--muted)">€/L </label><input id="perso" inputmode="decimal" placeholder="1,699"></span></div>
       </div>
+      <h2 class="sec">Péages</h2>
+      <ul class="plist" id="peages" data-el="detail-peages"></ul>
+      <h2 class="sec">Pays traversés</h2>
+      <ul class="plist" id="pays" data-el="pays-traverses"></ul>
       <h2 class="sec">D'où vient la consommation</h2>
       <ul class="segs" id="segs"></ul>
-      <p class="note">Estimation : itinéraire découpé en tronçons, modèle physique de la voiture (masse, aérodynamique, rendement moteur), vitesses et arrêts typiques de chaque tronçon. Données d'exemple.</p>
+      <p class="note">Estimation : itinéraire découpé en tronçons, modèle physique de la voiture (masse, aérodynamique, rendement moteur), vitesses, arrêts et dénivelé de chaque tronçon ; prix moyen du jour dans chaque pays traversé ; péages voiture TTC, vignettes non incluses. Données d'exemple.</p>
     </div>
   </section>
 
@@ -285,12 +295,15 @@ const STORIES=[
  ["US-3.7","S3","supprimer-trajet","Supprimer un trajet","La croix retire le trajet de l'historique."],
  ["US-4.1","S4","troncon-trajet","Comprendre le calcul","Chaque tronçon se déplie : vitesse, arrêts, litres."],
  ["US-4.2","S4","prix-perso","Mettre mon propre prix","Remplace la moyenne nationale et recalcule le coût."],
- ["US-4.3","S4","retour-trajets","Revenir aux trajets","Le calcul a rejoint l'historique."]
+ ["US-4.3","S4","retour-trajets","Revenir aux trajets","Le calcul a rejoint l'historique."],
+ ["US-3.8","S3","champ-arrivee","Partir à l'étranger","Arrivée hors de France (Barcelone, Milan) : l'itinéraire traverse plusieurs pays."],
+ ["US-4.4","S4","detail-peages","Voir les péages","Chaque section payante avec son montant TTC, et le total ajouté au coût."],
+ ["US-4.5","S4","pays-traverses","Voir les pays traversés","Km, litres et prix moyen du jour de chaque pays, et le coût carburant par pays."]
 ];
 const SCREENNAMES={S1:"Prix",S2:"Fiche station",S3:"Trajets",S4:"Résultat du trajet"};
 
 const FUELS=["Gazole","SP95-E10","SP95","SP98","E85","GPLc"];
-const NAT={"Gazole":1.689,"SP95-E10":1.732,"SP95":1.769,"SP98":1.829,"E85":0.829,"GPLc":0.989};
+const NAT={"Gazole":2.367,"SP95-E10":2.161,"SP95":2.214,"SP98":2.271,"E85":1.068,"GPLc":1.159};
 const STATIONS=[
  {n:"E.Leclerc Albi",a:"Av. Gambetta, Albi",d:1.2,x:30,y:36,off:-.052,maj:"il y a 2 h",s:"24/24 · lavage · gonflage",miss:[]},
  {n:"Intermarché Saint-Juéry",a:"Route de Millau, Saint-Juéry",d:4.0,x:82,y:28,off:-.031,maj:"il y a 5 h",s:"24/24 · boutique",miss:["GPLc"]},
@@ -304,12 +317,15 @@ const CARS={
  "Renault":{"Clio IV":[["TCe 90 ch","SP95-E10",{A:6.7,R:5.0,V:6.3,M:8.1},1090],["dCi 90 ch","Gazole",{A:5.4,R:3.9,V:4.9,M:6.7},1175]],"Mégane":[["TCe 140 ch","SP95-E10",{A:7.3,R:5.6,V:7.0,M:9.0},1320]]},
  "Dacia":{"Sandero":[["TCe 90 ch","SP95-E10",{A:6.6,R:5.0,V:6.2,M:8.0},1080],["ECO-G 100 ch","GPLc",{A:8.4,R:6.4,V:8.0,M:10.2},1110]]}
 };
+const PAYS={FR:["France",{"Gazole":2.367,"SP95-E10":2.161,"SP95":2.214,"SP98":2.271,"E85":1.068,"GPLc":1.159}],ES:["Espagne",{"Gazole":1.799,"SP95-E10":1.712,"SP95":1.712,"SP98":1.869,"E85":1.299,"GPLc":0.989}],IT:["Italie",{"Gazole":2.049,"SP95-E10":1.990,"SP95":1.990,"SP98":2.149,"E85":1.399,"GPLc":0.899}]};
 const ROUTES={
- "Bordeaux":[["A","Autoroute A62 / A68",205,"118 km/h moy. · 0 arrêt"],["R","Routes N88 / D988",33,"78 km/h · 4 ronds-points"],["V","Traversées de ville",9,"28 km/h · 21 arrêts"],["M","Montées (Causse, Tarn)",6,"+180 m de dénivelé"]],
- "Toulouse":[["A","Autoroute A68",62,"116 km/h moy. · 0 arrêt"],["R","Rocade et N88",9,"72 km/h · 3 ronds-points"],["V","Traversées de ville",6,"24 km/h · 18 arrêts"]],
- "Castres":[["R","N126 / D612",36,"76 km/h · 7 ronds-points"],["V","Traversées de ville",4,"27 km/h · 12 arrêts"],["M","Montées (Montagne Noire)",2,"+90 m de dénivelé"]],
- "Rodez":[["R","N88",64,"84 km/h · 6 ronds-points"],["V","Traversées de ville",5,"26 km/h · 14 arrêts"],["M","Montées (Ségala)",8,"+420 m de dénivelé"]],
- "Montpellier":[["A","Autoroute A75 / A750",118,"112 km/h moy. · 0 arrêt"],["R","D999 / N88",72,"74 km/h · 9 ronds-points"],["V","Traversées de ville",10,"27 km/h · 23 arrêts"],["M","Montées (Lévézou)",11,"+610 m de dénivelé"]]
+ "Bordeaux":{segs:[["A","Autoroute A68 / A62",205,"118 km/h moy. · 0 arrêt","FR"],["R","Routes N88 / D988",33,"78 km/h · 4 ronds-points","FR"],["V","Traversées de ville",9,"28 km/h · 21 arrêts","FR"],["M","Montées (Causse, Tarn)",6,"+180 m de dénivelé","FR"]],peages:[["FR","ASF · A62 Toulouse Nord → Bordeaux",21.40]]},
+ "Toulouse":{segs:[["A","Autoroute A68",62,"116 km/h moy. · 0 arrêt","FR"],["R","Rocade et N88",9,"72 km/h · 3 ronds-points","FR"],["V","Traversées de ville",6,"24 km/h · 18 arrêts","FR"]],peages:[]},
+ "Castres":{segs:[["R","N126 / D612",36,"76 km/h · 7 ronds-points","FR"],["V","Traversées de ville",4,"27 km/h · 12 arrêts","FR"],["M","Montées (Montagne Noire)",2,"+90 m de dénivelé","FR"]],peages:[]},
+ "Rodez":{segs:[["R","N88",64,"84 km/h · 6 ronds-points","FR"],["V","Traversées de ville",5,"26 km/h · 14 arrêts","FR"],["M","Montées (Ségala)",8,"+420 m de dénivelé","FR"]],peages:[]},
+ "Montpellier":{segs:[["A","Autoroute A75 / A750",118,"112 km/h moy. · 0 arrêt","FR"],["R","D999 / N88",72,"74 km/h · 9 ronds-points","FR"],["V","Traversées de ville",10,"27 km/h · 23 arrêts","FR"],["M","Montées (Lévézou)",11,"+610 m de dénivelé","FR"]],peages:[]},
+ "Barcelone":{segs:[["A","Autoroutes A61 / A9",238,"121 km/h moy. · 0 arrêt","FR"],["R","Routes N88 / D612",48,"76 km/h · 6 ronds-points","FR"],["A","Autoroute AP-7",152,"112 km/h moy. · 0 arrêt","ES"],["V","Traversées de ville",14,"25 km/h · 31 arrêts","ES"],["M","Montées (col du Perthus)",9,"+290 m de dénivelé","FR"]],peages:[["FR","ASF · A61 Toulouse Sud → Narbonne",13.90],["FR","ASF · A9 Narbonne → Le Boulou",10.10],["ES","AP-7 La Jonquera → Barcelone",0]]},
+ "Milan":{segs:[["A","Autoroutes A61 / A9 / A8",512,"118 km/h moy. · 0 arrêt","FR"],["R","Routes N88 / D612",48,"76 km/h · 6 ronds-points","FR"],["A","Autoroutes A10 / A26 / A7",268,"114 km/h moy. · 0 arrêt","IT"],["V","Traversées de ville",15,"24 km/h · 34 arrêts","IT"],["M","Montées (Ligurie)",22,"+640 m de dénivelé","IT"]],peages:[["FR","ASF / Escota · A61, A9, A8 → Vintimille",58.30],["IT","Autostrade · A10 / A26 / A7 → Milan",31.80]]}
 };
 const TAGS={A:"Autoroute",R:"Route",V:"Ville",M:"Montée"};
 
@@ -354,28 +370,34 @@ function carSpec(){return CARS[car.marque][car.modele][car.moteur];}
 
 /* ---------- TRAJET ---------- */
 function compute(dep,arr){
-  const segs=(ROUTES[arr]||[["R","Routes",80,"75 km/h · 6 ronds-points"],["V","Traversées de ville",8,"27 km/h · 15 arrêts"]]);
-  const m=carSpec();let L=0,km=0;
-  const rows=segs.map(s=>{const l=s[2]*m[2][s[0]]/100;L+=l;km+=s[2];return {t:s[0],name:s[1],km:s[2],info:s[3],l,l100:m[2][s[0]]};});
-  return {dep,arr,rows,L,km,fuel:m[1],car:car.marque+" "+car.modele+" "+m[0]};
+  const R=ROUTES[arr]||{segs:[["R","Routes",80,"75 km/h · 6 ronds-points","FR"],["V","Traversées de ville",8,"27 km/h · 15 arrêts","FR"]],peages:[]};
+  const m=carSpec();let L=0,km=0;const pays={};
+  const rows=R.segs.map(s=>{const l=s[2]*m[2][s[0]]/100;L+=l;km+=s[2];const c=s[4];pays[c]=pays[c]||{km:0,l:0};pays[c].km+=s[2];pays[c].l+=l;return {t:s[0],name:s[1],km:s[2],info:s[3],l,l100:m[2][s[0]],c};});
+  const peage=R.peages.reduce((a,p)=>a+p[2],0);
+  return {dep,arr,rows,L,km,fuel:m[1],car:car.marque+" "+car.modele+" "+m[0],pays,peages:R.peages,peage};
 }
+function fuelCost(t){return Object.keys(t.pays).reduce((a,c)=>a+t.pays[c].l*(persoPrice||PAYS[c][1][t.fuel]),0);}
 function showResult(t){
   lastTrip=t;persoPrice=null;$("#perso").value="";$("#perso-wrap").hidden=true;
   $("#r-route").textContent=t.dep+" → "+t.arr;
   $("#r-car").textContent=t.car+" · "+t.fuel;
   $("#r-l").textContent=fmt(t.L,1);$("#r-km").textContent=Math.round(t.km);$("#r-l100").textContent=fmt(t.L/t.km*100,1);
   const max=Math.max(...t.rows.map(r=>r.l));
-  $("#segs").innerHTML=t.rows.map((r,k)=>'<li class="tr"><button type="button" aria-expanded="false"'+(k===0?' data-el="troncon-trajet"':'')+'><span class="tag '+r.t+'">'+TAGS[r.t]+'</span><span><span>'+r.name+' · '+r.km+' km</span><span class="bar"><i style="width:'+(r.l/max*100)+'%"></i></span></span><span class="lit">'+fmt(r.l,1)+' L</span></button><div class="det" hidden>'+r.info+' · '+fmt(r.l100,1)+' L/100 km sur ce tronçon</div></li>').join("");
+  $("#segs").innerHTML=t.rows.map((r,k)=>'<li class="tr"><button type="button" aria-expanded="false"'+(k===0?' data-el="troncon-trajet"':'')+'><span class="tag '+r.t+'">'+TAGS[r.t]+'</span><span><span>'+r.name+' · '+r.km+' km · '+r.c+'</span><span class="bar"><i style="width:'+(r.l/max*100)+'%"></i></span></span><span class="lit">'+fmt(r.l,1)+' L</span></button><div class="det" hidden>'+r.info+' · '+fmt(r.l100,1)+' L/100 km sur ce tronçon</div></li>').join("");
   renderCost();show("S4");
 }
 function renderCost(){
-  const p=persoPrice||NAT[lastTrip.fuel];
-  $("#r-pricelab").textContent=persoPrice?"Mon prix":"Moyenne France du jour · "+lastTrip.fuel;
-  $("#r-price").innerHTML=totem(p,'€/L');
-  $("#r-cost").innerHTML='<span class="roll">'+fmt(lastTrip.L*p,2)+'</span><span class="u">€</span>';
+  const t=lastTrip, fc=fuelCost(t), tot=fc+t.peage;
+  $("#r-pricelab").textContent=persoPrice?"Mon prix (tous pays)":"Moyenne du jour, pays par pays · "+t.fuel;
+  const multi=Object.keys(t.pays).length>1;
+  $("#r-price").innerHTML=totem(persoPrice||PAYS[Object.keys(t.pays)[0]][1][t.fuel],'€/L')+(multi&&!persoPrice?'<span class="u">FR</span>':'');
+  $("#r-cost").innerHTML='<span class="roll">'+fmt(tot,2)+'</span><span class="u">€</span>';
+  $("#r-split").innerHTML='Carburant <b>'+fmt(fc,2)+' €</b> · Péages <b>'+fmt(t.peage,2)+' €</b>';
+  $("#peages").innerHTML=t.peages.length?t.peages.map(p=>'<li class="pl"><span><b>'+p[0]+'</b> '+p[1]+'</span><span class="lit">'+(p[2]?fmt(p[2],2)+' €':'gratuit')+'</span></li>').join("")+'<li class="pl tot"><span>Total péages</span><span class="lit">'+fmt(t.peage,2)+' €</span></li>':'<li class="pl"><span>Aucun péage sur cet itinéraire</span><span class="lit">0,00 €</span></li>';
+  $("#pays").innerHTML=Object.keys(t.pays).map(c=>{const x=t.pays[c],p=persoPrice||PAYS[c][1][t.fuel];return '<li class="pl"><span><b>'+c+'</b> '+PAYS[c][0]+' · '+Math.round(x.km)+' km · '+fmt(x.l,1)+' L × '+fmt(p,3)+'</span><span class="lit">'+fmt(x.l*p,2)+' €</span></li>';}).join("");
 }
 function renderHist(){
-  $("#hist").innerHTML=hist.length?hist.map((h,i)=>{const t=compute(h.dep,h.arr);return '<li class="hrow"><button type="button" class="go" data-h="'+i+'"'+(i===0?' data-el="ligne-historique"':'')+'><span class="t">'+h.dep+' → '+h.arr+'</span><br><span class="m">'+Math.round(t.km)+' km · '+h.when+'</span></button><span class="c">'+fmt(t.L*NAT[t.fuel],2)+' €</span><button type="button" class="x" data-del="'+i+'"'+(i===0?' data-el="supprimer-trajet"':'')+' aria-label="Supprimer ce trajet">✕</button></li>';}).join(""):'<li class="empty">Aucun trajet pour l\'instant. Calcule ton premier trajet ci-dessus.</li>';
+  $("#hist").innerHTML=hist.length?hist.map((h,i)=>{const t=compute(h.dep,h.arr);return '<li class="hrow"><button type="button" class="go" data-h="'+i+'"'+(i===0?' data-el="ligne-historique"':'')+'><span class="t">'+h.dep+' → '+h.arr+'</span><br><span class="m">'+Math.round(t.km)+' km · '+h.when+'</span></button><span class="c">'+fmt(fuelCost(t)+t.peage,2)+' €</span><button type="button" class="x" data-del="'+i+'"'+(i===0?' data-el="supprimer-trajet"':'')+' aria-label="Supprimer ce trajet">✕</button></li>';}).join(""):'<li class="empty">Aucun trajet pour l\'instant. Calcule ton premier trajet ci-dessus.</li>';
 }
 
 /* ---------- NAVIGATION ---------- */

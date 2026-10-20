@@ -15,7 +15,8 @@ module.exports = {
   "US-1.E2",
   "US-1.E3",
   "US-1.E4",
-  "US-1.P1"
+  "US-1.P1",
+  "US-1.8"
  ],
  "acceptanceCriteria": {
   "US-1.1": [
@@ -56,6 +57,10 @@ module.exports = {
   ],
   "US-1.P1": [
    "ÉTANT DONNÉ la carte déplacée, QUAND je touche le bouton de recentrage de la carte des stations, ALORS la carte revient sur ma position et la liste se recharge"
+  ],
+  "US-1.8": [
+   "ÉTANT DONNÉ ma position à Barcelone, QUAND j'ouvre l'onglet Prix, ALORS la carte des stations et la liste affichent les stations espagnoles avec leurs prix officiels",
+   "ÉTANT DONNÉ ma position dans un pays qui ne publie pas ses prix, QUAND j'ouvre l'onglet Prix, ALORS un message indique « Ce pays ne publie pas les prix station par station » et affiche le prix moyen national"
   ]
  }
 };

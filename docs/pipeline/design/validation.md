@@ -1,9 +1,7 @@
 # Validation du mockup — 2026-10-20
 
-**Décision : validé** par Anthony (« Très bien, go »), le 2026-10-20 à 11:59 heure du serveur, sur la version publiée :
-- artifact https://claude.ai/artifact/ABLa4ayGVPMQVNDrh77Yqz (version 1)
-- public https://projets.ingevision.cloud/design/prix-carburant-trajets-2026-10-20-114307/mockup.html
+**Décision : validé** par Anthony, en deux temps :
+1. 2026-10-20 ~12h20 : version 1 (« Très bien, go ») — S1 Prix, S2 Fiche station, S3 Trajets, S4 Résultat ; 18 histoires v1, aucune correction.
+2. 2026-10-20 à 13:25 : version 2 (réponse « A — Validé ») — ajout des **péages** et de **l'Europe** : coût total = carburant + péages, liste des péages (montant TTC ou « gratuit »), liste des pays traversés (km, litres, prix moyen du jour par pays), destinations à l'étranger (Barcelone, Milan). 3 histoires v1 ajoutées (US-3.8, US-4.4, US-4.5). Vignettes signalées mais non chiffrées ; carte des stations centrée sur la position, étendue aux pays qui publient leurs prix.
 
-Écrans validés : S1 Prix (sélecteur de carburant, carte, liste triable), S2 Fiche station (tous les carburants, trajet vers la station), S3 Trajets (départ, arrivée, voiture marque → modèle → motorisation, historique), S4 Résultat (coût, litres, km, L/100, tronçons dépliables, prix perso).
-
-Changements demandés pendant le test : aucun. Les 18 histoires v1 sont validées telles quelles.
+Adresses : artifact https://claude.ai/artifact/ABLa4ayGVPMQVNDrh77Yqz (version 2) · public https://projets.ingevision.cloud/design/prix-carburant-trajets-2026-10-20-114307/mockup.html

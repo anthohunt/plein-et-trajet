@@ -10,7 +10,12 @@ module.exports = {
   "US-4.3",
   "US-4.E1",
   "US-4.E2",
-  "US-4.E3"
+  "US-4.E3",
+  "US-4.4",
+  "US-4.5",
+  "US-4.E4",
+  "US-4.E5",
+  "US-4.E6"
  ],
  "acceptanceCriteria": {
   "US-4.1": [
@@ -32,6 +37,22 @@ module.exports = {
   ],
   "US-4.E3": [
    "ÉTANT DONNÉ un calcul qui dure plus d'une seconde, QUAND j'attends, ALORS un état « Calcul de l'itinéraire… » s'affiche avec un bouton Annuler qui ramène au formulaire"
+  ],
+  "US-4.4": [
+   "ÉTANT DONNÉ un trajet Albi → Barcelone calculé, QUAND je lis le détail des péages, ALORS chaque section payante affiche son montant TTC en euros (« gratuit » si 0), le total des péages est affiché et ajouté au coût total",
+   "ÉTANT DONNÉ un trajet sans autoroute payante, QUAND le résultat s'affiche, ALORS le détail des péages indique « Aucun péage sur cet itinéraire » et 0,00 €"
+  ],
+  "US-4.5": [
+   "ÉTANT DONNÉ un trajet Albi → Milan calculé, QUAND je lis les pays traversés, ALORS chaque pays affiche km, litres, prix moyen du jour de son carburant et coût, et la somme des coûts pays égale le coût carburant"
+  ],
+  "US-4.E4": [
+   "ÉTANT DONNÉ le service de péages en erreur, QUAND je lance un calcul, ALORS le coût carburant s'affiche et le détail des péages indique « Péages non disponibles pour l'instant » sans les ajouter au total"
+  ],
+  "US-4.E5": [
+   "ÉTANT DONNÉ un trajet qui traverse la Suisse, QUAND le résultat s'affiche, ALORS le détail des péages porte la ligne « Vignette suisse obligatoire (non comptée) »"
+  ],
+  "US-4.E6": [
+   "ÉTANT DONNÉ un pays traversé absent des moyennes (ex. Serbie), QUAND le résultat s'affiche, ALORS sa ligne dans les pays traversés porte « prix non publié — moyenne européenne appliquée » et le prix utilisé"
   ]
  }
 };

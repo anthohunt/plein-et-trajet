@@ -1,20 +1,170 @@
 [
-  {"id": "US-1.1", "screen": "S1", "target": "onglet-prix", "title": "Ouvrir les prix", "detail": "L'onglet Prix (onglet-prix) affiche la carte et la liste des stations autour de moi.", "story": "En tant que conducteur, je touche l'onglet Prix pour voir les stations autour de moi."},
-  {"id": "US-1.2", "screen": "S1", "target": "selecteur-carburant", "title": "Choisir mon carburant", "detail": "Le sélecteur de carburant change tous les prix affichés (carte et liste).", "story": "En tant que conducteur, je choisis mon carburant dans le sélecteur pour ne voir que les prix qui me concernent."},
-  {"id": "US-1.3", "screen": "S1", "target": "carte-stations", "title": "Voir les stations sur la carte", "detail": "La carte des stations montre chaque station autour de moi avec son prix.", "story": "En tant que conducteur, je regarde la carte des stations pour repérer où elles sont."},
-  {"id": "US-1.4", "screen": "S1", "target": "pastille-station", "title": "Toucher une pastille", "detail": "Chaque pastille de station porte son prix et sa couleur (bas / haut) ; la toucher ouvre la fiche.", "story": "En tant que conducteur, je touche la pastille d'une station sur la carte pour ouvrir sa fiche."},
-  {"id": "US-1.5", "screen": "S1", "target": "tri-liste", "title": "Trier la liste", "detail": "Le tri de la liste bascule entre « moins cher » et « plus proche ».", "story": "En tant que conducteur, je trie la liste par prix ou par distance."},
-  {"id": "US-1.6", "screen": "S1", "target": "ligne-station", "title": "Lire une station dans la liste", "detail": "Chaque ligne de station donne enseigne, distance, ancienneté du prix et le prix sur une plaque de totem.", "story": "En tant que conducteur, je lis la liste des stations triée et touche une ligne de station pour voir sa fiche."},
-  {"id": "US-2.1", "screen": "S2", "target": "fermer-fiche", "title": "Fermer la fiche", "detail": "Le bouton de fermeture de la fiche revient à la carte sans perdre le carburant choisi.", "story": "En tant que conducteur, je ferme la fiche station pour revenir à la carte."},
-  {"id": "US-2.2", "screen": "S2", "target": "bouton-trajet-station", "title": "Calculer un trajet vers la station", "detail": "Depuis la fiche, le bouton trajet pré-remplit l'arrivée avec l'adresse de la station.", "story": "En tant que conducteur, je lance un trajet vers cette station depuis sa fiche."},
-  {"id": "US-3.1", "screen": "S3", "target": "onglet-trajets", "title": "Ouvrir les trajets", "detail": "L'onglet Trajets affiche le formulaire et, dessous, l'historique.", "story": "En tant que conducteur, je touche l'onglet Trajets pour estimer le coût d'un trajet."},
-  {"id": "US-3.2", "screen": "S3", "target": "champ-depart", "title": "Saisir le départ", "detail": "Le champ départ propose des lieux au fil de la frappe.", "story": "En tant que conducteur, je saisis mon lieu de départ."},
-  {"id": "US-3.3", "screen": "S3", "target": "champ-arrivee", "title": "Saisir l'arrivée", "detail": "Le champ arrivée propose des lieux au fil de la frappe.", "story": "En tant que conducteur, je saisis mon lieu d'arrivée."},
-  {"id": "US-3.4", "screen": "S3", "target": "choix-voiture", "title": "Choisir ma voiture", "detail": "Marque, puis modèle, puis motorisation ; le choix de voiture est mémorisé pour la fois suivante.", "story": "En tant que conducteur, je choisis ma voiture par marque, modèle et motorisation, et l'appli s'en souvient."},
-  {"id": "US-3.5", "screen": "S3", "target": "bouton-calculer", "title": "Calculer le coût", "detail": "Le bouton calculer lance l'estimation et ouvre le résultat.", "story": "En tant que conducteur, je touche Calculer pour obtenir le coût estimé du trajet."},
-  {"id": "US-3.6", "screen": "S3", "target": "ligne-historique", "title": "Rejouer un ancien trajet", "detail": "Toucher une ligne de l'historique recalcule ce trajet au prix du jour.", "story": "En tant que conducteur, je touche un trajet de l'historique pour le recalculer au prix du jour."},
-  {"id": "US-3.7", "screen": "S3", "target": "supprimer-trajet", "title": "Supprimer un trajet", "detail": "La croix supprime le trajet de l'historique.", "story": "En tant que conducteur, je supprime un trajet de l'historique."},
-  {"id": "US-4.1", "screen": "S4", "target": "troncon-trajet", "title": "Comprendre le calcul", "detail": "Chaque tronçon du trajet (autoroute, route, ville, montée) se déplie : vitesse, arrêts, litres.", "story": "En tant que conducteur, je déplie un tronçon du trajet pour voir d'où vient la consommation."},
-  {"id": "US-4.2", "screen": "S4", "target": "prix-perso", "title": "Mettre mon propre prix", "detail": "Le prix perso remplace la moyenne nationale du jour et recalcule le coût.", "story": "En tant que conducteur, je saisis mon prix perso au litre pour recalculer le coût."},
-  {"id": "US-4.3", "screen": "S4", "target": "retour-trajets", "title": "Revenir aux trajets", "detail": "Le retour aux trajets montre le formulaire, le trajet est déjà dans l'historique.", "story": "En tant que conducteur, je reviens aux trajets ; le calcul a rejoint l'historique."}
+ {
+  "id": "US-1.1",
+  "screen": "S1",
+  "target": "onglet-prix",
+  "title": "Ouvrir les prix",
+  "detail": "L'onglet Prix (onglet-prix) affiche la carte et la liste des stations autour de moi.",
+  "story": "En tant que conducteur, je touche l'onglet Prix pour voir les stations autour de moi."
+ },
+ {
+  "id": "US-1.2",
+  "screen": "S1",
+  "target": "selecteur-carburant",
+  "title": "Choisir mon carburant",
+  "detail": "Le sélecteur de carburant change tous les prix affichés (carte et liste).",
+  "story": "En tant que conducteur, je choisis mon carburant dans le sélecteur pour ne voir que les prix qui me concernent."
+ },
+ {
+  "id": "US-1.3",
+  "screen": "S1",
+  "target": "carte-stations",
+  "title": "Voir les stations sur la carte",
+  "detail": "La carte des stations montre chaque station autour de moi avec son prix.",
+  "story": "En tant que conducteur, je regarde la carte des stations pour repérer où elles sont."
+ },
+ {
+  "id": "US-1.4",
+  "screen": "S1",
+  "target": "pastille-station",
+  "title": "Toucher une pastille",
+  "detail": "Chaque pastille de station porte son prix et sa couleur (bas / haut) ; la toucher ouvre la fiche.",
+  "story": "En tant que conducteur, je touche la pastille d'une station sur la carte pour ouvrir sa fiche."
+ },
+ {
+  "id": "US-1.5",
+  "screen": "S1",
+  "target": "tri-liste",
+  "title": "Trier la liste",
+  "detail": "Le tri de la liste bascule entre « moins cher » et « plus proche ».",
+  "story": "En tant que conducteur, je trie la liste par prix ou par distance."
+ },
+ {
+  "id": "US-1.6",
+  "screen": "S1",
+  "target": "ligne-station",
+  "title": "Lire une station dans la liste",
+  "detail": "Chaque ligne de station donne enseigne, distance, ancienneté du prix et le prix sur une plaque de totem.",
+  "story": "En tant que conducteur, je lis la liste des stations triée et touche une ligne de station pour voir sa fiche."
+ },
+ {
+  "id": "US-2.1",
+  "screen": "S2",
+  "target": "fermer-fiche",
+  "title": "Fermer la fiche",
+  "detail": "Le bouton de fermeture de la fiche revient à la carte sans perdre le carburant choisi.",
+  "story": "En tant que conducteur, je ferme la fiche station pour revenir à la carte."
+ },
+ {
+  "id": "US-2.2",
+  "screen": "S2",
+  "target": "bouton-trajet-station",
+  "title": "Calculer un trajet vers la station",
+  "detail": "Depuis la fiche, le bouton trajet pré-remplit l'arrivée avec l'adresse de la station.",
+  "story": "En tant que conducteur, je lance un trajet vers cette station depuis sa fiche."
+ },
+ {
+  "id": "US-3.1",
+  "screen": "S3",
+  "target": "onglet-trajets",
+  "title": "Ouvrir les trajets",
+  "detail": "L'onglet Trajets affiche le formulaire et, dessous, l'historique.",
+  "story": "En tant que conducteur, je touche l'onglet Trajets pour estimer le coût d'un trajet."
+ },
+ {
+  "id": "US-3.2",
+  "screen": "S3",
+  "target": "champ-depart",
+  "title": "Saisir le départ",
+  "detail": "Le champ départ propose des lieux au fil de la frappe.",
+  "story": "En tant que conducteur, je saisis mon lieu de départ."
+ },
+ {
+  "id": "US-3.3",
+  "screen": "S3",
+  "target": "champ-arrivee",
+  "title": "Saisir l'arrivée",
+  "detail": "Le champ arrivée propose des lieux au fil de la frappe.",
+  "story": "En tant que conducteur, je saisis mon lieu d'arrivée."
+ },
+ {
+  "id": "US-3.4",
+  "screen": "S3",
+  "target": "choix-voiture",
+  "title": "Choisir ma voiture",
+  "detail": "Marque, puis modèle, puis motorisation ; le choix de voiture est mémorisé pour la fois suivante.",
+  "story": "En tant que conducteur, je choisis ma voiture par marque, modèle et motorisation, et l'appli s'en souvient."
+ },
+ {
+  "id": "US-3.5",
+  "screen": "S3",
+  "target": "bouton-calculer",
+  "title": "Calculer le coût",
+  "detail": "Le bouton calculer lance l'estimation et ouvre le résultat.",
+  "story": "En tant que conducteur, je touche Calculer pour obtenir le coût estimé du trajet."
+ },
+ {
+  "id": "US-3.6",
+  "screen": "S3",
+  "target": "ligne-historique",
+  "title": "Rejouer un ancien trajet",
+  "detail": "Toucher une ligne de l'historique recalcule ce trajet au prix du jour.",
+  "story": "En tant que conducteur, je touche un trajet de l'historique pour le recalculer au prix du jour."
+ },
+ {
+  "id": "US-3.7",
+  "screen": "S3",
+  "target": "supprimer-trajet",
+  "title": "Supprimer un trajet",
+  "detail": "La croix supprime le trajet de l'historique.",
+  "story": "En tant que conducteur, je supprime un trajet de l'historique."
+ },
+ {
+  "id": "US-4.1",
+  "screen": "S4",
+  "target": "troncon-trajet",
+  "title": "Comprendre le calcul",
+  "detail": "Chaque tronçon du trajet (autoroute, route, ville, montée) se déplie : vitesse, arrêts, litres.",
+  "story": "En tant que conducteur, je déplie un tronçon du trajet pour voir d'où vient la consommation."
+ },
+ {
+  "id": "US-4.2",
+  "screen": "S4",
+  "target": "prix-perso",
+  "title": "Mettre mon propre prix",
+  "detail": "Le prix perso remplace la moyenne nationale du jour et recalcule le coût.",
+  "story": "En tant que conducteur, je saisis mon prix perso au litre pour recalculer le coût."
+ },
+ {
+  "id": "US-4.3",
+  "screen": "S4",
+  "target": "retour-trajets",
+  "title": "Revenir aux trajets",
+  "detail": "Le retour aux trajets montre le formulaire, le trajet est déjà dans l'historique.",
+  "story": "En tant que conducteur, je reviens aux trajets ; le calcul a rejoint l'historique."
+ },
+ {
+  "id": "US-3.8",
+  "screen": "S3",
+  "target": "champ-arrivee",
+  "title": "Partir à l'étranger",
+  "detail": "Arrivée hors de France (Barcelone, Milan) dans le champ arrivée : l'itinéraire traverse plusieurs pays.",
+  "story": "En tant que conducteur, je saisis une arrivée à l'étranger et l'appli calcule le trajet à travers l'Europe."
+ },
+ {
+  "id": "US-4.4",
+  "screen": "S4",
+  "target": "detail-peages",
+  "title": "Voir les péages",
+  "detail": "Le détail des péages : chaque section payante avec son montant TTC, et le total ajouté au coût.",
+  "story": "En tant que conducteur, je vois le détail des péages du trajet et leur total, inclus dans le coût."
+ },
+ {
+  "id": "US-4.5",
+  "screen": "S4",
+  "target": "pays-traverses",
+  "title": "Voir les pays traversés",
+  "detail": "Les pays traversés : km, litres et prix moyen du jour de chaque pays, coût carburant par pays.",
+  "story": "En tant que conducteur, je vois pour chaque pays traversé les km, les litres et le prix moyen du jour appliqué."
+ }
 ]

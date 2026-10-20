@@ -21,6 +21,9 @@ Un conducteur particulier en France (public visé : grand public, premier utilis
 - Historique des derniers trajets, recalcul au prix du jour au clic.
 - Tranché par l'agent (Anthony a demandé d'arrêter les questions) : deux onglets en bas (Prix · Trajets, l'historique sous le formulaire) ; appli en français ; sélecteur de carburant sur l'écran Prix (Gazole, SP95-E10, SP95, SP98, E85, GPLc).
 
+## Évolution du 2026-10-20 (après validation)
+Anthony ajoute : **les péages** dans le coût du trajet, et **toute l'Europe** (pas seulement la France) — décision A : jalon 3, après le coût de trajet en France. Le coût d'un trajet = carburant (prix moyen du jour de chaque pays traversé) + péages voiture TTC. Les stations affichées s'étendent aux pays qui publient leurs prix.
+
 ## Hors-périmètre
 - Pas de navigation GPS guidée : l'itinéraire sert au calcul, l'appli ne guide pas.
 - Pas de comptes ni de partage social : pas de profil public, pas de commentaires sur les stations.
@@ -28,4 +31,4 @@ Un conducteur particulier en France (public visé : grand public, premier utilis
 - Pas de voitures électriques ni de coût de recharge dans cette version.
 - Pas d'aller-retour automatique ni de partage du coût entre passagers (option C écartée).
 - Pas de garage multi-voitures : une voiture mémorisée (option B écartée).
-- Pas de calcul des péages ni de l'usure du véhicule.
+- Pas de calcul de l'usure du véhicule ni de l'achat des vignettes (signalées, non chiffrées).

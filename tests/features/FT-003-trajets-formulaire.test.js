@@ -17,7 +17,8 @@ module.exports = {
   "US-3.E3",
   "US-3.E4",
   "US-3.P1",
-  "US-3.P2"
+  "US-3.P2",
+  "US-3.8"
  ],
  "acceptanceCriteria": {
   "US-3.1": [
@@ -59,6 +60,9 @@ module.exports = {
   ],
   "US-3.P2": [
    "ÉTANT DONNÉ une voiture mémorisée, QUAND je choisis une autre marque dans le choix de voiture, ALORS modèle et motorisation se réinitialisent et la nouvelle voiture est mémorisée"
+  ],
+  "US-3.8": [
+   "ÉTANT DONNÉ le champ arrivée, QUAND je tape « Barce » et choisis Barcelone, Espagne, ALORS le calcul aboutit avec un itinéraire qui traverse la France puis l'Espagne"
   ]
  }
 };

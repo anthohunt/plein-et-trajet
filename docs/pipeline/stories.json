@@ -557,5 +557,105 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ une connexion 4G, QUAND j'ouvre l'appli, ALORS la liste des stations est affichée en moins de 2,5 s"
   ]
+ },
+ {
+  "id": "US-3.8",
+  "title": "Partir à l'étranger",
+  "story": "En tant que conducteur, je saisis une arrivée à l'étranger et l'appli calcule le trajet à travers l'Europe.",
+  "screen": "S3",
+  "target": "champ-arrivee",
+  "module": "europe-peages",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ le champ arrivée, QUAND je tape « Barce » et choisis Barcelone, Espagne, ALORS le calcul aboutit avec un itinéraire qui traverse la France puis l'Espagne"
+  ]
+ },
+ {
+  "id": "US-4.4",
+  "title": "Voir les péages",
+  "story": "En tant que conducteur, je vois le détail des péages du trajet et leur total, inclus dans le coût.",
+  "screen": "S4",
+  "target": "detail-peages",
+  "module": "europe-peages",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un trajet Albi → Barcelone calculé, QUAND je lis le détail des péages, ALORS chaque section payante affiche son montant TTC en euros (« gratuit » si 0), le total des péages est affiché et ajouté au coût total",
+   "ÉTANT DONNÉ un trajet sans autoroute payante, QUAND le résultat s'affiche, ALORS le détail des péages indique « Aucun péage sur cet itinéraire » et 0,00 €"
+  ]
+ },
+ {
+  "id": "US-4.5",
+  "title": "Voir les pays traversés",
+  "story": "En tant que conducteur, je vois pour chaque pays traversé les km, les litres et le prix moyen du jour appliqué.",
+  "screen": "S4",
+  "target": "pays-traverses",
+  "module": "europe-peages",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un trajet Albi → Milan calculé, QUAND je lis les pays traversés, ALORS chaque pays affiche km, litres, prix moyen du jour de son carburant et coût, et la somme des coûts pays égale le coût carburant"
+  ]
+ },
+ {
+  "id": "US-4.E4",
+  "title": "Péages indisponibles",
+  "story": "En tant que conducteur, si le calcul des péages échoue, j'obtiens quand même le coût carburant.",
+  "screen": "S4",
+  "target": "detail-peages",
+  "module": "europe-peages",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ le service de péages en erreur, QUAND je lance un calcul, ALORS le coût carburant s'affiche et le détail des péages indique « Péages non disponibles pour l'instant » sans les ajouter au total"
+  ]
+ },
+ {
+  "id": "US-4.E5",
+  "title": "Vignette sur le trajet",
+  "story": "En tant que conducteur traversant la Suisse ou l'Autriche, je suis prévenu qu'une vignette est exigée.",
+  "screen": "S4",
+  "target": "detail-peages",
+  "module": "europe-peages",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un trajet qui traverse la Suisse, QUAND le résultat s'affiche, ALORS le détail des péages porte la ligne « Vignette suisse obligatoire (non comptée) »"
+  ]
+ },
+ {
+  "id": "US-4.E6",
+  "title": "Pays sans prix moyen",
+  "story": "En tant que conducteur, si un pays traversé n'a pas de prix moyen connu, je le sais.",
+  "screen": "S4",
+  "target": "pays-traverses",
+  "module": "europe-peages",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un pays traversé absent des moyennes (ex. Serbie), QUAND le résultat s'affiche, ALORS sa ligne dans les pays traversés porte « prix non publié — moyenne européenne appliquée » et le prix utilisé"
+  ]
+ },
+ {
+  "id": "US-1.8",
+  "title": "Stations hors de France",
+  "story": "En tant que conducteur à l'étranger, je vois les stations du pays où je suis s'il publie ses prix.",
+  "screen": "S1",
+  "target": "carte-stations",
+  "module": "europe-peages",
+  "type": "main",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ ma position à Barcelone, QUAND j'ouvre l'onglet Prix, ALORS la carte des stations et la liste affichent les stations espagnoles avec leurs prix officiels",
+   "ÉTANT DONNÉ ma position dans un pays qui ne publie pas ses prix, QUAND j'ouvre l'onglet Prix, ALORS un message indique « Ce pays ne publie pas les prix station par station » et affiche le prix moyen national"
+  ]
  }
 ]

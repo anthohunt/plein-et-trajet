@@ -37,5 +37,9 @@ module.exports = async function(page) {
   results.push({ id: 'US-1.E4-AC-1', criterion: "ÉTANT DONNÉ une station en rupture temporaire de gazole, QUAND je choisis Gazole, ALORS elle n'apparaît pas dans la liste triée par prix", status: 'todo', detail: 'à écrire après exploration de l’appli déployée', duration: 0 });
   // US-1.P1 AC-1 : ÉTANT DONNÉ la carte déplacée, QUAND je touche le bouton de recentrage de la carte des stations, ALORS la carte revient sur ma position et la liste se recharge
   results.push({ id: 'US-1.P1-AC-1', criterion: "ÉTANT DONNÉ la carte déplacée, QUAND je touche le bouton de recentrage de la carte des stations, ALORS la carte revient sur ma position et la liste se recharge", status: 'todo', detail: 'à écrire après exploration de l’appli déployée', duration: 0 });
+  // US-1.8 AC-1 : ÉTANT DONNÉ ma position à Barcelone, QUAND j'ouvre l'onglet Prix, ALORS la carte des stations et la liste affichent les stations espagnoles avec leurs prix officiels
+  results.push({ id: 'US-1.8-AC-1', criterion: "ÉTANT DONNÉ ma position à Barcelone, QUAND j'ouvre l'onglet Prix, ALORS la carte des stations et la liste affichent les stations espagnoles avec leurs prix officiels", status: 'todo', detail: 'à écrire après exploration de l’appli déployée', duration: 0 });
+  // US-1.8 AC-2 : ÉTANT DONNÉ ma position dans un pays qui ne publie pas ses prix, QUAND j'ouvre l'onglet Prix, ALORS un message indique « Ce pays ne publie pas les prix station par station » et affiche le prix moyen national
+  results.push({ id: 'US-1.8-AC-2', criterion: "ÉTANT DONNÉ ma position dans un pays qui ne publie pas ses prix, QUAND j'ouvre l'onglet Prix, ALORS un message indique « Ce pays ne publie pas les prix station par station » et affiche le prix moyen national", status: 'todo', detail: 'à écrire après exploration de l’appli déployée', duration: 0 });
   return results;
 };

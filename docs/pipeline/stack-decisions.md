@@ -43,3 +43,13 @@ Sources externes vérifiées le 2026-10-20 par téléchargement direct (réponse
 3. **Distance d'un trajet** → itinéraire IGN Géoplateforme (sans clé, données françaises).
 4. **Modèle physique de consommation** → pour chaque tronçon : la vitesse typique choisit la phase WLTP (basse < 40 km/h, moyenne 40-65, haute 65-100, très haute > 100) qui donne la consommation de base de la voiture ; on ajoute (a) le coût des arrêts et ré-accélérations : énergie ½·m·v² par arrêt, convertie en litres (pouvoir calorifique 8,9 kWh/L essence, 9,9 kWh/L gazole ; rendement moteur 0,25 essence / 0,30 gazole) ; (b) le dénivelé positif : m·g·Δh, même conversion. Le nombre d'arrêts vient du nombre de manœuvres (ronds-points, intersections) des étapes IGN, le dénivelé de l'altimétrie IGN échantillonnée tous les 500 m. Masse = masse en ordre de marche ADEME + 75 kg de conducteur.
 5. **Mémorisation de la voiture** → table `preferences` liée à l'identifiant anonyme de l'appareil (cohérent avec « pas de comptes »).
+
+## Jalon 3 — Péages et Europe (2026-10-20, après validation de la maquette v2)
+Toujours sans écart de pile : ce sont des sources externes appelées par les Edge Functions. Recherche menée par 4 agents (rapports `/home/claude/surveillance/agents-codex/api-{peages,carburants,itineraire,vehicules}.rendu.md`).
+- **Péages** → PTV Developer (gratuit 100 000 transactions/mois, sans carte, prix HT : on ajoute la TVA du pays) ; HERE v8 en recours (TTC, 2 500 péages/mois gratuits, carte exigée). Aucune source ouverte ne couvre l'Europe ; APRR (data.gouv.fr) et NVDB (Norvège) servent à vérifier les montants. Vignettes : table maintenue à la main.
+- **Itinéraire Europe** → Valhalla (OSM) : classe de voie, densité urbaine, pente, altitude, feux, péages signalés ; hébergé chez Stadia Maps ou auto-hébergé. IGN reste utilisé pour les trajets 100 % France.
+- **Géocodage Europe** → Photon (autocomplétion permise) ; Nominatim exclu (autocomplétion interdite).
+- **Moyennes par pays** → Bulletin pétrolier UE (xlsx hebdo, CC BY 4.0, UE-27) ; Royaume-Uni = moyenne Fuel Finder ; Norvège = SSB.
+- **Stations hors de France** → flux officiels testés dans 10 pays + Royaume-Uni (détail dans tasks.md T3.5).
+- **Véhicules** → base EEA CO2 cars (Discodata, CC BY 4.0) en plus d'ADEME ; modèle road-load + Willans calé sur le WLTP (erreur ≤ 0,2 L/100 km sur 12 versions testées).
+- Nouveaux secrets, dans `webapp-stack.env` : `PTV_API_KEY`, `STADIA_API_KEY` (et `HERE_API_KEY` si le recours est activé).

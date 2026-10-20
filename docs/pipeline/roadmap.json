@@ -80,6 +80,39 @@
     "US-3.P2"
    ],
    "nb_stories": 19
+  },
+  {
+   "n": 3,
+   "titre": "Péages et Europe",
+   "demontrable": true,
+   "demo": "Je calcule Albi → Barcelone puis Albi → Milan : le coût total ajoute les péages réels, chaque pays traversé a son prix moyen du jour, et à Barcelone la carte montre les stations espagnoles.",
+   "use_case": "tests/e2e/use-cases/m3-use-case.md",
+   "ecrans": [],
+   "ecrans_traverses": [
+    {
+     "id": "S1",
+     "nom": "Prix"
+    },
+    {
+     "id": "S3",
+     "nom": "Trajets"
+    },
+    {
+     "id": "S4",
+     "nom": "Résultat du trajet"
+    }
+   ],
+   "stories": [
+    "US-3.8",
+    "US-4.4",
+    "US-4.5",
+    "US-4.E4",
+    "US-4.E5",
+    "US-4.E6",
+    "US-1.8"
+   ],
+   "nb_stories": 7,
+   "motif_sans_ecran": "Évolution demandée par Anthony après validation (2026-10-20, choix A : un jalon 3 après le coût de trajet en France). Elle enrichit S1, S3 et S4, construits aux jalons 1 et 2 ; ses histoires y sont rattachées par exception à la règle « l'histoire suit son écran », pour ne pas retarder le jalon 2."
   }
  ],
  "stories_transverses": {

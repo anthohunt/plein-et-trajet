@@ -17,5 +17,20 @@
    "data.geopf.fr"
   ]
  },
- "skippedFeatures": []
+ "skippedFeatures": [
+  {
+   "feature": "Péages (jalon 3)",
+   "reason": "clé PTV Developer à créer par Anthony (compte gratuit, sans carte) ; Stadia Maps idem pour l'itinéraire Europe",
+   "affectedStories": [
+    "US-4.4",
+    "US-4.E4",
+    "US-4.E5",
+    "US-3.8"
+   ],
+   "bloquant_a": "jalon 3 seulement"
+  }
+ ],
+ "productionUrl": "https://plein-et-trajet.vercel.app",
+ "supabaseProjectRef": "rglrwtkqwihdztgqlbsy",
+ "vercelProjectId": "prj_G6FzUAooAuoQRIwMpfACkMVGMFHC"
 }

@@ -1,7 +1,7 @@
 # Spécification — Plein & Trajet
 
 ## Vision
-Une appli web en français, pensée d'abord pour le téléphone, qui répond à deux questions de conducteur : **où faire le plein moins cher autour de moi, maintenant ?** et **combien va me coûter ce trajet avec ma voiture ?** Les prix sont les prix officiels déclarés par les stations (flux instantané du ministère de l'Économie). Le coût d'un trajet vient de l'itinéraire réel, découpé en tronçons, auquel on applique la consommation de la voiture choisie selon la vitesse, les arrêts et le dénivelé, puis le prix moyen national du jour (remplaçable par le prix de l'utilisateur).
+Une appli web en français, pensée d'abord pour le téléphone, valable en France et dans toute l'Europe, qui répond à deux questions de conducteur : **où faire le plein moins cher autour de moi, maintenant ?** et **combien va me coûter ce trajet avec ma voiture ?** Les prix sont les prix officiels déclarés par les stations (flux instantané du ministère de l'Économie). Le coût d'un trajet vient de l'itinéraire réel, découpé en tronçons, auquel on applique la consommation de la voiture choisie selon la vitesse, les arrêts et le dénivelé, puis le prix moyen du jour de chaque pays traversé (remplaçable par le prix de l'utilisateur), plus les péages voiture TTC.
 
 ## Sections et écrans (référence : `docs/pipeline/design/mockup.html`, validé le 2026-10-20)
 
@@ -10,7 +10,7 @@ Une appli web en français, pensée d'abord pour le téléphone, qui répond à 
 - Navigation : deux onglets en bas, Prix et Trajets.
 
 ## Hors-périmètre
-Pas de guidage GPS, pas de comptes ni de social, pas de saisie de prix par les utilisateurs, pas d'électrique, pas d'aller-retour ni de partage de coût, pas de garage multi-voitures, pas de péages ni d'usure.
+Pas de guidage GPS, pas de comptes ni de social, pas de saisie de prix par les utilisateurs, pas d'électrique, pas d'aller-retour ni de partage de coût, pas de garage multi-voitures, pas d'usure ni d'achat de vignette (signalée, non chiffrée).
 
 ## Système de design (résumé de `design/design-system.md`)
 Totems de prix : panneau sombre, chiffres verts lumineux (Chivo Mono), troisième décimale plus petite et surélevée. Titres Big Shoulders Display, texte Barlow. Fond béton clair / asphalte en sombre. Un seul accent (vert LED) réservé aux prix ; sémantique vert = bas, orange brûlé = haut. Un seul mouvement : défilement des chiffres au changement de carburant ou au recalcul (coupé si animations réduites). Tokens : `design/tokens.json`.
@@ -18,10 +18,14 @@ Totems de prix : panneau sombre, chiffres verts lumineux (Chivo Mono), troisièm
 ## Modèle de consommation
 Pour chaque tronçon : phase WLTP choisie par la vitesse typique (basse < 40 km/h, moyenne 40-65, haute 65-100, très haute > 100) → L/100 km de base de la voiture (ADEME) ; + arrêts : ½·m·v² par arrêt ; + dénivelé positif : m·g·Δh ; énergies converties en litres (8,9 kWh/L essence, 9,9 kWh/L gazole ; rendement 0,25 / 0,30). Masse = masse en ordre de marche + 75 kg. Arrêts = manœuvres des étapes IGN ; dénivelé = altimétrie IGN tous les 500 m.
 
+## Péages et Europe (jalon 3, ajouté le 2026-10-20 après validation)
+Coût total = carburant + péages. Péages voiture TTC par section (PTV Developer, prix HT + TVA du pays ; HERE en recours), vignettes signalées non chiffrées. Prix moyen du jour par pays (Bulletin pétrolier UE hebdomadaire ; France = flux officiel). Itinéraire et profil Europe par Valhalla ; géocodage Europe Photon ; stations hors de France dans les pays qui publient (ES, IT, AT, DE, PT, SI, HR, DK, RO, IS, UK). Véhicules : ADEME + base EEA CO2 cars.
+
 ## Feuille de route
 
 - **Jalon 1 — Les prix autour de moi** (écrans S1, S2) : J'ouvre l'appli à Albi, je vois les vraies stations sur la carte et dans la liste avec leurs prix officiels du jour, je change de carburant, je trie, j'ouvre une fiche. 14 histoires.
 - **Jalon 2 — Le coût d'un trajet** (écrans S3, S4) : Je choisis ma voiture, je calcule Albi → Bordeaux, je vois le coût, les tronçons et leur consommation, je mets mon prix, je retrouve le trajet dans l'historique. 19 histoires.
+- **Jalon 3 — Péages et Europe** (écrans ) : Je calcule Albi → Barcelone puis Albi → Milan : le coût total ajoute les péages réels, chaque pays traversé a son prix moyen du jour, et à Barcelone la carte montre les stations espagnoles. 7 histoires.
 - Transverses (5) : Accessibilité et performance s'appliquent à tous les écrans : vérifiées à chaque jalon, auditées au durcissement.
 
 ## Histoires utilisateur
@@ -91,6 +95,20 @@ Pour chaque tronçon : phase WLTP choisie par la vitesse typique (basse < 40 km/
 **US-4.3 — Revenir aux trajets** (S4) — En tant que conducteur, je reviens aux trajets ; le calcul a rejoint l'historique.
 - ÉTANT DONNÉ un résultat affiché, QUAND je touche le bouton retour trajets, ALORS le formulaire s'affiche et ce trajet est en tête de l'historique
 
+**US-3.8 — Partir à l'étranger** (S3) — En tant que conducteur, je saisis une arrivée à l'étranger et l'appli calcule le trajet à travers l'Europe.
+- ÉTANT DONNÉ le champ arrivée, QUAND je tape « Barce » et choisis Barcelone, Espagne, ALORS le calcul aboutit avec un itinéraire qui traverse la France puis l'Espagne
+
+**US-4.4 — Voir les péages** (S4) — En tant que conducteur, je vois le détail des péages du trajet et leur total, inclus dans le coût.
+- ÉTANT DONNÉ un trajet Albi → Barcelone calculé, QUAND je lis le détail des péages, ALORS chaque section payante affiche son montant TTC en euros (« gratuit » si 0), le total des péages est affiché et ajouté au coût total
+- ÉTANT DONNÉ un trajet sans autoroute payante, QUAND le résultat s'affiche, ALORS le détail des péages indique « Aucun péage sur cet itinéraire » et 0,00 €
+
+**US-4.5 — Voir les pays traversés** (S4) — En tant que conducteur, je vois pour chaque pays traversé les km, les litres et le prix moyen du jour appliqué.
+- ÉTANT DONNÉ un trajet Albi → Milan calculé, QUAND je lis les pays traversés, ALORS chaque pays affiche km, litres, prix moyen du jour de son carburant et coût, et la somme des coûts pays égale le coût carburant
+
+**US-1.8 — Stations hors de France** (S1) — En tant que conducteur à l'étranger, je vois les stations du pays où je suis s'il publie ses prix.
+- ÉTANT DONNÉ ma position à Barcelone, QUAND j'ouvre l'onglet Prix, ALORS la carte des stations et la liste affichent les stations espagnoles avec leurs prix officiels
+- ÉTANT DONNÉ ma position dans un pays qui ne publie pas ses prix, QUAND j'ouvre l'onglet Prix, ALORS un message indique « Ce pays ne publie pas les prix station par station » et affiche le prix moyen national
+
 ### Cas limites
 
 **US-1.E1 — Source des prix injoignable** (S1) — En tant que conducteur, si les prix ne peuvent pas être chargés, je vois un message clair et un bouton Réessayer.
@@ -128,6 +146,15 @@ Pour chaque tronçon : phase WLTP choisie par la vitesse typique (basse < 40 km/
 
 **US-4.E3 — Calcul trop long** (S4) — En tant que conducteur, je vois que le calcul est en cours et je peux l'abandonner.
 - ÉTANT DONNÉ un calcul qui dure plus d'une seconde, QUAND j'attends, ALORS un état « Calcul de l'itinéraire… » s'affiche avec un bouton Annuler qui ramène au formulaire
+
+**US-4.E4 — Péages indisponibles** (S4) — En tant que conducteur, si le calcul des péages échoue, j'obtiens quand même le coût carburant.
+- ÉTANT DONNÉ le service de péages en erreur, QUAND je lance un calcul, ALORS le coût carburant s'affiche et le détail des péages indique « Péages non disponibles pour l'instant » sans les ajouter au total
+
+**US-4.E5 — Vignette sur le trajet** (S4) — En tant que conducteur traversant la Suisse ou l'Autriche, je suis prévenu qu'une vignette est exigée.
+- ÉTANT DONNÉ un trajet qui traverse la Suisse, QUAND le résultat s'affiche, ALORS le détail des péages porte la ligne « Vignette suisse obligatoire (non comptée) »
+
+**US-4.E6 — Pays sans prix moyen** (S4) — En tant que conducteur, si un pays traversé n'a pas de prix moyen connu, je le sais.
+- ÉTANT DONNÉ un pays traversé absent des moyennes (ex. Serbie), QUAND le résultat s'affiche, ALORS sa ligne dans les pays traversés porte « prix non publié — moyenne européenne appliquée » et le prix utilisé
 
 ### Paires
 

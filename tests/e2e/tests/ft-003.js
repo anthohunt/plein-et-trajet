@@ -31,5 +31,7 @@ module.exports = async function(page) {
   results.push({ id: 'US-3.P1-AC-1', criterion: "ÉTANT DONNÉ départ Albi et arrivée Bordeaux, QUAND je touche le bouton d'inversion entre champ départ et champ arrivée, ALORS le départ devient Bordeaux et l'arrivée Albi", status: 'todo', detail: 'à écrire après exploration de l’appli déployée', duration: 0 });
   // US-3.P2 AC-1 : ÉTANT DONNÉ une voiture mémorisée, QUAND je choisis une autre marque dans le choix de voiture, ALORS modèle et motorisation se réinitialisent et la nouvelle voiture est mémorisée
   results.push({ id: 'US-3.P2-AC-1', criterion: "ÉTANT DONNÉ une voiture mémorisée, QUAND je choisis une autre marque dans le choix de voiture, ALORS modèle et motorisation se réinitialisent et la nouvelle voiture est mémorisée", status: 'todo', detail: 'à écrire après exploration de l’appli déployée', duration: 0 });
+  // US-3.8 AC-1 : ÉTANT DONNÉ le champ arrivée, QUAND je tape « Barce » et choisis Barcelone, Espagne, ALORS le calcul aboutit avec un itinéraire qui traverse la France puis l'Espagne
+  results.push({ id: 'US-3.8-AC-1', criterion: "ÉTANT DONNÉ le champ arrivée, QUAND je tape « Barce » et choisis Barcelone, Espagne, ALORS le calcul aboutit avec un itinéraire qui traverse la France puis l'Espagne", status: 'todo', detail: 'à écrire après exploration de l’appli déployée', duration: 0 });
   return results;
 };
