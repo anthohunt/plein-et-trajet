@@ -969,8 +969,8 @@ histoireDef("US-A11Y-002", "US-A11Y-002 — Focus de la fiche (jalon 3)", async 
   await pc.getByRole("button", { name: "Fermer la fiche" }).click();
   await capture(pc, "US-A11Y-002-02-m3.png", async () => {
     await expect(pc.getByRole("dialog")).toHaveCount(0);
-    const id = await pc.evaluate(() => document.activeElement?.getAttribute("data-station"));
-    expect(id).toBe(idLigne);
+    await expect.poll(() => pc.evaluate(() => document.activeElement?.getAttribute("data-station"))).toBe(idLigne);
+    const id = idLigne;
     return `à la fermeture, le focus revient sur la ligne qui l'avait ouverte (${id})`;
   }, "fermeture : le focus revient sur l'élément qui l'a ouverte");
   await C.close();

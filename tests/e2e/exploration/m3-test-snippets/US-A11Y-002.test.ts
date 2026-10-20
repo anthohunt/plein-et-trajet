@@ -15,7 +15,7 @@ test.describe("US-A11Y-002 — Focus de la fiche (jalon 3)", () => {
       await expect(page.getByRole("dialog")).toBeVisible();
       expect(await page.evaluate(() => document.activeElement?.tagName)).toMatch(/^H\d$/);
       await page.getByRole("button", { name: "Fermer la fiche" }).click();
-      expect(await page.evaluate(() => document.activeElement?.getAttribute("data-station"))).toBe(id);
+      await expect.poll(() => page.evaluate(() => document.activeElement?.getAttribute("data-station"))).toBe(id); // le focus est rendu à l'image suivante
     });
   });
 });
