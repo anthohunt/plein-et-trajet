@@ -1,6 +1,6 @@
 // Relais du site officiel roumain des prix (Monitorul Prețurilor, Consiliul Concurenței) — données ouvertes, aucune clé, aucun secret.
 // Pourquoi : le certificat TLS du site est invalide ; les Edge Functions (Deno) refusent la connexion, Node permet de la tolérer pour
-// CETTE seule adresse. Le relais ne transmet que lat, lon, buffer (m) et l'identifiant de produit, et renvoie le XML tel quel.
+// CETTE seule adresse. Le service ne répond que jusqu'à 5 km de rayon (au-delà : réponse vide) et au plus 50 stations par requête. Le relais ne transmet que lat, lon, buffer (m) et l'identifiant de produit, et renvoie le XML tel quel.
 import https from "node:https";
 
 export const config = { maxDuration: 30 };
@@ -12,7 +12,7 @@ export default function handler(req, res) {
     res.status(400).json({ erreur: "requete_invalide" });
     return;
   }
-  const chemin = `/pmonsvc/Gas/GetGasItemsByLatLon?lon=${Number(lon)}&lat=${Number(lat)}&buffer=${Math.min(Number(buffer), 30000)}&CSVGasCatalogProductIds=${id}`;
+  const chemin = `/pmonsvc/Gas/GetGasItemsByLatLon?lon=${Number(lon)}&lat=${Number(lat)}&buffer=${Math.min(Number(buffer), 5000)}&CSVGasCatalogProductIds=${id}`;
   const r = https.request({ host: "monitorulpreturilor.info", path: chemin, method: "GET", rejectUnauthorized: false, timeout: 25000, headers: { "User-Agent": "plein-et-trajet/1.0 (+https://plein-et-trajet.vercel.app)" } }, (rep) => {
     const morceaux = [];
     rep.on("data", (c) => morceaux.push(c));

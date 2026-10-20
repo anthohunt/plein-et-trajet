@@ -44,7 +44,7 @@ async function parLots<T, R>(items: T[], n: number, f: (x: T) => Promise<R>): Pr
 async function cours(monnaie: "DKK" | "ISK" | "GBP" | "RON"): Promise<number> {
   const j = (await lire(`https://api.frankfurter.dev/v1/latest?base=EUR&symbols=${monnaie}`, {}, 15000)) as { rates?: Record<string, number> };
   const c = j.rates?.[monnaie];
-  if (!c || !(c > 1)) throw new Error(`cours ${monnaie} indisponible`);
+  if (!c || !(c > 0)) throw new Error(`cours ${monnaie} indisponible`);
   return c;
 }
 
@@ -59,7 +59,7 @@ const SOURCES: Record<string, Source> = {
     const reps = await parLots(taches, 4, async ({ p, id }) => {
       let cause = "";
       for (let i = 1; i <= 2; i++) {
-        const r = await fetchTimeout(`${RELAIS_RO}?lat=${p.lat}&lon=${p.lon}&buffer=15000&id=${id}`, { headers: NAVIGATEUR }, 30000).catch((e) => {
+        const r = await fetchTimeout(`${RELAIS_RO}?lat=${p.lat}&lon=${p.lon}&buffer=5000&id=${id}`, { headers: NAVIGATEUR }, 30000).catch((e) => {
           cause = String(e).slice(0, 100);
           return null;
         });
