@@ -119,7 +119,7 @@ export async function etatFocus(page) {
       i: [...document.querySelectorAll("*")].indexOf(e),
       nom: e.getAttribute("aria-label") || e.labels?.[0]?.textContent || e.textContent?.trim().slice(0, 60) || e.id,
       id: e.id,
-      contour: (s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2) || (s.textDecorationLine === "underline" && e.tagName === "H2"),
+      contour: (s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2) || (s.textDecorationLine === "underline" && /^H[23]$/.test(e.tagName)),
       visible: dans && !!f && (f === e || e.contains(f) || f.contains(e)),
     };
   });
