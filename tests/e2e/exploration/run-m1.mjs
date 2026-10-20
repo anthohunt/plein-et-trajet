@@ -292,6 +292,8 @@ HISTOIRES["US-1.3 — Voir les stations sur la carte"] = async () => {
   // vers l'ouest (Gaillac) : on tire la carte vers la droite, deux fois
   await glisserCarte(p, 160, 0);
   await p.waitForTimeout(400);
+  await glisserCarte(p, 160, 0);
+  await p.waitForTimeout(400);
   await glisserCarte(p, 160, 0, async () => {
     await capture(p, "US-1.3-03-voir-les-stations-sur-la-carte-avant.png", async () => {
       const c = await centreCarte(p);
@@ -327,8 +329,8 @@ HISTOIRES["US-1.4 — Toucher une pastille"] = async () => {
   await p.locator(`[data-el="pastille-station"][data-station="${id}"]`).click();
   await capture(p, "US-1.4-02-toucher-une-pastille-apres.png", async () => {
     await expect(p.locator('[data-el="fiche-station"]')).toHaveAttribute("data-station", id);
-    const titre = await p.locator("#sh-name").innerText();
-    expect(label.toUpperCase()).toContain(titre.toUpperCase());
+    const titre = await p.locator("#sh-name").textContent();
+    expect(label).toContain(titre);
     return `pastille « ${label} » → fiche « ${titre} »`;
   }, "la fiche de cette station s'ouvre");
   await p.keyboard.press("Escape");

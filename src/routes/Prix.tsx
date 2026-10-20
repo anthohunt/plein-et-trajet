@@ -27,7 +27,8 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
   const nav = useNavigate();
   const [zone, setZone] = useState<Zone | null>(null);
   const [stations, setStations] = useState<Station[] | null>(null);
-  const [prix, setPrix] = useState<Map<string, { prix: number; maj: string | null }> | null>(null);
+  // prix lus pour un carburant donné : jamais affichés sous le titre d'un autre carburant
+  const [prix, setPrix] = useState<{ carburant: Carburant; parStation: Map<string, { prix: number; maj: string | null }> } | null>(null);
   const [moyenne, setMoyenne] = useState<number | null>(null);
   const [etat, setEtat] = useState<Etat>("chargement");
   const [essai, setEssai] = useState(0);
@@ -53,7 +54,7 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
         const lignes = await prixCarburant(carburant, st.map((s) => s.id));
         if (n !== requete.current) return;
         setStations(st);
-        setPrix(new Map(lignes.filter((l) => l.prix != null).map((l) => [l.station_id, { prix: l.prix as number, maj: l.maj }])));
+        setPrix({ carburant, parStation: new Map(lignes.filter((l) => l.prix != null).map((l) => [l.station_id, { prix: l.prix as number, maj: l.maj }])) });
         setEtat("pret");
       } catch {
         if (n !== requete.current) return;
@@ -71,15 +72,15 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
   }, [carburant]);
 
   const affichees = useMemo(() => {
-    if (etat === "erreur" || !stations || !prix || !position) return [];
+    if (etat === "erreur" || !stations || !prix || prix.carburant !== carburant || !position) return [];
     const l: StationAffichee[] = [];
     for (const s of stations) {
-      const p = prix.get(s.id);
+      const p = prix.parStation.get(s.id);
       if (!p) continue; // carburant non vendu ou en rupture : absente de la carte et de la liste
       l.push({ ...s, prix: p.prix, maj: p.maj, distanceKm: distanceKm(position, s) });
     }
     return l;
-  }, [etat, stations, prix, position]);
+  }, [etat, stations, prix, position, carburant]);
 
   const seuil = useMemo(() => seuilMoitie(affichees.map((s) => s.prix)), [affichees]);
   const pastilles = useMemo(() => affichees.map((s) => ({ ...s, moitie: moitie(s.prix, seuil) })), [affichees, seuil]);
@@ -123,7 +124,7 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
           {position.motif === "refusee" ? T.positionRefusee(position.label) : T.positionIndisponible(position.label)}
         </p>
       )}
-      <div className="map" data-el="carte-stations" data-pastilles={etat === "pret" ? pastilles.length : undefined}>
+      <div className="map" data-el="carte-stations" data-pastilles={etat === "pret" ? pastilles.length : undefined} aria-busy={etat === "chargement"}>
         {position && (
           <Suspense fallback={<div className="map-load">{T.chargement}</div>}>
             <CarteStations
@@ -161,7 +162,7 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
             <p className="d">{T.prixIndisponiblesDetail}</p>
             <button type="button" className="btn small" onClick={() => setEssai((x) => x + 1)}>{T.reessayer}</button>
           </div>
-        ) : etat === "chargement" && !stations ? (
+        ) : etat === "chargement" && (!stations || prix?.carburant !== carburant) ? (
           <p className="etat d">{T.chargement}</p>
         ) : liste.length === 0 && etat === "pret" ? (
           <p className="etat empty" data-el="etat-vide">{T.aucuneStation}</p>

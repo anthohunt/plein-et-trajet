@@ -53,6 +53,7 @@ export default function CarteStations({ position, stations, selection, recentrag
         "AttributionControl.ToggleAttribution": "Afficher ou masquer les crédits",
         "AttributionControl.MapFeedback": "Signaler une erreur de carte",
         "Map.Title": T.carteStations,
+        "Marker.Title": "Station",
       },
     });
     map.touchZoomRotate.disableRotation();
@@ -103,13 +104,17 @@ export default function CarteStations({ position, stations, selection, recentrag
       b.dataset.el = "pastille-station";
       b.dataset.station = s.id;
       b.dataset.moitie = s.moitie;
-      b.setAttribute("aria-label", `${nomStation(s)}, ${prix3(s.prix)} euros le litre, ${s.moitie === "lo" ? T.legendeBas : T.legendeHaut}`);
+      const label = `${nomStation(s)}, ${prix3(s.prix)} euros le litre, ${s.moitie === "lo" ? T.legendeBas : T.legendeHaut}`;
+      b.setAttribute("aria-label", label);
       b.textContent = prix3(s.prix);
       b.addEventListener("click", (ev) => {
         ev.stopPropagation();
         rappels.current.onPastille(s, b);
       });
-      return new maplibregl.Marker({ element: b, anchor: "bottom" }).setLngLat([s.lon, s.lat]).addTo(map);
+      const m = new maplibregl.Marker({ element: b, anchor: "bottom", offset: [0, -8] }).setLngLat([s.lon, s.lat]).addTo(map);
+      // MapLibre remplace aria-label par « Map marker » à l'ajout : on remet l'annonce station + prix
+      b.setAttribute("aria-label", label);
+      return m;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stations]);
