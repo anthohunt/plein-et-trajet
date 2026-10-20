@@ -15,6 +15,12 @@ interface Brouillon {
   occupe: boolean;
 }
 
+/** « ptv : cle_refusee (401) » → « PTV : clé refusée (401) » */
+const lireIncident = (m: Moteur, brut: string) => {
+  const [f, ...reste] = brut.split(" : ");
+  const code = reste.join(" : ").replace(/^(\w+)/, (c) => T.incidentCodes[c] ?? c);
+  return `${m.fournisseurs.find((x) => x.id === f)?.nom.split(/[ ·]/)[0] ?? f} : ${code}`;
+};
 const heure = (iso: string) => new Date(iso).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
 export default function Moteurs() {
@@ -140,7 +146,7 @@ export default function Moteurs() {
                   <button type="button" className="save" disabled={d.occupe} data-el={peages ? "enregistrer-moteur" : "enregistrer-moteur-" + m.service} onClick={() => enregistrer(m)}>{T.enregistrer}</button>
                 </div>
                 {m.bascule && <div className="d" data-el="bascule">{T.basculeNotee(nomF(m, m.bascule.de), nomF(m, m.bascule.vers), heure(m.bascule.le))}</div>}
-                {m.incident && <div className="d" data-el="incident">{T.incidentNote(m.incident.message, heure(m.incident.le))}</div>}
+                {m.incident && <div className="d" data-el="incident">{T.incidentNote(lireIncident(m, m.incident.message), heure(m.incident.le))}</div>}
               </li>
             );
           })}

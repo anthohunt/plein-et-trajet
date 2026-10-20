@@ -180,6 +180,7 @@ export const T = {
   etatPretSansCle: "Prêt · sans clé",
   basculeNotee: (de: string, vers: string, quand: string) => `Bascule ${de} → ${vers} le ${quand}`,
   incidentNote: (msg: string, quand: string) => `Dernier incident · ${msg} · ${quand}`,
+  incidentCodes: { cle_manquante: "clé manquante", cle_refusee: "clé refusée", quota: "quota atteint", indisponible: "service injoignable", reponse_invalide: "réponse illisible", trop_long: "trajet trop long", pas_itineraire: "aucun itinéraire", aucun_fournisseur: "fournisseur inconnu" } as Record<string, string>,
   // --- Connexion administrateur
   adminTitre: "Connexion administrateur",
   adminIntro: "Entre l'adresse de l'administrateur : un lien de connexion y est envoyé.",

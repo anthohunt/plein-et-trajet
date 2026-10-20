@@ -168,9 +168,13 @@ Deno.serve(async (req) => {
         await db.from("moteurs").update({ actif: fournisseur, secours, etat: "ok", message: "Enregistré · utilisé dès le prochain calcul", dernier_test: maintenant, maj: maintenant }).eq("service", service);
         return json(200, { enregistre: true, etat: "ok", message: "Enregistré · utilisé dès le prochain calcul", moteurs: await lister(db) });
       }
+      // le fournisseur actif reste celui d'avant (son état reflète le dernier test s'il est le même) ;
+      // le secours, lui, est enregistré quand même : c'est précisément quand l'actif est en panne qu'on en a besoin
+      const secoursRetenu = secours && secours !== m.actif ? secours : null;
+      const maj: Record<string, unknown> = { secours: secoursRetenu, dernier_test: maintenant, maj: maintenant };
+      if (m.actif === fournisseur) Object.assign(maj, { etat: t.etat, message: t.message });
+      await db.from("moteurs").update(maj).eq("service", service);
       const message = cle || cleSecours ? `${t.message} · clé rangée, fournisseur actif inchangé` : `${t.message} · fournisseur actif inchangé`;
-      // le fournisseur actif reste celui d'avant ; si c'est le même, son état reflète le dernier test
-      if (m.actif === fournisseur) await db.from("moteurs").update({ etat: t.etat, message: t.message, dernier_test: maintenant, maj: maintenant }).eq("service", service);
       return json(200, { enregistre: false, etat: t.etat, message, moteurs: await lister(db) });
     }
     return json(400, { erreur: "requete_invalide" });
