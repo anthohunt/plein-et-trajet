@@ -12,6 +12,7 @@ test.describe("US-5.5 — Enregistrer le moteur", () => {
       await expect(page.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
       const c = carte(page, "itineraire");
       await c.locator("select").first().selectOption("itineraire-ign");
+      await c.locator('[data-el="choix-secours-itineraire"]').selectOption(""); // sans secours : le moteur IGN seul ne couvre que la France
       await c.locator('[data-el="enregistrer-moteur-itineraire"]').click();
       await expect(etatCarte(page, "itineraire")).toContainText("Enregistré · utilisé dès le prochain calcul", { timeout: 30000 });
       expect((await restService("moteurs?select=actif&service=eq.itineraire")).corps[0].actif).toBe("itineraire-ign");

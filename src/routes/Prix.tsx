@@ -122,10 +122,15 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
   const fermer = useCallback(() => {
     const id = ouverte?.id;
     setOuverte(null);
-    requestAnimationFrame(() => {
+    // le focus revient sur l'élément qui a ouvert la fiche ; si la liste a été redessinée entre-temps, sur la ligne de la même station
+    const rendre = () => {
       const el = ouvreur.current;
-      if (el && el.isConnected) el.focus();
-      else if (id) (document.querySelector(`[data-station="${id}"]`) as HTMLElement | null)?.focus();
+      const cible = el && el.isConnected ? el : id ? (document.querySelector(`[data-station="${id}"]`) as HTMLElement | null) : null;
+      cible?.focus();
+      return !!cible && document.activeElement === cible;
+    };
+    requestAnimationFrame(() => {
+      if (!rendre()) setTimeout(rendre, 80);
     });
   }, [ouverte]);
 

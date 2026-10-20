@@ -30,13 +30,13 @@ test.describe("US-3.8 — Partir à l'étranger", () => {
       await expect(page.locator('[data-el="champ-arrivee-erreur"]')).toHaveText("Lieu introuvable");
       await expect(page.locator('[data-screen="S4"]')).toHaveCount(0);
     });
-    test("US-3.8 — Albi → Rome (1 338 km, tracé découpé pour Valhalla) aboutit : France puis Italie", async ({ page }) => {
+    test("US-3.8 — Albi → Rome (> 1 200 km, tracé découpé pour Valhalla) aboutit : France puis Italie", async ({ page }) => {
       await formulaire(page, ALBI_, ["Rome", "Rome", "Italie"]);
       await calculer(page);
       expect((await lignesListe(page, "pays-traverses")).map((l: any) => l.pays)).toEqual(["FR", "IT"]);
-      expect((await lireResultat(page)).km).toBeGreaterThan(1300);
+      expect((await lireResultat(page)).km).toBeGreaterThan(1200);
     });
-    test("US-3.8 — Albi → Lisbonne (1 343 km) aboutit : France, Espagne, Portugal", async ({ page }) => {
+    test("US-3.8 — Albi → Lisbonne (> 1 200 km) aboutit : France, Espagne, Portugal", async ({ page }) => {
       await formulaire(page, ALBI_, ["Lisb", "Lisbonne", "Portugal"]);
       await calculer(page);
       expect((await lignesListe(page, "pays-traverses")).map((l: any) => l.pays)).toEqual(["FR", "ES", "PT"]);

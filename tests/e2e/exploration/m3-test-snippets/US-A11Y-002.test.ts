@@ -7,6 +7,7 @@ test.describe("US-A11Y-002 — Focus de la fiche (jalon 3)", () => {
       await page.goto("/");
       await page.locator('[data-el="selecteur-carburant"] button', { hasText: "Gazole" }).click();
       await expect(page.locator('[data-el="liste-stations"]')).toHaveAttribute("data-carburant", "Gazole", { timeout: 20000 });
+      await page.waitForTimeout(1500); // liste stabilisée (prix, moyennes) avant de retenir la première ligne
       const ligne = page.locator('[data-el="ligne-station"]').first();
       const id = await ligne.getAttribute("data-station");
       await ligne.focus();
