@@ -16,7 +16,9 @@
 - 22:38Z — Bâtisseur round 4 terminé : péages tarifés sur le tracé affiché (Milan 79,70 € sans Fréjus, Barcelone 29,00 €, stables ×2), écran Moteurs en codes + textes.ts, S5 contenu à 360/390 px, US-5.3 collée par l'interface, LOW 5–9 ; captures 56/56 refaites ; Playwright prod 146 ok / 2 ignorés (HERE) / 2 échecs (M1 US-1.E4 sans rupture réelle ; M2 US-3.6 « Calcul impossible », 6/6 vert au rejeu, cause non prouvée) ; Vault et garde-fous relus ; estimer-trajet v11 déployée avant la prise du verrou (mkdir refusé), verrou pris ensuite par root.
 - 22:44Z — Descripteur (cycle 4) : 56 descriptions, 27 écarts
 - 22:53Z — Évaluateur R1 (cycle 4) : PASS 3/5 (56/56 captures, md5 et chiffres recoupés, clé non exposée ; −1 US-3.6 non diagnostiqué alors que les journaux étaient lisibles, −1 tenue 390/360 px sans assertion versionnée)
+- 23:25Z — Auditeur round 3 : FAIL (1 HIGH : quota quotidien PTV épuisé en prod à 23:14Z — 403 GENERAL_QUOTA_EXCEEDED lu comme « clé refusée », plafond appli 1 500/jour > 500/jour du plan gratuit ; 2 MEDIUM : clé imprimable par not.toContain dans US-5.3.test.ts, 3 libellés serveur dans peages.ts ; 17 LOW). Les 2 HIGH et 2 MEDIUM du round 2 sont corrigés ; M2 rejoué ×2 61/61.
 
+- 23:27Z — Chef : auditeur round 3 = FAIL (1 HIGH : quota quotidien PTV épuisé en prod, 403 GENERAL_QUOTA_EXCEEDED lu comme « clé refusée », plafond appli 1 500/j > quota PTV ; 2 MEDIUM : test US-5.3 qui imprimerait la clé en échec, libellés serveur dans _shared/peages.ts). Correctifs du round 2 confirmés. Bâtisseur round 5 lancé (5e cycle, même motif qu'au 4e : plan de nuit autonome, défauts précis).
 ## Builder Summary
 
 **Résultat** : jalon 3 construit et déployé ; les 15 histoires et les 5 transverses sont explorées sur la prod, **52/52 captures** produites (le plan en cite 52 : 42 d'histoires + 10 de transverses, pas 50). Les critères qui exigent une vraie réponse PTV, HERE ou Stadia sont **BLOQUÉ-CLÉ** (aucune clé n'existe) : le code est construit, l'état réel est capturé, rien n'est mocké.
@@ -533,3 +535,152 @@ Transcript lu : `36106da2-…jsonl` (22:03:43–22:39:23Z), consigne et rendu `m
 5. Le texte d'aide du champ clé est coupé à 390 px (« coller pour : »). Les phrases `description` et `nom` des moteurs viennent de la base, pas de textes.ts : à juger au regard du HIGH 2.
 6. Le journal d'exploration garde « Vérification finale (… sans aucune clé) » alors que de vraies clés sont dans Vault (texte généré par `run-m3.mjs:1157`).
 7. Le PTV `radius=500` et la limite de 25 waypoints viennent d'une base de connaissances citée par la recherche (page 404) : ils ne sont pas lus à la source. L'écart de 79,70 € pour ≈ 73 € attendus est attribué au Viaduc de Millau sans preuve.
+
+## Auditor Journal — Round 3
+
+**1. Verdict : FAIL** — 0 CRITICAL, 1 HIGH, 2 MEDIUM, 17 LOW. Auditeur round 3, 2026-10-20 22:55–23:25Z. Les 2 HIGH, les 2 MEDIUM et les LOW 7, 8, 9 du round 2 sont corrigés (LOW 5 et 6 en partie). Un HIGH nouveau, constaté pendant l'audit : **le quota quotidien PTV est épuisé à 23:14Z** (PTV répond 403 `GENERAL_QUOTA_EXCEEDED` « Daily Quota Exceeded »). Depuis, la prod affiche « Péages non disponibles » sur tout trajet, et l'écran Moteurs dit « Clé refusée (403) » alors que la clé est valide. Le plafond de l'appli (1 500 appels/jour) est 3 fois au-dessus de la limite documentée du plan gratuit PTV (500 transactions/jour).
+
+**2. Comptes par gravité** : CRITICAL 0 · HIGH 1 · MEDIUM 2 · LOW 17.
+
+**Ce que j'ai fait moi-même**
+• `npx vite build` OK ; `npx tsc --noEmit` OK (aucune sortie) ; `npx vitest run` 131/131.
+• Vrais `estimer-trajet` sur la prod (session anonyme, 22:56Z) : Milan ×2, Barcelone ×2, Rome, Lisbonne, Belgrade, Castres.
+• Recalcul indépendant : tracé redemandé à Stadia ; appel direct à PTV avec MON échantillonnage (12 points pris à intervalle d'index, rayon 1 000 m, autre que celui de l'appli). Clés lues en mémoire, jamais affichées.
+• Chromium (bibliothèque Playwright) sur la prod : 9 villes ; Barcelone à 1280 px ; écran Moteurs à 390 et 360 px avec un administrateur éphémère, deux fois (créé, puis supprimé dans un `finally`) ; visiteur.
+• Suite M2 complète ×2, configuration à part SANS `globalSetup` : elle ne touche ni Vault ni la table moteurs.
+• Journaux Supabase par `/analytics/endpoints/logs` (table `logs`, colonne `source`).
+• Recherche des vraies clés (en clair, base64, URL-encodées) dans les fichiers et dans `git log -p --all`.
+• Test minimal pour le signalement (c).
+• Aucun commit, aucun déploiement, aucune clé lue en dehors de la mémoire.
+
+**3. Inventaire des captures** : plan 56 (52 + 4 US-5.6).
+• Présentes : 56/56 dans `delivery/` et 56/56 dans `m3-captures-brutes/`. Manquantes 0. Inattendues 0 (hors `LISEZMOI.md`). Descriptions 56/56.
+• Doublons md5, livraison : US-3.8-02 = US-4.4-01 (déclaré).
+• Doublons md5, brutes : US-1.8-01 = -03, US-3.8-02 = US-4.4-01, US-5.3-03 = -04, US-5.6-01 = US-A11Y-004-02-m3 (tous déclarés).
+• 43 livraisons sont identiques à leur brute (pas de bandeau).
+• Les 56 images ont été relues une par une (14 planches de 4).
+
+**4. Couverture des critères (15 critères, 10 histoires)**
+• COVERED 13 :
+  • US-3.8 (Barcelone FR + ES en direct).
+  • US-4.4 « Aucun péage » (Castres 0,00 €).
+  • US-4.5 (Milan : 90,84 + 46,45 = 137,29 € = carburant ; 216,99 € = 137,29 + 79,70).
+  • US-1.8 ×2 (Barcelone 153 stations ; Bruxelles, phrase de la spec + 1,977 €/L).
+  • US-5.1 (6 services).
+  • US-5.2 (HERE → « Clé à coller »).
+  • US-5.3 ×2 : collage prouvé par le test versionné `US-5.3.test.ts:8-27`, que je n'ai pas rejoué parce qu'il réécrirait la vraie clé. Rechargement : clé absente de tous les fichiers, des réponses et de l'historique git ; seule la fin `NDE0` circule.
+  • US-5.4 (« Connecté · test Albi → Barcelone OK » sur 5.4-02).
+  • US-5.6 ×2 : adresses en table (`developer.myptv.com/en`, `client.stadiamaps.com/dashboard/`, `platform.here.com/access/apps`, `creativecommons.tankerkoenig.de/`), `target=_blank rel=noopener noreferrer` (`Moteurs.tsx:33`), aucun lien sans clé.
+• PARTIAL 1 : US-4.4 sections payantes. Au moment des captures et de mes mesures, c'était juste et tarifé sur le tracé affiché. Depuis 23:14Z, les péages sont indisponibles en prod (HIGH 1).
+• BLOQUÉ-CLÉ 1 : US-5.5 (HERE).
+• UNCOVERED 0.
+
+**5. Cas limites (6) et transverses (5)**
+• COVERED 5 : US-4.E4, US-4.E5 (vignette CH), US-4.E6 (Belgrade : 1 851 km, RS « prix non publié — moyenne européenne appliquée »), US-5.E1, US-5.E2.
+  • US-5.E1 rejoué en direct avec une vraie session anonyme : GET moteurs 200 `[]` ; GET cles 403 ; POST 403 ; PATCH et DELETE 200 `[]` sans effet (actif relu = ptv) ; `rpc/moteur_cle` 403 ; fonction `moteurs` 403 ; pas de ⚙ ; `/moteurs` renvoie à l'accueil.
+  • US-5.E2 : « CLÉ REFUSÉE PAR PTV (401) » lisible en entier à 390 px.
+• PARTIAL 1 : US-5.E3, BLOQUÉ-CLÉ sous la forme du plan ; bascule réelle HERE → PTV vue avec l'heure (5.E3-03).
+• UNREACHABLE 0 ; MISSING 0.
+• Transverses : PERF-001 COVERED (2 212 ms) ; A11Y-002, 003, 004 COVERED (M2 rejoué ×2 : 61/61) ; A11Y-001 PARTIAL (Tab montré sur S3 et S5).
+
+**6. Signalements de l'évaluateur (cycle 4) et écarts du descripteur**
+(a) **US-3.6 « voiture disparue » : échec isolé CONFIRMÉ ; correctif péages LEVÉ comme cause.**
+  • Suite M2 complète rejouée deux fois (23:05–23:09Z et 23:10–23:14Z) : 61/61 puis 61/61 ; US-3.6 « voiture disparue » vert les deux fois (5,4 s et 6,6 s).
+  • Journaux du passage du bâtisseur : le test 104 a couru de 22:30:08Z (inscription) à 22:31:04Z (test suivant). Les journaux de la passerelle (`edge_logs`, complets) ne montrent AUCUNE requête `trajets` entre le choix de la voiture (22:30:15,9) et 22:31:04. Le calcul a donc échoué dans `estimerTrajet`, avant l'enregistrement.
+  • À la même minute, `sync-prix` tournait (22:30:01–22:30:26, 9 811 stations écrites). `function_edge_logs` ne compte qu'UNE ligne pour 22:30–22:31 : il est lacunaire, et la réponse de la fonction n'est pas journalisée.
+  • Cause exacte non prouvable. En revanche, ad2da02 ne peut pas la produire : tout le code nouveau (`pointsDePassage`, appels PTV) est dans `calculerPeages`, qui est dans le `try` de `estimer-trajet/index.ts:311-315` (échec → « indisponible », réponse 200) ; sur le chemin IGN, seul `geom.flat()` a été ajouté, et il ne lève pas d'erreur.
+  • Reste LOW 13 (instabilité non expliquée).
+(b) **Mesuré moi-même, tenue CONFIRMÉE.**
+  • À 390 px : scrollWidth 390 ; 6 cartes de 16 à 374 px ; aucun élément hors écran ; pastilles terminées à 361 px, aucune coupée.
+  • À 360 px : scrollWidth 360 ; cartes de 16 à 344 px ; pastilles ≤ 331 px.
+  • Les 12 « labels coupés » relevés par la sonde sont des `sr-only` (clip voulu).
+  • Péages stables sur deux appels : Milan 79,70 / 79,70, Barcelone 29,00 / 29,00.
+  • Reste vrai : aucune assertion de largeur versionnée (LOW 2).
+(c) **CONFIRMÉ, MEDIUM 2.** Test minimal : `expect(page).not.toContain(valeur)` en échec imprime `Expected substring: not "<valeur>"` et la chaîne reçue, donc la valeur deux fois. `US-5.3.test.ts:47-49` boucle sur TOUTES les vraies clés, et le fichier est dans le `testMatch` du `playwright.config.ts` par défaut : les sorties des passages complets sont redirigées dans des fichiers (ex. `/tmp/r4probe/pw.out`).
+(d) **CONFIRMÉ, LOW 1.** Le placeholder « Clé enregistrée ••••NDE0 — coller pour remplacer » mesure 384 px, pour 314 px disponibles à 390 et 284 px à 360. La fin ••••NDE0 se lit ; « remplacer » est coupé (`Moteurs.tsx:147`, `textes.ts:181`).
+(e) **Pas visibles aujourd'hui, MEDIUM 1.** Il y en a trois, pas deux :
+  • « Péage » en repli PTV, `peages.ts:79` ;
+  • « Péage » en repli HERE et « (estimation : maximum de la fourchette) », `peages.ts:128`.
+  Ils sont affichés tels quels par `Resultat.tsx:229` (`{l.libelle}`). HERE n'a pas de clé, et les 51 sections PTV mesurées sur 8 trajets portent toutes un nom : aucun n'apparaît à l'écran aujourd'hui. Ils apparaîtront dès qu'un administrateur active HERE (US-5.5), ou sur une section PTV sans nom.
+**Écarts du descripteur (cycle 4, 27)** — aucun ne fait tomber un critère :
+  • 1.8-01/03 (Trajets + bandeau ; position émulée, stations lues sur -02/-04) et 1.8-02 (« date inconnue » : donnée du flux ES ; « vs Espagne » passe à la ligne, il n'est pas coupé) : LOW.
+  • 4.4-02 : coût total lu sur 4.4-01 (62,33 + 29,00 = 91,33).
+  • 4.E4-01/03 : LOW, hérité.
+  • 4.E5-01/03 : Lausanne au lieu de Milan via Genève (LOW, hérité).
+  • 4.E5-02 : « prix non publié » pour la Suisse = règle (CH absente du Bulletin), levé.
+  • 4.E6-03 : formulaire, normal.
+  • 5.3-02 : le collage ne se voit pas (champ mot de passe vidé après Enregistrer) ; preuve par l'assertion booléenne `US-5.3.test.ts:18` (LOW 10).
+  • 5.3-03 : état refusé laissé par le test Edge (LOW).
+  • 5.5-01/02 : BLOQUÉ-CLÉ.
+  • 5.6-02/03 : adresse non visible sur l'image, vérifiée en table et dans le code (LOW).
+  • 5.E1-02 : chargement ; 5.E1-03 : 200 (0 ligne), revérifié en direct (LOW 11).
+  • **5.E2-03 « refusée par HERE »** : l'énoncé du descripteur (« la clé testée était celle de PTV ») est FAUX. `run-m3.mjs:788-799` choisit HERE et une clé HERE invalide ; le vrai HERE répond 401, le message est exact, PTV reste actif. L'écart au plan (PTV) reste, LOW 8.
+  • **5.E3-01/02/03 rôles inversés** : CONFIRMÉ, faute de clé HERE (BLOQUÉ-CLÉ sous la forme du plan) ; la bascule et son heure se lisent sur -03.
+  • A11Y-001-02 (LOW, hérité), A11Y-002-02 (fond gris, LOW).
+  • A11Y-003-01/02 : tronçon et non fiche ; Échap sur la fiche est couvert par M2 (vert ×2), levé.
+  • PERF-001-02 : la carte charge encore, la liste est prête en 2 212 ms (le critère porte sur la liste), levé.
+
+**7. Statut des points du round 2**
+• HIGH 1 **CORRIGÉ** :
+  • Code : `peages.ts:172-207` (`pointsDePassage` ≤ 23, `waypoints …;radius=500`, HERE `via …!passThrough=true`) ; `estimer-trajet/index.ts:165,173-174,312` ; `itineraire-europe.ts:114` (tracé rendu) ; `estimer-trajet/index.ts:135` (tracé IGN).
+  • Milan : 79,70 € ×2. Sections Millau (A75), Baillargues–Arles (A9/A54), Salon–Lançon (A7), La Barque–Capitou, Antibes, St-Isidore, Monaco, La Turbie (A8), Ventimiglia–Milano Ovest (A10/A26/A7). Toutes sur les voies du tracé (« A8 / A75 / A54 », « A10 / A7 / A26 » ; voies Stadia A 75, A 709, E 80, A 7, A 8, A26, A7). Plus de Fréjus.
+  • Barcelone : 29,00 € ×2 (Toulouse Est = A68 ; Toulouse-Sud/Est–Le Perthus = A61/A9 ; AP-7 gratuite). Mon appel direct à échantillonnage différent donne 29,00 €.
+  • Rome 102,90 €, Lisbonne 54,37 €, Belgrade 122,29 € : toutes par la côte, sans Fréjus.
+• HIGH 2 **CORRIGÉ** : `moteurs/index.ts` ne renvoie que `{etat, code, params}` (l.16-29, 223-232) ; les phrases sont dans `textes.ts:191-249` (`etatMoteur`, `resultatEnregistrement`) ; `Moteurs.tsx:50,75,88-89`. Aucune chaîne d'état dans la fonction. Les descriptions et les noms viennent de la table (contenu, comme les consignes US-5.6), ce n'est pas un texte du code.
+• MEDIUM 3 **CORRIGÉ** : `app.css:214-217,225`, mesuré ci-dessus (b).
+• MEDIUM 4 **CORRIGÉ** : `US-5.3.test.ts:8-27` et `run-m3.mjs` (presse-papiers + Ctrl+V, comparaisons booléennes).
+• LOW 5 **EN PARTIE** : les lignes 3 et 84 sont corrigées. Restent « Vérification finale (… sans aucune clé) » (l.413) et « Valhalla, instance publique » (l.129, 135) alors que l'itinéraire est Stadia (LOW 3).
+• LOW 6 **EN PARTIE** : `m3-aides.mjs:180` + `US-4.4.test.ts` (Barcelone, Milan, Fréjus seulement si le tracé y passe). Mais l'échantillonnage du test est le même que celui de l'appli (23 points, 500 m). Avec le mien (12 points, 1 000 m), Milan donne 82,00 € et non 79,70 € (Baillargues–Remoulins + Avignon-Sud–Lançon) : le montant dépend de l'échantillonnage (LOW 4).
+• LOW 7 **CORRIGÉ** : `m3-decisions.md:20-21` ; description « Prix » en base, vue à l'écran.
+• LOW 8 **CORRIGÉ** : `moteurs/index.ts:192-232`, `textes.ts:361-371` ; un seul refus sur 5.E2-03.
+• LOW 9 **CORRIGÉ pour le libellé** : `textes.ts:142-143`, `Resultat.tsx:237,243`. Le contournement par nouvelles sessions reste, et il aggrave le HIGH 1.
+
+**8. Liste des problèmes**
+**HIGH**
+1. HIGH — US-4.4 / US-5.4 / LOW 19-9 (quota des péages) — `estimer-trajet/index.ts:149-150` (`QUOTA_IDENTITE = 60`, `QUOTA_GLOBAL = 1500` par jour, commentaire « PTV offre 100 000 transactions/mois ») et `peages.ts:152-155` (`erreurHttp` : 403 → `cle_refusee`).
+   • Preuve en direct, 23:14:26Z : `moteurs.incident_message` = « ptv : cle_refusee (403) ».
+   • Deux appels PTV directs à 23:17Z : 403 `{"errorCode":"GENERAL_QUOTA_EXCEEDED","description":"The transaction limit is exceeded.","details":{"message":"Daily Quota Exceeded"}}`.
+   • `estimer-trajet` Albi → Barcelone : 200, `peages = {etat: indisponible, motif: cle_refusee}`. L'écran Moteurs affiche « Dernier incident · PTV : clé refusée (403) » ; un administrateur croira sa clé invalide.
+   • Compteur de l'appli : 113 + 160 appels sur la journée UTC, plus les appels directs des tests. La limite a donc été atteinte bien avant les 1 500 de l'appli.
+   • Le guide PTV (« PTV Developer Migration Guide », lu le 20/10) dit : « Free accounts are limited to five hundred transactions per day ». La FAQ PTV dit aussi que `GENERAL_QUOTA_EXCEEDED` signale la limite de transactions de l'abonnement.
+   • Le nombre de transactions consommées par une requête à 25 waypoints reste inconnu. Le bâtisseur l'avait signalé.
+   • Mes deux passages M2 (environ 50 calculs avec péages) ont contribué à cet épuisement ; l'effet dure jusqu'à la remise à zéro de PTV.
+   • Attendu : traiter 403 `GENERAL_QUOTA_EXCEEDED` (et 429) comme `quota`, avec le libellé « Quota PTV atteint » et non « clé refusée » ; plafond global réglé sous la limite réelle du fournisseur (en table, par fournisseur) et compté en transactions ; décision écrite sur le plan PTV (le plan gratuit exclut l'usage productif) ; campagnes de test qui ne consomment pas le quota de la prod.
+
+**MEDIUM**
+2. MEDIUM — US-5.3 (sécurité des tests) — `tests/e2e/exploration/m3-test-snippets/US-5.3.test.ts:47-49`. `not.toContain(cle)` imprime la vraie clé en cas d'échec (prouvé avec une valeur factice). Attendu : comparaisons booléennes, comme aux lignes 18 et 27.
+3. MEDIUM — transverse (textes) / US-5.5 — `supabase/functions/_shared/peages.ts:79,128` : « Péage » ×2 et « (estimation : maximum de la fourchette) » sont composés dans le serveur et affichés par `Resultat.tsx:229`. Invisibles aujourd'hui (voir e), visibles dès que HERE est actif. Attendu : un drapeau `fourchette` et un libellé vide renvoyés par la fonction, phrases dans `textes.ts`.
+
+**LOW**
+4. LOW — S5 — `Moteurs.tsx:147`, `textes.ts:181` : placeholder coupé à 390 et 360 px (« coller pour : »).
+5. LOW — tests — aucune assertion de largeur S5 (360/390 px) ni de stabilité ×2 versionnée (`run-m3.mjs`, extraits).
+6. LOW — `m3-exploration-log.md:129,135,413` : « Valhalla, instance publique » et « sans aucune clé », énoncés périmés.
+7. LOW — `US-4.4.test.ts` / `m3-aides.mjs:180-200` : même échantillonnage que l'appli ; contrôle de cohérence voies ↔ sections limité au Fréjus ; montant sensible à l'échantillonnage (Milan 82,00 contre 79,70 €).
+8. LOW — `textes.ts:321` : « (1 sections) » sur 5.4-02 (pluriel).
+9. LOW — table `moteurs` : incident « Stadia : service injoignable 400 · 20/10 21:42 » et bascule stadia → valhalla-public de 19:42Z (bug corrigé au round 2) toujours affichés sur S5.
+10. LOW — `Moteurs.tsx:69` : au choix d'un fournisseur dont la clé est rangée, la pastille d'état reprend la phrase du champ, « Clé enregistrée ••••961b — coller pour remplacer » (5.6-03).
+11. LOW — US-5.E2-E1-03 : HERE au lieu de PTV (hérité, LOW 10 du round 2).
+12. LOW — US-5.E3 : rôles inversés, faute de clé HERE (BLOQUÉ-CLÉ sous la forme du plan).
+13. LOW — US-5.3-02 : collage invisible sur l'image (preuve dans le test).
+14. LOW — US-5.E1 : PATCH/DELETE répondent 200 `[]` au lieu d'un refus explicite (RLS effective, aucun effet).
+15. LOW — US-1.8 Barcelone à 1280 px (colonne de 446 px) : quelques étiquettes se chevauchent en haut de la carte (1,639 / 1,874 ; 1,519 / 1,604) ; lisible dans l'ensemble.
+16. LOW — M2 US-3.6 : échec isolé du passage du bâtisseur, cause non prouvée (journaux de fonctions lacunaires, `sync-prix` en cours) ; vert 2/2 au rejeu complet.
+17. LOW — hérités du round 2, non traités : 5.3-04 et A11Y-004-01 (preuve dans le bandeau) ; US-4.E5 Lausanne ; A11Y-001 Tab sur S3/S5 seulement ; Royaume-Uni (Asda seule, 8 stations à Londres) ; lien magique jamais envoyé pour de vrai ; M1 US-1.E4 (aucune rupture réelle).
+18. LOW — procédure : `/home/claude/la-boucle-preuves` appartient à root (755), donc `mkdir VERROU-LIVRAISON` échoue pour le compte claude (signalement 4 de l'évaluateur, à régler par le manager).
+19. LOW — sélecteurs natifs tronqués à 360-390 px (« Flux officiels par pays · FR, ES, IT, PT, SI, HR, AT, … »), comportement natif.
+20. LOW — `estimer-trajet/index.ts:151-158` : tout appel avec la seule clé anonyme partage l'identité de quota « sans-session ».
+
+**Recoupement journal d'exploration (Round 4) ↔ code ↔ captures** :
+• Vrai : correctifs 1–9 (diffs relus), Milan 79,70 / Barcelone 29,00 (mesurés à l'identique), S5 390/360 (mesuré), 56/56 et md5, doublons déclarés, Playwright 146/2/2, état final.
+• Faux ou périmé : l.129, 135, 413 (LOW 6).
+• Non vu par le journal : le plafond de quota mal calibré et le 403 lu comme une clé refusée (HIGH 1) ; les 3 libellés serveur de `peages.ts` (le bâtisseur en avait signalé 2).
+
+**9. État final relu (23:20Z)**
+• Vault (noms) : `cle_ptv`, `cle_stadia`, `sync_prix_secret`. 0 « FAUX- ». `updated_at` 22:36:39 / 22:36:38 / 12:15:02 : je n'ai rien écrit. Fins NDE0 / 961b.
+• Moteurs : péages = ptv sans secours ; itinéraire = stadia + secours valhalla-public.
+• Limite d'inscriptions anonymes : 30. Je l'ai montée à 300 pour chacun des deux passages M2, puis remise à 30. Après le 2e passage, la relecture donnait encore 300 : j'ai refait le PATCH, et la relecture donne 30. Redirections : la prod seule.
+• 0 compte `m3-admin-eph-*` (mes 2 administrateurs éphémères ont été supprimés, 200).
+• 0 ligne de quota de test (aucune posée à la main ; 0 ligne ≥ 60 hors `*`).
+• Albi → Barcelone à 23:17Z : itinéraire stadia, **péages indisponibles (quota PTV du jour épuisé, HIGH 1)**.
+• Vraies clés : 0 occurrence (en clair, base64, URL) dans le dépôt (suivi et non suivi), `git log -p --all`, `/tmp/r4probe`, `agents-codex`, `journal-actions.md` et mes fichiers ; aucune capture ne les montre (champ mot de passe, fins seules).
+• Mes fichiers jetables sont dans `/tmp/audit-r3` (captures effacées).
