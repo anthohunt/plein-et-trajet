@@ -246,7 +246,7 @@ histoireDef("US-4.4", "US-4.4 — Voir les péages", async () => {
       expect(nombre(totalLigne.montant)).toBeCloseTo(d.total, 2);
       verif = ` ; recalcul indépendant par appel direct à PTV + TVA du pays : ${virgule(d.total)} € sur ${d.sections} sections = total affiché`;
     }
-    return `${lignes.length} sections : ${lignes.map((x) => `${x.pays} ${x.montant}`).join(", ")} ; total ${totalLigne.montant} ; ${split}${verif}`;
+    return `${lignes.length} sections : ${lignes.map((x) => `${x.texte.slice(0, 2)} ${x.montant}`).join(", ")} ; total ${totalLigne.montant} ; ${split}${verif}`;
   }, "détail des péages : chaque section en euros TTC (« gratuit » si 0), total ajouté au coût");
   note("happy", "- ✓ montants réels PTV Developer (clé réelle d'Anthony dans Vault, prix HT + TVA du pays) — US-4.4 n'est plus BLOQUÉ-CLÉ.");
 
