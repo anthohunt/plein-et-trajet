@@ -1,3 +1,5 @@
+import { T } from "./textes";
+
 // Position de l'utilisateur, avec repli sur la dernière ville saisie ou Albi.
 export interface Lieu {
   lat: number;
@@ -39,7 +41,7 @@ export function localiser(timeoutMs = 8000): Promise<Position> {
   return new Promise((resolve) => {
     if (!("geolocation" in navigator)) return resolve(repli("indisponible"));
     navigator.geolocation.getCurrentPosition(
-      (p) => resolve({ lat: p.coords.latitude, lon: p.coords.longitude, label: "Ma position", source: "gps" }),
+      (p) => resolve({ lat: p.coords.latitude, lon: p.coords.longitude, label: T.maPosition, source: "gps" }),
       (e) => resolve(repli(e.code === e.PERMISSION_DENIED ? "refusee" : "indisponible")),
       { enableHighAccuracy: false, timeout: timeoutMs, maximumAge: 120_000 },
     );

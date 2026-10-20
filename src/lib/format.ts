@@ -1,3 +1,4 @@
+import { T } from "./textes";
 // Formatage et logique pure de l'écran Prix (testés par Vitest).
 
 export const CARBURANTS = ["Gazole", "SP95-E10", "SP95", "SP98", "E85", "GPLc"] as const;
@@ -24,9 +25,9 @@ export function distance(km: number): string {
 export function ecart(p: number, moyenne: number | null | undefined): { texte: string; sens: "lo" | "hi" | "egal" } | null {
   if (moyenne == null || !Number.isFinite(moyenne)) return null;
   const c = Math.round((p - moyenne) * 1000) / 10; // centimes, 1 décimale
-  if (c === 0) return { texte: "= France", sens: "egal" };
+  if (c === 0) return { texte: T.egalFrance, sens: "egal" };
   const v = Math.abs(c).toFixed(1).replace(".", ",");
-  return c < 0 ? { texte: `−${v} c vs France`, sens: "lo" } : { texte: `+${v} c vs France`, sens: "hi" };
+  return c < 0 ? { texte: `−${v} c ${T.vsFrance}`, sens: "lo" } : { texte: `+${v} c ${T.vsFrance}`, sens: "hi" };
 }
 
 const H = 3600_000;
@@ -63,13 +64,26 @@ export function trier<T extends StationPrix>(liste: T[], tri: Tri): T[] {
 }
 
 /**
- * Moitié la moins chère : les ⌈n/2⌉ prix les plus bas sont « lo » (vert), les autres « hi » (orange).
- * Deux stations au même prix ont toujours la même couleur.
+ * Moitié la moins chère : on coupe la liste triée entre deux prix DIFFÉRENTS (deux stations au même prix
+ * ont toujours la même couleur), à la coupure la plus proche de la moitié ; à égalité, la plus stricte.
+ * Dès qu'il y a au moins deux prix distincts, il y a au moins une verte et une orange.
+ * Renvoie le prix le plus haut encore « vert » (lo = prix ≤ seuil).
  */
 export function seuilMoitie(prix: number[]): number | null {
   if (prix.length === 0) return null;
-  const tries = prix.slice().sort((a, b) => a - b);
-  return tries[Math.ceil(tries.length / 2) - 1];
+  const t = prix.slice().sort((a, b) => a - b);
+  const n = t.length;
+  let meilleur: number | null = null;
+  let ecartMin = Infinity;
+  for (let k = 1; k < n; k++) {
+    if (t[k] === t[k - 1]) continue; // coupure impossible au milieu d'une égalité
+    const e = Math.abs(k - n / 2);
+    if (e < ecartMin) {
+      ecartMin = e;
+      meilleur = t[k - 1];
+    }
+  }
+  return meilleur ?? t[n - 1]; // un seul prix : tout est vert
 }
 export function moitie(p: number, seuil: number | null): "lo" | "hi" {
   return seuil == null || p <= seuil ? "lo" : "hi";
@@ -90,7 +104,7 @@ export function nomStation(s: { enseigne?: string | null; nom?: string | null; v
   const ville = (s.ville ?? "").trim();
   if (s.enseigne) return ville && !s.enseigne.toLowerCase().includes(ville.toLowerCase()) ? `${s.enseigne} ${ville}` : s.enseigne;
   if (s.nom) return s.nom;
-  return ville ? `Station ${ville}` : "Station";
+  return ville ? `${T.marqueurStation} ${ville}` : T.marqueurStation;
 }
 
 const PETITS = new Set(["de", "des", "du", "la", "le", "les", "et", "d", "l", "en", "sur", "a", "au", "aux"]);

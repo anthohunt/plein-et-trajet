@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { T } from "../lib/textes";
+import { geocoderVille } from "../lib/geocodage";
+import { memoriserVille } from "../lib/position";
 
 export default function Trajets() {
   const loc = useLocation();
@@ -17,8 +19,17 @@ export default function Trajets() {
     }
   }, [arriveeInitiale]);
 
+  // dernière ville saisie : sert de repli à l'écran Prix quand la position est refusée (US-1.1)
+  const retenirVille = (texte: string) => {
+    geocoderVille(texte)
+      .then((l) => l && memoriserVille(l))
+      .catch(() => {
+        /* géocodage injoignable : on garde la ville précédente */
+      });
+  };
+
   return (
-    <section className="screen" data-screen="S3" aria-label="Trajets">
+    <section className="screen" data-screen="S3" role="tabpanel" id="panneau-trajets" aria-labelledby="onglet-trajets">
       <div className="scroll">
         <h2 className="sec">{T.nouveauTrajet}</h2>
         <form className="form" onSubmit={(e) => e.preventDefault()}>
@@ -26,11 +37,11 @@ export default function Trajets() {
             <legend className="sr-only">{T.nouveauTrajet}</legend>
             <div className="fld">
               <label htmlFor="dep">{T.depart}</label>
-              <input id="dep" data-el="champ-depart" autoComplete="off" value={depart} onChange={(e) => setDepart(e.target.value)} />
+              <input id="dep" data-el="champ-depart" autoComplete="off" value={depart} onChange={(e) => setDepart(e.target.value)} onBlur={(e) => retenirVille(e.target.value)} />
             </div>
             <div className="fld">
               <label htmlFor="arr">{T.arrivee}</label>
-              <input id="arr" data-el="champ-arrivee" autoComplete="off" ref={champArrivee} value={arrivee} onChange={(e) => setArrivee(e.target.value)} />
+              <input id="arr" data-el="champ-arrivee" autoComplete="off" ref={champArrivee} value={arrivee} onChange={(e) => setArrivee(e.target.value)} onBlur={(e) => retenirVille(e.target.value)} />
             </div>
           </fieldset>
           <p className="note">{T.trajetsBientot}</p>

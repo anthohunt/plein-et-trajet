@@ -28,6 +28,7 @@ export async function ouvrirPrix(p: Page) {
   await p.goto("/");
   await expect(lignes(p).first()).toBeVisible();
   await expect(p.locator('[data-el="carte-stations"]')).toHaveAttribute("data-pastilles", /\d+/);
+  await expect(p.locator('[data-el="ecart"]').first()).toBeVisible(); // moyenne nationale chargée
 }
 export async function choisir(p: Page, c: string) {
   await p.getByRole("group", { name: "Carburant" }).getByRole("button", { name: c, exact: true }).click();
@@ -50,11 +51,12 @@ export function km(a: { lat: number; lon: number }, b: { lat: number; lon: numbe
 }
 export async function glisser(p: Page, dx: number, dy: number) {
   const b = (await p.locator('[data-el="carte-stations"]').boundingBox())!;
-  const d = await p.evaluate(({ x, y, w, hh }) => {
-    for (let yy = y + 40; yy < y + hh - 40; yy += 15) for (let xx = x + 40; xx < x + w - 60; xx += 15)
-      if (document.elementFromPoint(xx, yy)?.tagName === "CANVAS") return { x: xx, y: yy };
-    return { x: x + w / 2, y: y + hh / 2 };
-  }, { x: b.x, y: b.y, w: b.width, hh: b.height });
+  const d = await p.evaluate(({ x, y, w, hh, dx, dy }) => {
+    const ok = (a: number, c: number) => a > x + 8 && a < x + w - 8 && c > y + 8 && c < y + hh - 8;
+    for (let yy = y + 50; yy < y + hh - 40; yy += 10) for (let xx = x + 20; xx < x + w - 20; xx += 10)
+      if (ok(xx + dx, yy + dy) && document.elementFromPoint(xx, yy)?.tagName === "CANVAS") return { x: xx, y: yy };
+    return { x: x + w / 2 - dx / 2, y: y + hh / 2 - dy / 2 };
+  }, { x: b.x, y: b.y, w: b.width, hh: b.height, dx, dy });
   await p.mouse.move(d.x, d.y); await p.mouse.down();
   await p.mouse.move(d.x + dx, d.y + dy, { steps: 12 }); await p.mouse.up();
 }

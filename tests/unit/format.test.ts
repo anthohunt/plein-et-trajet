@@ -70,22 +70,34 @@ describe("tri", () => {
 });
 
 describe("moitié la moins chère", () => {
+  const couleurs = (p: number[]) => { const s = seuilMoitie(p); return p.map((x) => moitie(x, s)); };
   it("n pair : la moitié basse est verte", () => {
-    const p = [2.3, 2.1, 2.2, 2.4];
-    const s = seuilMoitie(p);
-    expect(p.map((x) => moitie(x, s))).toEqual(["hi", "lo", "lo", "hi"]);
+    expect(couleurs([2.3, 2.1, 2.2, 2.4])).toEqual(["hi", "lo", "lo", "hi"]);
   });
-  it("n impair : ⌈n/2⌉ vertes", () => {
-    const p = [2.1, 2.2, 2.3];
-    const s = seuilMoitie(p);
-    expect(p.filter((x) => moitie(x, s) === "lo")).toHaveLength(2);
+  it("n impair : coupure au plus près de la moitié", () => {
+    expect(couleurs([2.1, 2.2, 2.3]).filter((c) => c === "lo")).toHaveLength(1);
   });
   it("prix égaux : même couleur", () => {
-    const p = [2.1, 2.2, 2.2, 2.3];
-    const s = seuilMoitie(p);
-    expect(moitie(2.2, s)).toBe("lo");
+    const c = couleurs([2.1, 2.2, 2.2, 2.3]);
+    expect(c[1]).toBe(c[2]);
   });
-  it("liste vide", () => {
+  it("médiane partagée par les plus chers : au moins une orange (cas Gaillac 2,169 / 2,185 / 2,185)", () => {
+    expect(couleurs([2.169, 2.185, 2.185])).toEqual(["lo", "hi", "hi"]);
+  });
+  it("médiane partagée au milieu (cas Albi SP95-E10) : jamais 6 vertes sur 7", () => {
+    const c = couleurs([1.99, 2.182, 2.182, 2.182, 2.182, 2.182, 2.191]);
+    expect(c.filter((x) => x === "lo").length).toBeLessThanOrEqual(4);
+    expect(c.filter((x) => x === "hi").length).toBeGreaterThan(0);
+  });
+  it("au moins une verte et une orange dès deux prix distincts", () => {
+    for (const p of [[1, 2], [1, 1, 1, 2], [1, 2, 2, 2], [1, 1, 2, 2, 2, 3]]) {
+      const c = couleurs(p);
+      expect(c).toContain("lo");
+      expect(c).toContain("hi");
+    }
+  });
+  it("un seul prix : tout vert ; liste vide", () => {
+    expect(couleurs([2.1, 2.1])).toEqual(["lo", "lo"]);
     expect(seuilMoitie([])).toBeNull();
   });
 });

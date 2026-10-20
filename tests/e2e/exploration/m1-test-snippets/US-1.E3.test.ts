@@ -10,7 +10,8 @@ test("US-1.E3 — prix de plus de 48 h : « prix du JJ/MM » atténué", async (
     const r = await rest(`prix?select=station_id,maj&carburant=eq.${c}&rupture=is.false&prix=not.is.null&maj=lt.${limite}&station_id=in.(${ids})`);
     if (r.length) { carb = c; vieux = r[0]; break; }
   }
-  test.skip(!vieux, "aucune station réelle > 48 h dans le rayon aujourd'hui");
+  // pas de skip silencieux : sans donnée réelle dans cet état, le test échoue et le dit
+  expect(vieux, "aucune station réelle > 48 h dans le rayon aujourd'hui : fixture nécessaire").toBeTruthy();
   const jjmm = new Date(vieux.maj).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", timeZone: "Europe/Paris" });
   await ouvrirPrix(page);
   await choisir(page, carb);

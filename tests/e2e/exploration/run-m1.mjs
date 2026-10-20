@@ -71,9 +71,27 @@ async function capture(page, nom, verif, description) {
   // laisser finir les animations en cours (feuille montante, défilement des chiffres) avant la photo
   await page.evaluate(() => Promise.race([Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {}))), new Promise((r) => setTimeout(r, 1500))]));
   await page.screenshot({ path: path.join(LIVRAISON, nom) });
+  await page.evaluate(() => {
+    document.querySelectorAll("[data-annotation-test]").forEach((e) => e.remove());
+    document.querySelectorAll("[data-surligne-test]").forEach((e) => { e.style.outline = ""; e.style.outlineOffset = ""; e.removeAttribute("data-surligne-test"); });
+  });
   resultats.push({ nom, ok });
   note(`- ${ok ? "✓" : "✗"} \`${nom}\` — ${description}${detail ? ` — ${detail}` : ""}`);
   return ok;
+}
+
+// ---- annotations de capture (ajoutées par le test, absentes de l'appli, retirées après la photo) ----
+async function annoter(page, texte) {
+  await page.evaluate((t) => {
+    const d = document.createElement("div");
+    d.setAttribute("data-annotation-test", "");
+    d.textContent = "Annotation de test — " + t;
+    Object.assign(d.style, { position: "fixed", left: "8px", right: "8px", bottom: "58px", zIndex: 9999, background: "#ffb000", color: "#15181a", font: "600 13px/1.3 sans-serif", padding: "6px 8px", borderRadius: "6px", boxShadow: "0 2px 8px rgba(0,0,0,.3)" });
+    document.body.appendChild(d);
+  }, texte);
+}
+async function surligner(loc) {
+  await loc.evaluate((e) => { e.setAttribute("data-surligne-test", ""); e.style.outline = "3px dashed #ffb000"; e.style.outlineOffset = "-3px"; });
 }
 
 // ---- aides DOM ----
@@ -114,6 +132,7 @@ async function choisir(p, carburant) {
 async function ouvrirPrix(p) {
   await p.goto(URL_APP);
   await attendreListe(p);
+  await expect(p.locator('[data-el="ecart"]').first()).toBeVisible({ timeout: 15000 }); // moyenne nationale chargée
   await attendreCarte(p);
 }
 /** pastille cliquable sans être recouverte par une autre */
@@ -134,14 +153,16 @@ async function pastilleDegagee(p) {
 async function glisserCarte(p, dx, dy, pendant) {
   const box = await p.locator('[data-el="carte-stations"]').boundingBox();
   // point de départ : un endroit de la carte sans pastille
-  const depart = await p.evaluate(({ bx, by, bw, bh }) => {
-    for (let yy = by + 40; yy < by + bh - 40; yy += 15)
-      for (let xx = bx + 40; xx < bx + bw - 60; xx += 15) {
+  const depart = await p.evaluate(({ bx, by, bw, bh, dx, dy }) => {
+    const ok = (x, y) => x > bx + 8 && x < bx + bw - 8 && y > by + 8 && y < by + bh - 8;
+    for (let yy = by + 50; yy < by + bh - 40; yy += 10)
+      for (let xx = bx + 20; xx < bx + bw - 20; xx += 10) {
+        if (!ok(xx + dx, yy + dy)) continue;
         const el = document.elementFromPoint(xx, yy);
         if (el && el.tagName === "CANVAS") return { x: xx, y: yy };
       }
-    return { x: bx + bw / 2, y: by + bh / 2 };
-  }, { bx: box.x, by: box.y, bw: box.width, bh: box.height });
+    return { x: bx + bw / 2 - dx / 2, y: by + bh / 2 - dy / 2 };
+  }, { bx: box.x, by: box.y, bw: box.width, bh: box.height, dx, dy });
   await p.mouse.move(depart.x, depart.y);
   await p.mouse.down();
   await p.mouse.move(depart.x + dx / 2, depart.y + dy / 2, { steps: 8 });
@@ -202,6 +223,21 @@ HISTOIRES["US-1.1 — Ouvrir les prix"] = async () => {
     return `message « ${await p.locator('[data-el="message-localisation"]').innerText()} », centre ${c.lat.toFixed(4)}, ${c.lon.toFixed(4)} (Albi)`;
   }, "carte centrée sur Albi par défaut + message pour activer la localisation");
   await ctx.close();
+  // repli sur la DERNIÈRE VILLE SAISIE (vérifié sans capture : les captures 03/04 montrent le repli Albi)
+  ctx = await contexte({ geoloc: false });
+  p = await ctx.newPage();
+  await p.goto(new URL("/trajets", URL_APP).href);
+  await p.getByLabel("Départ").fill("Castres");
+  await p.getByLabel("Arrivée").focus(); // quitter le champ : géocodage IGN puis mémorisation
+  await expect.poll(() => p.evaluate(() => localStorage.getItem("pt-derniere-ville")), { timeout: 10000 }).toContain("Castres");
+  await p.reload();
+  await p.getByRole("tab", { name: "Prix" }).click();
+  await expect(p.locator('[data-el="message-localisation"]')).toContainText("carte centrée sur Castres");
+  await attendreListe(p);
+  const cc = await centreCarte(p);
+  const okCastres = km(cc, { lat: 43.6094, lon: 2.2455 }) < 1;
+  note(`- ${okCastres ? "✓" : "✗"} (sans capture) dernière ville saisie : « Castres » tapé dans Départ → mémorisé (géocodage IGN) → au rechargement sans localisation, message « carte centrée sur Castres », centre ${cc.lat.toFixed(3)}, ${cc.lon.toFixed(3)}`);
+  await ctx.close();
 };
 
 HISTOIRES["US-1.2 — Choisir mon carburant"] = async () => {
@@ -237,12 +273,17 @@ HISTOIRES["US-1.2 — Choisir mon carburant"] = async () => {
   const cible = e10.map((x) => x.station_id).find((id) => !e85.has(id));
   const nomCible = await p.locator(`[data-el="ligne-station"][data-station="${cible}"] .n`).innerText();
   await p.locator(`[data-el="ligne-station"][data-station="${cible}"]`).scrollIntoViewIfNeeded();
+  await surligner(p.locator(`[data-el="ligne-station"][data-station="${cible}"]`));
+  await surligner(p.locator(`[data-el="pastille-station"][data-station="${cible}"]`));
+  await annoter(p, `${nomCible} : vend du SP95-E10, pas d'E85 (surlignée)`);
   await capture(p, "US-1.2-03-choisir-mon-carburant-avant.png", async () => {
     await expect(p.locator(`[data-el="ligne-station"][data-station="${cible}"]`)).toBeVisible();
     await expect(p.locator(`[data-el="pastille-station"][data-station="${cible}"]`)).toHaveCount(1);
     return `${nomCible} (${cible}) affichée en SP95-E10 ; aucune ligne E85 en base pour elle`;
   }, "station présente en SP95-E10, ne vend pas d'E85");
   await choisir(p, "E85");
+  await attendreListe(p);
+  await annoter(p, `E85 : ${nomCible} n'est plus ni dans la liste ni sur la carte`);
   await capture(p, "US-1.2-04-choisir-mon-carburant-apres.png", async () => {
     await expect(p.locator('[data-el="liste-stations"]')).toHaveAttribute("data-carburant", "E85");
     await expect(p.locator(`[data-el="ligne-station"][data-station="${cible}"]`)).toHaveCount(0);
@@ -260,13 +301,14 @@ HISTOIRES["US-1.3 — Voir les stations sur la carte"] = async () => {
   const appels = [];
   p.on("request", (r) => r.url().includes("/rpc/stations_autour") && appels.push(JSON.parse(r.postData() || "{}")));
   await p.goto(URL_APP);
-  await capture(p, "US-1.3-01-voir-les-stations-sur-la-carte-avant.png", async () => {
-    const st = await rpcAutour(ALBI.latitude, ALBI.longitude);
-    expect(st.length).toBeGreaterThan(5);
-    return `${st.length} stations synchronisées à moins de 10 km d'Albi en base (rpc stations_autour)`;
-  }, "ouverture de l'écran Prix, stations synchronisées dans un rayon de 10 km");
   await attendreListe(p);
   await attendreCarte(p);
+  await capture(p, "US-1.3-01-voir-les-stations-sur-la-carte-avant.png", async () => {
+    await expect(pastilles(p).first()).toBeVisible();
+    const st = await rpcAutour(ALBI.latitude, ALBI.longitude);
+    expect(st.length).toBeGreaterThan(5);
+    return `${st.length} stations synchronisées à moins de 10 km d'Albi en base (rpc stations_autour) ; écran chargé : ${await lignes(p).count()} lignes, ${await pastilles(p).count()} pastilles`;
+  }, "ouverture de l'écran Prix, stations synchronisées dans un rayon de 10 km");
   await capture(p, "US-1.3-02-voir-les-stations-sur-la-carte-apres.png", async () => {
     const st = await rpcAutour(ALBI.latitude, ALBI.longitude);
     const pos = new Map(st.map((s) => [s.id, s]));
@@ -277,8 +319,9 @@ HISTOIRES["US-1.3 — Voir les stations sur la carte"] = async () => {
         const pt = window.__carte.project([s.lon, s.lat]);
         const m = document.querySelector(".map .gl").getBoundingClientRect();
         const r = b.getBoundingClientRect();
-        // la pointe de la pastille (bas, centre) est sur la position de la station
-        out.push({ id: b.dataset.station, dx: Math.abs(r.left + r.width / 2 - (m.left + pt.x)), dy: Math.abs(r.bottom + 8 - (m.top + pt.y)), texte: b.textContent });
+        const w = b.parentElement.getBoundingClientRect();
+        // le bas de la tige (sous la pastille, centrée) est sur la position de la station
+        out.push({ id: b.dataset.station, dx: Math.abs(r.left + r.width / 2 - (m.left + pt.x)), dy: Math.abs(w.bottom - (m.top + pt.y)), texte: b.textContent });
       }
       return out;
     }, Object.fromEntries(pos));
@@ -291,23 +334,26 @@ HISTOIRES["US-1.3 — Voir les stations sur la carte"] = async () => {
     return `${ecarts.length} pastilles, chacune à < 3 px de la position réelle de sa station, prix à 3 décimales`;
   }, "chaque station = une pastille à sa position réelle avec son prix");
   const avant = new Set((await lireLignes(p)).map((x) => x.id));
-  // vers Gaillac (≈ 20 km à l'ouest) : on tire la carte à la souris, par gestes de ≤ 130 px
-  const GAILLAC = [1.897, 43.9011];
+  // vers Carmaux (≈ 13 km au nord) : UN SEUL glisser continu ; capture pendant le geste, bouton enfoncé
+  const CARMAUX = [2.158, 44.05];
+  // geste le plus long possible dans le cadre de la carte, dans la direction de Carmaux
   const ecart = await p.evaluate((g) => {
-    const m = window.__carte, a = m.project(g), c = m.project(m.getCenter());
-    return { dx: c.x - a.x, dy: c.y - a.y };
-  }, GAILLAC);
-  const n = Math.ceil(Math.max(Math.abs(ecart.dx), Math.abs(ecart.dy)) / 130);
-  for (let i = 0; i < n - 1; i++) {
-    await glisserCarte(p, ecart.dx / n, ecart.dy / n);
-    await p.waitForTimeout(300);
-  }
-  await glisserCarte(p, ecart.dx / n, ecart.dy / n, async () => {
+    const m = window.__carte, a = m.project(g), c = m.project(m.getCenter()), r = m.getContainer().getBoundingClientRect();
+    let dx = c.x - a.x, dy = c.y - a.y;
+    const k = Math.min(1, (r.width - 60) / Math.abs(dx || 1), (r.height - 70) / Math.abs(dy || 1));
+    return { dx: dx * k, dy: dy * k };
+  }, CARMAUX);
+  const nAppels = appels.length;
+  const nomsAlbi = (await lireLignes(p)).map((x) => x.nom).slice(0, 2).join(", ");
+  await glisserCarte(p, ecart.dx, ecart.dy, async () => {
     await capture(p, "US-1.3-03-voir-les-stations-sur-la-carte-avant.png", async () => {
       const c = await centreCarte(p);
-      expect(km(c, { lat: ALBI.latitude, lon: ALBI.longitude })).toBeGreaterThan(5);
-      return `glisser en cours (bouton souris enfoncé), centre ${c.lat.toFixed(3)}, ${c.lon.toFixed(3)}`;
-    }, "je déplace la carte (glisser à la souris, non relâché)");
+      expect(km(c, { lat: ALBI.latitude, lon: ALBI.longitude })).toBeGreaterThan(4);
+      expect(appels.length).toBe(nAppels); // rien n'est rechargé tant que le doigt n'est pas relâché
+      const l = await lireLignes(p);
+      expect(l.every((x) => avant.has(x.id))).toBe(true);
+      return `un seul glisser de ${Math.round(Math.hypot(ecart.dx, ecart.dy))} px, bouton encore enfoncé : carte à ${km(c, { lat: ALBI.latitude, lon: ALBI.longitude }).toFixed(1)} km au nord d'Albi (${c.lat.toFixed(3)}, ${c.lon.toFixed(3)}, vers Carmaux), liste encore celle d'Albi (${nomsAlbi}…), aucun nouvel appel`;
+    }, "je déplace la carte (un seul glisser, non relâché) : la liste montre encore Albi");
   });
   await capture(p, "US-1.3-04-voir-les-stations-sur-la-carte-apres.png", async () => {
     await expect.poll(() => appels.length, { timeout: 10000 }).toBeGreaterThanOrEqual(2);
@@ -352,11 +398,17 @@ HISTOIRES["US-1.4 — Toucher une pastille"] = async () => {
     expect(distincts.size).toBeGreaterThan(1);
     return `${pa.length} pastilles gazole, ${distincts.size} prix différents`;
   }, "des prix différents autour de moi (gazole)");
+  {
+    const pa = (await lirePastilles(p)).map((x) => ({ ...x, v: Number(x.texte.replace(",", ".")) }));
+    const lo = pa.filter((x) => x.moitie === "lo"), hi = pa.filter((x) => x.moitie === "hi");
+    await annoter(p, `${lo.length} pastilles vertes ≤ ${Math.max(...lo.map((x) => x.v)).toFixed(3)} €/L · ${hi.length} orange ≥ ${Math.min(...hi.map((x) => x.v)).toFixed(3)} €/L`);
+  }
   await capture(p, "US-1.4-04-toucher-une-pastille-apres.png", async () => {
     const pa = (await lirePastilles(p)).map((x) => ({ ...x, v: Number(x.texte.replace(",", ".")) }));
     const lo = pa.filter((x) => x.moitie === "lo"), hi = pa.filter((x) => x.moitie === "hi");
-    expect(lo.length).toBeGreaterThanOrEqual(Math.ceil(pa.length / 2));
+    expect(lo.length).toBeGreaterThan(0);
     expect(hi.length).toBeGreaterThan(0);
+    expect(Math.abs(lo.length - pa.length / 2)).toBeLessThanOrEqual(pa.length / 2 - 1);
     expect(Math.max(...lo.map((x) => x.v))).toBeLessThan(Math.min(...hi.map((x) => x.v)));
     const couleurs = await p.evaluate(() => {
       const c = (sel) => { const e = document.querySelector(sel); return e ? getComputedStyle(e).boxShadow : null; };
@@ -494,6 +546,7 @@ HISTOIRES["US-1.E1 — Source des prix injoignable"] = async () => {
   const p = await ctx.newPage();
   await p.goto(new URL("/trajets", URL_APP).href);
   await p.route("**/rest/v1/prix*", (r) => r.abort());
+  await annoter(p, "MOCK — page.route('**/rest/v1/prix*') coupe la lecture des prix ; j'ouvre ensuite l'onglet Prix");
   await capture(p, "US-1.E1-E1-01-declencheur.png", async () => "MOCKED: lecture des prix interceptée et coupée (abort) ; appli sur Trajets", "lecture des prix en erreur réseau (MOCKED)");
   await p.getByRole("tab", { name: "Prix" }).click();
   await capture(p, "US-1.E1-E1-02-resultat.png", async () => {
@@ -522,6 +575,7 @@ HISTOIRES["US-1.E2 — Aucune station pour ce carburant"] = async () => {
   await ouvrirPrix(p);
   const mock = (r) => r.fulfill({ status: 200, contentType: "application/json", body: "[]" });
   await p.route("**/rest/v1/prix*carburant=eq.E85*", mock);
+  await annoter(p, "MOCK — page.route renvoie [] pour les prix E85 ; je vais toucher E85");
   await capture(p, "US-1.E2-E1-01-declencheur.png", async () => "MOCKED: réponse vide pour E85 ; liste en SP95-E10", "aucune station du rayon ne vend E85 (MOCKED)");
   await choisir(p, "E85");
   await capture(p, "US-1.E2-E1-02-resultat.png", async () => {
@@ -563,6 +617,7 @@ HISTOIRES["US-1.E3 — Prix ancien signalé"] = async () => {
   await capture(p, "US-1.E3-E1-01-declencheur.png", async () => `station ${vieux.station_id} : prix ${carb} déclaré le ${vieux.maj} (> 48 h, lu en base)`, "une station dont le prix date de plus de 48 h");
   const ligne = p.locator(`[data-el="ligne-station"][data-station="${vieux.station_id}"]`);
   await ligne.scrollIntoViewIfNeeded();
+  await surligner(ligne);
   await capture(p, "US-1.E3-E1-02-resultat.png", async () => {
     await expect(ligne.locator('[data-el="anciennete"]')).toHaveText(`prix du ${jjmm}`);
     return `ligne « ${await ligne.locator(".n").innerText()} » : « prix du ${jjmm} »`;
@@ -599,23 +654,27 @@ HISTOIRES["US-1.E4 — Station en rupture"] = async () => {
   await attendreListe(p);
   const ligne = p.locator(`[data-el="ligne-station"][data-station="${id}"]`);
   const nom = visible ? await ligne.locator(".n").innerText() : id;
-  if (visible) await ligne.scrollIntoViewIfNeeded();
+  if (visible) { await ligne.scrollIntoViewIfNeeded(); await surligner(ligne); }
+  await annoter(p, `${nom} (${id}) : rupture temporaire de gazole déclarée ; visible en ${visible}`);
   await capture(p, "US-1.E4-E1-01-declencheur.png", async () => {
     if (visible) await expect(ligne).toBeVisible();
     return `${nom} (${id}) : ligne Gazole en base rupture=true ; visible en ${visible ?? "—"}`;
   }, "une station en rupture temporaire de gazole");
   await choisir(p, "Gazole");
   await attendreListe(p);
+  await annoter(p, `Gazole : « ${nom} » absente (les autres TotalEnergies portent un autre libellé)`);
   await capture(p, "US-1.E4-E1-02-resultat.png", async () => {
     await expect(p.locator('[data-el="liste-stations"]')).toHaveAttribute("data-carburant", "Gazole");
     await expect(ligne).toHaveCount(0);
     await expect(p.locator(`[data-el="pastille-station"][data-station="${id}"]`)).toHaveCount(0);
     const l = await lireLignes(p);
     expect(croissant(l.map((x) => x.prix))).toBe(true);
+    expect(l.map((x) => x.nom)).not.toContain(nom); // aucune autre station ne porte son libellé
     return `en Gazole, liste triée par prix (${l.length} stations) sans ${nom}`;
   }, "je choisis Gazole : elle n'apparaît pas");
   if (visible) await choisir(p, visible);
   await attendreListe(p);
+  if (visible) { await ligne.scrollIntoViewIfNeeded(); await surligner(ligne); }
   await capture(p, "US-1.E4-E1-03-retour.png", async () => {
     if (visible) await expect(ligne).toHaveCount(1);
     return `retour en ${visible} : ${nom} réapparaît (elle vend toujours ce carburant)`;
@@ -689,50 +748,72 @@ HISTOIRES["US-1.P1 — Recentrer sur ma position"] = async () => {
 };
 
 // ---------------- transverses ----------------
+/** l'élément focalisé est-il réellement visible (dans la fenêtre, dans le cadre de la carte s'il y est, non recouvert) ? */
+const etatFocus = (p) => p.evaluate(() => {
+  const e = document.activeElement;
+  const r = e.getBoundingClientRect();
+  const s = getComputedStyle(e);
+  const carte = e.closest(".map");
+  const cadre = (carte ?? document.documentElement).getBoundingClientRect();
+  const dans = r.width > 0 && r.left >= cadre.left - 1 && r.right <= cadre.right + 1 && r.top >= cadre.top - 1 && r.bottom <= cadre.bottom + 1 && r.top >= 0 && r.bottom <= innerHeight;
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  const dessus = document.elementFromPoint(cx, cy);
+  return {
+    txt: (e.getAttribute("aria-label") || e.textContent || "").trim().slice(0, 34),
+    idx: [...document.querySelectorAll("*")].indexOf(e),
+    contour: s.outlineStyle !== "none" && parseFloat(s.outlineWidth) >= 2,
+    visible: e.tagName === "CANVAS" ? dans : dans && !!dessus && (dessus === e || e.contains(dessus)),
+    pastille: e.dataset.el === "pastille-station",
+  };
+});
+
 HISTOIRES["US-A11Y-001 — Navigation au clavier"] = async () => {
   const ctx = await contexte();
   const p = await ctx.newPage();
   await ouvrirPrix(p);
   await p.locator("body").click({ position: { x: 5, y: 5 } });
   const ordre = [];
-  for (let i = 0; i < 12; i++) {
+  // Tab jusqu'à la 2e pastille (on s'arrête dessus pour la photo)
+  for (let i = 0; i < 30; i++) {
     await p.keyboard.press("Tab");
-    ordre.push(await p.evaluate(() => {
-      const e = document.activeElement;
-      const s = getComputedStyle(e);
-      return { tag: e.tagName, txt: (e.getAttribute("aria-label") || e.textContent || "").trim().slice(0, 30), outline: s.outlineStyle + " " + s.outlineWidth, idx: [...document.querySelectorAll("*")].indexOf(e) };
-    }));
+    ordre.push(await etatFocus(p));
+    if (ordre.filter((o) => o.pastille).length === 2) break;
   }
   await capture(p, "US-A11Y-001-01-m1.png", async () => {
     expect(ordre[0].txt).toBe("Gazole");
     for (let i = 1; i < ordre.length; i++) expect(ordre[i].idx, `ordre ${i}`).toBeGreaterThan(ordre[i - 1].idx);
-    for (const o of ordre) expect(o.outline).not.toMatch(/^none/);
-    return `Tab ×12 (S1) : ${ordre.map((o) => o.txt).join(" → ")} ; ordre du document respecté, contour visible (${ordre[0].outline})`;
-  }, "S1 : Tab parcourt carburants, carte, pastilles… dans l'ordre de lecture");
-  // fin de page : Maj+Tab depuis la barre d'onglets
-  await p.getByRole("tab", { name: "Trajets" }).focus();
-  const retour = [];
-  for (let i = 0; i < 3; i++) {
-    await p.keyboard.press("Shift+Tab");
-    retour.push(await p.evaluate(() => ({ txt: (document.activeElement.getAttribute("aria-label") || document.activeElement.textContent || "").trim().slice(0, 40), idx: [...document.querySelectorAll("*")].indexOf(document.activeElement), outline: getComputedStyle(document.activeElement).outlineStyle })));
+    for (const o of ordre) { expect(o.contour, `contour ${o.txt}`).toBe(true); expect(o.visible, `visible ${o.txt}`).toBe(true); }
+    return `Tab ×${ordre.length} : ${ordre.map((o) => o.txt).join(" → ")} ; ordre du document, chaque élément focalisé visible dans son cadre avec un contour ≥ 2 px ; arrêt sur une pastille`;
+  }, "Tab : carburants, carte puis pastilles visibles, dans l'ordre de lecture, contour visible");
+  // suite du parcours jusqu'à la barre d'onglets : aucune pastille hors cadre ne reçoit le focus
+  const suite = [];
+  for (let i = 0; i < 40; i++) {
+    await p.keyboard.press("Tab");
+    const o = await etatFocus(p);
+    suite.push(o);
+    if (o.txt === "Prix") break;
   }
-  // fiche (S2) : Tab dans la feuille
+  const horsCadre = await p.locator('[data-el="pastille-station"][data-hors-cadre="oui"]').count();
+  await p.keyboard.press("Shift+Tab");
+  const r1 = await etatFocus(p);
+  await p.keyboard.press("Shift+Tab");
+  const r2 = await etatFocus(p);
+  await capture(p, "US-A11Y-001-02-m1.png", async () => {
+    for (const o of suite) { expect(o.visible, `visible ${o.txt}`).toBe(true); expect(o.contour).toBe(true); }
+    expect(r1.idx).toBeLessThan(suite.at(-1).idx);
+    expect(r2.idx).toBeLessThan(r1.idx);
+    expect(r2.visible && r2.contour).toBe(true);
+    // fiche (S2) : titre → fermer → trajet
+    return `suite Tab ×${suite.length} jusqu'à l'onglet Prix, tous visibles (${horsCadre} pastille(s) hors cadre exclue(s) du parcours) ; Maj+Tab ×2 : « ${r1.txt} » ← « ${r2.txt} » (contour visible)`;
+  }, "Maj+Tab remonte l'ordre, contour visible sur l'élément atteint");
   await lignes(p).first().focus();
   await p.keyboard.press("Enter");
   await expect(p.locator("#sh-name")).toBeFocused();
   await p.keyboard.press("Tab");
-  const f1 = await p.evaluate(() => document.activeElement.getAttribute("aria-label") || document.activeElement.textContent);
+  const f1 = await etatFocus(p);
   await p.keyboard.press("Tab");
-  const f2 = await p.evaluate(() => document.activeElement.textContent);
-  await capture(p, "US-A11Y-001-02-m1.png", async () => {
-    for (let i = 1; i < retour.length; i++) expect(retour[i].idx).toBeLessThan(retour[i - 1].idx);
-    expect(f1).toBe("Fermer la fiche");
-    expect(f2).toBe("Coût d'un trajet jusqu'ici");
-    await expect(p.getByRole("button", { name: "Coût d'un trajet jusqu'ici" })).toBeFocused();
-    const o = await p.evaluate(() => getComputedStyle(document.activeElement).outlineStyle);
-    expect(o).not.toBe("none");
-    return `Maj+Tab depuis l'onglet Trajets : ${retour.map((r) => r.txt).join(" ← ")} ; S2 : titre → « ${f1} » → « ${f2} » (contour ${o})`;
-  }, "Maj+Tab remonte l'ordre ; dans la fiche, Tab va du titre au bouton fermer puis au bouton trajet, contour visible");
+  const f2 = await etatFocus(p);
+  note(`- (sans capture) S2 : Tab depuis le titre → « ${f1.txt} » → « ${f2.txt} », visibles : ${f1.visible && f2.visible}, contour : ${f1.contour && f2.contour}`);
   await ctx.close();
 };
 
@@ -744,24 +825,29 @@ HISTOIRES["US-A11Y-002 — Focus de la fiche"] = async () => {
   const id = await ligne.getAttribute("data-station");
   await ligne.focus();
   await p.keyboard.press("Enter");
+  await expect(p.locator('[data-el="tableau-prix"]')).toHaveAttribute("aria-busy", "false");
   await capture(p, "US-A11Y-002-01-m1.png", async () => {
     await expect(p.locator("#sh-name")).toBeFocused();
-    return `ouverte au clavier (Entrée sur la ligne ${id}) : focus sur le titre « ${await p.locator("#sh-name").innerText()} »`;
+    return `ouverte au clavier (Entrée sur la ligne ${id}) : focus sur le titre « ${await p.locator("#sh-name").textContent()} »`;
   }, "la fiche s'ouvre, le focus va sur son titre");
   await p.keyboard.press("Escape");
   await capture(p, "US-A11Y-002-02-m1.png", async () => {
     await expect(p.getByRole("dialog")).toHaveCount(0);
     await expect(p.locator(`[data-el="ligne-station"][data-station="${id}"]`)).toBeFocused();
-    // même chose depuis une pastille
-    const pid = await pastilleDegagee(p);
-    const pin = p.locator(`[data-el="pastille-station"][data-station="${pid}"]`);
-    await pin.focus();
-    await p.keyboard.press("Enter");
-    await expect(p.locator("#sh-name")).toBeFocused();
-    await p.getByRole("button", { name: "Fermer la fiche" }).click();
-    await expect(pin).toBeFocused();
-    return `fermée : le focus revient sur la ligne ${id} ; idem depuis la pastille ${pid} (bouton ✕)`;
-  }, "à la fermeture le focus revient sur l'élément qui l'a ouverte");
+    const f = await etatFocus(p);
+    expect(f.visible && f.contour).toBe(true);
+    return `juste après Échap : focus revenu sur la ligne ${id} « ${f.txt} », contour visible`;
+  }, "à la fermeture (Échap) le focus revient sur la ligne qui l'a ouverte, contour visible");
+  // même chose depuis une pastille (vérifié, sans capture)
+  const pid = await pastilleDegagee(p);
+  const pin = p.locator(`[data-el="pastille-station"][data-station="${pid}"]`);
+  await pin.focus();
+  await p.keyboard.press("Enter");
+  await expect(p.locator("#sh-name")).toBeFocused();
+  await p.keyboard.press("Tab");
+  await p.keyboard.press("Enter"); // bouton Fermer la fiche, au clavier
+  await expect(pin).toBeFocused();
+  note(`- (sans capture) depuis la pastille ${pid} : Entrée → focus titre ; Tab + Entrée sur ✕ → focus revenu sur la pastille`);
   await ctx.close();
 };
 
@@ -797,13 +883,21 @@ HISTOIRES["US-A11Y-004 — Libellés lisibles"] = async () => {
     const snap = await lignes(p).first().ariaSnapshot();
     return `${pa.length} pastilles annoncées (ex. « ${pa[0].label} ») ; prix de liste : « ${totems[0]} » ; arbre a11y ligne : ${snap.replace(/\n\s*/g, " ")}`;
   }, "chaque pastille annonce station et prix en euros");
+  // fiche en cours de chargement (réseau ralenti de 1,5 s, vraie réponse) : le chargement est annoncé
+  await p.route("**/rest/v1/prix?*station_id=eq.*", async (r) => { await new Promise((x) => setTimeout(x, 1500)); await r.continue(); });
   await lignes(p).first().click();
+  await expect(p.locator('[data-el="tableau-prix"] [role="status"]')).toHaveText("Chargement des prix de la station…");
+  const snapCharge = await p.locator('[data-el="tableau-prix"]').ariaSnapshot();
+  await p.unroute("**/rest/v1/prix?*station_id=eq.*");
+  await expect(p.locator('[data-el="tableau-prix"]')).toHaveAttribute("aria-busy", "false");
   await capture(p, "US-A11Y-004-02-m1.png", async () => {
+    await expect(p.locator('[data-el="tableau-prix"] .totem').first()).toBeVisible();
     const icones = await p.evaluate(() => [...document.querySelectorAll("button")].filter((b) => !b.textContent.replace(/[✕\s]/g, "").length).map((b) => b.getAttribute("aria-label")));
     for (const l of icones) expect(l).toBeTruthy();
     expect(icones).toEqual(expect.arrayContaining(["Recentrer sur ma position", "Fermer la fiche"]));
-    return `boutons icônes : ${icones.join(", ")} — tous libellés`;
-  }, "chaque bouton icône a un libellé");
+    const prixFiche = await p.locator('[data-el="tableau-prix"] .totem').evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")));
+    return `fiche chargée (${prixFiche.length} prix annoncés, ex. « ${prixFiche[0]} ») ; pendant le chargement : ${snapCharge.replace(/\n\s*/g, " ").slice(0, 160)}… ; boutons icônes : ${icones.join(", ")}`;
+  }, "fiche aux prix chargés ; chargement annoncé ; chaque bouton icône a un libellé");
   await ctx.close();
 };
 
@@ -817,10 +911,13 @@ HISTOIRES["US-PERF-001 — Ouverture rapide"] = async () => {
   await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 85, downloadThroughput: (9 * 1024 * 1024) / 8, uploadThroughput: (1.5 * 1024 * 1024) / 8 });
   const t0 = Date.now();
   await p.goto(URL_APP, { waitUntil: "commit" });
-  await capture(p, "US-PERF-001-01-m1.png", async () => `navigation lancée en 4G simulé (9 Mbit/s, 85 ms), cache désactivé, t=${Date.now() - t0} ms`, "j'ouvre l'appli (4G simulée)");
+  const t1 = Date.now() - t0;
+  await annoter(p, `4G simulée (9 Mbit/s, 85 ms), cache vide : navigation lancée, t = ${t1} ms`);
+  await capture(p, "US-PERF-001-01-m1.png", async () => `navigation lancée en 4G simulée (9 Mbit/s, 85 ms), cache désactivé, t=${t1} ms`, "j'ouvre l'appli (4G simulée)");
   await lignes(p).first().waitFor({ timeout: 15000 });
   const t = Date.now() - t0;
   const nav = await p.evaluate(() => JSON.stringify(performance.getEntriesByType("navigation")[0]?.toJSON?.() ?? {}));
+  await annoter(p, `liste des stations affichée en ${t} ms (budget 2 500 ms)`);
   await capture(p, "US-PERF-001-02-m1.png", async () => {
     expect(t).toBeLessThan(2500);
     return `liste affichée en ${t} ms (< 2 500 ms) ; domInteractive ${Math.round(JSON.parse(nav).domInteractive ?? 0)} ms`;

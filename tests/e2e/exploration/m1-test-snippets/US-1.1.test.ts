@@ -21,4 +21,15 @@ test.describe("position refusée", () => {
     await expect(lignes(page).first()).toBeVisible();
     expect(km(await centre(page), { lat: ALBI.latitude, lon: ALBI.longitude })).toBeLessThan(0.5);
   });
+  test("US-1.1 — centrée sur la dernière ville saisie", async ({ page }) => {
+    await page.goto("/trajets");
+    await page.getByLabel("Départ").fill("Castres");
+    await page.getByLabel("Arrivée").focus();
+    await expect.poll(() => page.evaluate(() => localStorage.getItem("pt-derniere-ville"))).toContain("Castres");
+    await page.reload();
+    await page.getByRole("tab", { name: "Prix" }).click();
+    await expect(page.locator('[data-el="message-localisation"]')).toContainText("carte centrée sur Castres");
+    await expect(lignes(page).first()).toBeVisible();
+    expect(km(await centre(page), { lat: 43.6094, lon: 2.2455 })).toBeLessThan(1);
+  });
 });

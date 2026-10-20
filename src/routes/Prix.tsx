@@ -7,7 +7,7 @@ import { FicheStation } from "../components/FicheStation";
 import type { Zone } from "../components/CarteStations";
 import { distanceKm, libellesStations, moitie, seuilMoitie, trier, type Carburant, type Tri } from "../lib/format";
 import { moyenneNationale, prixCarburant, stationsAutour, type Station } from "../lib/donnees";
-import type { Position } from "../lib/position";
+import { memoriserVille, type Position } from "../lib/position";
 import { T } from "../lib/textes";
 
 const CarteStations = lazy(() => import("../components/CarteStations"));
@@ -34,6 +34,7 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
   const [essai, setEssai] = useState(0);
   const [ouverte, setOuverte] = useState<StationAffichee | null>(null);
   const [recentrage, setRecentrage] = useState(0);
+  const [cadrer, setCadrer] = useState(true);
   const ouvreur = useRef<HTMLElement | null>(null);
   const requete = useRef(0);
 
@@ -75,7 +76,8 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
     if (etat === "erreur" || !stations || !prix || prix.carburant !== carburant || !position) return [];
     const l: StationAffichee[] = [];
     const vendues = stations.filter((s) => prix.parStation.has(s.id)); // non vendu ou en rupture : absente de la carte et de la liste
-    const libelles = libellesStations(vendues);
+    // libellés départagés sur TOUTES les stations de la zone : un libellé désigne la même station quel que soit le carburant
+    const libelles = libellesStations(stations);
     for (const s of vendues) {
       const p = prix.parStation.get(s.id)!;
       l.push({ ...s, libelle: libelles.get(s.id)!, prix: p.prix, maj: p.maj, distanceKm: distanceKm(position, s) });
@@ -114,18 +116,19 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
   const recentrer = () => {
     if (!position) return;
     setRecentrage((x) => x + 1);
+    setCadrer(true);
     setZone({ lat: position.lat, lon: position.lon, rayonM: RAYON_INITIAL });
   };
 
   return (
-    <section className="screen" data-screen="S1" aria-label="Prix">
+    <section className="screen" data-screen="S1" role="tabpanel" id="panneau-prix" aria-labelledby="onglet-prix">
       <SelecteurCarburant valeur={carburant} onChange={setCarburant} />
       {position?.motif && (
         <p className="notice" role="status" data-el="message-localisation">
           {position.motif === "refusee" ? T.positionRefusee(position.label) : T.positionIndisponible(position.label)}
         </p>
       )}
-      <div className="map" data-el="carte-stations" data-pastilles={etat === "pret" ? pastilles.length : undefined} aria-busy={etat === "chargement"}>
+      <div className="map" data-el="carte-stations" data-pastilles={etat === "pret" && prix?.carburant === carburant ? pastilles.length : undefined} aria-busy={etat === "chargement"}>
         {position && (
           <Suspense fallback={<div className="map-load">{T.chargement}</div>}>
             <CarteStations
@@ -133,7 +136,11 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
               stations={pastilles}
               selection={ouverte?.id ?? null}
               recentrage={recentrage}
-              onDeplacement={setZone}
+              cadrer={cadrer}
+              onDeplacement={(z) => {
+                setCadrer(false);
+                setZone(z);
+              }}
               onPastille={ouvrir}
             />
           </Suspense>
@@ -179,7 +186,10 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
         <FicheStation
           station={ouverte}
           onFermer={fermer}
-          onTrajet={(adresse) => nav("/trajets", { state: { arrivee: adresse } })}
+          onTrajet={(adresse) => {
+            if (ouverte.ville) memoriserVille({ label: ouverte.ville, lat: ouverte.lat, lon: ouverte.lon });
+            nav("/trajets", { state: { arrivee: adresse } });
+          }}
         />
       )}
     </section>

@@ -26,8 +26,8 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 @media (prefers-reduced-motion: reduce) { .roll { animation: none; } }
 
 /* carburants */
-.fuels { display: flex; gap: 6px; padding: 2px 16px; overflow-x: auto; scrollbar-width: none; }
-.fuel { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 6px 12px; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.fuels { display: flex; gap: 4px; scroll-padding-inline: 16px; padding: 2px 16px; overflow-x: auto; scrollbar-width: none; }
+.fuel { scroll-margin-inline: 16px; border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 6px 9px; font-size: 14px; font-weight: 600; white-space: nowrap; }
 .fuel[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
 
 /* bandeau position */
@@ -36,12 +36,14 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 /* carte */
 .map { margin: 12px 16px 0; height: 230px; flex: none; border-radius: 12px; position: relative; overflow: hidden; border: 1px solid var(--line); background: var(--ground); }
 .map .gl { position: absolute; inset: 0; }
-.pin { border: 0; background: var(--panel); color: var(--accent); font: 600 12px/1 var(--f-digits); padding: 5px 6px; border-radius: 5px; box-shadow: 0 3px 0 var(--pinc, var(--muted)); position: relative; }
-.pin::after { content: ""; position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--pinc, var(--panel)); }
+.pin-wrap { display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+.pin { pointer-events: auto; border: 0; background: var(--panel); color: var(--accent); font: 600 12px/1 var(--f-digits); padding: 5px 6px; border-radius: 5px; box-shadow: 0 0 0 2px var(--pinc, var(--muted)); }
 .pin.lo { --pinc: var(--cheap); } .pin.hi { --pinc: var(--dear); }
-.pin.on { outline: 3px solid var(--ink); outline-offset: 1px; }
+.pin.on, .pin:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; z-index: 3; position: relative; }
+.tige { width: 2px; background: var(--pinc, var(--muted)); }
+.tige.lo { --pinc: var(--cheap); } .tige.hi { --pinc: var(--dear); }
 .me { width: 16px; height: 16px; border-radius: 50%; background: var(--me); border: 3px solid var(--surface); box-shadow: 0 0 0 6px color-mix(in srgb, var(--me) 25%, transparent); }
-.legend { position: absolute; left: 8px; bottom: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--muted); display: flex; gap: 8px; z-index: 2; }
+.legend { pointer-events: none; position: absolute; left: 8px; bottom: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--muted); display: flex; gap: 8px; z-index: 2; }
 .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
 .recentre { position: absolute; right: 8px; top: 8px; z-index: 2; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; }
 .recentre svg { width: 20px; height: 20px; }
@@ -90,6 +92,7 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 .fld { display: grid; grid-template-columns: 70px minmax(0, 1fr); align-items: center; border-bottom: 1px solid var(--line); }
 .fld:last-child { border-bottom: 0; }
 .fld label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding-left: 12px; }
+.fld input:focus-visible { outline-offset: -3px; }
 .fld input { border: 0; background: transparent; padding: 12px 12px 12px 0; width: 100%; min-width: 0; }
 .note { font-size: 13px; color: var(--muted); margin: 0; }
 
@@ -98,3 +101,4 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 .tab { border: 0; background: transparent; padding: 12px 0 14px; font: 800 17px/1 var(--f-display); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); position: relative; }
 .tab[aria-selected="true"] { color: var(--ink); }
 .tab[aria-selected="true"]::before { content: ""; position: absolute; top: -1px; left: 30%; right: 30%; height: 3px; background: var(--ink); border-radius: 0 0 3px 3px; }
+.map .maplibregl-ctrl button:focus-visible, .map .maplibregl-ctrl-attrib-button:focus-visible { outline: 3px solid var(--ink) !important; outline-offset: 2px; }

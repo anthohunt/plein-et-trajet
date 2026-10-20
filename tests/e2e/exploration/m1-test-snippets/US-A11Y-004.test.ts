@@ -8,7 +8,11 @@ test("US-A11Y-004 — pastilles et prix annoncés, boutons icônes libellés", a
   for (const l of labels) expect(l).toMatch(/^.+, \d,\d{3} euros le litre, (moins|plus) cher$/);
   for (const t of await lignes(page).locator(".totem").evaluateAll((e) => e.map((x) => x.getAttribute("aria-label"))))
     expect(t).toMatch(/^\d,\d{3} euros le litre$/);
+  // chargement de la fiche annoncé (réseau ralenti, vraie réponse)
+  await page.route("**/rest/v1/prix?*station_id=eq.*", async (r) => { await new Promise((x) => setTimeout(x, 1200)); await r.continue(); });
   await lignes(page).first().click();
+  await expect(page.locator('[data-el="tableau-prix"] [role="status"]')).toHaveText("Chargement des prix de la station…");
+  await expect(page.locator('[data-el="tableau-prix"]')).toHaveAttribute("aria-busy", "false");
   const icones = await page.evaluate(() => [...document.querySelectorAll("button")].filter((b) => !b.textContent!.replace(/[✕\s]/g, "").length).map((b) => b.getAttribute("aria-label")));
   for (const l of icones) expect(l).toBeTruthy();
   expect(icones).toEqual(expect.arrayContaining(["Recentrer sur ma position", "Fermer la fiche"]));

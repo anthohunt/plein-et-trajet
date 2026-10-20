@@ -43,7 +43,7 @@ export function FicheStation({ station, onFermer, onTrajet }: Props) {
     .filter((m): m is string => !!m)
     .sort()
     .pop();
-  const services = [...(station.automate_24_24 ? ["Automate 24/24"] : []), ...station.services.filter((x) => x !== "Automate CB 24/24")];
+  const services = [...(station.automate_24_24 ? [T.automate] : []), ...station.services.filter((x) => x !== "Automate CB 24/24")];
 
   return (
     <div className="sheet" role="dialog" aria-modal="false" aria-labelledby="sh-name" data-el="fiche-station" data-station={station.id}>
@@ -66,6 +66,7 @@ export function FicheStation({ station, onFermer, onTrajet }: Props) {
         <p className="etat d" role="alert">{T.ficheErreur}</p>
       ) : (
         <div className="board" data-el="tableau-prix" aria-busy={lignes == null}>
+          {lignes == null && <span className="sr-only" role="status">{T.chargementFiche}</span>}
           {CARBURANTS.map((c) => {
             const l = parCarburant.get(c);
             const age = l?.maj ? anciennete(l.maj) : null;
@@ -73,7 +74,7 @@ export function FicheStation({ station, onFermer, onTrajet }: Props) {
               <div key={c} style={{ display: "contents" }} data-carburant={c}>
                 <span className="lab">{c}</span>
                 {lignes == null ? (
-                  <span className="na">…</span>
+                  <span className="na" aria-label={T.chargementPrixStation}>…</span>
                 ) : !l || l.prix == null || l.rupture ? (
                   <span className="na" data-el="non-vendu">{l?.rupture ? T.rupture : T.nonVendu}</span>
                 ) : (
