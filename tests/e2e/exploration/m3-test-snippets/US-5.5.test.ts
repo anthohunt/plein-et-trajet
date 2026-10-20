@@ -19,10 +19,10 @@ test.describe("US-5.5 — Enregistrer le moteur", () => {
       await formulaire(page, ALBI_, BARCELONE_);
       await page.locator("#bouton-calculer").click();
       await expect(page.locator('[data-el="limite-itineraire"]')).toContainText("Ce fournisseur d'itinéraire ne couvre que la France", { timeout: 30000 });
-      // …et accepté dès que Valhalla est rétabli
+      // …et accepté dès que Stadia (clé réelle) est rétabli
       await connecterAdmin(page);
       await expect(page.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
-      await carte(page, "itineraire").locator("select").first().selectOption("valhalla-public");
+      await carte(page, "itineraire").locator("select").first().selectOption("stadia");
       await carte(page, "itineraire").locator('[data-el="enregistrer-moteur-itineraire"]').click();
       await expect(etatCarte(page, "itineraire")).toContainText("Enregistré", { timeout: 40000 });
       await formulaire(page, ALBI_, BARCELONE_);

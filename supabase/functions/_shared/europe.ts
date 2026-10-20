@@ -121,10 +121,28 @@ export interface Arete {
   speed_limit?: number;
   weighted_grade?: number; // %
   toll?: boolean;
-  traffic_signal?: boolean;
   roundabout?: boolean;
   names?: string[];
-  end_node?: { admin_index?: number };
+  end_node?: { admin_index?: number; intersecting_edges?: { road_class?: string }[] };
+}
+
+/**
+ * Attributs demandés à /trace_attributes : UNE seule liste, acceptée par l'instance publique FOSSGIS ET par Stadia Maps (qui valide
+ * strictement les variantes : « unknown variant `edge.traffic_signal` » — liste relevée dans le message d'erreur 400 de Stadia, recoupée
+ * avec la documentation Valhalla « map-matching / trace_attributes »).
+ */
+export const ATTRIBUTS_TRACE = [
+  "edge.length", "edge.road_class", "edge.speed", "edge.speed_limit", "edge.weighted_grade", "edge.toll", "edge.roundabout", "edge.names", "edge.density",
+  "node.admin_index", "node.intersecting_edge.road_class", "admin.country_code", "admin.country_text",
+];
+
+// APPROXIMATION DES FEUX (edge.traffic_signal n'existe pas chez Stadia) : un carrefour où l'arête rencontre une route classée
+// (tertiaire ou plus importante) est réglé par un feu, un stop ou un cédez-le-passage dans une part PART_CARREFOURS_ARRETS des cas.
+// Part étalonnée sur l'instance publique, qui donne les vrais feux (voir le journal d'exploration, « Round 2 »).
+export const PART_CARREFOURS_ARRETS = 0.45; // mesuré : feux réels / carrefours prioritaires = 24/43, 24/56, 20/42, 14/51 sur Albi→Toulouse, Barcelone, Bordeaux et Paris→Lyon (moyenne 82/192 = 0,43)
+const CLASSES_PRIORITAIRES = new Set(["motorway", "trunk", "primary", "secondary", "tertiary"]);
+export function carrefourPrioritaire(a: Arete): boolean {
+  return (a.end_node?.intersecting_edges ?? []).some((e) => CLASSES_PRIORITAIRES.has(e.road_class ?? ""));
 }
 export interface AdminValhalla {
   country_code?: string;
@@ -158,7 +176,14 @@ export function etapesDepuisAretes(aretes: Arete[], admins: AdminValhalla[]): Re
   const kmPeage: Record<string, number> = {};
   const kmAuto: Record<string, number> = {};
   let km = 0;
-  let cur: { pays: string; auto: boolean; m: number; s: number; pente: number; arrets: number; noms: Map<string, number> } | null = null;
+  let report = 0; // reste fractionnaire des arrêts, reporté sur l'étape suivante (aucun arrêt perdu à l'arrondi)
+  let cur: { pays: string; auto: boolean; m: number; s: number; pente: number; arrets: number; noms: Map<string, number> } | null = null; // arrets : fractionnaire, arrondi à la fermeture
+  const arretsEntiers = (x: number) => {
+    const total = x + report;
+    const n = Math.floor(total + 1e-9);
+    report = total - n;
+    return n;
+  };
   const fermer = () => {
     if (!cur) return;
     const liste = parPays.get(cur.pays) ?? [];
@@ -170,7 +195,7 @@ export function etapesDepuisAretes(aretes: Arete[], admins: AdminValhalla[]): Re
       manoeuvre: "",
       denivele_m: Math.max(0, cur.pente) / 100,
       type_force: cur.auto ? "autoroute" : undefined,
-      arrets: cur.arrets,
+      arrets: arretsEntiers(cur.arrets),
     });
     parPays.set(cur.pays, liste);
     cur = null;
@@ -189,7 +214,7 @@ export function etapesDepuisAretes(aretes: Arete[], admins: AdminValhalla[]): Re
     cur.m += m;
     cur.s += (a.length / v) * 3600;
     cur.pente += (a.weighted_grade ?? 0) * m; // % · m ; /100 donne des mètres
-    cur.arrets += (a.traffic_signal ? 1 : 0) + (a.roundabout ? 1 : 0);
+    cur.arrets += (a.roundabout ? 1 : 0) + (!auto && carrefourPrioritaire(a) ? PART_CARREFOURS_ARRETS : 0);
     const n = numeroDeVoie(a.names);
     if (n) cur.noms.set(n, (cur.noms.get(n) ?? 0) + m);
   }

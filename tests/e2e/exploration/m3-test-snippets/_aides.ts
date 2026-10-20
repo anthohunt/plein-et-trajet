@@ -9,7 +9,7 @@ import * as a from "../m3-aides.mjs";
 export const {
   URL_APP, env, rest, session, moyenneDuJour, virgule, nombreFr, nombre, ouvrirTrajets, attendreFormulaire, champ, propositions, saisirLieu,
   choisirDansListe, choisirVoiture, calculer, lireResultat, lignesHistorique, etatFocus, BARCELONE, BRUXELLES, ADMIN_TEST, connecterAdmin, ouvrirMoteurs,
-  carte, etatCarte, appelerMoteurs, restService, sqlGestion, reinitialiserMoteurs, injecterCle, trajetEurope, lignesListe,
+  carte, etatCarte, appelerMoteurs, restService, sqlGestion, reinitialiserMoteurs, supprimerClesFausses, empreinteCles, carburantAffiche, totalPeagesPtvDirect, verifierFournisseurs, lireEtatReel, injecterCle, trajetEurope, lignesListe,
 } = a as any;
 
 export const S4 = (p: Page, etat: string) => p.locator(`[data-screen="S4"][data-etat="${etat}"]`);
@@ -60,6 +60,7 @@ export async function prendreVerrou() {
 export const libererVerrou = () => fs.rmSync(VERROU, { recursive: true, force: true });
 export function modifieLesMoteurs() {
   test.describe.configure({ mode: "serial" });
+  // les vraies clés (PTV, Stadia) ne sont jamais effacées : seules les clés factices « FAUX- » sont retirées ; les moteurs reviennent à PTV / Stadia + Valhalla
   test.beforeAll(async () => {
     await prendreVerrou();
     await reinitialiserMoteurs();

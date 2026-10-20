@@ -1,4 +1,4 @@
-import { test, expect, formulaire, ALBI_, MILAN, calculer, lireResultat, lignesListe, cout, nombre, rest, virgule } from "./_aides";
+import { test, expect, formulaire, ALBI_, MILAN, calculer, lireResultat, lignesListe, carburantAffiche, nombre, rest, virgule } from "./_aides";
 
 test.describe("US-4.5 — Voir les pays traversés", () => {
   test.describe("Happy Path", () => {
@@ -9,7 +9,7 @@ test.describe("US-4.5 — Voir les pays traversés", () => {
       expect(l.map((x: any) => x.pays)).toEqual(["FR", "IT"]);
       for (const x of l) expect(x.texte).toMatch(/\d+ km · \d+,\d L × \d,\d{3}.*\d+,\d{2} €$/);
       const somme = l.reduce((s: number, x: any) => s + nombre(x.montant), 0);
-      expect(somme).toBeCloseTo(await cout(page), 2);
+      expect(somme).toBeCloseTo(await carburantAffiche(page), 2);
       const fr = Number((await rest("moyennes_nationales?select=prix_moyen&pays=eq.FR&carburant=eq.SP95-E10&order=jour.desc&limit=1"))[0].prix_moyen);
       const it = Number((await rest("moyennes_nationales?select=prix_moyen&pays=eq.IT&carburant=eq.SP95-E10&order=jour.desc&limit=1"))[0].prix_moyen);
       expect(l[0].texte).toContain(virgule(fr, 3));
@@ -29,7 +29,7 @@ test.describe("US-4.5 — Voir les pays traversés", () => {
       await expect(page.locator('[data-el="libelle-prix"]')).toHaveText("Mon prix (tous pays)");
       const l = await lignesListe(page, "pays-traverses");
       expect(l.every((x: any) => x.texte.includes("1,699"))).toBe(true);
-      expect(l.reduce((s: number, x: any) => s + nombre(x.montant), 0)).toBeCloseTo(await cout(page), 2);
+      expect(l.reduce((s: number, x: any) => s + nombre(x.montant), 0)).toBeCloseTo(await carburantAffiche(page), 2);
     });
     test("US-4.5 — trajet 100 % France : une seule ligne France, libellé « Moyenne France du jour »", async ({ page }) => {
       await formulaire(page, ALBI_, ["Castr", "Castres", "Tarn"]);

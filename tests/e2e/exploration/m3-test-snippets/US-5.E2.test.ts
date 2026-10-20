@@ -1,4 +1,4 @@
-import { test, expect, connecterAdmin, carte, etatCarte, modifieLesMoteurs, restService, sqlGestion } from "./_aides";
+import { test, expect, connecterAdmin, carte, etatCarte, modifieLesMoteurs, restService, empreinteCles } from "./_aides";
 
 test.describe("US-5.E2 — Clé refusée", () => {
   modifieLesMoteurs();
@@ -12,6 +12,7 @@ test.describe("US-5.E2 — Clé refusée", () => {
       await expect(etatCarte(page, "peages")).toHaveAttribute("data-etat", "ko");
     });
     test("US-5.E2 — Enregistrer avec une clé HERE invalide garde PTV actif", async ({ page }) => {
+      const avant = await empreinteCles();
       await connecterAdmin(page);
       await expect(page.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
       await carte(page, "peages").locator('[data-el="choix-fournisseur"]').selectOption("here");
@@ -21,7 +22,7 @@ test.describe("US-5.E2 — Clé refusée", () => {
       await expect(etatCarte(page, "peages")).toContainText("fournisseur actif inchangé");
       await expect(etatCarte(page, "peages")).toContainText("clé non enregistrée");
       expect((await restService("moteurs?select=actif&service=eq.peages")).corps[0].actif).toBe("ptv");
-      expect((await sqlGestion("select count(*)::int as n from vault.secrets where name like 'cle_%'"))[0].n).toBe(0);
+      expect(await empreinteCles()).toBe(avant);
       await page.reload();
       await expect(page.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
       await expect(carte(page, "peages").locator('[data-el="choix-fournisseur"]')).toHaveValue("ptv");

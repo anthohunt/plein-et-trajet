@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   BARCELONE, BRUXELLES, RACINE, URL_APP, ALBI, OPTIONS_CONTEXTE, appelerMoteurs, attendreAnimations, attendreFormulaire, calculer, carte, champ, choisirVoiture, connecterAdmin,
-  env, etatCarte, etatFocus, injecterCle, lignesListe, lireResultat, moyenneDuJour, nombre, ouvrirMoteurs, ouvrirTrajets, propositions, reinitialiserMoteurs, rest, restService,
+  S4, carburantAffiche, empreinteCles, env, etatCarte, etatFocus, injecterCle, lireEtatReel, restaurerEtatReel, supprimerClesFausses, totalPeagesPtvDirect, verifierFournisseurs, lignesListe, lireResultat, moyenneDuJour, nombre, ouvrirMoteurs, ouvrirTrajets, propositions, reinitialiserMoteurs, rest, restService,
   saisirLieu, session, sha, sqlGestion, virgule,
 } from "./m3-aides.mjs";
 
@@ -176,6 +176,9 @@ const HISTOIRES = [];
 const histoireDef = (id, titre, f) => HISTOIRES.push({ id, titre, f });
 
 // ================================================================= identités
+// ÉTAT RÉEL : les vraies clés (PTV, Stadia) sont lues en mémoire, jamais écrites ; restaurées en fin de run (try/finally)
+const ETAT_REEL = await lireEtatReel();
+const MANQUANTES = ['ptv', 'stadia'].filter((f) => !ETAT_REEL.cles[f]);
 await reinitialiserMoteurs();
 const A = await contexte(); // visiteur anonyme à Albi : tous les trajets
 const pa = await A.newPage();
@@ -227,11 +230,24 @@ histoireDef("US-4.4", "US-4.4 — Voir les péages", async () => {
   await versPeages(pa);
   await capture(pa, "US-4.4-02-voir-les-pages-apres.png", async () => {
     const l = await lignesListe(pa, "detail-peages");
-    // état RÉEL : aucune clé PTV n'existe → le service de péages est réellement indisponible, le coût carburant reste affiché
-    await expect(pa.locator('[data-el="peages-indisponibles"]')).toContainText("Péages non disponibles pour l'instant");
-    return `BLOQUÉ-CLÉ : aucune clé PTV/HERE → impossible de lire les montants TTC par section ; état réel capturé : « ${l.map((x) => x.texte).join(" / ")} » (aucun montant inventé)`;
-  }, "lecture du détail des péages (état réel : « Péages non disponibles pour l'instant »)");
-  BLOQUE("US-4.4 (montants réels par section, total ajouté au coût) : il manque une clé PTV Developer (ou HERE) collée dans l'écran Moteurs. Le code est construit (PTV : prix HT + TVA du pays ; HERE : TTC) et couvert par les tests unitaires sur les formats documentés, mais aucun montant réel n'a pu être vu.");
+    const lignes = l.filter((x) => /^[A-Z]{2} /.test(x.texte) && x.montant && !/Total péages/.test(x.texte));
+    const totalLigne = l.find((x) => /Total péages/.test(x.texte));
+    expect(lignes.length).toBeGreaterThan(0);
+    for (const x of lignes) expect(x.montant).toMatch(/^(\d+,\d{2} €|gratuit)$/);
+    const somme = lignes.reduce((s, x) => s + (x.montant === "gratuit" ? 0 : nombre(x.montant)), 0);
+    expect(nombre(totalLigne.montant)).toBeCloseTo(somme, 2);
+    const split = await pa.locator('[data-el="repartition-cout"]').innerText();
+    expect(nombre(split.match(/Péages ([\d,]+) €/)[1])).toBeCloseTo(nombre(totalLigne.montant), 2);
+    expect(nombre(split.match(/Carburant ([\d,]+) €/)[1]) + nombre(split.match(/Péages ([\d,]+) €/)[1])).toBeCloseTo(await cout(pa), 2);
+    let verif = "";
+    if (ETAT_REEL.cles.ptv) {
+      const d = await totalPeagesPtvDirect(ETAT_REEL.cles.ptv, { lat: 43.9289, lon: 2.1464 }, { lat: 41.3874, lon: 2.1686 });
+      expect(nombre(totalLigne.montant)).toBeCloseTo(d.total, 2);
+      verif = ` ; recalcul indépendant par appel direct à PTV + TVA du pays : ${virgule(d.total)} € sur ${d.sections} sections = total affiché`;
+    }
+    return `${lignes.length} sections : ${lignes.map((x) => `${x.pays} ${x.montant}`).join(", ")} ; total ${totalLigne.montant} ; ${split}${verif}`;
+  }, "détail des péages : chaque section en euros TTC (« gratuit » si 0), total ajouté au coût");
+  note("happy", "- ✓ montants réels PTV Developer (clé réelle d'Anthony dans Vault, prix HT + TVA du pays) — US-4.4 n'est plus BLOQUÉ-CLÉ.");
 
   // trajet sans autoroute payante : Albi → Castres (N126), le moteur peut établir l'absence de péage sans fournisseur
   await retourFormulaire(pa);
@@ -275,33 +291,28 @@ histoireDef("US-4.5", "US-4.5 — Voir les pays traversés", async () => {
     expect(l.map((x) => x.pays)).toEqual(["FR", "IT"]);
     for (const x of l) expect(x.texte).toMatch(/\d+ km · \d+,\d L × \d,\d{3}.*\d+,\d{2} €$/);
     const somme = l.reduce((s, x) => s + nombre(x.montant), 0);
-    const total = await cout(pa); // péages indisponibles (pas de clé) : coût total = carburant
+    const total = await carburantAffiche(pa); // coût total moins péages établis
     expect(somme).toBeCloseTo(total, 2);
     // prix du jour : France = flux officiel du jour, Italie = Bulletin pétrolier UE
     const fr = Number((await rest("moyennes_nationales?select=prix_moyen&pays=eq.FR&carburant=eq.SP95-E10&order=jour.desc&limit=1"))[0].prix_moyen);
     const it = Number((await rest("moyennes_nationales?select=prix_moyen,source&pays=eq.IT&carburant=eq.SP95-E10&order=jour.desc&limit=1"))[0].prix_moyen);
     expect(l[0].texte).toContain(virgule(fr, 3));
     expect(l[1].texte).toContain(virgule(it, 3));
-    return `FR ${virgule(fr, 3)} €/L (flux du jour), IT ${virgule(it, 3)} €/L (Bulletin UE) ; Σ coûts pays = ${virgule(somme)} € = coût carburant affiché ${virgule(total)} €`;
+    return `FR ${virgule(fr, 3)} €/L (flux du jour), IT ${virgule(it, 3)} €/L (Bulletin UE) ; Σ coûts pays = ${virgule(somme)} € = coût carburant affiché ${virgule(total)} € (le coût total y ajoute les péages)`;
   }, "pays traversés : km, litres, prix moyen du jour, coût ; somme = coût carburant");
 });
 
 // ================================================================= US-4.E4
 histoireDef("US-4.E4", "US-4.E4 — Péages indisponibles", async () => {
-  // mise en place RÉELLE : aucune clé PTV n'existe, le fournisseur actif des péages n'a donc aucune clé (cause lue sur l'écran Moteurs)
-  await connecterAdmin(pb);
-  await carte(pb, "peages").scrollIntoViewIfNeeded();
-  await verifier("cause réelle lisible dans l'écran Moteurs : péages = PTV, « Clé à coller »", async () => {
-    await expect(etatCarte(pb, "peages")).toHaveText("Clé à coller");
-    note("edge", "- ✓ (hors capture) écran Moteurs : péages = PTV Developer, état « Clé à coller » : le service de péages est réellement hors service faute de clé — pas de mock.");
-  });
+  // mise en place RÉELLE sans toucher aux vraies clés : le moteur des péages est basculé sur HERE, qui n'a aucune clé (donc réellement hors service)
+  await restService("moteurs?service=eq.peages", { method: "PATCH", body: JSON.stringify({ actif: "here", secours: null }) });
   await formulaireEurope(pa, { saisie: "Albi", label: "Albi" }, { saisie: "Bord", label: "Bordeaux", contexte: "Gironde" });
   await calculer(pa);
   await versPeages(pa);
   await capture(pa, "US-4.E4-E1-01-declencheur.png", async () => {
     await expect(pa.locator('[data-el="peages-indisponibles"]')).toContainText("Péages non disponibles pour l'instant");
     await expect(pa.locator('[data-el="total-peages"]')).toHaveCount(0);
-    return "écran Résultat Albi → Bordeaux (autoroute A62) : le détail des péages dit « Péages non disponibles pour l'instant » (service réellement sans clé) ; aucun total de péages";
+    return "écran Résultat Albi → Bordeaux (autoroute A62) : péages confiés à HERE, qui n'a aucune clé = service réellement en erreur ; le détail dit « Péages non disponibles pour l'instant », aucun total de péages (PTV et sa vraie clé ne sont pas touchés)";
   }, "le service de péages est en erreur : écran Résultat, bloc Péages", "edge");
   await enHaut(pa);
   await capture(pa, "US-4.E4-E1-02-resultat.png", async () => {
@@ -309,18 +320,19 @@ histoireDef("US-4.E4", "US-4.E4 — Péages indisponibles", async () => {
     const moyFr = await moyenneDuJour("SP95-E10");
     expect(r.cout).toBeCloseTo(Math.round(r.litres * moyFr * 100) / 100, 1); // coût carburant seul
     await expect(pa.locator('[data-el="repartition-cout"]')).toHaveCount(0);
-    memo.bordeaux = r;
     return `coût affiché ${virgule(r.cout)} € = carburant seul (${virgule(r.litres, 1)} L × ${virgule(moyFr, 3)} €/L) ; rien n'est ajouté au total pour les péages`;
   }, "le coût carburant s'affiche et rien n'est ajouté au total", "edge");
+  // retour à l'état normal : le moteur des péages revient sur PTV, le MÊME trajet est recalculé (clic sur sa ligne d'historique) avec ses péages
+  await restService("moteurs?service=eq.peages", { method: "PATCH", body: JSON.stringify({ actif: "ptv", secours: null }) });
   await retourFormulaire(pa);
-  await formulaireEurope(pa, { saisie: "Albi", label: "Albi" }, { saisie: "Castr", label: "Castres", contexte: "Tarn" });
-  await calculer(pa);
+  await pa.locator('[data-el="liste-historique"] li', { hasText: "Bordeaux" }).first().locator("button.go").click();
+  await expect(S4(pa, "ok")).toBeVisible({ timeout: 60000 });
   await versPeages(pa);
   await capture(pa, "US-4.E4-E1-03-retour.png", async () => {
-    await expect(pa.locator('[data-el="detail-peages"]')).toContainText("Aucun péage sur cet itinéraire");
     await expect(pa.locator('[data-el="peages-indisponibles"]')).toHaveCount(0);
-    return "retour à l'état normal sur UN AUTRE trajet (Albi → Castres) : on ne peut pas rétablir un service dont la clé n'existe pas ; le trajet Albi → Bordeaux, lui, reste « péages non disponibles » tant qu'aucune clé n'est collée";
-  }, "retour à l'état normal (autre trajet, sans autoroute payante)", "edge");
+    await expect(pa.locator('[data-el="total-peages"]')).toBeVisible();
+    return `retour à l'état normal sur LE MÊME trajet (Albi → Bordeaux rejoué depuis l'historique) : péages PTV à nouveau calculés, total ${await pa.locator('[data-el="total-peages"] .lit').innerText()}`;
+  }, "retour à l'état normal : le même trajet rejoué, péages rétablis", "edge");
 });
 
 // ================================================================= US-4.E5
@@ -370,7 +382,7 @@ histoireDef("US-4.E6", "US-4.E6 — Pays sans prix moyen", async () => {
     expect(l.filter((x) => x.pays !== "RS").every((x) => !x.texte.includes("prix non publié"))).toBe(true);
     expect(l.map((x) => x.pays)).toEqual(["FR", "IT", "SI", "HR", "RS"]);
     const somme = l.reduce((s, x) => s + nombre(x.montant), 0);
-    expect(somme).toBeCloseTo(await cout(pa), 2);
+    expect(somme).toBeCloseTo(await carburantAffiche(pa), 2);
     const r = await lireResultat(pa);
     expect(r.km).toBeGreaterThan(1900);
     return `RS : « prix non publié — moyenne européenne appliquée » à ${virgule(eu, 3)} €/L (moyenne UE du bulletin) ; ${r.km} km ; pays ${l.map((x) => x.pays).join(", ")} ; Σ coûts = coût`;
@@ -517,7 +529,8 @@ histoireDef("US-5.2", "US-5.2 — Choisir le fournisseur", async () => {
   await carte(pb, "peages").scrollIntoViewIfNeeded();
   await capture(pb, "US-5.2-01-choisir-le-fournisseur-avant.png", async () => {
     await expect(carte(pb, "peages").locator("select").first()).toHaveValue("ptv");
-    return "péages : fournisseur PTV Developer (état « Clé à coller »)";
+    await expect(etatCarte(pb, "peages")).toHaveAttribute("data-etat", "ok");
+    return "péages : fournisseur PTV Developer, clé enregistrée, état « ok »";
   }, "l'écran Moteurs, carte Péages");
   await carte(pb, "peages").locator('[data-el="choix-fournisseur"]').selectOption("here");
   await capture(pb, "US-5.2-02-choisir-le-fournisseur-apres.png", async () => {
@@ -533,71 +546,70 @@ histoireDef("US-5.2", "US-5.2 — Choisir le fournisseur", async () => {
 });
 
 // ================================================================= US-5.3
-const FAUSSE = "FAUSSE-CLE-ESSAI-7d3f";
+const FAUSSE = "FAUX-CLE-ESSAI-7d3f";
 histoireDef("US-5.3", "US-5.3 — Coller la clé", async () => {
   const reponses = [];
   pb.on("response", async (r) => {
     if (/supabase\.co/.test(r.url())) reponses.push({ url: r.url().replace(/https:\/\/[^/]+/, ""), corps: await r.text().catch(() => "") });
   });
   await reinitialiserMoteurs();
+  const avant = await empreinteCles();
   await pb.reload();
   await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
   await carte(pb, "peages").scrollIntoViewIfNeeded();
   await capture(pb, "US-5.3-01-coller-la-cl-avant.png", async () => {
     const champCle = carte(pb, "peages").locator('[data-el="champ-cle"]');
-    await expect(champCle).toHaveAttribute("placeholder", "Coller la clé d'API");
     await expect(champCle).toHaveAttribute("type", "password");
-    return "champ clé des péages vide (type password) : « Coller la clé d'API »";
-  }, "le champ clé des péages");
-  // une clé factice collée est TESTÉE avant d'être écrite : le vrai PTV la refuse, elle n'est donc PAS rangée (l'ancienne clé, s'il y en a une, est conservée)
+    const ph = await champCle.getAttribute("placeholder");
+    expect(ph).toMatch(/^Clé enregistrée ••••.{4} — coller pour remplacer$/);
+    return `champ clé des péages (type password) : « ${ph} » — la vraie clé PTV d'Anthony est déjà rangée, seule sa fin s'affiche`;
+  }, "le champ clé des péages (clé réelle déjà enregistrée)");
+  // une clé collée est TESTÉE avant d'être écrite : une clé factice est refusée par le vrai PTV, la vraie clé reste en place
   await carte(pb, "peages").locator('[data-el="champ-cle"]').fill(FAUSSE);
   await carte(pb, "peages").locator('[data-el="enregistrer-moteur"]').click();
   await attendreEnregistrement(pb, "peages");
   await capture(pb, "US-5.3-02-coller-la-cl-apres.png", async () => {
-    const msg = await etatCarte(pb, "peages").innerText();
-    expect(msg.toLowerCase()).toContain("clé refusée par ptv (401)");
-    expect(msg.toLowerCase()).toContain("clé non enregistrée");
-    await expect(carte(pb, "peages").locator('[data-el="champ-cle"]')).toHaveAttribute("placeholder", "Coller la clé d'API");
-    const [{ n }] = await sqlGestion("select count(*)::int as n from vault.secrets where name = 'cle_ptv'");
-    expect(n).toBe(0);
-    return `BLOQUÉ-CLÉ (partie « rangée chiffrée après enregistrement ») : sans clé PTV valide, aucune clé collée ne peut être acceptée ; état réel : « ${msg} », Vault : ${n} secret ; le stockage chiffré et le masquage sont prouvés ci-dessous sur une clé amorcée côté serveur`;
-  }, "une clé collée est testée avant d'être écrite (clé factice refusée, rien n'est rangé)");
-  // amorce serveur : la fonction `moteur_cle_enregistrer` (rôle service) range une clé factice dans Vault, comme le ferait un enregistrement réussi
-  await injecterCle("ptv", FAUSSE);
+    const msg = (await etatCarte(pb, "peages").innerText()).toLowerCase();
+    expect(msg).toContain("clé refusée par ptv (401)");
+    expect(msg).toContain("clé non enregistrée");
+    expect(msg).toContain("ancienne clé conservée");
+    expect(await empreinteCles()).toBe(avant); // mêmes clés, mêmes fins : la vraie clé n'a pas bougé
+    return `une clé collée est testée avant Vault : la clé factice est refusée par le vrai PTV (401), « clé non enregistrée, ancienne clé conservée » ; clés rangées inchangées (${avant.replace(/"/g, "")})`;
+  }, "une clé collée est testée avant d'être écrite : refusée, la vraie clé est conservée");
   await pb.reload();
   await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
   await carte(pb, "peages").scrollIntoViewIfNeeded();
   await capture(pb, "US-5.3-03-coller-la-cl-avant.png", async () => {
     const ph = await carte(pb, "peages").locator('[data-el="champ-cle"]').getAttribute("placeholder");
-    expect(ph).toBe("Clé enregistrée ••••7d3f — coller pour remplacer");
+    expect(ph).toMatch(/^Clé enregistrée ••••.{4} — coller pour remplacer$/);
     const [{ fin }] = await sqlGestion("select fin from public.cles_fournisseurs where fournisseur = 'ptv'");
-    expect(fin).toBe("7d3f");
-    const [v] = await sqlGestion("select secret <> '" + FAUSSE + "' as chiffre, length(secret) as n from vault.secrets where name = 'cle_ptv'");
+    const [v] = await sqlGestion("select secret is distinct from decrypted_secret as chiffre, length(secret) as n from vault.decrypted_secrets where name = 'cle_ptv'");
     expect(v.chiffre).toBe(true);
-    return `clé rangée dans Supabase Vault (secret chiffré en base ≠ clé en clair, ${v.n} car.), fin « ${fin} » ; amorcée côté serveur (SEED : une clé collée à l'écran est maintenant testée avant d'être écrite) ; champ : « ${ph} »`;
+    return `clé PTV rangée dans Supabase Vault (secret chiffré en base, ${v.n} car.), fin « ${fin} » ; champ : « ${ph} »`;
   }, "une clé enregistrée : le champ n'affiche que ses 4 derniers caractères");
   await verifier("la clé complète n'apparaît nulle part (page, champs, stockage, réponses réseau)", async () => {
     reponses.length = 0;
     await pb.reload();
     await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
     const html = await pb.content();
-    const champs = await pb.locator("input").evaluateAll((els) => els.map((e) => e.value + "|" + (e.getAttribute("placeholder") ?? "")));
+    const champs = (await pb.locator("input").evaluateAll((els) => els.map((e) => e.value + "|" + (e.getAttribute("placeholder") ?? "")))).join("\n");
     const stockage = await pb.evaluate(() => JSON.stringify({ ...localStorage }) + JSON.stringify({ ...sessionStorage }));
-    expect(html).not.toContain(FAUSSE);
-    expect(champs.join("\n")).not.toContain(FAUSSE);
-    expect(stockage).not.toContain(FAUSSE);
-    expect(reponses.some((r) => r.corps.includes(FAUSSE))).toBe(false);
+    for (const cle of [FAUSSE, ...Object.values(ETAT_REEL.cles)]) {
+      expect(html.includes(cle)).toBe(false);
+      expect(champs.includes(cle)).toBe(false);
+      expect(stockage.includes(cle)).toBe(false);
+      expect(reponses.some((r) => r.corps.includes(cle))).toBe(false);
+    }
   });
   await carte(pb, "peages").scrollIntoViewIfNeeded();
   await capture(pb, "US-5.3-04-coller-la-cl-apres.png", async () => {
     const lister = reponses.filter((r) => r.url.includes("/functions/v1/moteurs"));
     expect(lister.length).toBeGreaterThan(0);
-    expect(reponses.some((r) => r.corps.includes(FAUSSE))).toBe(false);
-    expect(lister.some((r) => r.corps.includes('"cle_fin":"7d3f"'))).toBe(true);
-    await annoter(pb, `clé complète absente de la page, des champs, du stockage local et de ${reponses.length} réponses réseau lues depuis le rechargement ; seule « cle_fin: 7d3f » circule`);
-    return `${reponses.length} réponses réseau (dont ${lister.length} de la fonction moteurs) lues : la clé complète n'y figure pas, seule la fin « 7d3f » ; page, champs et stockage du navigateur : absente`;
+    for (const cle of [FAUSSE, ...Object.values(ETAT_REEL.cles)]) expect(reponses.some((r) => r.corps.includes(cle))).toBe(false);
+    expect(lister.some((r) => /"cle_fin":"[^"]{4}"/.test(r.corps))).toBe(true);
+    await annoter(pb, `clés réelles et clé factice absentes de la page, des champs, du stockage local et de ${reponses.length} réponses réseau lues depuis le rechargement ; seule la fin (4 caractères) circule`);
+    return `${reponses.length} réponses réseau (dont ${lister.length} de la fonction moteurs) lues : aucune clé complète (réelle ou factice), seule la fin de 4 caractères ; page, champs et stockage du navigateur : absentes`;
   }, "après rechargement, la clé complète n'apparaît nulle part (page, réseau)");
-  BLOQUE("US-5.3 (étape 2 : « je colle une clé et j'enregistre → rangée chiffrée ») : il manque une clé PTV valide ; une clé non validée n'est volontairement plus écrite dans Vault. Le stockage chiffré, la fin de 4 caractères et l'absence de la clé dans la page et le réseau sont prouvés sur une clé amorcée côté serveur.");
 });
 
 // ================================================================= US-5.4
@@ -607,22 +619,22 @@ histoireDef("US-5.4", "US-5.4 — Tester la connexion", async () => {
   await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
   await carte(pb, "peages").scrollIntoViewIfNeeded();
   await capture(pb, "US-5.4-01-tester-la-connexion-avant.png", async () => {
-    await expect(etatCarte(pb, "peages")).toHaveText("Clé à coller");
-    return "état réel : aucune clé PTV valide (le plan suppose « une clé PTV valide collée »)";
-  }, "péages : aucune clé valide (état réel)");
+    await expect(carte(pb, "peages").locator('[data-el="champ-cle"]')).toHaveAttribute("placeholder", /Clé enregistrée ••••/);
+    return "clé PTV valide enregistrée (celle d'Anthony), avant le test";
+  }, "une clé PTV valide est enregistrée");
   await carte(pb, "peages").locator('[data-el="tester-connexion"]').click();
-  await expect(etatCarte(pb, "peages")).not.toHaveText("Test en cours…");
+  await expect(etatCarte(pb, "peages")).toContainText("Connecté", { timeout: 60000 });
   await capture(pb, "US-5.4-02-tester-la-connexion-apres.png", async () => {
-    await expect(etatCarte(pb, "peages")).toHaveText("Aucune clé : colle-la d'abord");
-    return "BLOQUÉ-CLÉ : sans clé PTV valide, « Connecté » est impossible à obtenir ; état réel capturé : « Aucune clé : colle-la d'abord » (aucun appel PTV n'est fait sans clé)";
-  }, "Tester la connexion (état réel faute de clé : « Aucune clé : colle-la d'abord »)");
-  // même test, sur un moteur sans clé : le vrai appel réussit
+    const msg = await etatCarte(pb, "peages").innerText();
+    expect(msg.toLowerCase()).toMatch(/connecté · test albi → barcelone ok \(\d+ sections\)/);
+    return `vrai calcul de test Albi → Barcelone envoyé à PTV avec la vraie clé : « ${msg} »`;
+  }, "Tester la connexion : un vrai calcul part vers PTV et l'état affiche « Connecté »");
   await carte(pb, "itineraire").locator('[data-el="tester-connexion-itineraire"]').click();
-  await verifier("test réel du routeur Valhalla (sans clé) → Connecté", async () => {
-    await expect(etatCarte(pb, "itineraire")).toContainText("Connecté · test Albi → Toulouse OK", { timeout: 30000 });
-    note("happy", `- ✓ (hors plan) « ${await etatCarte(pb, "itineraire").innerText()} » : un vrai calcul de test part vers Valhalla et l'état affiche « Connecté » sur un moteur sans clé.`);
+  await verifier("test réel de l'itinéraire (Stadia, clé réelle) → Connecté", async () => {
+    await expect(etatCarte(pb, "itineraire")).toContainText("Connecté · test Albi → Toulouse OK", { timeout: 40000 });
+    note("happy", `- ✓ (hors plan) itinéraire : « ${await etatCarte(pb, "itineraire").innerText()} » (Stadia Maps, clé réelle d'Anthony).`);
   });
-  BLOQUE("US-5.4 « Connecté » pour PTV : il manque une clé PTV Developer valide.");
+  note("happy", "- ✓ US-5.4 n'est plus BLOQUÉ-CLÉ : la clé PTV réelle est dans Vault, « Connecté » est obtenu en vrai.");
 });
 
 // ================================================================= US-5.5
@@ -645,10 +657,10 @@ histoireDef("US-5.5", "US-5.5 — Enregistrer le moteur", async () => {
   await calculer(pa);
   await versPeages(pa);
   await capture(pa, "US-5.5-02-enregistrer-le-moteur-apres.png", async () => {
-    await expect(pa.locator('[data-el="peages-indisponibles"]')).toBeVisible();
-    return "BLOQUÉ-CLÉ : aucune clé HERE → impossible d'enregistrer HERE puis de voir des péages HERE ; état réel : le moteur actif reste PTV (sans clé), « Péages non disponibles pour l'instant »";
-  }, "Albi → Barcelone après la tentative (état réel : péages indisponibles)");
-  BLOQUE("US-5.5 (péages venant de HERE sans redéploiement) : il manque une clé HERE (plan Base, carte bancaire) collée dans l'écran Moteurs. La lecture du moteur actif à chaque appel est en place (table moteurs + Vault) ; la bascule vers HERE n'a pas pu être vue avec de vrais montants.");
+    await expect(pa.locator('[data-el="total-peages"]')).toBeVisible();
+    return "BLOQUÉ-CLÉ (HERE) : aucune clé HERE → impossible d'enregistrer HERE puis de voir des péages HERE ; état réel : HERE refusé sans clé, le moteur actif reste PTV et ses péages (clé réelle) s'affichent";
+  }, "Albi → Barcelone après la tentative (HERE refusé, PTV reste actif)");
+  BLOQUE("US-5.5 (péages venant de HERE sans redéploiement) : il manque une clé HERE (plan Base, carte bancaire) collée dans l'écran Moteurs. La lecture du moteur actif à chaque appel est démontrée en vrai sur un autre moteur (itinéraire IGN ↔ Valhalla dans les extraits) ; la bascule vers HERE n'a pas pu être vue avec de vrais montants HERE.");
 });
 
 // ================================================================= US-5.E1
@@ -729,20 +741,22 @@ histoireDef("US-5.E1", "US-5.E1 — Moteurs invisibles aux visiteurs", async () 
 // ================================================================= US-5.E2
 histoireDef("US-5.E2", "US-5.E2 — Clé refusée", async () => {
   await reinitialiserMoteurs();
+  const avant = await empreinteCles();
   await pb.reload();
   await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
   await carte(pb, "peages").scrollIntoViewIfNeeded();
   await carte(pb, "peages").locator('[data-el="champ-cle"]').fill("cle-invalide-0000-zz91");
   await capture(pb, "US-5.E2-E1-01-declencheur.png", async () => {
     expect(await carte(pb, "peages").locator('[data-el="champ-cle"]').inputValue()).toBe("cle-invalide-0000-zz91");
-    return "clé volontairement invalide collée dans le champ des péages (PTV, masquée)";
+    return "clé volontairement invalide collée dans le champ des péages (PTV, masquée) ; la vraie clé enregistrée n'est pas touchée par un test";
   }, "une clé invalide collée", "edge");
   await carte(pb, "peages").locator('[data-el="tester-connexion"]').click();
   await expect(etatCarte(pb, "peages")).not.toHaveText("Test en cours…", { timeout: 30000 });
   await capture(pb, "US-5.E2-E1-02-resultat.png", async () => {
     await expect(etatCarte(pb, "peages")).toHaveText("Clé refusée par PTV (401)");
     await expect(etatCarte(pb, "peages")).toHaveAttribute("data-etat", "ko");
-    return "vrai appel à api.myptv.com → HTTP 401 → « Clé refusée par PTV (401) » (état ko)";
+    expect(await empreinteCles()).toBe(avant);
+    return "vrai appel à api.myptv.com avec la clé candidate → HTTP 401 → « Clé refusée par PTV (401) » (état ko) ; la clé réelle rangée est intacte";
   }, "Tester la connexion : « Clé refusée par PTV (401) »", "edge");
   // Enregistrer : l'ancien fournisseur actif est conservé
   await carte(pb, "peages").locator('[data-el="choix-fournisseur"]').selectOption("here");
@@ -756,52 +770,46 @@ histoireDef("US-5.E2", "US-5.E2 — Clé refusée", async () => {
     await expect(carte(pb, "peages").locator('[data-el="choix-fournisseur"]')).toHaveValue("ptv");
     const l = await restService("moteurs?select=actif&service=eq.peages");
     expect(l.corps[0].actif).toBe("ptv");
-    const [{ n }] = await sqlGestion("select count(*)::int as n from vault.secrets where name like 'cle_%'");
-    expect(n).toBe(0); // la clé invalide n'a pas été écrite
-    return `HERE + clé invalide + Enregistrer : refusé par le vrai HERE (401), « clé non enregistrée », le fournisseur actif reste PTV après rechargement (base : actif = ptv ; Vault : ${n} secret)`;
+    expect(await empreinteCles()).toBe(avant); // rien n'a été écrit dans Vault
+    return "HERE + clé invalide + Enregistrer : refusé par le vrai HERE (401), « clé non enregistrée », le fournisseur actif reste PTV après rechargement (base : actif = ptv ; clés rangées inchangées)";
   }, "Enregistrer garde l'ancien fournisseur actif (PTV)", "edge");
 });
 
 // ================================================================= US-5.E3
 histoireDef("US-5.E3", "US-5.E3 — Bascule de secours", async () => {
+  // RÉEL : le moteur principal est HERE (clé factice « FAUX- » → vrai refus 401 de HERE) et PTV, avec sa vraie clé, est le secours.
+  // Réglage par le rôle service (une clé factice collée à l'écran serait refusée) ; les vraies clés ne sont pas touchées.
   await reinitialiserMoteurs();
+  await injecterCle("here", "FAUX-HERE-CLE-0002");
+  await restService("moteurs?service=eq.peages", { method: "PATCH", body: JSON.stringify({ actif: "here", secours: "ptv", bascule_le: null, bascule_de: null, bascule_vers: null }) });
   await pb.reload();
   await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
   await carte(pb, "peages").scrollIntoViewIfNeeded();
-  // amorce serveur : clés factices rangées dans Vault (une clé collée à l'écran est maintenant testée avant d'être écrite, donc refusée)
-  await injecterCle("ptv", "cle-ptv-factice-0001");
-  await injecterCle("here", "cle-here-factice-0002");
-  await pb.reload();
-  await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
-  await carte(pb, "peages").scrollIntoViewIfNeeded();
-  await carte(pb, "peages").locator('[data-el="choix-secours-peages"]').selectOption("here");
-  await carte(pb, "peages").locator('[data-el="enregistrer-moteur"]').click();
-  await attendreEnregistrement(pb, "peages");
   await capture(pb, "US-5.E3-E1-01-declencheur.png", async () => {
-    await expect(carte(pb, "peages").locator('[data-el="choix-secours-peages"]')).toHaveValue("here");
-    const l = await restService("moteurs?select=actif,secours&service=eq.peages");
-    expect(l.corps[0]).toEqual({ actif: "ptv", secours: "here" });
-    return "péages : PTV actif (clé amorcée refusée par le vrai PTV = fournisseur principal hors service), HERE enregistré en secours (clé amorcée). Le plan suppose une panne PTV simulée côté fonction (page.route impossible côté serveur) ; ici les deux fournisseurs sont réellement injoignables faute de clé valide";
-  }, "PTV en panne et HERE enregistré en secours", "edge");
+    await expect(carte(pb, "peages").locator('[data-el="choix-fournisseur"]')).toHaveValue("here");
+    await expect(carte(pb, "peages").locator('[data-el="choix-secours-peages"]')).toHaveValue("ptv");
+    return "péages : HERE principal (clé factice : le vrai HERE répond 401 = principal en panne), PTV (clé réelle) en secours — la panne du principal est réelle, pas simulée ; le plan suppose l'inverse (PTV → HERE), impossible sans clé HERE valide";
+  }, "le moteur principal est en panne (HERE refuse sa clé) et PTV est enregistré en secours", "edge");
   await retourFormulaire(pa).catch(() => {});
   await formulaireEurope(pa, { saisie: "Albi", label: "Albi" }, { saisie: "Bord", label: "Bordeaux", contexte: "Gironde" });
   await calculer(pa);
   await versPeages(pa);
   await capture(pa, "US-5.E3-E1-02-resultat.png", async () => {
-    await expect(pa.locator('[data-el="peages-indisponibles"]')).toBeVisible();
-    return "calcul réel : la fonction essaie PTV (401) puis HERE (401) ; les deux refusent, « Péages non disponibles pour l'instant », coût carburant conservé";
-  }, "je calcule un trajet : la chaîne PTV → HERE est parcourue", "edge");
+    await expect(pa.locator('[data-el="peages-indisponibles"]')).toHaveCount(0);
+    await expect(pa.locator('[data-el="total-peages"]')).toBeVisible();
+    return `calcul réel : HERE répond 401, la fonction bascule sur PTV : les péages s'affichent (total ${await pa.locator('[data-el="total-peages"] .lit').innerText()}) sans « Péages non disponibles »`;
+  }, "je calcule un trajet : le principal refuse, le secours fournit les péages", "edge");
   await pb.reload();
   await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
   await carte(pb, "peages").scrollIntoViewIfNeeded();
   await capture(pb, "US-5.E3-E1-03-retour.png", async () => {
+    const note_ = await carte(pb, "peages").locator('[data-el="bascule"]').innerText();
+    expect(note_).toMatch(/^Bascule HERE → PTV Developer le \d{2}\/\d{2} \d{2}:\d{2}$/);
     const inc = await carte(pb, "peages").locator('[data-el="incident"]').innerText();
-    expect(inc).toMatch(/^Dernier incident · PTV : clé refusée \(401\) · \d{2}\/\d{2} \d{2}:\d{2}$/);
-    const l = await restService("moteurs?select=incident_message,bascule_le&service=eq.peages");
-    expect(l.corps[0].incident_message).toMatch(/^ptv/);
-    return `l'écran Moteurs note l'incident avec l'heure : « ${inc} » ; BLOQUÉ-CLÉ : la bascule réussie vers HERE (« Bascule PTV → HERE le … ») exige une clé HERE valide — bascule_le = ${l.corps[0].bascule_le}`;
-  }, "l'écran Moteurs note l'incident (la bascule réussie est bloquée faute de clé HERE)", "edge");
-  BLOQUE("US-5.E3 (péages venant de HERE quand PTV tombe, bascule notée avec l'heure) : il manque une clé HERE valide (et une clé PTV valide pour provoquer une vraie panne côté PTV). La chaîne actif → secours, l'incident horodaté et la note de bascule sont construits et testés unitairement (executerChaine).");
+    expect(inc).toMatch(/Dernier incident · HERE : clé refusée \(401\)/);
+    return `l'écran Moteurs note la bascule avec l'heure : « ${note_} » et l'incident : « ${inc} »`;
+  }, "l'écran Moteurs note la bascule avec l'heure", "edge");
+  BLOQUE("US-5.E3 sous sa forme du plan (péages venant de HERE quand PTV tombe) : il manque une clé HERE valide. La bascule d'un principal en panne vers un secours qui répond est vue en vrai (HERE refusé → PTV), avec la note horodatée.");
   await reinitialiserMoteurs();
 });
 
@@ -1103,7 +1111,9 @@ histoireDef("US-PERF-001", "US-PERF-001 — Ouverture rapide (jalon 3)", async (
 });
 
 // ================================================================= exécution
+let verifFinale = null;
 const aJouer = HISTOIRES.filter((h) => FILTRE.length === 0 || FILTRE.includes(h.id));
+try {
 for (const h of aJouer) {
   histoire(h.id, h.titre);
   try {
@@ -1116,6 +1126,21 @@ for (const h of aJouer) {
   ecrireHistoire(h.id);
   console.log(h.id, resultats.filter((r) => r.nom.startsWith(h.id.replace("US-", "US-")) || true).length);
 }
+} finally {
+  // restauration de l'état réel (clés PTV et Stadia lues en mémoire au départ ; actif peages = ptv, itinéraire = stadia + secours valhalla-public)
+  try {
+    await restaurerEtatReel(ETAT_REEL);
+    verifFinale = await verifierFournisseurs();
+  } catch (e) {
+    console.error("RESTAURATION", String(e.message).slice(0, 200));
+  }
+  const manquantes = MANQUANTES.length ? ` Clés absentes au départ du run (non réinventées) : ${MANQUANTES.join(", ")}.` : "";
+  const ligneFinale = `- Vérification finale (vrai appel estimer-trajet Albi → Barcelone, sans aucune clé) : ${JSON.stringify(verifFinale)}.${manquantes}`;
+  let j = fs.readFileSync(JOURNAL, "utf8").replace(/\n## Vérification finale de l'état des moteurs[\s\S]*$/, "");
+  fs.writeFileSync(JOURNAL, j.replace(/\s+$/, "\n") + `\n## Vérification finale de l'état des moteurs\n\n${ligneFinale}\n`);
+  console.log(ligneFinale);
+}
+
 await navigateur.close();
 
 // ================================================================= bilan

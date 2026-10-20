@@ -1,11 +1,10 @@
-import { test, expect, formulaire, ALBI_, BORDEAUX, CASTRES, calculer, lireResultat, cout, moyenneDuJour, modifieLesMoteurs, restService } from "./_aides";
+import { test, expect, formulaire, ALBI_, BORDEAUX, calculer, lireResultat, moyenneDuJour, modifieLesMoteurs, restService } from "./_aides";
 
 test.describe("US-4.E4 — Péages indisponibles", () => {
   modifieLesMoteurs();
   test.describe("Edge Case", () => {
-    test("US-4.E4 — sans clé active, les péages sont réellement indisponibles : coût carburant affiché, rien ajouté (aucun mock)", async ({ page }) => {
-      const m = await restService("moteurs?select=actif,etat&service=eq.peages");
-      expect(m.corps[0]).toMatchObject({ actif: "ptv", etat: "wait" });
+    test("US-4.E4 — péages confiés à HERE (aucune clé : service réellement en erreur) : coût carburant affiché, rien ajouté ; retour à PTV : le même trajet retrouve ses péages", async ({ page }) => {
+      await restService("moteurs?service=eq.peages", { method: "PATCH", body: JSON.stringify({ actif: "here", secours: null }) });
       await formulaire(page, ALBI_, BORDEAUX);
       await calculer(page);
       const r = await lireResultat(page);
@@ -13,12 +12,12 @@ test.describe("US-4.E4 — Péages indisponibles", () => {
       await expect(page.locator('[data-el="peages-indisponibles"]')).toContainText("Péages non disponibles pour l'instant");
       await expect(page.locator('[data-el="total-peages"]')).toHaveCount(0);
       await expect(page.locator('[data-el="repartition-cout"]')).toHaveCount(0);
-    });
-    test("US-4.E4 — retour à l'état normal : un trajet sans autoroute payante n'a plus de message d'indisponibilité", async ({ page }) => {
-      await formulaire(page, ALBI_, CASTRES);
-      await calculer(page);
+      await restService("moteurs?service=eq.peages", { method: "PATCH", body: JSON.stringify({ actif: "ptv", secours: null }) });
+      await page.locator('[data-el="retour-trajets"]').click();
+      await page.locator('[data-el="liste-historique"] li', { hasText: "Bordeaux" }).first().locator("button.go").click();
+      await expect(page.locator('[data-screen="S4"][data-etat="ok"]')).toBeVisible({ timeout: 60000 });
       await expect(page.locator('[data-el="peages-indisponibles"]')).toHaveCount(0);
-      await expect(page.locator('[data-el="detail-peages"]')).toContainText("Aucun péage sur cet itinéraire");
+      await expect(page.locator('[data-el="total-peages"]')).toBeVisible();
     });
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decoderPolyline6, decouperTrace, encoderPolyline6, etapesDepuisAretes, numeroDeVoie, pointEnFrance, vignettesTraversees, type Arete } from "../../supabase/functions/_shared/europe";
+import { ATTRIBUTS_TRACE, PART_CARREFOURS_ARRETS, carrefourPrioritaire, decoderPolyline6, decouperTrace, encoderPolyline6, etapesDepuisAretes, numeroDeVoie, pointEnFrance, vignettesTraversees, type Arete } from "../../supabase/functions/_shared/europe";
 import { decouperParPays, resumeParPays, synthese, type VehiculeModele } from "../../supabase/functions/_shared/modele";
 import { executerChaine } from "../../supabase/functions/_shared/moteurs";
 import { lireBulletin, estimes } from "../../supabase/functions/_shared/bulletin";
@@ -32,11 +32,29 @@ describe("itinéraire Europe : arêtes → étapes par pays", () => {
     expect(numeroDeVoie(["Avenue Gambetta"])).toBe("");
     expect(numeroDeVoie(["AP-7"])).toBe("AP-7");
   });
-  it("feux et ronds-points comptent comme arrêts en ville ; pas sur autoroute", () => {
-    const ville = etapesDepuisAretes(aretes(10, 0, { road_class: "residential", speed: 30, length: 0.1, traffic_signal: true, names: [] }), admins);
+  it("arrêts en ville : ronds-points + part des carrefours prioritaires (approximation des feux) ; aucun sur autoroute", () => {
+    const croise = { intersecting_edges: [{ road_class: "secondary" }], admin_index: 0 };
+    const ville = etapesDepuisAretes(aretes(20, 0, { road_class: "residential", speed: 30, length: 0.1, names: [], end_node: croise }), admins);
     const t = decouperParPays(ville.etapesParPays, voiture);
     expect(t[0].type).toBe("ville");
-    expect(t[0].arrets).toBe(10);
+    expect(t[0].arrets).toBe(Math.round(20 * PART_CARREFOURS_ARRETS));
+    const rond = etapesDepuisAretes(aretes(4, 0, { road_class: "residential", speed: 30, length: 0.1, names: [], roundabout: true }), admins);
+    expect(decouperParPays(rond.etapesParPays, voiture)[0].arrets).toBe(4);
+    const auto = etapesDepuisAretes(aretes(20, 0, { end_node: croise }), admins);
+    expect(decouperParPays(auto.etapesParPays, voiture)[0].arrets).toBe(0);
+  });
+  it("carrefour prioritaire : seulement si l'arête en rencontre une route classée", () => {
+    expect(carrefourPrioritaire({ length: 1, end_node: { intersecting_edges: [{ road_class: "residential" }, { road_class: "tertiary" }] } })).toBe(true);
+    expect(carrefourPrioritaire({ length: 1, end_node: { intersecting_edges: [{ road_class: "residential" }] } })).toBe(false);
+    expect(carrefourPrioritaire({ length: 1 })).toBe(false);
+  });
+  it("liste d'attributs de trace_attributes : acceptée par Stadia ET FOSSGIS (pas d'edge.traffic_signal ni d'edge.end_node.admin_index)", () => {
+    // variantes permises relevées dans le message d'erreur 400 réel de Stadia Maps (2026-10-21)
+    const PERMISES = new Set(["edge.names", "edge.length", "edge.speed", "edge.road_class", "edge.toll", "edge.roundabout", "edge.weighted_grade", "edge.mean_elevation", "edge.density", "edge.speed_limit", "node.intersecting_edge.road_class", "node.admin_index", "admin.country_code", "admin.country_text"]);
+    for (const a of ATTRIBUTS_TRACE) expect(PERMISES.has(a), a).toBe(true);
+    expect(ATTRIBUTS_TRACE).not.toContain("edge.traffic_signal");
+    expect(ATTRIBUTS_TRACE).not.toContain("edge.end_node.admin_index");
+    expect(ATTRIBUTS_TRACE).toContain("node.admin_index");
   });
 });
 

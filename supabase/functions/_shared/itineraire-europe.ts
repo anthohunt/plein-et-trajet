@@ -2,7 +2,7 @@
 // (FOSSGIS : « les URL ne devraient pas être codées en dur », ≤ 1 requête/s, User-Agent identifiant, faible trafic —
 // https://www.fossgis.de/arbeitsgruppen/osm-server/nutzungsbedingungen/). La pause est tenue entre invocations simultanées
 // par le limiteur Postgres (`limiteur_reserver`). Cible de production : Stadia Maps (clé collée dans l'écran Moteurs).
-import { decoderPolyline6, decouperTrace, encoderPolyline6, type AdminValhalla, type Arete } from "./europe.ts";
+import { ATTRIBUTS_TRACE, decoderPolyline6, decouperTrace, encoderPolyline6, type AdminValhalla, type Arete } from "./europe.ts";
 
 export interface ConnexionValhalla {
   base: string; // sans / final
@@ -93,7 +93,7 @@ export async function routeValhalla(c: ConnexionValhalla, a: { lat: number; lon:
       costing: "auto",
       shape_match: "edge_walk",
       filters: {
-        attributes: ["edge.length", "edge.road_class", "edge.speed", "edge.speed_limit", "edge.weighted_grade", "edge.toll", "edge.traffic_signal", "edge.roundabout", "edge.names", "edge.end_node.admin_index", "node.admin_index", "admin.country_code", "admin.country_text"],
+        attributes: ATTRIBUTS_TRACE,
         action: "include",
       },
     }, false);

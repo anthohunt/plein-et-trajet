@@ -3,6 +3,7 @@ import { defineConfig } from "@playwright/test";
 // Specs consolidées des jalons 1 et 2 et extraits du jalon 3 (un fichier par histoire), joués contre l'appli déployée (base réelle).
 export default defineConfig({
   testDir: "tests/e2e",
+  globalSetup: "./tests/e2e/exploration/m3-global.mjs", // lit les vraies clés en mémoire et les restaure après les tests
   testMatch: /(m[12]-explore\.spec|m3-test-snippets\/US-[^/]+\.test)\.ts$/,
   timeout: 60_000,
   expect: { timeout: 15_000 },

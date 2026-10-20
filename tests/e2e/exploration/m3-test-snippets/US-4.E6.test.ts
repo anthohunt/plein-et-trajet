@@ -1,4 +1,4 @@
-import { test, expect, formulaire, ALBI_, BELGRADE, calculer, lignesListe, cout, nombre, rest, virgule } from "./_aides";
+import { test, expect, formulaire, ALBI_, BELGRADE, calculer, lignesListe, carburantAffiche, nombre, rest, virgule } from "./_aides";
 
 test.describe("US-4.E6 — Pays sans prix moyen", () => {
   test.describe("Edge Case", () => {
@@ -13,7 +13,7 @@ test.describe("US-4.E6 — Pays sans prix moyen", () => {
       const eu = Number((await rest("moyennes_nationales?select=prix_moyen&pays=eq.EU&carburant=eq.SP95-E10&order=jour.desc&limit=1"))[0].prix_moyen);
       expect(rs.texte).toContain(virgule(eu, 3));
       expect(l.filter((x: any) => x.pays !== "RS").every((x: any) => !x.texte.includes("prix non publié"))).toBe(true);
-      expect(l.reduce((s: number, x: any) => s + nombre(x.montant), 0)).toBeCloseTo(await cout(page), 2);
+      expect(l.reduce((s: number, x: any) => s + nombre(x.montant), 0)).toBeCloseTo(await carburantAffiche(page), 2);
     });
   });
 });
