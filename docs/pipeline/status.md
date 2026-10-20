@@ -1,11 +1,11 @@
 # Pipeline Status
 
 - **Current step:** 4
-- **Sub-step:** in progress — jalon 1 construit, jalon 2 suivant
-- **Last updated:** 2026-10-20T13:55:00+00:00
-- **Summary:** Jalon 1 « Les prix autour de moi » construit, audité (auditeur PASS au round 3, contre-évaluation PASS), testé, déployé sur https://plein-et-trajet.vercel.app (commit 11e7820). Rapport de livraison : docs/delivery/m1-delivery-report.html, en attente des commentaires d'Anthony.
+- **Sub-step:** in progress — jalons 1 et 2 construits, jalon 3 suivant
+- **Last updated:** 2026-10-20T15:45:00+00:00
+- **Summary:** Jalon 2 « Le coût d'un trajet » construit (2 cycles), audité (auditeur PASS au round 2, contre-évaluation PASS 5/5), testé (Vitest 80, Playwright 86/86 sur la prod), déployé sur https://plein-et-trajet.vercel.app (commit c0cfb78). Rapport de livraison : docs/delivery/m2-delivery-report.html, en attente des commentaires d'Anthony.
 
 ## Milestones
 - [x] Milestone 1 — Les prix autour de moi (journal : docs/pipeline/m1-journal.md)
-- [ ] Milestone 2 — Le coût d'un trajet
+- [x] Milestone 2 — Le coût d'un trajet (journal : docs/pipeline/m2-journal.md)
 - [ ] Milestone 3 — Péages et Europe
