@@ -350,3 +350,21 @@ Aucun ne relève d'un critère non tenu ni d'une preuve qui contredit l'étape :
 ### Score
 Départ 5 ; rubber-stamping 0 ; zones sautées 0 ; drapeaux non instruits 0 ; faux passage 0 ; faux échec 0 ; Grep : pas de retenue (recherche faite par `grep` dans Bash, ~15 fois). **5/5 → PASS.**
 À reporter en 4.4 (rappel, pas un défaut de l'audit) : remettre `rate_limit_anonymous_users` à 30 et le relire, purger identités et trajets de test.
+
+## Test & Regression
+
+• Consolidation : les 24 extraits `tests/e2e/exploration/m2-test-snippets/US-*.test.ts` sont réunis dans `tests/e2e/m2-explore.spec.ts` (M2 › histoire › Happy Path / Edge Case ; les sous-groupes « voiture disparue », « bi-carburation », « même lieu », « fiche station » sont rangés en « Edge Case — … », « indicateur » en « Happy Path — … »), aides `_aides.ts` / `m2-aides.mjs` réutilisées. `playwright.config.ts` joue désormais `m1-explore.spec.ts` et `m2-explore.spec.ts` (baseURL prod), plus les extraits. Base réelle partout ; seul US-4.E3 intercepte (`// MOCKED:` délai de 3 s puis `route.continue`, `test.setTimeout(60000)`). Aucun extrait n'écrivait de capture : rien n'est écrit dans `tests/e2e/delivery/`.
+• Unitaires (vitest) : 80/80 (3 fichiers).
+• Typage : `tsc --noEmit` sans erreur. Build : PASS (vite). Chunks : index 438,61 kB (gzip 127,96), CarteStations 806,33 kB (gzip 219,41), CSS 16,53 + 65,48 kB (gzip 4,11 + 9,22), index.html 1,25 kB.
+• E2E Playwright contre la prod : **86/86 au premier passage** (m1-explore 25/25, m2-explore 61/61), 4,4 min, 2 workers. Aucun flaky, aucun `test.fixme`.
+• Régressions : aucune (jalon 1 intact). Corrections : aucune (code applicatif gelé, src/ et supabase/ non touchés).
+• Commit : `c0cfb78` (test(m2): consolidation des tests du jalon 2 — Le coût d'un trajet).
+
+## Deploy
+
+• Commit : `c0cfb78`, poussé sur origin/main.
+• Production : https://plein-et-trajet.vercel.app — déploiement Vercel du commit `c0cfb78` (plein-et-trajet-ohl410nuk…, cible production) READY (API Vercel v6/deployments).
+• Smoke réel (bibliothèque Playwright, mobile 390x844, géoloc Albi, identité anonyme Supabase — l'appli n'a pas de comptes) : Prix chargé → Trajets → Départ « Albi », Arrivée « Bordeaux » (géocodeur IGN) → Peugeot 208 (101ch) · mécanique → Calculer : **40,78 €**, 18,9 L, 317 km, 6,0 L/100 km, 3 tronçons (autoroute 295,6 km, route 8,7 km, ville 12,4 km), 18,9 L × 2,160 €/L (moyenne France SP95-E10 du jour) → « Mettre mon prix » 1,699 : **32,08 €** (18,9 × 1,699), libellé « Mon prix » → retour : une ligne d'historique « Albi → Bordeaux 317 km · 20 oct. 40,78 € » (le prix perso n'est pas enregistré), une ligne en base `trajets` → rejeu : « Trajet recalculé au prix moyen du jour », Albi → Bordeaux, 40,78 €. **PASS**.
+• Réseau : 36 requêtes Supabase + IGN, **toutes 2xx**, aucun échec, aucune erreur de page. Supabase : `POST /auth/v1/signup` 200 ×1 (identité anonyme) ; `POST /functions/v1/estimer-trajet` 200 ×2 (calcul + rejeu) ; `GET /rest/v1/trajets` 200 ×5 ; `POST /rest/v1/trajets` 201 ×1 ; `PATCH /rest/v1/trajets` 200 ×1 (rejeu, remonte en tête) ; `GET /rest/v1/preferences` 200 ×1 ; `POST /rest/v1/preferences` 201 ×1 + 200 ×2 ; `GET /rest/v1/vehicules` 200 ×1 ; `POST /rest/v1/rpc/vehicules_marques` 200, `rpc/vehicules_modeles` 200, `rpc/stations_autour` 200 ; `GET /rest/v1/prix` 200 ; `GET /rest/v1/moyennes_nationales` 200 ×3. IGN : `GET data.geopf.fr/geocodage/search` 200 ×2 ; tuiles, style, sprites et polices PLAN.IGN 200 ×13.
+• Captures : `tests/e2e/delivery/m2-deploy-verify-01.png` (formulaire rempli Albi → Bordeaux, Peugeot 208), `-02.png` (résultat avec « Mon prix » 1,699 : 32,08 €), `-03.png` (rejeu au prix moyen du jour : 40,78 €).
+• Reste hors de cette étape (chef d'équipe) : remettre `rate_limit_anonymous_users` à 30 et purger les identités et trajets de test (la suite e2e et le smoke en créent à chaque passage).
