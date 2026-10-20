@@ -24,7 +24,8 @@ export function dateEspagne(f: string): string | null {
 
 const CARBURANTS_ES: [string, string[]][] = [
   ["Gazole", ["Precio Gasoleo A"]],
-  ["SP95-E10", ["Precio Gasolina 95 E10"]],
+  // 95 E5 est compatible avec toute voiture E10 : à défaut de 95 E10, son prix est celui du « SP95-E10 » (l'Espagne vend surtout du 95 E5)
+  ["SP95-E10", ["Precio Gasolina 95 E10", "Precio Gasolina 95 E5"]],
   ["SP95", ["Precio Gasolina 95 E5"]],
   ["SP98", ["Precio Gasolina 98 E5", "Precio Gasolina 98 E10"]],
   ["E85", ["Precio Gasolina 95 E85", "Precio Bioetanol"]],

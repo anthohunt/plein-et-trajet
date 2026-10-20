@@ -87,17 +87,23 @@ async function lieuEtranger(q: string, signal?: AbortSignal): Promise<Lieu | nul
 }
 
 /** Propositions au fil de la frappe : communes d'abord (« Alb » → Albi) ; adresses dès qu'un chiffre est tapé ; lieux étrangers à la suite. */
-export async function suggererLieux(texte: string, signal?: AbortSignal): Promise<Suggestion[]> {
+export async function suggererLieux(texte: string, signal?: AbortSignal, partiel?: (s: Suggestion[]) => void): Promise<Suggestion[]> {
   const q = texte.trim();
   if (q.length < 2) return [];
-  const [fr, etr] = await Promise.allSettled([chercher(q, 6, !AVEC_CHIFFRE.test(q), signal), AVEC_CHIFFRE.test(q) ? Promise.resolve([] as Suggestion[]) : propositionsEtrangeres(q, signal)]);
+  const avecChiffre = AVEC_CHIFFRE.test(q);
+  const fr = chercher(q, 6, !avecChiffre, signal);
+  const etr = avecChiffre ? Promise.resolve([] as Suggestion[]) : propositionsEtrangeres(q, signal).catch(() => [] as Suggestion[]);
+  // les propositions françaises s'affichent dès qu'elles arrivent ; les étrangères s'y ajoutent ensuite
+  const frOk = await fr.then((v) => v, () => null);
   if (signal?.aborted) throw new DOMException("aborted", "AbortError");
-  const etrangeres = etr.status === "fulfilled" ? etr.value : [];
-  if (fr.status === "rejected") {
+  if (frOk && partiel) partiel(frOk);
+  const etrangeres = await etr;
+  if (signal?.aborted) throw new DOMException("aborted", "AbortError");
+  if (frOk == null) {
     if (etrangeres.length > 0) return etrangeres;
-    throw fr.reason;
+    throw new Error("géocodage indisponible");
   }
-  return etrangeres.length > 0 ? [...fr.value.slice(0, 4), ...etrangeres.slice(0, 3)] : fr.value;
+  return etrangeres.length > 0 ? [...frOk.slice(0, 4), ...etrangeres.slice(0, 3)] : frOk;
 }
 
 /** Lieu correspondant à un texte saisi sans choisir de proposition ; null = introuvable ; lève si le service est injoignable. */

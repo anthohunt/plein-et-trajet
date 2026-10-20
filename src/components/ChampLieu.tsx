@@ -36,7 +36,15 @@ export function ChampLieu({ id, etiquette, placeholder, dataEl, texte, onTexte, 
     }
     const c = new AbortController();
     const t = setTimeout(() => {
-      suggererLieux(q, c.signal)
+      const afficher = (s: Suggestion[]) => {
+        if (c.signal.aborted) return;
+        dernier.current = q;
+        setIndispo(false);
+        setPropositions(s);
+        setActif(-1);
+        setOuvert(s.length > 0);
+      };
+      suggererLieux(q, c.signal, afficher)
         .then((s) => {
           dernier.current = q;
           setIndispo(false);

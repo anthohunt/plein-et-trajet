@@ -24,7 +24,7 @@ export const fmt = (n: number, d: number) => n.toFixed(d).replace(".", ",");
 export const euros = (n: number) => fmt(n, 2);
 
 export function libelleType(type: string, voies: string[]): string {
-  if (type === "autoroute") return voies.some((v) => /^A\d/i.test(v)) || voies.length === 0 ? T.typeAutoroute : T.typeVoieRapide;
+  if (type === "autoroute") return voies.some((v) => /^A[A-Z]?-?\d/i.test(v)) || voies.length === 0 ? T.typeAutoroute : T.typeVoieRapide;
   if (type === "route") return T.typeRoute;
   if (type === "ville") return T.typeVille;
   return T.typeMontee;
