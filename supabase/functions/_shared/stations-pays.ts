@@ -211,7 +211,7 @@ export function normaliserAllemagne(reponses: any[][]): Station[] {
 // ------------------------------------------------------------------ Royaume-Uni : flux JSON d'Asda (CMA Fuel Finder, sans clé), prix en pence/L
 // deno-lint-ignore no-explicit-any
 export function normaliserRoyaumeUni(d: any, gbpParEuro: number): Station[] {
-  const out: Station[] = [];
+  const out = new Map<string, Station>(); // le flux répète certains sites : un seul par identifiant
   for (const s of d?.stations ?? []) {
     const lat = s?.location?.latitude;
     const lon = s?.location?.longitude;
@@ -228,9 +228,9 @@ export function normaliserRoyaumeUni(d: any, gbpParEuro: number): Station[] {
     if (ok(b7)) prix.Gazole = b7;
     if (ok(e5)) prix.SP98 = e5; // E5 « super » (97-99 octane)
     if (Object.keys(prix).length === 0) continue;
-    out.push({ id: `GB-${s.site_id}`, nom: [s.brand, s.address].filter(Boolean).join(" · ") || null, enseigne: s.brand ?? null, adresse: s.address ?? null, cp: s.postcode ?? null, ville: null, lat, lon, maj: null, prix });
+    out.set(`GB-${s.site_id}`, { id: `GB-${s.site_id}`, nom: [s.brand, s.address].filter(Boolean).join(" · ") || null, enseigne: s.brand ?? null, adresse: s.address ?? null, cp: s.postcode ?? null, ville: null, lat, lon, maj: null, prix });
   }
-  return out;
+  return [...out.values()];
 }
 
 // ------------------------------------------------------------------ Roumanie : Monitorul Prețurilor (XML), prix en RON, via le relais Node (certificat TLS invalide)

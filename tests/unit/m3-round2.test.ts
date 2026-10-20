@@ -105,7 +105,7 @@ describe("flux de stations hors de France", () => {
     expect(s[1].prix).toEqual({ SP95: 1.929, "SP95-E10": 1.929 });
   });
   it("Royaume-Uni (Asda) : pence/L → euros au cours du jour ; E10 → 95, B7 → gazole, E5 → super", () => {
-    const s = normaliserRoyaumeUni({ stations: [{ site_id: "gcq", brand: "Asda", address: "Abbey Park, Coventry", postcode: "CV3 4AR", location: { latitude: 52.39, longitude: -1.48 }, prices: { E10: 172.9, B7: 197.7, E5: 184.9 } }, { site_id: "x", location: {}, prices: {} }] }, 0.84028);
+    const s = normaliserRoyaumeUni({ stations: [{ site_id: "gcq", brand: "Asda", address: "Abbey Park, Coventry", postcode: "CV3 4AR", location: { latitude: 52.39, longitude: -1.48 }, prices: { E10: 172.9, B7: 197.7, E5: 184.9 } }, { site_id: "x", location: {}, prices: {} }, { site_id: "gcq", brand: "Asda", address: "Abbey Park, Coventry", postcode: "CV3 4AR", location: { latitude: 52.39, longitude: -1.48 }, prices: { E10: 172.9, B7: 197.7, E5: 184.9 } }] }, 0.84028);
     expect(s).toHaveLength(1);
     expect(s[0].prix).toEqual({ "SP95-E10": 2.058, SP95: 2.058, Gazole: 2.353, SP98: 2.2 });
     expect(s[0].id).toBe("GB-gcq");
