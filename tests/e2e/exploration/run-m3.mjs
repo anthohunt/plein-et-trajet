@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   BARCELONE, BRUXELLES, RACINE, URL_APP, ALBI, OPTIONS_CONTEXTE, appelerMoteurs, attendreAnimations, attendreFormulaire, calculer, carte, champ, choisirVoiture, connecterAdmin,
-  S4, carburantAffiche, empreinteCles, env, etatCarte, etatFocus, injecterCle, lireEtatReel, restaurerEtatReel, supprimerClesFausses, totalPeagesPtvDirect, verifierFournisseurs, lignesListe, lireResultat, moyenneDuJour, nombre, ouvrirMoteurs, ouvrirTrajets, propositions, reinitialiserMoteurs, rest, restService,
+  S4, adminsEphemeresRestants, carburantAffiche, creerAdminEphemere, empreinteCles, supprimerAdminsEphemeres, env, etatCarte, etatFocus, injecterCle, lireEtatReel, restaurerEtatReel, supprimerClesFausses, totalPeagesPtvDirect, verifierFournisseurs, lignesListe, lireResultat, moyenneDuJour, nombre, ouvrirMoteurs, ouvrirTrajets, propositions, reinitialiserMoteurs, rest, restService,
   saisirLieu, session, sha, sqlGestion, virgule,
 } from "./m3-aides.mjs";
 
@@ -178,6 +178,7 @@ const histoireDef = (id, titre, f) => HISTOIRES.push({ id, titre, f });
 // ================================================================= identités
 // ÉTAT RÉEL : les vraies clés (PTV, Stadia) sont lues en mémoire, jamais écrites ; restaurées en fin de run (try/finally)
 const ETAT_REEL = await lireEtatReel();
+await creerAdminEphemere(); // administrateur de test éphémère, supprimé dans le finally
 const MANQUANTES = ['ptv', 'stadia'].filter((f) => !ETAT_REEL.cles[f]);
 await reinitialiserMoteurs();
 const A = await contexte(); // visiteur anonyme à Albi : tous les trajets
@@ -557,8 +558,10 @@ histoireDef("US-5.3", "US-5.3 — Coller la clé", async () => {
   await pb.reload();
   await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
   await carte(pb, "peages").scrollIntoViewIfNeeded();
+  await carte(pb, "peages").locator('[data-el="champ-cle"]').focus(); // le champ clé a le focus : l'étape part de CE champ
   await capture(pb, "US-5.3-01-coller-la-cl-avant.png", async () => {
     const champCle = carte(pb, "peages").locator('[data-el="champ-cle"]');
+    await expect(champCle).toBeFocused();
     await expect(champCle).toHaveAttribute("type", "password");
     const ph = await champCle.getAttribute("placeholder");
     expect(ph).toMatch(/^Clé enregistrée ••••.{4} — coller pour remplacer$/);
@@ -618,7 +621,9 @@ histoireDef("US-5.4", "US-5.4 — Tester la connexion", async () => {
   await pb.reload();
   await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
   await carte(pb, "peages").scrollIntoViewIfNeeded();
+  await carte(pb, "peages").locator('[data-el="tester-connexion"]').focus(); // prêt à tester : le bouton a le focus
   await capture(pb, "US-5.4-01-tester-la-connexion-avant.png", async () => {
+    await expect(carte(pb, "peages").locator('[data-el="tester-connexion"]')).toBeFocused();
     await expect(carte(pb, "peages").locator('[data-el="champ-cle"]')).toHaveAttribute("placeholder", /Clé enregistrée ••••/);
     return "clé PTV valide enregistrée (celle d'Anthony), avant le test";
   }, "une clé PTV valide est enregistrée");
@@ -763,16 +768,21 @@ histoireDef("US-5.E2", "US-5.E2 — Clé refusée", async () => {
   await carte(pb, "peages").locator('[data-el="champ-cle"]').fill("cle-invalide-here-5512");
   await carte(pb, "peages").locator('[data-el="enregistrer-moteur"]').click();
   await attendreEnregistrement(pb, "peages");
-  await pb.reload();
-  await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
-  await carte(pb, "peages").scrollIntoViewIfNeeded();
   await capture(pb, "US-5.E2-E1-03-retour.png", async () => {
     await expect(carte(pb, "peages").locator('[data-el="choix-fournisseur"]')).toHaveValue("ptv");
+    const msg = await etatCarte(pb, "peages").innerText();
+    expect(msg.toLowerCase()).toContain("fournisseur actif inchangé");
     const l = await restService("moteurs?select=actif&service=eq.peages");
     expect(l.corps[0].actif).toBe("ptv");
     expect(await empreinteCles()).toBe(avant); // rien n'a été écrit dans Vault
-    return "HERE + clé invalide + Enregistrer : refusé par le vrai HERE (401), « clé non enregistrée », le fournisseur actif reste PTV après rechargement (base : actif = ptv ; clés rangées inchangées)";
-  }, "Enregistrer garde l'ancien fournisseur actif (PTV)", "edge");
+    return `HERE + clé invalide + Enregistrer : refusé par le vrai HERE (401), message affiché « ${msg} », le fournisseur actif reste PTV (base : actif = ptv ; clés rangées inchangées)`;
+  }, "Enregistrer garde l'ancien fournisseur actif (PTV) : message de refus à l'écran", "edge");
+  await verifier("après rechargement, PTV est toujours le fournisseur actif", async () => {
+    await pb.reload();
+    await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
+    await expect(carte(pb, "peages").locator('[data-el="choix-fournisseur"]')).toHaveValue("ptv");
+    note("edge", "- ✓ (hors capture) après rechargement : fournisseur actif des péages = PTV, clés rangées inchangées.");
+  });
 });
 
 // ================================================================= US-5.E3
@@ -1135,9 +1145,15 @@ for (const h of aJouer) {
   } catch (e) {
     console.error("RESTAURATION", String(e.message).slice(0, 200));
   }
+  try {
+    await supprimerAdminsEphemeres();
+    verifFinale = { ...(verifFinale ?? {}), adminsEphemeresRestants: await adminsEphemeresRestants() };
+  } catch (e) {
+    console.error("SUPPRESSION ADMIN", String(e.message).slice(0, 200));
+  }
   const manquantes = MANQUANTES.length ? ` Clés absentes au départ du run (non réinventées) : ${MANQUANTES.join(", ")}.` : "";
   const ligneFinale = `- Vérification finale (vrai appel estimer-trajet Albi → Barcelone, sans aucune clé) : ${JSON.stringify(verifFinale)}.${manquantes}`;
-  let j = fs.readFileSync(JOURNAL, "utf8").replace(/\n## Vérification finale de l'état des moteurs[\s\S]*$/, "");
+  let j = fs.readFileSync(JOURNAL, "utf8").replace(/\n## Vérification finale de l'état des moteurs[\s\S]*?(?=\n## |$)/, "");
   fs.writeFileSync(JOURNAL, j.replace(/\s+$/, "\n") + `\n## Vérification finale de l'état des moteurs\n\n${ligneFinale}\n`);
   console.log(ligneFinale);
 }
@@ -1158,4 +1174,16 @@ for (const f of faits) {
   }
 }
 const doublons = [...hashes.values()].filter((l) => l.length > 1);
+// groupes de captures aux octets identiques, livraison et brutes séparément : écrits au journal (jamais fabriqués ni niés)
+const groupes = [];
+for (const [d, nomDossier] of [[LIVRAISON, "livraison"], [BRUTES, "brutes"]]) {
+  const par = new Map();
+  for (const f of faits) par.set(sha(fs.readFileSync(path.join(d, f))), [...(par.get(sha(fs.readFileSync(path.join(d, f)))) ?? []), f]);
+  for (const l of par.values()) if (l.length > 1) groupes.push(`${nomDossier} : ${l.join(" = ")}`);
+}
+{
+  let j = fs.readFileSync(JOURNAL, "utf8").replace(/\n## Captures aux octets identiques[\s\S]*?(?=\n## |$)/, "");
+  const corps = groupes.length ? groupes.map((g) => `- ${g}`).join("\n") : "- aucun groupe : toutes les captures (livraison et brutes) ont des octets distincts.";
+  fs.writeFileSync(JOURNAL, j.replace(/\s+$/, "\n") + `\n## Captures aux octets identiques\n\nRelevé par empreinte à la fin du dernier run complet ; chaque groupe est expliqué dans « Round 3 ».\n\n${corps}\n`);
+}
 console.log(JSON.stringify({ captures: `${faits.length}/${attendues.length}`, manquantes, doublons, echecs: resultats.filter((r) => !r.ok).map((r) => r.nom), avertissements }, null, 1));

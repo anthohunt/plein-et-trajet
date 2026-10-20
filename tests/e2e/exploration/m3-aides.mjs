@@ -9,10 +9,32 @@ const { env, URL_APP, rest } = base;
 
 export const BARCELONE = { latitude: 41.3874, longitude: 2.1686 };
 export const BRUXELLES = { latitude: 50.8503, longitude: 4.3517 };
-export const ADMIN_TEST = "m3-admin-test@example.org";
+export const ADMIN_TEST = "m3-admin-test@example.org"; // ancien compte fixe (supprimé) : remplacé par un administrateur ÉPHÉMÈRE créé à chaque run
+const adminHeaders = { apikey: env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, "Content-Type": "application/json" };
+/** Crée un administrateur de test éphémère (API admin, app_metadata.role = admin) ; son adresse est exposée aux tests par M3_ADMIN_EMAIL. */
+export async function creerAdminEphemere() {
+  await supprimerAdminsEphemeres(); // restes d'un run tué
+  const email = `m3-admin-eph-${Date.now()}@example.org`;
+  const r = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users`, { method: "POST", headers: adminHeaders, body: JSON.stringify({ email, email_confirm: true, app_metadata: { role: "admin" } }) });
+  if (!r.ok) throw new Error(`création de l'admin éphémère : HTTP ${r.status}`);
+  process.env.M3_ADMIN_EMAIL = email;
+  return email;
+}
+/** Supprime tous les administrateurs éphémères (m3-admin-eph-*) ; ne touche jamais à un autre compte. */
+export async function supprimerAdminsEphemeres() {
+  const r = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users?per_page=1000`, { headers: adminHeaders });
+  const users = (await r.json()).users ?? [];
+  for (const u of users) if (/^m3-admin-eph-\d+@example\.org$/.test(u.email ?? "")) await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users/${u.id}`, { method: "DELETE", headers: adminHeaders });
+  delete process.env.M3_ADMIN_EMAIL;
+}
+/** Nombre de comptes éphémères restants (relecture après suppression). */
+export async function adminsEphemeresRestants() {
+  const r = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users?per_page=1000`, { headers: adminHeaders });
+  return ((await r.json()).users ?? []).filter((u) => /^m3-admin-eph-/.test(u.email ?? "")).length;
+}
 
 // ---- administrateur : vrai utilisateur Auth, vrai lien magique généré par l'API d'administration (generate_link) ----
-export async function lienMagique(email = ADMIN_TEST, redirection = `${URL_APP}/moteurs`) {
+export async function lienMagique(email = process.env.M3_ADMIN_EMAIL ?? ADMIN_TEST, redirection = `${URL_APP}/moteurs`) {
   const r = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/generate_link`, {
     method: "POST",
     headers: { apikey: env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, "Content-Type": "application/json" },
@@ -22,7 +44,7 @@ export async function lienMagique(email = ADMIN_TEST, redirection = `${URL_APP}/
   return (await r.json()).action_link;
 }
 /** Ouvre le lien magique dans la page : supabase-js pose la session administrateur, comme pour Anthony. */
-export async function connecterAdmin(page, { vers = "moteurs", email = ADMIN_TEST } = {}) {
+export async function connecterAdmin(page, { vers = "moteurs", email = process.env.M3_ADMIN_EMAIL ?? ADMIN_TEST } = {}) {
   await page.goto(await lienMagique(email, `${URL_APP}/${vers === "moteurs" ? "moteurs" : ""}`));
   if (vers === "moteurs") await expect(page.locator('[data-screen="S5"]')).toBeVisible({ timeout: 20000 });
   else await expect(page.locator('[data-el="bouton-moteurs"]')).toBeVisible({ timeout: 20000 });
