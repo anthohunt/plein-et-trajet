@@ -207,3 +207,60 @@ export function normaliserAllemagne(reponses: any[][]): Station[] {
   }
   return [...m.values()];
 }
+
+// ------------------------------------------------------------------ Royaume-Uni : flux JSON d'Asda (CMA Fuel Finder, sans clé), prix en pence/L
+// deno-lint-ignore no-explicit-any
+export function normaliserRoyaumeUni(d: any, gbpParEuro: number): Station[] {
+  const out: Station[] = [];
+  for (const s of d?.stations ?? []) {
+    const lat = s?.location?.latitude;
+    const lon = s?.location?.longitude;
+    if (!s?.site_id || !Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    const eur = (pence: unknown) => (typeof pence === "number" ? arrondi3(pence / 100 / gbpParEuro) : NaN);
+    const prix: Record<string, number> = {};
+    const e10 = eur(s.prices?.E10);
+    const b7 = eur(s.prices?.B7);
+    const e5 = eur(s.prices?.E5);
+    if (ok(e10)) {
+      prix["SP95-E10"] = e10;
+      prix.SP95 = e10;
+    }
+    if (ok(b7)) prix.Gazole = b7;
+    if (ok(e5)) prix.SP98 = e5; // E5 « super » (97-99 octane)
+    if (Object.keys(prix).length === 0) continue;
+    out.push({ id: `GB-${s.site_id}`, nom: [s.brand, s.address].filter(Boolean).join(" · ") || null, enseigne: s.brand ?? null, adresse: s.address ?? null, cp: s.postcode ?? null, ville: null, lat, lon, maj: null, prix });
+  }
+  return out;
+}
+
+// ------------------------------------------------------------------ Roumanie : Monitorul Prețurilor (XML), prix en RON, via le relais Node (certificat TLS invalide)
+export const RO_POINTS: PointSondage[] = [
+  [44.4268, 26.1025], [46.7712, 23.6236], [45.7489, 21.2087], [47.1585, 27.6014], [44.3178, 23.7945], [45.6427, 25.5887], [44.1733, 28.6383], [47.0465, 21.9189],
+  [45.4353, 28.0480], [45.2652, 27.9740], [44.9378, 26.0301], [46.5456, 24.5603], [47.6583, 23.5681], [44.8566, 24.8692], [45.8667, 22.9167], [46.2275, 27.6642],
+  [47.7486, 26.6694], [46.1866, 21.3123], [44.4333, 25.9833], [45.1, 24.3667],
+].map(([lat, lon]) => ({ lat, lon }));
+export const RO_PRODUITS: [string, string[]][] = [["11", ["SP95-E10", "SP95"]], ["12", ["SP98"]], ["21", ["Gazole"]], ["31", ["GPLc"]]];
+const balise = (x: string, b: string) => new RegExp(`<${b}>([\\s\\S]*?)</${b}>`).exec(x)?.[1]?.trim();
+export function normaliserRoumanie(reponses: { id: string; xml: string }[], ronParEuro: number): Station[] {
+  const m = new Map<string, Station>();
+  const codes = new Map(RO_PRODUITS);
+  for (const { id, xml } of reponses) {
+    for (const g of xml.matchAll(/<GasStation>([\s\S]*?)<\/GasStation>/g)) {
+      const lat = Number(balise(g[1], "Lat"));
+      const lon = Number(balise(g[1], "Lon"));
+      const sid = balise(g[1], "Id");
+      if (!sid || !Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+      const cle = `RO-${sid}`;
+      if (!m.has(cle)) m.set(cle, { id: cle, nom: balise(g[1], "Name") ?? null, enseigne: /<Network>[\s\S]*?<Name>([^<]*)<\/Name>/.exec(g[1])?.[1] ?? null, adresse: balise(g[1], "Addrstring") ?? null, cp: null, ville: null, lat, lon, maj: null, prix: {} });
+    }
+    for (const p of xml.matchAll(/<GasProduct>([\s\S]*?)<\/GasProduct>/g)) {
+      const sid = balise(p[1], "Stationid");
+      const ron = Number(balise(p[1], "Price"));
+      const s = sid ? m.get(`RO-${sid}`) : undefined;
+      const eur = arrondi3(ron / ronParEuro);
+      if (!s || !ok(eur)) continue;
+      for (const c of codes.get(id) ?? []) s.prix[c] = s.prix[c] == null ? eur : Math.min(s.prix[c], eur);
+    }
+  }
+  return [...m.values()].filter((s) => Object.keys(s.prix).length > 0);
+}

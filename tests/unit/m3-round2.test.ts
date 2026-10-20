@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { decouperTrace, encoderPolyline6, decoderPolyline6, longueurKm, type Pt } from "../../supabase/functions/_shared/europe";
 import { lignesDepuisHere } from "../../supabase/functions/_shared/peages";
 import { connexionDepuisFournisseur } from "../../supabase/functions/_shared/itineraire-europe";
-import { normaliserAllemagne, normaliserAutriche, normaliserCroatie, normaliserDanemark, normaliserIslande, normaliserItalie, normaliserPortugal, normaliserSlovenie } from "../../supabase/functions/_shared/stations-pays";
+import { normaliserAllemagne, normaliserRoumanie, normaliserRoyaumeUni, normaliserAutriche, normaliserCroatie, normaliserDanemark, normaliserIslande, normaliserItalie, normaliserPortugal, normaliserSlovenie } from "../../supabase/functions/_shared/stations-pays";
 
 // ~1 340 km vers le sud-est à 0,001° de pas : 14 000 points ne suffisent pas à dépasser la limite de distance, la distance si
 const trace = (n: number, pasLat: number): Pt[] => Array.from({ length: n }, (_, i) => [43.9 + i * pasLat, 2.1 + i * pasLat * 0.8]);
@@ -103,5 +103,20 @@ describe("flux de stations hors de France", () => {
     expect(s[0].prix).toEqual({ SP95: 1.899, "SP95-E10": 1.839, Gazole: 1.799 });
     expect(s[0].cp).toBe("10115");
     expect(s[1].prix).toEqual({ SP95: 1.929, "SP95-E10": 1.929 });
+  });
+  it("Royaume-Uni (Asda) : pence/L → euros au cours du jour ; E10 → 95, B7 → gazole, E5 → super", () => {
+    const s = normaliserRoyaumeUni({ stations: [{ site_id: "gcq", brand: "Asda", address: "Abbey Park, Coventry", postcode: "CV3 4AR", location: { latitude: 52.39, longitude: -1.48 }, prices: { E10: 172.9, B7: 197.7, E5: 184.9 } }, { site_id: "x", location: {}, prices: {} }] }, 0.84028);
+    expect(s).toHaveLength(1);
+    expect(s[0].prix).toEqual({ "SP95-E10": 2.058, SP95: 2.058, Gazole: 2.353, SP98: 2.2 });
+    expect(s[0].id).toBe("GB-gcq");
+  });
+  it("Roumanie (XML Monitorul Prețurilor) : stations, produits par catégorie, RON → euros, le moins cher par station", () => {
+    const xml = (cat: string, prix: string[]) =>
+      `<GasItems><Products>${prix.map((p) => `<GasProduct><Catprod><Id>${cat}</Id></Catprod><Price>${p}</Price><Stationid>R1009</Stationid></GasProduct>`).join("")}</Products>` +
+      `<Stations><GasStation><Addr><Addrstring>Sos. Mihai Bravu 396</Addrstring><Location><Lat>44.42</Lat><Lon>26.13</Lon></Location></Addr><Id>R1009</Id><Name>Petrom Bravu</Name><Network><Id>PETROM</Id><Name>PETROM</Name></Network></GasStation></Stations></GasItems>`;
+    const s = normaliserRoumanie([{ id: "11", xml: xml("11", ["10.06", "10.5"]) }, { id: "21", xml: xml("21", ["10.66"]) }], 5.3308);
+    expect(s).toHaveLength(1);
+    expect(s[0]).toMatchObject({ id: "RO-R1009", enseigne: "PETROM", lat: 44.42, lon: 26.13 });
+    expect(s[0].prix).toEqual({ "SP95-E10": 1.887, SP95: 1.887, Gazole: 2 });
   });
 });

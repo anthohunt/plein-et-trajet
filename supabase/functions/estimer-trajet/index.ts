@@ -143,8 +143,23 @@ interface ResPeages {
   lignes: LignePeage[];
   total: number;
 }
+// Limite d'appels de péages (LOW 19) : par identité anonyme et globale, par jour (table quota_peages). Au-delà, le calcul continue sans péages.
+// PTV offre 100 000 transactions/mois, HERE 2 500/mois (≈ 80/jour) : 60 par identité et 1 500 au total par jour bornent un abus isolé (un visiteur seul ne peut pas vider les quotas) tout en laissant passer l'usage normal et les campagnes de test.
+const QUOTA_IDENTITE = 60;
+const QUOTA_GLOBAL = 1500;
+function identiteDuJeton(req: Request): string {
+  try {
+    const jeton = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+    const charge = JSON.parse(atob(jeton.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return typeof charge.sub === "string" && charge.sub ? charge.sub : "sans-session";
+  } catch {
+    return "sans-session";
+  }
+}
 async function calculerPeages(// deno-lint-ignore no-explicit-any
-  db: any, depart: PointGeo, arrivee: PointGeo, tva: Record<string, number>): Promise<ResPeages> {
+  db: any, depart: PointGeo, arrivee: PointGeo, tva: Record<string, number>, identite: string): Promise<ResPeages> {
+  const { data: autorise } = await db.rpc("quota_peages_reserver", { p_identite: identite, p_max_identite: QUOTA_IDENTITE, p_max_global: QUOTA_GLOBAL });
+  if (autorise === false) return { etat: "indisponible", motif: "quota_atteint", fournisseur: null, lignes: [], total: 0 };
   const m = await lireMoteur(db, "peages");
   const essais: Essai<LignePeage[]>[] = [];
   for (const f of [m.actif, m.secours].filter((x): x is string => !!x)) {
@@ -289,7 +304,7 @@ Deno.serve(async (req) => {
   if (!aPeage) peages = { etat: "ok", fournisseur: null, lignes: [], total: 0 };
   else {
     try {
-      peages = await calculerPeages(db, depart, arrivee, tva);
+      peages = await calculerPeages(db, depart, arrivee, tva, identiteDuJeton(req));
     } catch {
       peages = { etat: "indisponible", motif: "indisponible", fournisseur: null, lignes: [], total: 0 };
     }

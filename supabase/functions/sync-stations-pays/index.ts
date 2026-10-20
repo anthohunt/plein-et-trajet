@@ -6,7 +6,7 @@ import { fetchTimeout, json } from "../_shared/http.ts";
 import { lireCle } from "../_shared/moteurs.ts";
 import { dateEspagne, normaliserEspagne } from "../_shared/stations-es.ts";
 import {
-  AT_CARBURANTS, AT_POINTS, DE_POINTS, IT_POINTS, PT_CARBURANTS, normaliserAllemagne, normaliserAutriche, normaliserCroatie, normaliserDanemark, normaliserIslande, normaliserItalie, normaliserPortugal,
+  AT_CARBURANTS, AT_POINTS, DE_POINTS, IT_POINTS, RO_POINTS, RO_PRODUITS, PT_CARBURANTS, normaliserAllemagne, normaliserAutriche, normaliserCroatie, normaliserDanemark, normaliserIslande, normaliserItalie, normaliserPortugal, normaliserRoumanie, normaliserRoyaumeUni,
   normaliserSlovenie, type Station,
 } from "../_shared/stations-pays.ts";
 
@@ -41,7 +41,7 @@ async function parLots<T, R>(items: T[], n: number, f: (x: T) => Promise<R>): Pr
   return out;
 }
 /** Cours du jour (BCE via Frankfurter) pour les monnaies non euro. */
-async function cours(monnaie: "DKK" | "ISK"): Promise<number> {
+async function cours(monnaie: "DKK" | "ISK" | "GBP" | "RON"): Promise<number> {
   const j = (await lire(`https://api.frankfurter.dev/v1/latest?base=EUR&symbols=${monnaie}`, {}, 15000)) as { rates?: Record<string, number> };
   const c = j.rates?.[monnaie];
   if (!c || !(c > 1)) throw new Error(`cours ${monnaie} indisponible`);
@@ -51,7 +51,25 @@ async function cours(monnaie: "DKK" | "ISK"): Promise<number> {
 // deno-lint-ignore no-explicit-any
 type Source = (db: any) => Promise<Station[]>;
 class Ignore extends Error {}
+const RELAIS_RO = "https://plein-et-trajet.vercel.app/api/relais-ro"; // relaie monitorulpreturilor.info (certificat TLS invalide)
 const SOURCES: Record<string, Source> = {
+  GB: async () => normaliserRoyaumeUni(await lire("https://storelocator.asda.com/fuel_prices_data.json", {}, 40000), await cours("GBP")),
+  RO: async () => {
+    const taches = RO_POINTS.flatMap((p) => RO_PRODUITS.map(([id]) => ({ p, id })));
+    const reps = await parLots(taches, 4, async ({ p, id }) => {
+      let cause = "";
+      for (let i = 1; i <= 2; i++) {
+        const r = await fetchTimeout(`${RELAIS_RO}?lat=${p.lat}&lon=${p.lon}&buffer=15000&id=${id}`, { headers: NAVIGATEUR }, 30000).catch((e) => {
+          cause = String(e).slice(0, 100);
+          return null;
+        });
+        if (r?.ok) return { id, xml: await r.text() };
+        cause = cause || `HTTP ${r?.status}`;
+      }
+      throw new Error(`relais roumain : ${cause}`);
+    });
+    return normaliserRoumanie(reps, await cours("RON"));
+  },
   DE: async (db) => {
     // clé Tankerkönig (gratuite) rangée dans Vault par l'écran Moteurs ; sans clé, rien à synchroniser
     const cle = await lireCle(db, "tankerkoenig");
@@ -123,7 +141,7 @@ Deno.serve(async (req) => {
   const t0 = new Date();
   try {
     const stations = await source(db);
-    if (stations.length < (pays === "IS" ? 50 : pays === "AT" ? 20 : 150)) throw new Error(`flux anormalement court (${stations.length}) : base laissée telle quelle`);
+    if (stations.length < (pays === "IS" ? 50 : pays === "AT" ? 20 : pays === "GB" ? 300 : 150)) throw new Error(`flux anormalement court (${stations.length}) : base laissée telle quelle`);
     let n = 0;
     for (let i = 0; i < stations.length; i += LOT) {
       const { data, error } = await db.rpc("sync_stations_pays", { p_pays: pays, p_lot: stations.slice(i, i + LOT) });
@@ -131,7 +149,7 @@ Deno.serve(async (req) => {
       n += Number(data ?? 0);
     }
     // un flux partiel (Autriche, Italie par sondage) ne supprime que ce qui n'a pas été revu depuis 3 jours
-    const avant = pays === "AT" || pays === "IT" ? new Date(t0.getTime() - 3 * 86400_000) : t0;
+    const avant = pays === "AT" || pays === "IT" || pays === "RO" ? new Date(t0.getTime() - 3 * 86400_000) : t0;
     const { data: supprimees } = await db.rpc("sync_stations_pays_nettoyer", { p_pays: pays, p_avant: avant.toISOString() });
     const rapport = { ok: true, pays, stations: n, supprimees, duree_ms: Date.now() - t0.getTime() };
     console.log(JSON.stringify({ sync_pays: "ok", ...rapport }));
