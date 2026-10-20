@@ -52,6 +52,11 @@ export default function Trajets() {
 
   useEffect(() => () => controleur.current?.abort(), []);
 
+  // la voiture choisie lève l'erreur « Choisis ta voiture »
+  useEffect(() => {
+    if (voiture.vehicule) setErreurs((er) => (er.voiture ? { ...er, voiture: null } : er));
+  }, [voiture.vehicule]);
+
   useEffect(() => {
     if (arriveeInitiale) {
       setArrivee(arriveeInitiale);
@@ -116,7 +121,7 @@ export default function Trajets() {
       }
       if (controleur.current !== ctrl) return;
       await rafraichirHistorique();
-      setResultat({ genre: "ok", donnees: { ...noms, estimation: est, moyenne, historiqueEchec } });
+      setResultat({ genre: "ok", donnees: { ...noms, estimation: est, moyenne, historiqueEchec, rejoue: !!d.rejoue } });
       setPhase("resultat");
     } catch (e) {
       if (controleur.current !== ctrl || (e instanceof ErreurCalcul && e.code === "annule")) return;
@@ -243,6 +248,9 @@ export default function Trajets() {
               onChoix={setLieuDepart}
               onSortie={() => depart.trim() && retenirVille(depart, lieuDepart)}
             />
+            <button type="button" className="swap" data-el="inverser" aria-label={T.inverser} onClick={inverser}>
+              <span aria-hidden="true">⇅</span>
+            </button>
             <ChampLieu
               id="arr"
               etiquette={T.arrivee}
@@ -259,9 +267,6 @@ export default function Trajets() {
               onChoix={setLieuArrivee}
               onSortie={() => arrivee.trim() && retenirVille(arrivee, lieuArrivee)}
             />
-            <button type="button" className="swap" data-el="inverser" aria-label={T.inverser} onClick={inverser}>
-              <span aria-hidden="true">⇅</span>
-            </button>
           </fieldset>
           <ChoixVoiture v={voiture} erreur={erreurs.voiture} />
           <button id="bouton-calculer" className="btn" type="submit" data-el="bouton-calculer" aria-disabled={verif || undefined}>

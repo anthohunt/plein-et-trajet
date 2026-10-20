@@ -189,3 +189,7 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 .chargeur i { display: block; height: 100%; width: 35%; background: var(--ink); animation: glisse 1.3s ease-in-out infinite; }
 @keyframes glisse { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
 @media (prefers-reduced-motion: reduce) { .chargeur i { animation: none; width: 100%; opacity: .5; } }
+.hrow:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.hrow .x:hover { color: var(--ink); border-color: var(--ink); }
+.swap:hover, .dd-btn:hover:not(:disabled) { border-color: var(--ink); }
+.rejoue { margin: 4px 16px 0; font-size: 13px; color: var(--muted); }

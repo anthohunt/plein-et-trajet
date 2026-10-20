@@ -12,6 +12,7 @@ export interface DonneesResultat {
   estimation: Estimation;
   moyenne: number | null; // prix moyen national du jour (€/L) du carburant de la voiture
   historiqueEchec: boolean;
+  rejoue: boolean; // trajet de l'historique recalculé au prix du jour (US-3.6)
 }
 export type EtatResultat =
   | { genre: "ok"; donnees: DonneesResultat }
@@ -121,6 +122,7 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
 
   return (
     <div onKeyDown={toucheSection}>
+      {d.rejoue && <p className="rejoue" data-el="trajet-rejoue">{T.rejoue}</p>}
       <p className="rsub" data-el="voiture-resultat">
         {e.vehicule.libelle} · {e.vehicule.carburant}
       </p>

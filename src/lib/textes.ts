@@ -111,6 +111,7 @@ export const T = {
   pasItineraireDetail: "Aucun itinéraire en voiture n'existe entre ces deux lieux (une île sans liaison routière, par exemple). Modifie le départ ou l'arrivée.",
   calculImpossible: "Calcul impossible pour l'instant",
   calculImpossibleDetail: "Le service d'itinéraire ne répond pas. Réessaie dans un instant.",
+  rejoue: "Trajet recalculé au prix moyen du jour",
   consommationTitre: "D'où vient la consommation",
   typeAutoroute: "Autoroute",
   typeVoieRapide: "Voie rapide",
