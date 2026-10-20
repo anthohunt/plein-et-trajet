@@ -19,8 +19,10 @@ interface Brouillon {
 const lireIncident = (m: Moteur, brut: string) => {
   const [f, ...reste] = brut.split(" : ");
   const code = reste.join(" : ").replace(/^(\w+)/, (c) => T.incidentCodes[c] ?? c);
-  return `${m.fournisseurs.find((x) => x.id === f)?.nom.split(/[ ·]/)[0] ?? f} : ${code}`;
+  return `${nomCourt(m)(f)} : ${code}`;
 };
+/** Nom court d'un fournisseur (« PTV Developer » → « PTV »), d'après la liste du moteur. */
+const nomCourt = (m: Moteur) => (id: string) => (m.fournisseurs.find((x) => x.id === id)?.nom ?? id).split(/[ ·]/)[0];
 const heure = (iso: string) => new Date(iso).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
 /** Lien « Où trouver ma clé » : adresse et consigne viennent de la table fournisseurs ; rien pour un fournisseur sans clé. */
@@ -45,7 +47,7 @@ export default function Moteurs() {
     try {
       const l = await listerMoteurs();
       setMoteurs(l);
-      setB((prec) => Object.fromEntries(l.map((m) => [m.service, { actif: m.actif, secours: m.secours ?? "", cle: "", cleSecours: "", etat: m.etat, message: m.message, occupe: false, ...(prec[m.service]?.occupe ? prec[m.service] : {}) }])));
+      setB((prec) => Object.fromEntries(l.map((m) => [m.service, { actif: m.actif, secours: m.secours ?? "", cle: "", cleSecours: "", etat: m.etat, message: T.etatMoteur(m, nomCourt(m)), occupe: false, ...(prec[m.service]?.occupe ? prec[m.service] : {}) }])));
       setErreur(false);
     } catch {
       setErreur(true);
@@ -70,7 +72,7 @@ export default function Moteurs() {
     maj(m.service, { occupe: true, etat: "wait", message: T.testEnCours });
     try {
       const r = await testerMoteur(m.service, b[m.service].actif, b[m.service].cle);
-      maj(m.service, { occupe: false, etat: r.etat, message: r.message });
+      maj(m.service, { occupe: false, etat: r.etat, message: T.etatMoteur(r, nomCourt(m)) });
     } catch {
       maj(m.service, { occupe: false, etat: "ko", message: T.moteursErreur });
     }
@@ -83,8 +85,8 @@ export default function Moteurs() {
       setMoteurs(r.moteurs);
       setB((x) => ({
         ...x,
-        ...Object.fromEntries(r.moteurs.filter((y) => y.service !== m.service).map((y) => [y.service, x[y.service] ?? { actif: y.actif, secours: y.secours ?? "", cle: "", cleSecours: "", etat: y.etat, message: y.message, occupe: false }])),
-        [m.service]: { actif: r.enregistre ? d.actif : r.moteurs.find((y) => y.service === m.service)!.actif, secours: r.enregistre ? d.secours : r.moteurs.find((y) => y.service === m.service)!.secours ?? "", cle: "", cleSecours: "", etat: r.etat, message: r.message, occupe: false },
+        ...Object.fromEntries(r.moteurs.filter((y) => y.service !== m.service).map((y) => [y.service, x[y.service] ?? { actif: y.actif, secours: y.secours ?? "", cle: "", cleSecours: "", etat: y.etat, message: T.etatMoteur(y, nomCourt(y)), occupe: false }])),
+        [m.service]: { actif: r.enregistre ? d.actif : r.moteurs.find((y) => y.service === m.service)!.actif, secours: r.enregistre ? d.secours : r.moteurs.find((y) => y.service === m.service)!.secours ?? "", cle: "", cleSecours: "", etat: r.etat, message: T.resultatEnregistrement(r, nomCourt(m)), occupe: false },
       }));
     } catch {
       maj(m.service, { occupe: false, etat: "ko", message: T.moteursErreur });

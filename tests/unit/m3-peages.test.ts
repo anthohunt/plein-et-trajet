@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ajouterTva, alpha2, lignesDepuisHere, lignesDepuisPtv, messageErreurPeages, prixHtEuros, totalPeages, ErreurPeages } from "../../supabase/functions/_shared/peages";
+import { ajouterTva, alpha2, lignesDepuisHere, lignesDepuisPtv, prixHtEuros, totalPeages, ErreurPeages } from "../../supabase/functions/_shared/peages";
 
 const TVA = { FR: 20, ES: 21, IT: 22, CH: 8.1 };
 
@@ -58,13 +58,5 @@ describe("HERE v8 (prix TTC)", () => {
   });
   it("réponse sans route = invalide", () => {
     expect(() => lignesDepuisHere({})).toThrow(ErreurPeages);
-  });
-});
-
-describe("messages de l'écran Moteurs", () => {
-  it("401 → « Clé refusée par PTV (401) »", () => {
-    expect(messageErreurPeages("PTV", new ErreurPeages("cle_refusee", 401))).toBe("Clé refusée par PTV (401)");
-    expect(messageErreurPeages("HERE", new ErreurPeages("cle_refusee", 403))).toBe("Clé refusée par HERE (403)");
-    expect(messageErreurPeages("PTV", new ErreurPeages("quota", 429))).toContain("429");
   });
 });

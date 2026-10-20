@@ -1,11 +1,12 @@
 // moteurs — écran Moteurs (S5), RÉSERVÉ À L'ADMINISTRATEUR (claim app_metadata.role = "admin", vérifié côté serveur).
 // Entrée : POST { action:"lister" } | { action:"tester", service, fournisseur, cle? } | { action:"enregistrer", service, fournisseur, secours?, cle?, cle_secours? }
 // Les clés sont écrites dans Supabase Vault ; aucune réponse ne contient jamais une clé : seulement ses 4 derniers caractères.
-// Sortie : 200 { moteurs:[…] } | { etat:"ok"|"ko"|"wait", message } | { enregistre, etat, message, moteurs }  ·  401/403 { erreur }
+// AUCUN TEXTE VISIBLE ICI (audit round 2, HIGH 2) : chaque état est un CODE et ses paramètres ; l'écran compose la phrase (src/lib/textes.ts, T.etatMoteur).
+// Sortie : 200 { moteurs:[…] } | { etat:"ok"|"ko"|"wait", code, params } | { enregistre, etat, code, params, notes:[{code, params?}], moteurs }  ·  401/403 { erreur }
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { CORS, fetchTimeout, json } from "../_shared/http.ts";
 import { lireCle } from "../_shared/moteurs.ts";
-import { messageErreurPeages, peagesHere, peagesPtv } from "../_shared/peages.ts";
+import { ErreurPeages, peagesHere, peagesPtv } from "../_shared/peages.ts";
 import { routeValhalla, connexionDepuisFournisseur, ErreurItineraire } from "../_shared/itineraire-europe.ts";
 
 const ALBI = { lat: 43.9289, lon: 2.1464 };
@@ -13,23 +14,36 @@ const BARCELONE = { lat: 41.3874, lon: 2.1686 };
 const TOULOUSE = { lat: 43.6047, lon: 1.4442 };
 
 type Etat = "ok" | "ko" | "wait";
+/** Codes d'état (liste close, partagée avec src/lib/moteurs.ts) ; `params` ne porte que des nombres, des dates et des identifiants de fournisseur. */
+type Code =
+  | "ok_peages" | "ok_itineraire" | "ok_stations" | "ok_moyennes" | "ok_berlin" | "ok_voitures" | "ok_lieux"
+  | "aucune_moyenne" | "cle_manquante" | "cle_refusee" | "quota" | "reponse_illisible" | "injoignable" | "test_indisponible" | "fournisseur_inconnu"
+  | "enregistre" | "cle_a_coller" | "pret_sans_cle";
+type Params = Record<string, string | number>;
 interface Test {
   etat: Etat;
-  message: string;
+  code: Code;
+  params: Params;
 }
-const nombreFr = (n: number) => n.toLocaleString("fr-FR");
+const ok = (code: Code, params: Params = {}): Test => ({ etat: "ok", code, params });
+const ko = (code: Code, params: Params = {}): Test => ({ etat: "ko", code, params });
+/** Premier code HTTP (3 chiffres) d'un détail d'erreur, sinon rien. */
+const httpDe = (detail: string): Params => {
+  const m = /\b([1-5]\d\d)\b/.exec(detail);
+  return m ? { http: Number(m[1]) } : {};
+};
 
 // deno-lint-ignore no-explicit-any
 type Db = any;
 
 async function tester(db: Db, fournisseur: string, cleSaisie: string | null): Promise<Test> {
   const { data: f } = await db.from("fournisseurs").select("id,nom,cle_requise").eq("id", fournisseur).maybeSingle();
-  if (!f) return { etat: "ko", message: "Fournisseur inconnu" };
-  const nomCourt = String(f.nom).split(/[ ·]/)[0]; // « PTV Developer » → « PTV »
+  if (!f) return ko("fournisseur_inconnu");
+  const de = { fournisseur };
   let cle: string | null = null;
   if (f.cle_requise) {
     cle = cleSaisie || (await lireCle(db, fournisseur));
-    if (!cle) return { etat: "ko", message: "Aucune clé : colle-la d'abord" };
+    if (!cle) return ko("cle_manquante", de);
   }
   try {
     switch (fournisseur) {
@@ -37,63 +51,68 @@ async function tester(db: Db, fournisseur: string, cleSaisie: string | null): Pr
         const { data: p } = await db.from("pays").select("code,tva");
         const tva = Object.fromEntries((p ?? []).map((x: { code: string; tva: number }) => [x.code, Number(x.tva)]));
         const l = await peagesPtv(cle!, ALBI, BARCELONE, tva);
-        return { etat: "ok", message: `Connecté · test Albi → Barcelone OK (${l.length} sections)` };
+        return ok("ok_peages", { sections: l.length });
       }
       case "here": {
         const l = await peagesHere(cle!, ALBI, BARCELONE);
-        return { etat: "ok", message: `Connecté · test Albi → Barcelone OK (${l.length} péages)` };
+        return ok("ok_peages", { peages: l.length });
       }
       case "stadia":
       case "valhalla-public": {
         const { data: ligne } = await db.from("fournisseurs").select("id,url,chemin_route,chemin_trace,pause_ms").eq("id", fournisseur).maybeSingle();
         const reserver = async (nom: string, pauseMs: number) => Number((await db.rpc("limiteur_reserver", { p_nom: nom, p_intervalle_ms: pauseMs })).data ?? 0);
         const r = await routeValhalla(connexionDepuisFournisseur(ligne, cle, reserver), ALBI, TOULOUSE);
-        return { etat: "ok", message: `Connecté · test Albi → Toulouse OK (${Math.round(r.km)} km)` };
+        return ok("ok_itineraire", { km: Math.round(r.km) });
       }
       case "itineraire-ign": {
         const r = await fetchTimeout(`https://data.geopf.fr/navigation/itineraire?resource=bdtopo-osrm&start=${ALBI.lon},${ALBI.lat}&end=1.4442,43.6047&profile=car&optimization=fastest&getSteps=false&crs=EPSG:4326`, {}, 20000);
-        if (!r.ok) return { etat: "ko", message: `IGN ne répond pas (${r.status})` };
-        return { etat: "ok", message: "Connecté · test Albi → Toulouse OK" };
+        if (!r.ok) return ko("injoignable", { ...de, http: r.status });
+        return ok("ok_itineraire");
       }
       case "officiel": {
         const fr = await db.from("stations").select("id", { count: "exact", head: true }).eq("pays", "FR");
         const es = await db.from("stations").select("id", { count: "exact", head: true }).eq("pays", "ES");
-        return { etat: "ok", message: `Connecté · ${nombreFr(fr.count ?? 0)} stations en France, ${nombreFr(es.count ?? 0)} en Espagne` };
+        return ok("ok_stations", { fr: fr.count ?? 0, es: es.count ?? 0 });
       }
       case "bulletin-ue": {
         const { data } = await db.from("moyennes_nationales").select("jour").eq("source", "bulletin").order("jour", { ascending: false }).limit(1);
-        if (!data?.[0]) return { etat: "ko", message: "Aucune moyenne importée pour l'instant" };
-        const [a, m, j] = String(data[0].jour).split("-");
-        return { etat: "ok", message: `Connecté · semaine du ${j}/${m}/${a}` };
+        if (!data?.[0]) return ko("aucune_moyenne");
+        return ok("ok_moyennes", { jour: String(data[0].jour) });
       }
       case "tankerkoenig": {
         const r = await fetchTimeout(`https://creativecommons.tankerkoenig.de/json/list.php?lat=52.52&lng=13.405&rad=4&sort=dist&type=all&apikey=${encodeURIComponent(cle!)}`, {}, 20000);
         const j = await r.json().catch(() => null);
-        if (j?.ok === true) return { etat: "ok", message: `Connecté · test Berlin OK (${(j.stations ?? []).length} stations)` };
-        if (j && j.ok === false) return { etat: "ko", message: `Clé refusée par ${nomCourt} (${r.status === 200 ? 401 : r.status})` };
-        return { etat: "ko", message: `${nomCourt} ne répond pas (${r.status})` };
+        if (j?.ok === true) return ok("ok_berlin", { stations: (j.stations ?? []).length });
+        if (j && j.ok === false) return ko("cle_refusee", { ...de, http: r.status === 200 ? 401 : r.status });
+        return ko("injoignable", { ...de, http: r.status });
       }
       case "ademe": {
         const { count } = await db.from("vehicules").select("id", { count: "exact", head: true });
-        return { etat: "ok", message: `Connecté · ${nombreFr(count ?? 0)} versions` };
+        return ok("ok_voitures", { versions: count ?? 0 });
       }
-      case "photon": {
-        const r = await fetchTimeout("https://photon.komoot.io/api/?q=Albi&limit=1&lang=fr", {}, 15000);
-        return r.ok ? { etat: "ok", message: "Connecté · test « Albi » OK" } : { etat: "ko", message: `Photon ne répond pas (${r.status})` };
-      }
+      case "photon":
       case "lieux-ign": {
-        const r = await fetchTimeout("https://data.geopf.fr/geocodage/search?q=Albi&limit=1", {}, 15000);
-        return r.ok ? { etat: "ok", message: "Connecté · test « Albi » OK" } : { etat: "ko", message: `IGN ne répond pas (${r.status})` };
+        const url = fournisseur === "photon" ? "https://photon.komoot.io/api/?q=Albi&limit=1&lang=fr" : "https://data.geopf.fr/geocodage/search?q=Albi&limit=1";
+        const r = await fetchTimeout(url, {}, 15000);
+        return r.ok ? ok("ok_lieux") : ko("injoignable", { ...de, http: r.status });
       }
     }
   } catch (e) {
     if (e instanceof ErreurItineraire) {
-      if (e.code === "cle_refusee") return { etat: "ko", message: `Clé refusée par ${nomCourt} (${e.message.split(" ")[1] ?? 401})` };
-      return { etat: "ko", message: `${nomCourt} ne répond pas (${e.message.replace(/^indisponible\s*/, "").slice(0, 60) || "erreur"})` };
+      if (e.code === "cle_refusee") return ko("cle_refusee", { ...de, http: 401, ...httpDe(e.message) });
+      return ko("injoignable", { ...de, ...httpDe(e.message) });
     }
-    return { etat: "ko", message: messageErreurPeages(nomCourt, e) };
+    if (e instanceof ErreurPeages) {
+      const http: Params = e.http ? { http: e.http } : {};
+      if (e.motif === "cle_refusee") return ko("cle_refusee", { ...de, http: e.http ?? 401 });
+      if (e.motif === "quota") return ko("quota", { ...de, http: e.http ?? 429 });
+      if (e.motif === "cle_manquante") return ko("cle_manquante", de);
+      if (e.motif === "reponse_invalide") return ko("reponse_illisible", de);
+      return ko("injoignable", { ...de, ...http });
+    }
+    return ko("injoignable", de);
   }
-  return { etat: "ko", message: "Test non disponible pour ce fournisseur" };
+  return ko("test_indisponible");
 }
 
 async function lister(db: Db) {
@@ -107,10 +126,12 @@ async function lister(db: Db) {
     const liste = (fournisseurs ?? []).filter((f: { service: string }) => f.service === m.service);
     const actif = liste.find((f: { id: string }) => f.id === m.actif);
     let etat = m.etat as Etat;
-    let message = m.message as string;
+    let code = (m.code as Code) ?? "pret_sans_cle";
+    let params = (m.params as Params) ?? {};
     if (actif?.cle_requise && !fin[actif.id]) {
       etat = "wait";
-      message = "Clé à coller";
+      code = "cle_a_coller";
+      params = {};
     }
     return {
       service: m.service,
@@ -119,7 +140,8 @@ async function lister(db: Db) {
       actif: m.actif,
       secours: m.secours,
       etat,
-      message,
+      code,
+      params,
       dernier_test: m.dernier_test,
       bascule: m.bascule_le ? { le: m.bascule_le, de: m.bascule_de, vers: m.bascule_vers } : null,
       incident: m.incident_le ? { le: m.incident_le, message: m.incident_message } : null,
@@ -166,9 +188,9 @@ Deno.serve(async (req) => {
 
       const cle = typeof c.cle === "string" ? c.cle.trim() : "";
       const cleSecours = typeof c.cle_secours === "string" ? c.cle_secours.trim() : "";
-      const nomDe = (id: string) => String((liste ?? []).find((f: { id: string }) => f.id === id)?.nom ?? id).split(/[ ·]/)[0];
       const maintenant = new Date().toISOString();
-      const notes: string[] = [];
+      // notes jointes au résultat (codes) ; le résultat principal n'est jamais répété dans une note (audit round 2, LOW 8)
+      const notes: { code: string; params?: Params }[] = [];
 
       // 1) une clé collée est TESTÉE avant d'être écrite : seule une clé qui répond est rangée dans Vault (chiffrée) ;
       //    sinon l'ancienne clé est conservée (une faute de frappe ne coupe jamais un service qui marchait)
@@ -178,15 +200,13 @@ Deno.serve(async (req) => {
         if (tc.etat === "ok") await db.rpc("moteur_cle_enregistrer", { p_fournisseur: fournisseur, p_cle: cle });
         else {
           candidateRefusee = tc;
-          notes.push(`${tc.message} · clé non enregistrée, ancienne clé conservée`);
+          notes.push({ code: "cle_non_enregistree" });
         }
       }
       if (cleSecours && secours) {
         const ts = await tester(db, secours, cleSecours);
         if (ts.etat === "ok") await db.rpc("moteur_cle_enregistrer", { p_fournisseur: secours, p_cle: cleSecours });
-        else {
-          notes.push(`Secours ${nomDe(secours)} : ${ts.message} · clé non enregistrée`);
-        }
+        else notes.push({ code: "secours_cle_refusee", params: { secours, test: ts.code, ...ts.params } });
       }
 
       // 2) test réel du fournisseur choisi avec sa clé enregistrée : seul un fournisseur qui répond devient actif
@@ -198,18 +218,18 @@ Deno.serve(async (req) => {
       if (secoursInfo && secours !== resultatActif) {
         const { data: cleSec } = await db.from("cles_fournisseurs").select("fin").eq("fournisseur", secours).maybeSingle();
         if (!secoursInfo.cle_requise || cleSec) secoursRetenu = secours;
-        else notes.push(`Secours ${nomDe(secours!)} non enregistré : aucune clé valide`);
+        else notes.push({ code: "secours_sans_cle", params: { secours: secours! } });
       }
       if (t.etat === "ok") {
-        await db.from("moteurs").update({ actif: fournisseur, secours: secoursRetenu, etat: "ok", message: "Enregistré · utilisé dès le prochain calcul", dernier_test: maintenant, maj: maintenant }).eq("service", service);
-        return json(200, { enregistre: true, etat: "ok", message: ["Enregistré · utilisé dès le prochain calcul", ...notes].join(" · "), moteurs: await lister(db) });
+        await db.from("moteurs").update({ actif: fournisseur, secours: secoursRetenu, etat: "ok", code: "enregistre", params: {}, dernier_test: maintenant, maj: maintenant }).eq("service", service);
+        return json(200, { enregistre: true, etat: "ok", code: "enregistre", params: {}, notes, moteurs: await lister(db) });
       }
       // le fournisseur actif reste celui d'avant (son état reflète ce test s'il est le même) ; le secours est enregistré quand même
       const maj: Record<string, unknown> = { secours: secoursRetenu, dernier_test: maintenant, maj: maintenant };
-      if (m.actif === fournisseur) Object.assign(maj, { etat: t.etat, message: t.message });
+      if (m.actif === fournisseur) Object.assign(maj, { etat: t.etat, code: t.code, params: t.params });
       await db.from("moteurs").update(maj).eq("service", service);
-      const message = [notes.length ? notes.join(" · ") : null, `${t.message} · fournisseur actif inchangé`].filter(Boolean).join(" · ");
-      return json(200, { enregistre: false, etat: t.etat, message, moteurs: await lister(db) });
+      notes.push({ code: "actif_inchange" });
+      return json(200, { enregistre: false, etat: t.etat, code: t.code, params: t.params, notes, moteurs: await lister(db) });
     }
     return json(400, { erreur: "requete_invalide" });
   } catch (e) {

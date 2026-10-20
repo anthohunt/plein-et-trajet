@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { T } from "../../src/lib/textes";
 import { PASSAGES_MAX, RAYON_PASSAGE_M, pointsDePassage, requeteHere, requetePtv } from "../../supabase/functions/_shared/peages";
 
 // tracé rectiligne nord-sud : 1° de latitude ≈ 111,2 km
@@ -17,7 +18,7 @@ describe("Péages sur le tracé affiché : points de passage échantillonnés (a
     const pas = 222.39 / 9;
     p.forEach((x, i) => expect(kmLat(t[0], x)).toBeCloseTo(pas * (i + 1), 0));
     expect(p[0].lat).toBeGreaterThan(t[0].lat);
-    expect(p.at(-1)!.lat).toBeLessThan(t.at(-1)!.lat);
+    expect(p[p.length - 1].lat).toBeLessThan(t[t.length - 1].lat);
   });
   it("long trajet : plafonné à 23 points (PTV : 25 waypoints au plus, départ et arrivée compris)", () => {
     const p = pointsDePassage(ligne(16)); // ≈ 1 780 km
@@ -34,7 +35,7 @@ describe("Péages sur le tracé affiché : points de passage échantillonnés (a
     const w = q.getAll("waypoints");
     expect(w).toHaveLength(25);
     expect(w[0]).toBe("1,2");
-    expect(w.at(-1)).toBe("3,4");
+    expect(w[w.length - 1]).toBe("3,4");
     expect(w.slice(1, -1).every((x) => x.endsWith(`;radius=${RAYON_PASSAGE_M}`))).toBe(true);
     expect(q.get("results")).toBe("TOLL_COSTS,TOLL_SECTIONS,TOLL_SYSTEMS");
   });
@@ -43,5 +44,30 @@ describe("Péages sur le tracé affiché : points de passage échantillonnés (a
     const q = requeteHere("k", { lat: 43.9, lon: 2.1 }, { lat: 41.4, lon: 2.2 }, p);
     expect(q.getAll("via")).toEqual(["43.6,1.44!passThrough=true", "43.2,2.35!passThrough=true"]);
     expect(q.get("origin")).toBe("43.9,2.1");
+  });
+});
+
+describe("Écran Moteurs : la fonction renvoie un code, le texte est composé par textes.ts (audit round 2, HIGH 2 et LOW 8)", () => {
+  const nom = (id: string) => ({ ptv: "PTV", here: "HERE", stadia: "Stadia" })[id] ?? id;
+  it("codes de test → phrases de l'écran", () => {
+    expect(T.etatMoteur({ code: "ok_peages", params: { sections: 2 } }, nom)).toBe("Connecté · test Albi → Barcelone OK (2 sections)");
+    expect(T.etatMoteur({ code: "ok_peages", params: { peages: 3 } }, nom)).toBe("Connecté · test Albi → Barcelone OK (3 péages)");
+    expect(T.etatMoteur({ code: "ok_itineraire", params: { km: 77 } }, nom)).toBe("Connecté · test Albi → Toulouse OK (77 km)");
+    expect(T.etatMoteur({ code: "cle_refusee", params: { fournisseur: "ptv", http: 401 } }, nom)).toBe("Clé refusée par PTV (401)");
+    expect(T.etatMoteur({ code: "cle_refusee", params: { fournisseur: "here", http: 403 } }, nom)).toBe("Clé refusée par HERE (403)");
+    expect(T.etatMoteur({ code: "quota", params: { fournisseur: "ptv", http: 429 } }, nom)).toBe("Quota PTV atteint (429)");
+    expect(T.etatMoteur({ code: "ok_stations", params: { fr: 9876, es: 12000 } }, nom)).toBe("Connecté · 9\u202f876 stations en France, 12\u202f000 en Espagne");
+    expect(T.etatMoteur({ code: "ok_moyennes", params: { jour: "2026-10-13" } }, nom)).toBe("Connecté · semaine du 13/10/2026");
+    expect(T.etatMoteur({ code: "cle_a_coller" }, nom)).toBe("Clé à coller");
+    expect(T.etatMoteur({ code: "inconnu_xyz" }, nom)).toBe("Test non disponible pour ce fournisseur");
+  });
+  it("clé candidate refusée à l'enregistrement : le refus n'est écrit qu'UNE fois", () => {
+    const m = T.resultatEnregistrement({ code: "cle_refusee", params: { fournisseur: "ptv", http: 401 }, notes: [{ code: "cle_non_enregistree" }, { code: "actif_inchange" }] }, nom);
+    expect(m).toBe("Clé refusée par PTV (401) · clé non enregistrée, ancienne clé conservée · fournisseur actif inchangé");
+    expect(m.split("Clé refusée").length - 1).toBe(1);
+  });
+  it("enregistrement réussi, secours sans clé", () => {
+    expect(T.resultatEnregistrement({ code: "enregistre", notes: [{ code: "secours_sans_cle", params: { secours: "here" } }] }, nom)).toBe("Enregistré · utilisé dès le prochain calcul · Secours HERE non enregistré : aucune clé valide");
+    expect(T.resultatEnregistrement({ code: "enregistre", notes: [{ code: "secours_cle_refusee", params: { secours: "stadia", test: "cle_refusee", http: 401 } }] }, nom)).toBe("Enregistré · utilisé dès le prochain calcul · Secours Stadia : Clé refusée par Stadia (401) · clé non enregistrée");
   });
 });

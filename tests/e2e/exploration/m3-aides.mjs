@@ -106,7 +106,7 @@ export async function supprimerClesFausses() {
 /** État de départ des tests : moteurs sur PTV (péages) et Stadia + secours Valhalla (itinéraire), clés factices retirées, vraies clés intactes. */
 export async function reinitialiserMoteurs() {
   await supprimerClesFausses();
-  for (const [service, v] of Object.entries(REEL)) await restService(`moteurs?service=eq.${service}`, { method: "PATCH", body: JSON.stringify({ ...v, etat: "ok", message: "Enregistré · utilisé dès le prochain calcul", bascule_le: null, bascule_de: null, bascule_vers: null }) });
+  for (const [service, v] of Object.entries(REEL)) await restService(`moteurs?service=eq.${service}`, { method: "PATCH", body: JSON.stringify({ ...v, etat: "ok", code: "enregistre", params: {}, bascule_le: null, bascule_de: null, bascule_vers: null }) });
   await sqlGestion("update public.moteurs set secours = null where service not in ('peages','itineraire')");
 }
 /** Noms et fins (4 derniers caractères) des clés rangées : preuve que les vraies clés n'ont pas bougé. */

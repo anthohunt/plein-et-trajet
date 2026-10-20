@@ -231,15 +231,3 @@ export async function peagesHere(cle: string, a: Point, b: Point, passages: Poin
   }
   return lignesDepuisHere(j);
 }
-
-/** Message du test de connexion d'un fournisseur de péages (écran Moteurs). */
-export function messageErreurPeages(nom: string, e: unknown): string {
-  if (e instanceof ErreurPeages) {
-    if (e.motif === "cle_refusee") return `Clé refusée par ${nom} (${e.http ?? 401})`;
-    if (e.motif === "quota") return `Quota ${nom} atteint (429)`;
-    if (e.motif === "cle_manquante") return "Aucune clé : colle-la d'abord";
-    if (e.motif === "reponse_invalide") return `Réponse de ${nom} illisible`;
-    return `${nom} ne répond pas${e.http ? ` (${e.http})` : ""}`;
-  }
-  return `${nom} ne répond pas`;
-}

@@ -139,6 +139,8 @@ export const T = {
   aucunPeage: "Aucun péage sur cet itinéraire",
   peagesIndisponibles: "Péages non disponibles pour l'instant",
   peagesIndisponiblesDetail: "Le calcul des péages a échoué : le coût ci-dessus ne comprend que le carburant.",
+  peagesLimiteAtteinte: "Péages non calculés : limite du jour atteinte",
+  peagesLimiteAtteinteDetail: "Le nombre de calculs de péages est limité chaque jour ; cette limite est atteinte. Le coût ci-dessus ne comprend que le carburant ; les péages seront de nouveau calculés demain.",
   peagesFournisseur: (nom: string) => `Péages calculés par ${nom}`,
   peagesLigne: (pays: string, libelle: string, montant: string) => `${pays} ${libelle}, ${montant}`,
   carburantPeages: (c: string, p: string) => `Carburant ${c} € · Péages ${p} €`,
@@ -186,6 +188,65 @@ export const T = {
   testEnCours: "Test en cours…",
   etatCleAColler: "Clé à coller",
   etatPretSansCle: "Prêt · sans clé",
+  /** État d'un moteur : la fonction `moteurs` renvoie un code et ses paramètres, la phrase est composée ici. `nom(id)` = nom court du fournisseur. */
+  etatMoteur: (e: { code: string; params?: Record<string, string | number> }, nom: (id: string) => string): string => {
+    const p = e.params ?? {};
+    const n = (x: unknown) => Number(x).toLocaleString("fr-FR");
+    const f = p.fournisseur ? nom(String(p.fournisseur)) : "Le fournisseur";
+    const http = p.http ? ` (${p.http})` : "";
+    switch (e.code) {
+      case "ok_peages":
+        return `Connecté · test Albi → Barcelone OK${p.sections != null ? ` (${p.sections} sections)` : p.peages != null ? ` (${p.peages} péages)` : ""}`;
+      case "ok_itineraire":
+        return `Connecté · test Albi → Toulouse OK${p.km != null ? ` (${p.km} km)` : ""}`;
+      case "ok_stations":
+        return `Connecté · ${n(p.fr)} stations en France, ${n(p.es)} en Espagne`;
+      case "ok_moyennes": {
+        const [a, m, j] = String(p.jour).split("-");
+        return `Connecté · semaine du ${j}/${m}/${a}`;
+      }
+      case "ok_berlin":
+        return `Connecté · test Berlin OK (${p.stations} stations)`;
+      case "ok_voitures":
+        return `Connecté · ${n(p.versions)} versions`;
+      case "ok_lieux":
+        return "Connecté · test « Albi » OK";
+      case "aucune_moyenne":
+        return "Aucune moyenne importée pour l'instant";
+      case "cle_manquante":
+        return "Aucune clé : colle-la d'abord";
+      case "cle_refusee":
+        return `Clé refusée par ${f}${http || " (401)"}`;
+      case "quota":
+        return `Quota ${f} atteint${http || " (429)"}`;
+      case "reponse_illisible":
+        return `Réponse de ${f} illisible`;
+      case "injoignable":
+        return `${f} ne répond pas${http}`;
+      case "fournisseur_inconnu":
+        return "Fournisseur inconnu";
+      case "enregistre":
+        return "Enregistré · utilisé dès le prochain calcul";
+      case "cle_a_coller":
+        return "Clé à coller";
+      case "pret_sans_cle":
+        return "Prêt · sans clé";
+      default:
+        return "Test non disponible pour ce fournisseur";
+    }
+  },
+  /** Résultat d'« Enregistrer » : l'état principal, puis chaque note une seule fois (jamais l'état répété). */
+  resultatEnregistrement: (r: { code: string; params?: Record<string, string | number>; notes?: { code: string; params?: Record<string, string | number> }[] }, nom: (id: string) => string): string => {
+    const notes = (r.notes ?? []).map((x) => {
+      const p = x.params ?? {};
+      if (x.code === "cle_non_enregistree") return "clé non enregistrée, ancienne clé conservée";
+      if (x.code === "secours_cle_refusee") return `Secours ${nom(String(p.secours))} : ${T.etatMoteur({ code: String(p.test), params: { ...p, fournisseur: String(p.secours) } }, nom)} · clé non enregistrée`;
+      if (x.code === "secours_sans_cle") return `Secours ${nom(String(p.secours))} non enregistré : aucune clé valide`;
+      if (x.code === "actif_inchange") return "fournisseur actif inchangé";
+      return "";
+    });
+    return [T.etatMoteur(r, nom), ...notes].filter(Boolean).join(" · ");
+  },
   basculeNotee: (de: string, vers: string, quand: string) => `Bascule ${de} → ${vers} le ${quand}`,
   incidentNote: (msg: string, quand: string) => `Dernier incident · ${msg} · ${quand}`,
   incidentCodes: { cle_manquante: "clé manquante", cle_refusee: "clé refusée", quota: "quota atteint", indisponible: "service injoignable", reponse_invalide: "réponse illisible", trop_long: "trajet trop long", pas_itineraire: "aucun itinéraire", aucun_fournisseur: "fournisseur inconnu" } as Record<string, string>,

@@ -3,6 +3,12 @@ import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 
 export type EtatMoteur = "ok" | "ko" | "wait";
+/** État renvoyé par la fonction `moteurs` : un code et ses paramètres (la phrase est composée par T.etatMoteur, src/lib/textes.ts). */
+export type ParamsEtat = Record<string, string | number>;
+export interface CodeEtat {
+  code: string;
+  params?: ParamsEtat;
+}
 export interface FournisseurMoteur {
   id: string;
   nom: string;
@@ -18,7 +24,8 @@ export interface Moteur {
   actif: string;
   secours: string | null;
   etat: EtatMoteur;
-  message: string;
+  code: string;
+  params: ParamsEtat;
   bascule: { le: string; de: string; vers: string } | null;
   incident: { le: string; message: string } | null;
   fournisseurs: FournisseurMoteur[];
@@ -38,6 +45,6 @@ export async function listerMoteurs(): Promise<Moteur[]> {
   if (!Array.isArray(r.moteurs)) throw new Error("réponse mal formée");
   return r.moteurs;
 }
-export const testerMoteur = (service: string, fournisseur: string, cle: string) => appeler<{ etat: EtatMoteur; message: string }>({ action: "tester", service, fournisseur, cle: cle || undefined });
+export const testerMoteur = (service: string, fournisseur: string, cle: string) => appeler<{ etat: EtatMoteur } & CodeEtat>({ action: "tester", service, fournisseur, cle: cle || undefined });
 export const enregistrerMoteur = (service: string, fournisseur: string, secours: string | null, cle: string, cleSecours: string) =>
-  appeler<{ enregistre: boolean; etat: EtatMoteur; message: string; moteurs: Moteur[] }>({ action: "enregistrer", service, fournisseur, secours, cle: cle || undefined, cle_secours: cleSecours || undefined });
+  appeler<{ enregistre: boolean; etat: EtatMoteur; notes: CodeEtat[]; moteurs: Moteur[] } & CodeEtat>({ action: "enregistrer", service, fournisseur, secours, cle: cle || undefined, cle_secours: cleSecours || undefined });
