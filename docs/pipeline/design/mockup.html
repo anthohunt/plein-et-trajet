@@ -1,0 +1,428 @@
+<title>Plein & Trajet</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+/* Mise en page : appli mobile (colonne) à gauche, panneau d'histoires neutre à droite ; empilés sous 900px */
+:root{
+  --ground:#eceeea;--surface:#f9faf7;--ink:#15181a;--muted:#5d635f;--line:#cfd3cc;
+  --panel:#111413;--led:#5ff08c;--cheap:#1f8a4c;--dear:#c2491d;--road:#d9ddd5;--water:#bfd3d6;
+  --f-display:'Big Shoulders Display','Arial Narrow',sans-serif;--f-body:'Barlow','Segoe UI',sans-serif;--f-digits:'Chivo Mono',ui-monospace,monospace;
+  /* couche pipeline (neutre) */
+  --p-bg:#faf9f6;--p-ink:#2b2722;--p-muted:#7a7066;--p-line:#e4ddd2;--p-accent:#a0643a;--p-hl:#f3e6d6;--f-pipe:'DM Sans',system-ui,sans-serif;
+  --hl:#ffb000;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0e1110;--surface:#171b19;--ink:#e8ebe6;--muted:#8d948f;--line:#2a302d;
+  --panel:#050706;--led:#63f392;--cheap:#4cc77f;--dear:#f07a4a;--road:#252b28;--water:#1c3236;
+  --p-bg:#1d1a17;--p-ink:#ece6dd;--p-muted:#a69b8f;--p-line:#36302a;--p-accent:#d39566;--p-hl:#3a2e22;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ground:#0e1110;--surface:#171b19;--ink:#e8ebe6;--muted:#8d948f;--line:#2a302d;
+  --panel:#050706;--led:#63f392;--cheap:#4cc77f;--dear:#f07a4a;--road:#252b28;--water:#1c3236;
+  --p-bg:#1d1a17;--p-ink:#ece6dd;--p-muted:#a69b8f;--p-line:#36302a;--p-accent:#d39566;--p-hl:#3a2e22;color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font:16px/1.45 var(--f-body);padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--hl);outline-offset:2px}
+.layout{display:grid;grid-template-columns:minmax(0,440px) minmax(0,360px);gap:28px;justify-content:center;align-items:start}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr)}}
+
+/* ===== couche APPLI ===== */
+.app{background:var(--surface);border:1px solid var(--line);border-radius:22px;overflow:hidden;display:flex;flex-direction:column;min-height:760px;position:relative;min-width:0}
+.top{padding:14px 16px 10px;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.brand{font:800 26px/1 var(--f-display);letter-spacing:.02em;text-transform:uppercase}
+.brand b{color:var(--cheap)}
+.where{font-size:13px;color:var(--muted)}
+.screen{flex:1;display:flex;flex-direction:column;min-height:0}
+.scroll{flex:1;overflow:auto}
+h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:16px 16px 8px}
+
+/* plaque de totem */
+.totem{background:var(--panel);color:var(--led);font:600 20px/1 var(--f-digits);padding:6px 8px;border-radius:4px;display:inline-flex;align-items:flex-start;font-variant-numeric:tabular-nums;letter-spacing:.02em;text-shadow:0 0 6px color-mix(in srgb,var(--led) 55%,transparent);white-space:nowrap}
+.totem sup{font-size:.6em;margin-left:1px;line-height:1}
+.totem .u{font:500 10px/1 var(--f-body);color:color-mix(in srgb,var(--led) 70%,var(--panel));margin-left:5px;align-self:flex-end;text-shadow:none}
+.totem.big{font-size:52px;padding:12px 16px;border-radius:8px}
+.totem.big .u{font-size:14px}
+.roll{display:inline-block;animation:roll .45s cubic-bezier(.2,.8,.2,1) both}
+@keyframes roll{from{transform:translateY(-60%);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.roll{animation:none}}
+
+/* carburants */
+.fuels{display:flex;gap:6px;padding:0 16px;overflow-x:auto;scrollbar-width:none}
+.fuel{border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 12px;font-size:14px;font-weight:600;white-space:nowrap}
+.fuel[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+
+/* carte */
+.map{margin:12px 16px 0;height:230px;border-radius:12px;position:relative;overflow:hidden;border:1px solid var(--line);background:var(--ground)}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+.pin{position:absolute;transform:translate(-50%,-100%);border:0;background:var(--panel);color:var(--led);font:600 12px/1 var(--f-digits);padding:5px 6px;border-radius:5px;box-shadow:0 2px 0 var(--pinc,var(--muted))}
+.pin::after{content:"";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--panel)}
+.pin.lo{--pinc:var(--cheap)}.pin.hi{--pinc:var(--dear)}
+.me{position:absolute;width:14px;height:14px;border-radius:50%;background:#2f7de1;border:3px solid var(--surface);transform:translate(-50%,-50%);box-shadow:0 0 0 6px color-mix(in srgb,#2f7de1 25%,transparent)}
+.legend{position:absolute;right:8px;bottom:8px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:11px;color:var(--muted);display:flex;gap:8px}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:middle}
+
+/* liste */
+.listhead{display:flex;justify-content:space-between;align-items:center;margin:16px 16px 6px;gap:8px}
+.listhead h2.sec{margin:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:5px 10px;font-size:13px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.rows{list-style:none;margin:0;padding:0 8px 12px}
+.row{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 8px;border:0;border-bottom:1px solid var(--line);background:transparent;text-align:left}
+.row:hover{background:color-mix(in srgb,var(--ink) 4%,transparent)}
+.row .n{font-weight:600}
+.row .m{font-size:13px;color:var(--muted)}
+.delta{font:500 12px var(--f-digits)}
+.delta.lo{color:var(--cheap)}.delta.hi{color:var(--dear)}
+
+/* feuille station */
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);border-radius:18px 18px 0 0;padding:10px 16px 18px;box-shadow:0 -12px 30px rgba(0,0,0,.18);transform:translateY(105%);transition:transform .28s ease;z-index:5}
+.sheet.open{transform:none}
+@media (prefers-reduced-motion:reduce){.sheet{transition:none}}
+.grip{width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 10px}
+.sh-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.sh-name{font:800 26px/1.05 var(--f-display);text-transform:uppercase;margin:0}
+.x{border:1px solid var(--line);background:transparent;border-radius:50%;width:34px;height:34px;flex:none}
+.board{background:var(--panel);border-radius:10px;padding:10px 12px;margin:12px 0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:center}
+.board .lab{font:600 13px var(--f-body);color:#c9cfc9;text-transform:uppercase;letter-spacing:.05em}
+.board .totem{padding:0;justify-self:end;font-size:22px}
+.board .na{color:#59605b;font:500 13px var(--f-body);justify-self:end}
+.meta{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px}
+
+.btn{display:block;width:100%;border:0;border-radius:10px;background:var(--ink);color:var(--surface);font-weight:600;padding:13px 16px;font-size:16px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+
+/* trajets */
+.form{padding:4px 16px 0;display:grid;gap:10px}
+.fieldset{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.fld{display:grid;grid-template-columns:62px minmax(0,1fr);align-items:center;border-bottom:1px solid var(--line)}
+.fld:last-child{border-bottom:0}
+.fld label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding-left:12px}
+.fld input,.fld select{border:0;background:transparent;padding:12px 12px 12px 0;width:100%;min-width:0}
+.car{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.car select{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 6px;min-width:0;font-size:14px}
+.carnote{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.hist{list-style:none;margin:0;padding:0 16px 16px}
+.hrow{display:grid;grid-template-columns:minmax(0,1fr) auto 34px;gap:8px;align-items:center;border-bottom:1px solid var(--line)}
+.hrow button.go{border:0;background:transparent;text-align:left;padding:10px 0;min-width:0}
+.hrow .t{font-weight:600}
+.hrow .m{font-size:12px;color:var(--muted)}
+.hrow .c{font:600 15px var(--f-digits)}
+.hrow .x{width:30px;height:30px;font-size:14px;color:var(--muted)}
+.empty{color:var(--muted);font-size:14px;padding:8px 0}
+
+/* résultat */
+.rhead{padding:6px 16px 0;display:flex;align-items:center;gap:8px}
+.back{border:1px solid var(--line);background:transparent;border-radius:8px;padding:6px 10px;font-size:14px}
+.route{font:800 30px/1.05 var(--f-display);text-transform:uppercase;margin:12px 16px 2px;text-wrap:balance}
+.rsub{margin:0 16px;color:var(--muted);font-size:14px}
+.costbox{margin:14px 16px 0;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 16px 0}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.kpi b{display:block;font:600 18px var(--f-digits);font-variant-numeric:tabular-nums}
+.kpi span{font-size:12px;color:var(--muted)}
+.price{margin:12px 16px 0;border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:8px}
+.price .l{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.price input{width:110px;border:1px solid var(--line);border-radius:8px;padding:7px 8px;background:var(--surface);font-family:var(--f-digits)}
+.link{border:0;background:transparent;text-decoration:underline;text-underline-offset:3px;padding:0;font-size:14px;font-weight:600}
+.segs{list-style:none;margin:0;padding:0 16px 18px;display:grid;gap:6px}
+.tr{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tr>button{width:100%;border:0;background:transparent;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;text-align:left}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:5px}
+.bar i{display:block;height:100%;background:var(--ink)}
+.tag{font:800 13px/1 var(--f-display);text-transform:uppercase;letter-spacing:.04em;padding:5px 6px;border-radius:4px;min-width:62px;text-align:center}
+.tag.A{background:#1f5fa8;color:#fff}.tag.R{background:#e8e8e2;color:#15181a;border:1px solid #9aa09a}.tag.V{background:#5d635f;color:#fff}.tag.M{background:#8a5a2b;color:#fff}
+.tr .det{padding:0 12px 10px;font-size:13px;color:var(--muted)}
+.tr .lit{font:600 14px var(--f-digits)}
+.note{margin:0 16px 14px;font-size:12px;color:var(--muted)}
+
+/* onglets */
+.tabs{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);background:var(--surface)}
+.tab{border:0;background:transparent;padding:12px 0 14px;font:800 17px/1 var(--f-display);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);position:relative}
+.tab[aria-selected="true"]{color:var(--ink)}
+.tab[aria-selected="true"]::before{content:"";position:absolute;top:-1px;left:30%;right:30%;height:3px;background:var(--ink);border-radius:0 0 3px 3px}
+
+/* surlignage piloté par les histoires */
+.pulse{outline:3px solid var(--hl)!important;outline-offset:2px;animation:pulse 1.5s ease-out}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--hl) 70%,transparent)}100%{box-shadow:0 0 0 14px transparent}}
+
+/* ===== couche PIPELINE (histoires) ===== */
+.stories{background:var(--p-bg);color:var(--p-ink);font-family:var(--f-pipe);border:1px solid var(--p-line);border-radius:14px;padding:16px;position:sticky;top:max(16px,env(safe-area-inset-top,0px));max-height:calc(100vh - 32px);overflow:auto;min-width:0}
+@media (max-width:900px){.stories{position:static;max-height:none}}
+.stories h1{font:700 17px/1.2 var(--f-pipe);margin:0 0 2px}
+.stories .sub{font-size:13px;color:var(--p-muted);margin:0 0 12px}
+.sgrp{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--p-accent);margin:14px 0 6px;font-weight:700}
+.st{display:block;width:100%;text-align:left;border:1px solid var(--p-line);background:transparent;border-radius:10px;padding:8px 10px;margin-bottom:6px;font-family:var(--f-pipe);color:var(--p-ink)}
+.st:hover{background:var(--p-hl)}
+.st.on{border-color:var(--p-accent);background:var(--p-hl)}
+.st b{display:block;font-size:14px;font-weight:700}
+.st span{display:block;font-size:12.5px;color:var(--p-muted);line-height:1.35}
+.st em{font-style:normal;font-size:11px;color:var(--p-accent);font-weight:700;margin-right:6px}
+</style>
+
+<div class="layout">
+<!-- ============ APPLI ============ -->
+<div class="app" id="app">
+  <div class="top"><div class="brand">Plein <b>&amp;</b> Trajet</div><div class="where" id="where">Albi · 81000</div></div>
+
+  <!-- S1 PRIX -->
+  <section class="screen" data-screen="S1">
+    <div class="fuels" role="group" aria-label="Carburant" data-el="selecteur-carburant" id="fuels"></div>
+    <div class="map" data-el="carte-stations" id="map" aria-label="Carte des stations">
+      <svg viewBox="0 0 400 230" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <path d="M-10 150 C60 130 110 170 170 150 S290 110 410 135" fill="none" stroke="var(--water)" stroke-width="14"/>
+        <path d="M0 60 L400 95" stroke="var(--road)" stroke-width="9"/>
+        <path d="M120 0 L170 230" stroke="var(--road)" stroke-width="7"/>
+        <path d="M260 0 C250 80 300 150 280 230" stroke="var(--road)" stroke-width="7" fill="none"/>
+        <path d="M0 200 L400 185" stroke="var(--road)" stroke-width="5"/>
+        <text x="8" y="54" font-size="10" fill="var(--muted)" font-family="Barlow">N88</text>
+        <text x="300" y="170" font-size="10" fill="var(--muted)" font-family="Barlow">Tarn</text>
+      </svg>
+      <div class="me" style="left:46%;top:52%" title="Vous êtes ici"></div>
+      <div id="pins"></div>
+      <div class="legend"><span><i style="background:var(--cheap)"></i>moins cher</span><span><i style="background:var(--dear)"></i>plus cher</span></div>
+    </div>
+    <div class="listhead"><h2 class="sec" id="listtitle">Stations · SP95-E10</h2>
+      <div class="seg" role="group" aria-label="Trier" data-el="tri-liste">
+        <button type="button" id="sort-prix" aria-pressed="true">Moins cher</button><button type="button" id="sort-dist" aria-pressed="false">Plus proche</button>
+      </div>
+    </div>
+    <div class="scroll"><ul class="rows" id="rows"></ul></div>
+
+    <!-- S2 FICHE (feuille) -->
+    <div class="sheet" id="sheet" data-screen-sheet="S2" role="dialog" aria-modal="false" aria-labelledby="sh-name">
+      <div class="grip"></div>
+      <div class="sh-head"><div><h3 class="sh-name" id="sh-name">—</h3><div class="meta" id="sh-addr"></div></div>
+        <button class="x" type="button" data-el="fermer-fiche" id="close" aria-label="Fermer la fiche">✕</button></div>
+      <div class="board" id="board"></div>
+      <div class="meta" id="sh-meta"></div>
+      <div style="margin-top:12px"><button class="btn" type="button" data-el="bouton-trajet-station" id="to-station">Coût d'un trajet jusqu'ici</button></div>
+    </div>
+  </section>
+
+  <!-- S3 TRAJETS -->
+  <section class="screen" data-screen="S3" hidden>
+    <div class="scroll">
+      <h2 class="sec">Nouveau trajet</h2>
+      <div class="form">
+        <div class="fieldset">
+          <div class="fld"><label for="dep">Départ</label><input id="dep" list="lieux" value="Albi" data-el="champ-depart" autocomplete="off"></div>
+          <div class="fld"><label for="arr">Arrivée</label><input id="arr" list="lieux" value="Bordeaux" data-el="champ-arrivee" autocomplete="off"></div>
+        </div>
+        <datalist id="lieux"><option value="Albi"><option value="Bordeaux"><option value="Toulouse"><option value="Castres"><option value="Rodez"><option value="Montpellier"></datalist>
+        <div data-el="choix-voiture" style="display:grid;gap:6px">
+          <div class="car">
+            <select id="marque" aria-label="Marque"></select>
+            <select id="modele" aria-label="Modèle"></select>
+            <select id="moteur" aria-label="Motorisation"></select>
+          </div>
+          <div class="carnote"><span id="carinfo"></span><span>Voiture mémorisée</span></div>
+        </div>
+        <button class="btn" type="button" data-el="bouton-calculer" id="calc">Calculer le coût</button>
+      </div>
+      <h2 class="sec">Derniers trajets</h2>
+      <ul class="hist" id="hist"></ul>
+    </div>
+  </section>
+
+  <!-- S4 RÉSULTAT -->
+  <section class="screen" data-screen="S4" hidden>
+    <div class="scroll">
+      <div class="rhead"><button class="back" type="button" data-el="retour-trajets" id="back">← Trajets</button></div>
+      <div class="route" id="r-route">Albi → Bordeaux</div>
+      <p class="rsub" id="r-car"></p>
+      <div class="costbox"><span class="totem big" id="r-cost"></span></div>
+      <div class="kpis">
+        <div class="kpi"><b id="r-l">—</b><span>litres</span></div>
+        <div class="kpi"><b id="r-km">—</b><span>km</span></div>
+        <div class="kpi"><b id="r-l100">—</b><span>L/100 km</span></div>
+      </div>
+      <div class="price" data-el="prix-perso">
+        <div class="l"><span id="r-pricelab">Moyenne France du jour</span><span class="totem" id="r-price"></span></div>
+        <div class="l"><button class="link" type="button" id="perso-btn">Mettre mon prix</button>
+          <span id="perso-wrap" hidden><label for="perso" style="font-size:13px;color:var(--muted)">€/L </label><input id="perso" inputmode="decimal" placeholder="1,699"></span></div>
+      </div>
+      <h2 class="sec">D'où vient la consommation</h2>
+      <ul class="segs" id="segs"></ul>
+      <p class="note">Estimation : itinéraire découpé en tronçons, modèle physique de la voiture (masse, aérodynamique, rendement moteur), vitesses et arrêts typiques de chaque tronçon. Données d'exemple.</p>
+    </div>
+  </section>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-el="onglet-prix" id="tab-prix">Prix</button>
+    <button class="tab" role="tab" aria-selected="false" data-el="onglet-trajets" id="tab-trajets">Trajets</button>
+  </nav>
+</div>
+
+<!-- ============ HISTOIRES ============ -->
+<aside class="stories" aria-label="Histoires utilisateur">
+  <h1>Histoires v1</h1>
+  <p class="sub">Clique une histoire : la maquette va à l'écran et surligne l'élément concerné.</p>
+  <div id="storylist"></div>
+</aside>
+</div>
+
+<script>
+(function(){
+const STORIES=[
+ ["US-1.1","S1","onglet-prix","Ouvrir les prix","L'onglet Prix affiche la carte et la liste des stations autour de moi."],
+ ["US-1.2","S1","selecteur-carburant","Choisir mon carburant","Le sélecteur change tous les prix affichés, carte et liste."],
+ ["US-1.3","S1","carte-stations","Voir les stations sur la carte","Chaque station autour de moi, avec son prix."],
+ ["US-1.4","S1","pastille-station","Toucher une pastille","Prix et couleur (bas / haut) ; la toucher ouvre la fiche."],
+ ["US-1.5","S1","tri-liste","Trier la liste","Bascule entre « moins cher » et « plus proche »."],
+ ["US-1.6","S1","ligne-station","Lire une station dans la liste","Enseigne, distance, ancienneté du prix, prix sur plaque de totem."],
+ ["US-2.1","S2","fermer-fiche","Fermer la fiche","Retour à la carte sans perdre le carburant choisi."],
+ ["US-2.2","S2","bouton-trajet-station","Calculer un trajet vers la station","Pré-remplit l'arrivée avec l'adresse de la station."],
+ ["US-3.1","S3","onglet-trajets","Ouvrir les trajets","Le formulaire, et l'historique dessous."],
+ ["US-3.2","S3","champ-depart","Saisir le départ","Propositions de lieux au fil de la frappe."],
+ ["US-3.3","S3","champ-arrivee","Saisir l'arrivée","Propositions de lieux au fil de la frappe."],
+ ["US-3.4","S3","choix-voiture","Choisir ma voiture","Marque, modèle, motorisation ; mémorisée pour la fois suivante."],
+ ["US-3.5","S3","bouton-calculer","Calculer le coût","Lance l'estimation et ouvre le résultat."],
+ ["US-3.6","S3","ligne-historique","Rejouer un ancien trajet","Recalcule ce trajet au prix du jour."],
+ ["US-3.7","S3","supprimer-trajet","Supprimer un trajet","La croix retire le trajet de l'historique."],
+ ["US-4.1","S4","troncon-trajet","Comprendre le calcul","Chaque tronçon se déplie : vitesse, arrêts, litres."],
+ ["US-4.2","S4","prix-perso","Mettre mon propre prix","Remplace la moyenne nationale et recalcule le coût."],
+ ["US-4.3","S4","retour-trajets","Revenir aux trajets","Le calcul a rejoint l'historique."]
+];
+const SCREENNAMES={S1:"Prix",S2:"Fiche station",S3:"Trajets",S4:"Résultat du trajet"};
+
+const FUELS=["Gazole","SP95-E10","SP95","SP98","E85","GPLc"];
+const NAT={"Gazole":1.689,"SP95-E10":1.732,"SP95":1.769,"SP98":1.829,"E85":0.829,"GPLc":0.989};
+const STATIONS=[
+ {n:"E.Leclerc Albi",a:"Av. Gambetta, Albi",d:1.2,x:30,y:36,off:-.052,maj:"il y a 2 h",s:"24/24 · lavage · gonflage",miss:[]},
+ {n:"Intermarché Saint-Juéry",a:"Route de Millau, Saint-Juéry",d:4.0,x:82,y:28,off:-.031,maj:"il y a 5 h",s:"24/24 · boutique",miss:["GPLc"]},
+ {n:"Carrefour Market Albi",a:"Rue de la Croix Verte, Albi",d:2.1,x:62,y:72,off:-.018,maj:"il y a 1 h",s:"24/24 automate",miss:["E85"]},
+ {n:"TotalEnergies Albi Lices",a:"Lices Georges Pompidou, Albi",d:0.8,x:52,y:40,off:.041,maj:"il y a 3 h",s:"boutique · lavage",miss:[]},
+ {n:"Esso Lescure",a:"Av. de Lescure, Lescure-d'Albigeois",d:3.4,x:70,y:12,off:.072,maj:"hier",s:"boutique",miss:["E85","GPLc"]},
+ {n:"Auchan Le Séquestre",a:"Zone de Fonlabour, Le Séquestre",d:5.6,x:12,y:80,off:-.044,maj:"il y a 4 h",s:"24/24 · lavage · gonflage",miss:[]}
+];
+const CARS={
+ "Peugeot":{"208":[["1.2 PureTech 100 ch","SP95-E10",{A:6.4,R:4.9,V:6.1,M:7.9},1090],["1.5 BlueHDi 100 ch","Gazole",{A:5.3,R:4.0,V:4.8,M:6.6},1165]],"3008":[["1.2 PureTech 130 ch","SP95-E10",{A:7.6,R:5.9,V:7.4,M:9.4},1430],["1.5 BlueHDi 130 ch","Gazole",{A:6.2,R:4.7,V:5.9,M:7.8},1505]]},
+ "Renault":{"Clio IV":[["TCe 90 ch","SP95-E10",{A:6.7,R:5.0,V:6.3,M:8.1},1090],["dCi 90 ch","Gazole",{A:5.4,R:3.9,V:4.9,M:6.7},1175]],"Mégane":[["TCe 140 ch","SP95-E10",{A:7.3,R:5.6,V:7.0,M:9.0},1320]]},
+ "Dacia":{"Sandero":[["TCe 90 ch","SP95-E10",{A:6.6,R:5.0,V:6.2,M:8.0},1080],["ECO-G 100 ch","GPLc",{A:8.4,R:6.4,V:8.0,M:10.2},1110]]}
+};
+const ROUTES={
+ "Bordeaux":[["A","Autoroute A62 / A68",205,"118 km/h moy. · 0 arrêt"],["R","Routes N88 / D988",33,"78 km/h · 4 ronds-points"],["V","Traversées de ville",9,"28 km/h · 21 arrêts"],["M","Montées (Causse, Tarn)",6,"+180 m de dénivelé"]],
+ "Toulouse":[["A","Autoroute A68",62,"116 km/h moy. · 0 arrêt"],["R","Rocade et N88",9,"72 km/h · 3 ronds-points"],["V","Traversées de ville",6,"24 km/h · 18 arrêts"]],
+ "Castres":[["R","N126 / D612",36,"76 km/h · 7 ronds-points"],["V","Traversées de ville",4,"27 km/h · 12 arrêts"],["M","Montées (Montagne Noire)",2,"+90 m de dénivelé"]],
+ "Rodez":[["R","N88",64,"84 km/h · 6 ronds-points"],["V","Traversées de ville",5,"26 km/h · 14 arrêts"],["M","Montées (Ségala)",8,"+420 m de dénivelé"]],
+ "Montpellier":[["A","Autoroute A75 / A750",118,"112 km/h moy. · 0 arrêt"],["R","D999 / N88",72,"74 km/h · 9 ronds-points"],["V","Traversées de ville",10,"27 km/h · 23 arrêts"],["M","Montées (Lévézou)",11,"+610 m de dénivelé"]]
+};
+const TAGS={A:"Autoroute",R:"Route",V:"Ville",M:"Montée"};
+
+let fuel="SP95-E10", sort="prix", cur=null, persoPrice=null, lastTrip=null;
+let car={marque:"Peugeot",modele:"208",moteur:0};
+let hist=[{dep:"Albi",arr:"Toulouse",when:"12 oct."},{dep:"Albi",arr:"Castres",when:"3 oct."},{dep:"Albi",arr:"Rodez",when:"21 sept."}];
+
+const $=s=>document.querySelector(s);
+const fmt=(v,d=2)=>v.toFixed(d).replace(".",",");
+function totem(v,unit){const s=v.toFixed(3);return '<span class="roll">'+s.slice(0,4).replace(".",",")+'<sup>'+s.slice(4)+'</sup></span>'+(unit?'<span class="u">'+unit+'</span>':'');}
+function price(st,f){return st.miss.includes(f)?null:+(NAT[f]+st.off).toFixed(3);}
+
+/* ---------- PRIX ---------- */
+function renderFuels(){$("#fuels").innerHTML=FUELS.map(f=>'<button type="button" class="fuel" aria-pressed="'+(f===fuel)+'" data-f="'+f+'">'+f+'</button>').join("");}
+function renderStations(){
+  const avail=STATIONS.map((s,i)=>({s,i,p:price(s,fuel)})).filter(o=>o.p!=null);
+  const ps=avail.map(o=>o.p), lo=Math.min(...ps), hi=Math.max(...ps), mid=(lo+hi)/2;
+  $("#pins").innerHTML=avail.map((o,k)=>'<button type="button" class="pin '+(o.p<=mid?'lo':'hi')+'" style="left:'+o.s.x+'%;top:'+o.s.y+'%" data-i="'+o.i+'"'+(k===0?' data-el="pastille-station"':'')+' aria-label="'+o.s.n+', '+fmt(o.p,3)+' euros"><span class="roll">'+fmt(o.p,3)+'</span></button>').join("");
+  const list=avail.slice().sort((a,b)=>sort==="prix"?a.p-b.p:a.s.d-b.s.d);
+  $("#rows").innerHTML=list.map((o,k)=>{const dv=o.p-NAT[fuel];return '<li><button type="button" class="row" data-i="'+o.i+'"'+(k===0?' data-el="ligne-station"':'')+'><span><span class="n">'+o.s.n+'</span><br><span class="m">'+fmt(o.s.d,1)+' km · '+o.s.maj+' · </span><span class="delta '+(dv<0?'lo':'hi')+'">'+(dv<0?'−':'+')+fmt(Math.abs(dv)*100,1)+' c vs France</span></span><span class="totem">'+totem(o.p,'€/L')+'</span></button></li>';}).join("")||'<li class="empty">Aucune station ne vend ce carburant autour de vous.</li>';
+  $("#listtitle").textContent="Stations · "+fuel;
+}
+function openSheet(i){
+  cur=STATIONS[i];
+  $("#sh-name").textContent=cur.n;$("#sh-addr").textContent=cur.a+" · "+fmt(cur.d,1)+" km";
+  $("#board").innerHTML=FUELS.map(f=>{const p=price(cur,f);return '<span class="lab">'+f+'</span>'+(p==null?'<span class="na">non vendu</span>':'<span class="totem">'+totem(p,'€/L')+'</span>');}).join("");
+  $("#sh-meta").innerHTML='<span>Prix mis à jour '+cur.maj+'</span><span>'+cur.s+'</span>';
+  $("#sheet").classList.add("open");
+}
+function closeSheet(){$("#sheet").classList.remove("open");}
+
+/* ---------- VOITURE ---------- */
+function opts(el,arr,sel){el.innerHTML=arr.map((v,i)=>'<option value="'+(typeof v==="string"?v:i)+'"'+((typeof v==="string"?v===sel:i===sel)?' selected':'')+'>'+(typeof v==="string"?v:v[0])+'</option>').join("");}
+function renderCar(){
+  opts($("#marque"),Object.keys(CARS),car.marque);
+  opts($("#modele"),Object.keys(CARS[car.marque]),car.modele);
+  opts($("#moteur"),CARS[car.marque][car.modele],car.moteur);
+  const m=CARS[car.marque][car.modele][car.moteur];
+  $("#carinfo").textContent=m[1]+" · "+m[3]+" kg";
+}
+function carSpec(){return CARS[car.marque][car.modele][car.moteur];}
+
+/* ---------- TRAJET ---------- */
+function compute(dep,arr){
+  const segs=(ROUTES[arr]||[["R","Routes",80,"75 km/h · 6 ronds-points"],["V","Traversées de ville",8,"27 km/h · 15 arrêts"]]);
+  const m=carSpec();let L=0,km=0;
+  const rows=segs.map(s=>{const l=s[2]*m[2][s[0]]/100;L+=l;km+=s[2];return {t:s[0],name:s[1],km:s[2],info:s[3],l,l100:m[2][s[0]]};});
+  return {dep,arr,rows,L,km,fuel:m[1],car:car.marque+" "+car.modele+" "+m[0]};
+}
+function showResult(t){
+  lastTrip=t;persoPrice=null;$("#perso").value="";$("#perso-wrap").hidden=true;
+  $("#r-route").textContent=t.dep+" → "+t.arr;
+  $("#r-car").textContent=t.car+" · "+t.fuel;
+  $("#r-l").textContent=fmt(t.L,1);$("#r-km").textContent=Math.round(t.km);$("#r-l100").textContent=fmt(t.L/t.km*100,1);
+  const max=Math.max(...t.rows.map(r=>r.l));
+  $("#segs").innerHTML=t.rows.map((r,k)=>'<li class="tr"><button type="button" aria-expanded="false"'+(k===0?' data-el="troncon-trajet"':'')+'><span class="tag '+r.t+'">'+TAGS[r.t]+'</span><span><span>'+r.name+' · '+r.km+' km</span><span class="bar"><i style="width:'+(r.l/max*100)+'%"></i></span></span><span class="lit">'+fmt(r.l,1)+' L</span></button><div class="det" hidden>'+r.info+' · '+fmt(r.l100,1)+' L/100 km sur ce tronçon</div></li>').join("");
+  renderCost();show("S4");
+}
+function renderCost(){
+  const p=persoPrice||NAT[lastTrip.fuel];
+  $("#r-pricelab").textContent=persoPrice?"Mon prix":"Moyenne France du jour · "+lastTrip.fuel;
+  $("#r-price").innerHTML=totem(p,'€/L');
+  $("#r-cost").innerHTML='<span class="roll">'+fmt(lastTrip.L*p,2)+'</span><span class="u">€</span>';
+}
+function renderHist(){
+  $("#hist").innerHTML=hist.length?hist.map((h,i)=>{const t=compute(h.dep,h.arr);return '<li class="hrow"><button type="button" class="go" data-h="'+i+'"'+(i===0?' data-el="ligne-historique"':'')+'><span class="t">'+h.dep+' → '+h.arr+'</span><br><span class="m">'+Math.round(t.km)+' km · '+h.when+'</span></button><span class="c">'+fmt(t.L*NAT[t.fuel],2)+' €</span><button type="button" class="x" data-del="'+i+'"'+(i===0?' data-el="supprimer-trajet"':'')+' aria-label="Supprimer ce trajet">✕</button></li>';}).join(""):'<li class="empty">Aucun trajet pour l\'instant. Calcule ton premier trajet ci-dessus.</li>';
+}
+
+/* ---------- NAVIGATION ---------- */
+function show(id){
+  const base=id==="S2"?"S1":id;
+  document.querySelectorAll("[data-screen]").forEach(s=>s.hidden=s.dataset.screen!==base);
+  $("#tab-prix").setAttribute("aria-selected",base==="S1"||base==="S2");
+  $("#tab-trajets").setAttribute("aria-selected",base==="S3"||base==="S4");
+  if(id==="S2"){if(!$("#sheet").classList.contains("open"))openSheet(0);}else closeSheet();
+}
+
+/* ---------- ÉVÉNEMENTS ---------- */
+$("#fuels").addEventListener("click",e=>{const b=e.target.closest("[data-f]");if(!b)return;fuel=b.dataset.f;renderFuels();renderStations();if(cur&&$("#sheet").classList.contains("open"))openSheet(STATIONS.indexOf(cur));});
+$("#sort-prix").addEventListener("click",()=>{sort="prix";$("#sort-prix").setAttribute("aria-pressed",true);$("#sort-dist").setAttribute("aria-pressed",false);renderStations();});
+$("#sort-dist").addEventListener("click",()=>{sort="dist";$("#sort-dist").setAttribute("aria-pressed",true);$("#sort-prix").setAttribute("aria-pressed",false);renderStations();});
+$("#pins").addEventListener("click",e=>{const b=e.target.closest("[data-i]");if(b)openSheet(+b.dataset.i);});
+$("#rows").addEventListener("click",e=>{const b=e.target.closest("[data-i]");if(b)openSheet(+b.dataset.i);});
+$("#close").addEventListener("click",closeSheet);
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet();});
+$("#to-station").addEventListener("click",()=>{$("#arr").value=cur.a;show("S3");$("#arr").focus();});
+$("#tab-prix").addEventListener("click",()=>show("S1"));
+$("#tab-trajets").addEventListener("click",()=>show("S3"));
+$("#marque").addEventListener("change",e=>{car.marque=e.target.value;car.modele=Object.keys(CARS[car.marque])[0];car.moteur=0;renderCar();});
+$("#modele").addEventListener("change",e=>{car.modele=e.target.value;car.moteur=0;renderCar();});
+$("#moteur").addEventListener("change",e=>{car.moteur=+e.target.value;renderCar();});
+$("#calc").addEventListener("click",()=>{const dep=$("#dep").value.trim()||"Albi",arr=($("#arr").value.trim()||"Bordeaux");const key=Object.keys(ROUTES).find(k=>arr.toLowerCase().includes(k.toLowerCase()))||arr;const t=compute(dep,key);t.arr=arr;hist.unshift({dep,arr:key,when:"aujourd'hui"});hist=hist.slice(0,8);renderHist();showResult(t);});
+$("#hist").addEventListener("click",e=>{const d=e.target.closest("[data-del]");if(d){hist.splice(+d.dataset.del,1);renderHist();return;}const g=e.target.closest("[data-h]");if(g){const h=hist[+g.dataset.h];showResult(compute(h.dep,h.arr));}});
+$("#segs").addEventListener("click",e=>{const b=e.target.closest(".tr>button");if(!b)return;const d=b.nextElementSibling;d.hidden=!d.hidden;b.setAttribute("aria-expanded",!d.hidden);});
+$("#perso-btn").addEventListener("click",()=>{const w=$("#perso-wrap");if(w.hidden){w.hidden=false;$("#perso").focus();$("#perso-btn").textContent="Revenir à la moyenne";}else{w.hidden=true;persoPrice=null;$("#perso").value="";$("#perso-btn").textContent="Mettre mon prix";renderCost();}});
+$("#perso").addEventListener("input",e=>{const v=parseFloat(e.target.value.replace(",","."));persoPrice=v>0&&v<5?v:null;renderCost();});
+$("#back").addEventListener("click",()=>show("S3"));
+
+/* ---------- HISTOIRES ---------- */
+const groups={};STORIES.forEach(s=>(groups[s[1]]=groups[s[1]]||[]).push(s));
+$("#storylist").innerHTML=Object.keys(groups).map(g=>'<div class="sgrp">'+g+' · '+SCREENNAMES[g]+'</div>'+groups[g].map(s=>'<button type="button" class="st" data-story="'+s[0]+'" data-screen-go="'+s[1]+'" data-target="'+s[2]+'"><b><em>'+s[0]+'</em>'+s[3]+'</b><span>'+s[4]+'</span></button>').join("")).join("");
+$("#storylist").addEventListener("click",e=>{
+  const b=e.target.closest(".st");if(!b)return;
+  document.querySelectorAll(".st.on").forEach(x=>x.classList.remove("on"));b.classList.add("on");
+  const sc=b.dataset.screenGo;
+  if(sc==="S4"&&!lastTrip)showResult(compute("Albi","Bordeaux"));else show(sc);
+  if(sc==="S4")show("S4");
+  const el=document.querySelector('[data-el="'+b.dataset.target+'"]');
+  if(el){el.classList.remove("pulse");void el.offsetWidth;el.classList.add("pulse");el.scrollIntoView({block:"nearest",behavior:"smooth"});setTimeout(()=>el.classList.remove("pulse"),1500);}
+});
+
+try{const s=JSON.parse(localStorage.getItem("pt-car")||"null");if(s&&CARS[s.marque]&&CARS[s.marque][s.modele])car=s;}catch(e){}
+["marque","modele","moteur"].forEach(id=>$("#"+id).addEventListener("change",()=>{try{localStorage.setItem("pt-car",JSON.stringify(car));}catch(e){}}));
+renderFuels();renderStations();renderCar();renderHist();
+})();
+</script>

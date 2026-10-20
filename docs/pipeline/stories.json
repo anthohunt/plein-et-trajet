@@ -1,0 +1,561 @@
+[
+ {
+  "id": "US-1.1",
+  "title": "Ouvrir les prix",
+  "story": "En tant que conducteur, je touche l'onglet Prix pour voir les stations autour de moi.",
+  "detail": "L'onglet Prix (onglet-prix) affiche la carte et la liste des stations autour de moi.",
+  "screen": "S1",
+  "target": "onglet-prix",
+  "module": "prix",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ l'appli ouverte sur l'onglet Trajets, QUAND je touche l'onglet Prix, ALORS la carte et la liste des stations autour de ma position s'affichent",
+   "ÉTANT DONNÉ la position refusée, QUAND l'onglet Prix s'ouvre, ALORS la carte est centrée sur la dernière ville saisie ou sur Albi par défaut, avec un message pour activer la localisation"
+  ]
+ },
+ {
+  "id": "US-1.2",
+  "title": "Choisir mon carburant",
+  "story": "En tant que conducteur, je choisis mon carburant dans le sélecteur pour ne voir que les prix qui me concernent.",
+  "detail": "Le sélecteur de carburant change tous les prix affichés (carte et liste).",
+  "screen": "S1",
+  "target": "selecteur-carburant",
+  "module": "prix",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ la liste en SP95-E10, QUAND je touche Gazole dans le sélecteur de carburant, ALORS chaque pastille et chaque ligne affichent le prix gazole et le titre devient « Stations · Gazole »",
+   "ÉTANT DONNÉ une station qui ne vend pas le carburant choisi, QUAND je change de carburant, ALORS elle disparaît de la carte et de la liste"
+  ]
+ },
+ {
+  "id": "US-1.3",
+  "title": "Voir les stations sur la carte",
+  "story": "En tant que conducteur, je regarde la carte des stations pour repérer où elles sont.",
+  "detail": "La carte des stations montre chaque station autour de moi avec son prix.",
+  "screen": "S1",
+  "target": "carte-stations",
+  "module": "prix",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ des stations synchronisées dans un rayon de 10 km, QUAND la carte des stations s'affiche, ALORS chaque station est une pastille à sa position réelle avec son prix",
+   "ÉTANT DONNÉ je déplace la carte, QUAND je relâche, ALORS les stations de la nouvelle zone se chargent"
+  ]
+ },
+ {
+  "id": "US-1.4",
+  "title": "Toucher une pastille",
+  "story": "En tant que conducteur, je touche la pastille d'une station sur la carte pour ouvrir sa fiche.",
+  "detail": "Chaque pastille de station porte son prix et sa couleur (bas / haut) ; la toucher ouvre la fiche.",
+  "screen": "S1",
+  "target": "pastille-station",
+  "module": "prix",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ la carte affichée, QUAND je touche une pastille de station, ALORS la fiche de cette station s'ouvre",
+   "ÉTANT DONNÉ des prix différents autour de moi, QUAND la carte s'affiche, ALORS les pastilles de la moitié la moins chère sont marquées vert, les autres orange"
+  ]
+ },
+ {
+  "id": "US-1.5",
+  "title": "Trier la liste",
+  "story": "En tant que conducteur, je trie la liste par prix ou par distance.",
+  "detail": "Le tri de la liste bascule entre « moins cher » et « plus proche ».",
+  "screen": "S1",
+  "target": "tri-liste",
+  "module": "prix",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ la liste triée par prix, QUAND je touche « Plus proche » dans le tri de la liste, ALORS la liste se trie par distance croissante",
+   "ÉTANT DONNÉ le tri par distance, QUAND je touche « Moins cher », ALORS la liste se retrie par prix croissant"
+  ]
+ },
+ {
+  "id": "US-1.6",
+  "title": "Lire une station dans la liste",
+  "story": "En tant que conducteur, je lis la liste des stations triée et touche une ligne de station pour voir sa fiche.",
+  "detail": "Chaque ligne de station donne enseigne, distance, ancienneté du prix et le prix sur une plaque de totem.",
+  "screen": "S1",
+  "target": "ligne-station",
+  "module": "prix",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ la liste affichée, QUAND je lis une ligne de station, ALORS je vois enseigne, distance, ancienneté du prix, écart à la moyenne France et le prix à trois décimales",
+   "ÉTANT DONNÉ une ligne de station, QUAND je la touche, ALORS sa fiche s'ouvre"
+  ]
+ },
+ {
+  "id": "US-2.1",
+  "title": "Fermer la fiche",
+  "story": "En tant que conducteur, je ferme la fiche station pour revenir à la carte.",
+  "detail": "Le bouton de fermeture de la fiche revient à la carte sans perdre le carburant choisi.",
+  "screen": "S2",
+  "target": "fermer-fiche",
+  "module": "prix",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ une fiche station ouverte, QUAND je touche le bouton fermer la fiche ou la touche Échap, ALORS la fiche se ferme et le carburant choisi n'a pas changé"
+  ]
+ },
+ {
+  "id": "US-2.2",
+  "title": "Calculer un trajet vers la station",
+  "story": "En tant que conducteur, je lance un trajet vers cette station depuis sa fiche.",
+  "detail": "Depuis la fiche, le bouton trajet pré-remplit l'arrivée avec l'adresse de la station.",
+  "screen": "S2",
+  "target": "bouton-trajet-station",
+  "module": "prix",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ la fiche d'une station, QUAND je touche « Coût d'un trajet jusqu'ici » (bouton trajet station), ALORS l'onglet Trajets s'ouvre avec l'arrivée pré-remplie à l'adresse de la station"
+  ]
+ },
+ {
+  "id": "US-3.1",
+  "title": "Ouvrir les trajets",
+  "story": "En tant que conducteur, je touche l'onglet Trajets pour estimer le coût d'un trajet.",
+  "detail": "L'onglet Trajets affiche le formulaire et, dessous, l'historique.",
+  "screen": "S3",
+  "target": "onglet-trajets",
+  "module": "trajets",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ l'onglet Prix, QUAND je touche l'onglet Trajets, ALORS le formulaire et l'historique s'affichent"
+  ]
+ },
+ {
+  "id": "US-3.2",
+  "title": "Saisir le départ",
+  "story": "En tant que conducteur, je saisis mon lieu de départ.",
+  "detail": "Le champ départ propose des lieux au fil de la frappe.",
+  "screen": "S3",
+  "target": "champ-depart",
+  "module": "trajets",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ le champ départ vide, QUAND je tape « Alb », ALORS des propositions de lieux apparaissent et je peux en choisir une"
+  ]
+ },
+ {
+  "id": "US-3.3",
+  "title": "Saisir l'arrivée",
+  "story": "En tant que conducteur, je saisis mon lieu d'arrivée.",
+  "detail": "Le champ arrivée propose des lieux au fil de la frappe.",
+  "screen": "S3",
+  "target": "champ-arrivee",
+  "module": "trajets",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ le champ arrivée vide, QUAND je tape « Bord », ALORS des propositions de lieux apparaissent et je peux en choisir une"
+  ]
+ },
+ {
+  "id": "US-3.4",
+  "title": "Choisir ma voiture",
+  "story": "En tant que conducteur, je choisis ma voiture par marque, modèle et motorisation, et l'appli s'en souvient.",
+  "detail": "Marque, puis modèle, puis motorisation ; le choix de voiture est mémorisé pour la fois suivante.",
+  "screen": "S3",
+  "target": "choix-voiture",
+  "module": "trajets",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ aucune voiture mémorisée, QUAND je choisis Peugeot, puis 208, puis une motorisation, ALORS la voiture est enregistrée et son carburant est affiché",
+   "ÉTANT DONNÉ une voiture mémorisée, QUAND je rouvre l'appli, ALORS le choix de voiture est pré-rempli"
+  ]
+ },
+ {
+  "id": "US-3.5",
+  "title": "Calculer le coût",
+  "story": "En tant que conducteur, je touche Calculer pour obtenir le coût estimé du trajet.",
+  "detail": "Le bouton calculer lance l'estimation et ouvre le résultat.",
+  "screen": "S3",
+  "target": "bouton-calculer",
+  "module": "trajets",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ départ, arrivée et voiture renseignés, QUAND je touche le bouton calculer, ALORS le résultat s'affiche avec coût, litres, km et L/100 km"
+  ]
+ },
+ {
+  "id": "US-3.6",
+  "title": "Rejouer un ancien trajet",
+  "story": "En tant que conducteur, je touche un trajet de l'historique pour le recalculer au prix du jour.",
+  "detail": "Toucher une ligne de l'historique recalcule ce trajet au prix du jour.",
+  "screen": "S3",
+  "target": "ligne-historique",
+  "module": "trajets",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un trajet dans l'historique, QUAND je touche sa ligne historique, ALORS le trajet est recalculé au prix moyen du jour et le résultat s'affiche"
+  ]
+ },
+ {
+  "id": "US-3.7",
+  "title": "Supprimer un trajet",
+  "story": "En tant que conducteur, je supprime un trajet de l'historique.",
+  "detail": "La croix supprime le trajet de l'historique.",
+  "screen": "S3",
+  "target": "supprimer-trajet",
+  "module": "trajets",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un trajet dans l'historique, QUAND je touche sa croix supprimer trajet, ALORS la ligne disparaît et ne revient pas au rechargement"
+  ]
+ },
+ {
+  "id": "US-4.1",
+  "title": "Comprendre le calcul",
+  "story": "En tant que conducteur, je déplie un tronçon du trajet pour voir d'où vient la consommation.",
+  "detail": "Chaque tronçon du trajet (autoroute, route, ville, montée) se déplie : vitesse, arrêts, litres.",
+  "screen": "S4",
+  "target": "troncon-trajet",
+  "module": "trajets",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un résultat affiché, QUAND je touche un tronçon du trajet, ALORS il se déplie et montre vitesse typique, arrêts ou dénivelé, et L/100 km sur ce tronçon",
+   "ÉTANT DONNÉ un tronçon déplié, QUAND je le touche à nouveau, ALORS il se replie"
+  ]
+ },
+ {
+  "id": "US-4.2",
+  "title": "Mettre mon propre prix",
+  "story": "En tant que conducteur, je saisis mon prix perso au litre pour recalculer le coût.",
+  "detail": "Le prix perso remplace la moyenne nationale du jour et recalcule le coût.",
+  "screen": "S4",
+  "target": "prix-perso",
+  "module": "trajets",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un résultat au prix moyen France, QUAND je touche « Mettre mon prix » (prix perso) et je saisis 1,699, ALORS le coût est recalculé avec 1,699 €/L et le libellé devient « Mon prix »",
+   "ÉTANT DONNÉ un prix perso saisi, QUAND je touche « Revenir à la moyenne », ALORS le coût revient à la moyenne nationale"
+  ]
+ },
+ {
+  "id": "US-4.3",
+  "title": "Revenir aux trajets",
+  "story": "En tant que conducteur, je reviens aux trajets ; le calcul a rejoint l'historique.",
+  "detail": "Le retour aux trajets montre le formulaire, le trajet est déjà dans l'historique.",
+  "screen": "S4",
+  "target": "retour-trajets",
+  "module": "trajets",
+  "type": "main",
+  "source": "v1",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un résultat affiché, QUAND je touche le bouton retour trajets, ALORS le formulaire s'affiche et ce trajet est en tête de l'historique"
+  ]
+ },
+ {
+  "id": "US-1.E1",
+  "title": "Source des prix injoignable",
+  "story": "En tant que conducteur, si les prix ne peuvent pas être chargés, je vois un message clair et un bouton Réessayer.",
+  "screen": "S1",
+  "target": "liste-stations",
+  "module": "prix",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ la lecture des prix en erreur réseau, QUAND l'écran Prix s'ouvre, ALORS un message « Prix indisponibles pour l'instant » et un bouton Réessayer s'affichent à la place de la liste"
+  ]
+ },
+ {
+  "id": "US-1.E2",
+  "title": "Aucune station pour ce carburant",
+  "story": "En tant que conducteur, si aucune station proche ne vend mon carburant, la liste me le dit.",
+  "screen": "S1",
+  "target": "selecteur-carburant",
+  "module": "prix",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ aucune station du rayon ne vend E85, QUAND je choisis E85 dans le sélecteur de carburant, ALORS la liste affiche « Aucune station ne vend ce carburant autour de vous » et la carte n'a aucune pastille"
+  ]
+ },
+ {
+  "id": "US-1.E3",
+  "title": "Prix ancien signalé",
+  "story": "En tant que conducteur, je repère un prix qui n'a pas été mis à jour depuis plus de 48 h.",
+  "screen": "S1",
+  "target": "ligne-station",
+  "module": "prix",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ une station dont le prix date de plus de 48 h, QUAND la liste s'affiche, ALORS sa ligne de station porte la mention « prix du JJ/MM » en couleur atténuée"
+  ]
+ },
+ {
+  "id": "US-1.E4",
+  "title": "Station en rupture",
+  "story": "En tant que conducteur, je ne vois pas comme disponible un carburant en rupture.",
+  "screen": "S1",
+  "target": "ligne-station",
+  "module": "prix",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ une station en rupture temporaire de gazole, QUAND je choisis Gazole, ALORS elle n'apparaît pas dans la liste triée par prix"
+  ]
+ },
+ {
+  "id": "US-2.E1",
+  "title": "Carburant non vendu dans la fiche",
+  "story": "En tant que conducteur, la fiche me dit quels carburants la station ne vend pas.",
+  "screen": "S2",
+  "target": "fermer-fiche",
+  "module": "prix",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ une station sans GPLc, QUAND j'ouvre sa fiche, ALORS la ligne GPLc affiche « non vendu » au lieu d'un prix"
+  ]
+ },
+ {
+  "id": "US-3.E1",
+  "title": "Lieu introuvable",
+  "story": "En tant que conducteur, si un lieu n'est pas trouvé, on me le dit avant de calculer.",
+  "screen": "S3",
+  "target": "champ-arrivee",
+  "module": "trajets",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ une arrivée « zzzz » sans résultat, QUAND je touche le bouton calculer, ALORS le champ arrivée est signalé « Lieu introuvable » et aucun calcul n'est lancé"
+  ]
+ },
+ {
+  "id": "US-3.E2",
+  "title": "Formulaire incomplet",
+  "story": "En tant que conducteur, je ne peux pas calculer sans départ, arrivée et voiture.",
+  "screen": "S3",
+  "target": "bouton-calculer",
+  "module": "trajets",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ aucune voiture choisie, QUAND je touche le bouton calculer, ALORS le choix de voiture est signalé « Choisis ta voiture » et aucun calcul n'est lancé"
+  ]
+ },
+ {
+  "id": "US-3.E3",
+  "title": "Historique vide",
+  "story": "En tant que nouvel utilisateur, je comprends que l'historique se remplira.",
+  "screen": "S3",
+  "target": "ligne-historique",
+  "module": "trajets",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ aucun trajet calculé, QUAND j'ouvre l'onglet Trajets, ALORS l'historique affiche « Aucun trajet pour l'instant » avec une invitation à calculer le premier"
+  ]
+ },
+ {
+  "id": "US-3.E4",
+  "title": "Voiture absente de la base",
+  "story": "En tant que conducteur dont la motorisation n'est pas listée, je peux choisir la plus proche.",
+  "screen": "S3",
+  "target": "choix-voiture",
+  "module": "trajets",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un modèle choisi, QUAND j'ouvre la liste des motorisations, ALORS elles sont classées par puissance avec leur carburant, et la plus proche de la puissance moyenne est proposée en premier"
+  ]
+ },
+ {
+  "id": "US-4.E1",
+  "title": "Itinéraire impossible",
+  "story": "En tant que conducteur, si aucun itinéraire routier n'existe, je le sais.",
+  "screen": "S4",
+  "target": "troncon-trajet",
+  "module": "trajets",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ une arrivée en Corse depuis Albi, QUAND je lance le calcul, ALORS le résultat affiche « Pas d'itinéraire routier entre ces deux lieux » sans coût"
+  ]
+ },
+ {
+  "id": "US-4.E2",
+  "title": "Prix perso invalide",
+  "story": "En tant que conducteur, une saisie de prix aberrante est refusée.",
+  "screen": "S4",
+  "target": "prix-perso",
+  "module": "trajets",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ le champ prix perso ouvert, QUAND je saisis 12 ou une lettre, ALORS le champ est signalé « Entre un prix entre 0,50 et 4,00 €/L » et le coût reste celui d'avant"
+  ]
+ },
+ {
+  "id": "US-4.E3",
+  "title": "Calcul trop long",
+  "story": "En tant que conducteur, je vois que le calcul est en cours et je peux l'abandonner.",
+  "screen": "S4",
+  "target": "retour-trajets",
+  "module": "trajets",
+  "type": "edge",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un calcul qui dure plus d'une seconde, QUAND j'attends, ALORS un état « Calcul de l'itinéraire… » s'affiche avec un bouton Annuler qui ramène au formulaire"
+  ]
+ },
+ {
+  "id": "US-1.P1",
+  "title": "Recentrer sur ma position",
+  "story": "En tant que conducteur qui a déplacé la carte des stations, je reviens à ma position.",
+  "screen": "S1",
+  "target": "carte-stations",
+  "module": "prix",
+  "type": "pair",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ la carte déplacée, QUAND je touche le bouton de recentrage de la carte des stations, ALORS la carte revient sur ma position et la liste se recharge"
+  ]
+ },
+ {
+  "id": "US-3.P1",
+  "title": "Inverser départ et arrivée",
+  "story": "En tant que conducteur, j'inverse départ et arrivée pour le retour.",
+  "screen": "S3",
+  "target": "champ-depart",
+  "module": "trajets",
+  "type": "pair",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ départ Albi et arrivée Bordeaux, QUAND je touche le bouton d'inversion entre champ départ et champ arrivée, ALORS le départ devient Bordeaux et l'arrivée Albi"
+  ]
+ },
+ {
+  "id": "US-3.P2",
+  "title": "Changer de voiture",
+  "story": "En tant que conducteur, je change la voiture mémorisée.",
+  "screen": "S3",
+  "target": "choix-voiture",
+  "module": "trajets",
+  "type": "pair",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ une voiture mémorisée, QUAND je choisis une autre marque dans le choix de voiture, ALORS modèle et motorisation se réinitialisent et la nouvelle voiture est mémorisée"
+  ]
+ },
+ {
+  "id": "US-A11Y-001",
+  "title": "Navigation au clavier",
+  "story": "En tant qu'utilisateur au clavier, j'atteins tous les contrôles dans un ordre logique.",
+  "screen": null,
+  "target": null,
+  "module": "transverse",
+  "type": "a11y",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ n'importe quel écran, QUAND j'utilise Tab et Maj+Tab, ALORS chaque contrôle reçoit le focus dans l'ordre de lecture avec un contour visible"
+  ]
+ },
+ {
+  "id": "US-A11Y-002",
+  "title": "Focus de la fiche",
+  "story": "En tant qu'utilisateur au clavier, le focus suit la fiche station.",
+  "screen": null,
+  "target": null,
+  "module": "transverse",
+  "type": "a11y",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ une fiche station ouverte au clavier, QUAND elle s'ouvre, ALORS le focus va sur son titre ; à la fermeture il revient sur l'élément qui l'a ouverte"
+  ]
+ },
+ {
+  "id": "US-A11Y-003",
+  "title": "Touche Échap",
+  "story": "En tant qu'utilisateur au clavier, Échap ferme ce qui est ouvert.",
+  "screen": null,
+  "target": null,
+  "module": "transverse",
+  "type": "a11y",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ la fiche station ou un tronçon déplié, QUAND j'appuie sur Échap, ALORS la fiche se ferme"
+  ]
+ },
+ {
+  "id": "US-A11Y-004",
+  "title": "Libellés lisibles",
+  "story": "En tant qu'utilisateur de lecteur d'écran, chaque contrôle et chaque prix est annoncé.",
+  "screen": null,
+  "target": null,
+  "module": "transverse",
+  "type": "a11y",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un lecteur d'écran actif, QUAND je parcours les pastilles et les prix, ALORS chaque pastille annonce station et prix en euros, chaque bouton icône a un libellé"
+  ]
+ },
+ {
+  "id": "US-PERF-001",
+  "title": "Ouverture rapide",
+  "story": "En tant que conducteur, l'écran Prix est utilisable vite sur téléphone.",
+  "screen": null,
+  "target": null,
+  "module": "transverse",
+  "type": "perf",
+  "source": "spécification",
+  "validated": true,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ une connexion 4G, QUAND j'ouvre l'appli, ALORS la liste des stations est affichée en moins de 2,5 s"
+  ]
+ }
+]

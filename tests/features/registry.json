@@ -1,0 +1,44 @@
+{
+ "features": [
+  {
+   "id": "FT-001",
+   "title": "Écran Prix : carburant, carte, liste, tri",
+   "file": "FT-001-prix-carte-liste.test.js",
+   "script": "tests/e2e/tests/ft-001.js",
+   "testMode": "browser",
+   "status": "draft"
+  },
+  {
+   "id": "FT-002",
+   "title": "Fiche station",
+   "file": "FT-002-fiche-station.test.js",
+   "script": "tests/e2e/tests/ft-002.js",
+   "testMode": "browser",
+   "status": "draft"
+  },
+  {
+   "id": "FT-003",
+   "title": "Trajets : lieux, voiture, calcul, historique",
+   "file": "FT-003-trajets-formulaire.test.js",
+   "script": "tests/e2e/tests/ft-003.js",
+   "testMode": "browser",
+   "status": "draft"
+  },
+  {
+   "id": "FT-004",
+   "title": "Résultat : coût, tronçons, prix perso",
+   "file": "FT-004-resultat-trajet.test.js",
+   "script": "tests/e2e/tests/ft-004.js",
+   "testMode": "browser",
+   "status": "draft"
+  },
+  {
+   "id": "FT-005",
+   "title": "Accessibilité et performance",
+   "file": "FT-005-transverses.test.js",
+   "script": "tests/e2e/tests/ft-005.js",
+   "testMode": "browser",
+   "status": "draft"
+  }
+ ]
+}

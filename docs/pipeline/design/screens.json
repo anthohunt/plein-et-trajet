@@ -1,0 +1,12 @@
+{
+  "screens": [
+    {"id": "S1", "name": "Prix", "section": "Prix", "view": "carte des stations + liste triée",
+     "interactive_elements": ["onglet-prix", "selecteur-carburant", "carte-stations", "pastille-station", "tri-liste", "ligne-station"]},
+    {"id": "S2", "name": "Fiche station", "section": "Prix", "view": "feuille montante sur l'écran Prix",
+     "interactive_elements": ["fermer-fiche", "bouton-trajet-station"]},
+    {"id": "S3", "name": "Trajets", "section": "Trajets", "view": "formulaire + historique",
+     "interactive_elements": ["onglet-trajets", "champ-depart", "champ-arrivee", "choix-voiture", "bouton-calculer", "ligne-historique", "supprimer-trajet"]},
+    {"id": "S4", "name": "Résultat du trajet", "section": "Trajets", "view": "coût, tronçons, prix utilisé",
+     "interactive_elements": ["troncon-trajet", "prix-perso", "retour-trajets"]}
+  ]
+}

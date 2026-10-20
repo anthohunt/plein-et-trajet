@@ -1,0 +1,78 @@
+{
+ "S1": {
+  "onglet-prix": [
+   "US-1.1"
+  ],
+  "selecteur-carburant": [
+   "US-1.2",
+   "US-1.E2"
+  ],
+  "carte-stations": [
+   "US-1.3",
+   "US-1.P1"
+  ],
+  "pastille-station": [
+   "US-1.4"
+  ],
+  "tri-liste": [
+   "US-1.5"
+  ],
+  "ligne-station": [
+   "US-1.6",
+   "US-1.E3",
+   "US-1.E4"
+  ]
+ },
+ "S2": {
+  "fermer-fiche": [
+   "US-2.1",
+   "US-2.E1"
+  ],
+  "bouton-trajet-station": [
+   "US-2.2"
+  ]
+ },
+ "S3": {
+  "onglet-trajets": [
+   "US-3.1"
+  ],
+  "champ-depart": [
+   "US-3.2",
+   "US-3.P1"
+  ],
+  "champ-arrivee": [
+   "US-3.3",
+   "US-3.E1"
+  ],
+  "choix-voiture": [
+   "US-3.4",
+   "US-3.E4",
+   "US-3.P2"
+  ],
+  "bouton-calculer": [
+   "US-3.5",
+   "US-3.E2"
+  ],
+  "ligne-historique": [
+   "US-3.6",
+   "US-3.E3"
+  ],
+  "supprimer-trajet": [
+   "US-3.7"
+  ]
+ },
+ "S4": {
+  "troncon-trajet": [
+   "US-4.1",
+   "US-4.E1"
+  ],
+  "prix-perso": [
+   "US-4.2",
+   "US-4.E2"
+  ],
+  "retour-trajets": [
+   "US-4.3",
+   "US-4.E3"
+  ]
+ }
+}

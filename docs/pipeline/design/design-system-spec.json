@@ -1,0 +1,5 @@
+{
+  "framework": "css-custom-properties",
+  "paths": {"tokens": "docs/pipeline/design/tokens.json", "doc": "docs/pipeline/design/design-system.md", "mockup": "docs/pipeline/design/mockup.html"},
+  "components": ["TotemPrix", "SelecteurCarburant", "CarteStations", "LigneStation", "FicheStation", "ChampLieu", "ChoixVoiture", "BoutonPrincipal", "Troncon", "LigneHistorique", "BarreOnglets"]
+}

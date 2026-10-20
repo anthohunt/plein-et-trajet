@@ -1,0 +1,83 @@
+<title>Squelette Carburant</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* squelette volontairement brut : aide à la décision, jeté après le cadrage */
+:root{--bg:#f4f4f4;--fg:#222;--mut:#888;--line:#bbb;--blk:#ddd;--hl:#fff3b0;--mono:ui-monospace,Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1b1b;--fg:#ddd;--mut:#888;--line:#555;--blk:#333;--hl:#4a4320;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1b1b1b;--fg:#ddd;--mut:#888;--line:#555;--blk:#333;--hl:#4a4320;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:13px/1.45 var(--mono);padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-size:15px;margin:0 0 4px}h2{font-size:13px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.06em}
+.mut{color:var(--mut)}
+.wrap{display:grid;gap:20px;max-width:1100px}
+.screens{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.scr{border:1px solid var(--line);padding:10px;min-width:0}
+.blk{background:var(--blk);padding:8px;margin-top:6px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.fld{border:1px dashed var(--line);padding:4px 8px;flex:1;min-width:90px}
+.q{border:2px solid var(--fg);padding:10px;background:var(--hl)}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:10px}
+.opt{border:1px solid var(--line);background:var(--bg);padding:8px;min-width:0}
+.map{height:120px;background:var(--blk);position:relative}
+.map i{position:absolute;width:8px;height:8px;border:1px solid var(--fg);border-radius:50%}
+.li{border-bottom:1px solid var(--line);padding:3px 0;display:flex;justify-content:space-between;gap:8px}
+.done{border-left:3px solid var(--fg);padding-left:8px}
+</style>
+
+<div class="wrap">
+  <div>
+    <h1>Squelette — appli prix carburant + coût de trajet</h1>
+    <div class="mut">Croquis volontairement brut, mis à jour à chaque réponse. Ce n'est pas le design.</div>
+  </div>
+
+  <div class="done">
+    <h2>Décidé</h2>
+    <div>1. Deux usages : prix live des stations en France · estimation du coût d'un trajet</div>
+    <div>2. Trajet = départ + arrivée + voiture → itinéraire réel découpé en tronçons (autoroute / route / ville / montées), modèle physique de la voiture (vitesse, accélérations, moteur)</div>
+    <div>3. Écran Prix = carte des stations autour de toi + liste triée par prix dessous</div>
+    <div>4. Prix au litre du trajet = moyenne nationale du jour, remplaçable par un prix saisi à la main</div>
+    <div>5. Voiture = marque → modèle → motorisation, infos techniques tirées d'une base en ligne, mémorisée pour la fois suivante</div>
+    <div>6. Historique des derniers trajets, un clic = recalcul au prix du jour</div>
+  </div>
+
+  <div class="screens">
+    <div class="scr">
+      <h2>Écran Prix</h2>
+      <div class="map"><i style="left:20%;top:30%"></i><i style="left:55%;top:50%"></i><i style="left:70%;top:20%"></i><i style="left:35%;top:70%"></i></div>
+      <div class="li"><span>Leclerc Albi · 1,2 km</span><span>1,72 €</span></div>
+      <div class="li"><span>Intermarché · 4,0 km</span><span>1,74 €</span></div>
+      <div class="li"><span>Total Albi Lices · 0,8 km</span><span>1,79 €</span></div>
+    </div>
+    <div class="scr">
+      <h2>Écran Trajet</h2>
+      <div class="row"><div class="fld">Départ</div><div class="fld">Arrivée</div></div>
+      <div class="row"><div class="fld">Peugeot ▾</div><div class="fld">208 ▾</div><div class="fld">1.2 PureTech 100 ch ▾</div></div>
+      <div class="blk">[Calculer]</div>
+      <div class="blk">Résultat : coût estimé · litres · distance<br><span class="mut">prix : moyenne France SP95 1,770 €/L · [✎ saisir mon prix]</span>
+        <div class="li"><span>Autoroute 210 km</span><span>…</span></div>
+        <div class="li"><span>Route 35 km</span><span>…</span></div>
+        <div class="li"><span>Ville 8 km</span><span>…</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="q">
+    <h2>Question en cours — on passe d'un usage à l'autre comment ?</h2>
+    <div class="opts">
+      <div class="opt"><b>A) Deux onglets en bas : Prix · Trajets (recommandé)</b>
+        <div class="blk" style="height:90px">écran actif</div>
+        <div class="row"><div class="fld"><b>⛽ Prix</b></div><div class="fld">↗ Trajets</div></div>
+        <div class="mut">Trajets = formulaire en haut, historique dessous</div>
+      </div>
+      <div class="opt"><b>B) Trois onglets : Prix · Nouveau trajet · Historique</b>
+        <div class="blk" style="height:90px">écran actif</div>
+        <div class="row"><div class="fld"><b>Prix</b></div><div class="fld">Trajet</div><div class="fld">Historique</div></div>
+      </div>
+      <div class="opt"><b>C) Une seule page : la carte, avec un panneau Trajet par-dessus</b>
+        <div class="map" style="height:90px"><i style="left:20%;top:30%"></i><i style="left:55%;top:50%"></i></div>
+        <div class="blk">▲ Calculer un trajet (panneau qui se déplie)</div>
+        <div class="mut">l'itinéraire se dessine sur la carte des stations</div>
+      </div>
+      <div class="opt"><b>D) Autre chose</b><div class="mut">précise-moi</div></div>
+    </div>
+  </div>
+</div>

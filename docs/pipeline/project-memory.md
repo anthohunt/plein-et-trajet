@@ -1,0 +1,4 @@
+- **Concept** : appli web FR — prix live des stations-service en France (carte + liste) et coût estimé d'un trajet (itinéraire réel en tronçons + modèle physique de la voiture × prix moyen national du jour, prix modifiable).
+- **Sections** : Prix (carte+liste, fiche station) · Trajets (formulaire, voiture, résultat, historique).
+- **Navigation** : deux onglets en bas.
+- **Décisions clés** : pas de GPS guidé, pas de comptes, pas d'électrique, pas de garage multi-voitures, pas d'aller-retour/partage ; Anthony a demandé qu'on arrête les questions — l'agent tranche le reste.
