@@ -187,7 +187,7 @@ histoireDef("US-3.3", "US-3.3 — Saisir l'arrivée", async () => {
 
 histoireDef("US-3.4", "US-3.4 — Choisir ma voiture", async () => {
   await capture(pa, "US-3.4-01-choisir-ma-voiture-avant.png", async () => {
-    await expect(pa.locator("#voiture-marque")).toHaveText("Marque");
+    await expect(pa.locator("#voiture-marque .dd-txt")).toHaveText("Marque");
     await expect(pa.locator("#voiture-modele")).toBeDisabled();
     await expect(pa.locator("#voiture-moteur")).toBeDisabled();
     expect(await dbPreference(pa)).toBeNull();
@@ -202,8 +202,8 @@ histoireDef("US-3.4", "US-3.4 — Choisir ma voiture", async () => {
   // ---- US-3.E4 (dans le même parcours : modèle choisi, liste des motorisations)
   histoire("US-3.E4", "US-3.E4 — Voiture absente de la base");
   await capture(pa, "US-3.E4-E1-01-declencheur.png", async () => {
-    await expect(pa.locator("#voiture-modele")).toHaveText("208");
-    await expect(pa.locator("#voiture-moteur")).toHaveText("Motorisation");
+    await expect(pa.locator("#voiture-modele .dd-txt")).toHaveText("208");
+    await expect(pa.locator("#voiture-moteur .dd-txt")).toHaveText("Motorisation");
     return "Peugeot 208 choisie (modèle réel de la base ADEME), motorisation non choisie";
   }, "un modèle est choisi", "edge");
   await pa.locator("#voiture-moteur").click();
@@ -216,7 +216,7 @@ histoireDef("US-3.4", "US-3.4 — Choisir ma voiture", async () => {
   await capture(pa, "US-3.E4-E1-02-resultat.png", async () => {
     expect(opts.length).toBe(base.length);
     expect(opts[0].id).toBe(proche.id);
-    expect(opts[0].txt).toContain("proposée");
+    expect(opts[0].txt).toMatch(/proposée/i);
     const reste = opts.slice(1).map((o) => Number(o.txt.match(/(\d+(?:,\d)?) kW/)[1].replace(",", ".")));
     expect(reste).toEqual([...reste].sort((a, b) => a - b));
     for (const o of opts) expect(o.txt).toMatch(/kW · (Gazole|SP95-E10|SP95|SP98|E85|GPLc)/);
@@ -225,8 +225,8 @@ histoireDef("US-3.4", "US-3.4 — Choisir ma voiture", async () => {
   await pa.keyboard.press("Escape");
   await expect(liste).toHaveCount(0);
   await capture(pa, "US-3.E4-E1-03-retour.png", async () => {
-    await expect(pa.locator("#voiture-moteur")).toHaveText("Motorisation");
-    await expect(pa.locator("#voiture-modele")).toHaveText("208");
+    await expect(pa.locator("#voiture-moteur .dd-txt")).toHaveText("Motorisation");
+    await expect(pa.locator("#voiture-modele .dd-txt")).toHaveText("208");
     expect((await dbPreference(pa)).vehicule_id).toBeNull();
     return "Échap referme la liste sans rien choisir : modèle 208 conservé, motorisation toujours vide, rien de mémorisé en trop";
   }, "retour à l'état normal : liste fermée", "edge");
@@ -245,9 +245,9 @@ histoireDef("US-3.4", "US-3.4 — Choisir ma voiture", async () => {
   const v = (await rest(`vehicules?select=carburant,masse_kg&id=eq.${opts[cible].id}`))[0];
   etat.carburant = v.carburant;
   await capture(pa, "US-3.4-02-choisir-ma-voiture-apres.png", async () => {
-    await expect(pa.locator("#voiture-marque")).toHaveText("Peugeot");
-    await expect(pa.locator("#voiture-modele")).toHaveText("208");
-    await expect(pa.locator("#voiture-moteur")).toHaveText("208 (101ch) · mécanique");
+    await expect(pa.locator("#voiture-marque .dd-txt")).toHaveText("Peugeot");
+    await expect(pa.locator("#voiture-modele .dd-txt")).toHaveText("208");
+    await expect(pa.locator("#voiture-moteur .dd-txt")).toHaveText("208 (101ch) · mécanique");
     await expect(pa.locator('[data-el="voiture-info"]')).toHaveText(`${v.carburant} · ${v.masse_kg} kg`);
     const p = await dbPreference(pa);
     expect(p).toMatchObject({ marque: "Peugeot", modele: "208", vehicule_id: opts[cible].id, carburant: v.carburant });
@@ -260,10 +260,10 @@ histoireDef("US-3.4", "US-3.4 — Choisir ma voiture", async () => {
   }, "une voiture est mémorisée");
   await pa.reload();
   await attendreFormulaire(pa);
-  await expect(pa.locator("#voiture-moteur")).toHaveText("208 (101ch) · mécanique", { timeout: 15000 });
+  await expect(pa.locator("#voiture-moteur .dd-txt")).toHaveText("208 (101ch) · mécanique", { timeout: 15000 });
   await capture(pa, "US-3.4-04-choisir-ma-voiture-apres.png", async () => {
-    await expect(pa.locator("#voiture-marque")).toHaveText("Peugeot");
-    await expect(pa.locator("#voiture-modele")).toHaveText("208");
+    await expect(pa.locator("#voiture-marque .dd-txt")).toHaveText("Peugeot");
+    await expect(pa.locator("#voiture-modele .dd-txt")).toHaveText("208");
     await expect(pa.locator('[data-el="voiture-info"]')).toHaveText(`${v.carburant} · ${v.masse_kg} kg`);
     await expect(champ(pa, "depart")).toHaveValue("");
     return "après rechargement complet de la page (même session anonyme conservée) : Peugeot / 208 / 208 (101ch) mécanique pré-remplis depuis `preferences`, carburant affiché ; départ et arrivée vides (rechargés à neuf)";
@@ -311,6 +311,7 @@ histoireDef("US-4.1", "US-4.1 — Comprendre le calcul", async () => {
   await pa.locator('[data-el="troncons"]').scrollIntoViewIfNeeded();
   await pa.evaluate(() => document.querySelector("h2.sec")?.scrollIntoView({ block: "start" }));
   const t1 = pa.locator('[data-el="troncon-trajet"]');
+  await t1.hover();
   await capture(pa, "US-4.1-01-comprendre-le-calcul-avant.png", async () => {
     await expect(pa.locator('[data-el="troncons"] li')).not.toHaveCount(0);
     for (const b of await pa.locator('[data-el="troncons"] button').all()) await expect(b).toHaveAttribute("aria-expanded", "false");
@@ -375,7 +376,7 @@ histoireDef("US-4.2", "US-4.2 — Mettre mon propre prix", async () => {
     await expect(pa.locator('[data-el="revenir-moyenne"]')).toBeVisible();
     return `libellé « Mon prix », coût ${virgule(r2.cout)} € = ${r2.litres} L × 1,699 €/L (avant : ${virgule(avant.cout)} €)`;
   }, "je saisis 1,699 : coût recalculé, libellé « Mon prix »");
-  await pa.keyboard.press("Tab");
+  await pa.keyboard.press("Shift+Tab");
   await capture(pa, "US-4.2-03-mettre-mon-propre-prix-avant.png", async () => {
     await expect(pa.locator('[data-el="revenir-moyenne"]')).toBeFocused();
     await expect(pa.locator('[data-el="libelle-prix"]')).toHaveText("Mon prix");
@@ -531,12 +532,12 @@ histoireDef("US-3.7", "US-3.7 — Supprimer un trajet", async () => {
 histoireDef("US-3.P2", "US-3.P2 — Changer de voiture", async () => {
   await pa.locator("#voiture-marque").hover();
   await capture(pa, "US-3.P2-01-changer-de-voiture-avant.png", async () => {
-    await expect(pa.locator("#voiture-moteur")).toHaveText("208 (101ch) · mécanique");
+    await expect(pa.locator("#voiture-moteur .dd-txt")).toHaveText("208 (101ch) · mécanique");
     return "voiture mémorisée Peugeot 208 (101ch) mécanique, pointeur sur la marque";
   }, "une voiture est mémorisée");
   await choisirDansListe(pa, "voiture-marque", "Marque", "Renault");
-  await expect(pa.locator("#voiture-modele")).toHaveText("Modèle");
-  await expect(pa.locator("#voiture-moteur")).toHaveText("Motorisation");
+  await expect(pa.locator("#voiture-modele .dd-txt")).toHaveText("Modèle");
+  await expect(pa.locator("#voiture-moteur .dd-txt")).toHaveText("Motorisation");
   await expect(pa.locator('[data-el="voiture-memorisee"]')).toHaveCount(0);
   await expect.poll(async () => (await dbPreference(pa))?.marque).toBe("Renault");
   await capture(pa, "US-3.P2-02-changer-de-voiture-apres.png", async () => {
@@ -555,9 +556,9 @@ histoireDef("US-3.P2", "US-3.P2 — Changer de voiture", async () => {
   await expect.poll(async () => (await dbPreference(pa))?.vehicule_id).not.toBeNull();
   await pa.reload();
   await attendreFormulaire(pa);
-  await expect(pa.locator("#voiture-marque")).toHaveText("Renault", { timeout: 15000 });
-  await expect(pa.locator("#voiture-modele")).toHaveText("Clio");
-  await expect(pa.locator("#voiture-moteur")).toHaveText(libelle);
+  await expect(pa.locator("#voiture-marque .dd-txt")).toHaveText("Renault", { timeout: 15000 });
+  await expect(pa.locator("#voiture-modele .dd-txt")).toHaveText("Clio");
+  await expect(pa.locator("#voiture-moteur .dd-txt")).toHaveText(libelle);
   note("happy", `- ✓ nouvelle voiture complétée (Renault Clio « ${libelle} ») puis rechargement : la nouvelle voiture est pré-remplie, l'ancienne a disparu`);
   note("issues", SANS_ISSUE[0]);
 });
@@ -677,7 +678,8 @@ histoireDef("US-3.E3", "US-3.E3 — Historique vide", async () => {
     await expect(pb.getByRole("tab", { name: "Prix" })).toHaveAttribute("aria-selected", "true");
     return "nouvel identifiant anonyme, appli ouverte sur Prix, aucun trajet calculé";
   }, "aucun trajet calculé (nouvelle identité)", "edge");
-  await pb.getByRole("tab", { name: "Trajets" }).click();
+  await pb.getByRole("tab", { name: "Trajets" }).focus(); // ouverture au clavier (Entrée) : l'onglet garde son contour de focus
+  await pb.keyboard.press("Enter");
   await attendreFormulaire(pb);
   await expect(pb.locator('[data-el="historique-vide"]')).toBeVisible();
   await capture(pb, "US-3.E3-E1-02-resultat.png", async () => {
@@ -702,7 +704,7 @@ histoireDef("US-3.E3", "US-3.E3 — Historique vide", async () => {
   histoire("US-3.E2", "US-3.E2 — Formulaire incomplet");
   await remplirLieux(pb, "Albi", "Bordeaux");
   await capture(pb, "US-3.E2-E1-01-declencheur.png", async () => {
-    await expect(pb.locator("#voiture-marque")).toHaveText("Marque");
+    await expect(pb.locator("#voiture-marque .dd-txt")).toHaveText("Marque");
     expect(await rest("preferences?select=vehicule_id", s.jeton)).toEqual([]);
     return "départ et arrivée remplis, aucune voiture choisie (préférences vides pour cette identité)";
   }, "aucune voiture choisie", "edge");
@@ -748,7 +750,7 @@ histoireDef("TRANSVERSES", "Histoires transverses (US-A11Y-001 … 004)", async 
   histoire("US-A11Y-004", "US-A11Y-004 — Libellés lisibles");
   await pa.reload();
   await attendreFormulaire(pa);
-  await expect(pa.locator("#voiture-moteur")).not.toHaveText("Motorisation", { timeout: 15000 });
+  await expect(pa.locator("#voiture-moteur .dd-txt")).not.toHaveText("Motorisation", { timeout: 15000 });
   await remplirLieux(pa, "Albi", "Toulouse");
   await viderFocus(pa);
 

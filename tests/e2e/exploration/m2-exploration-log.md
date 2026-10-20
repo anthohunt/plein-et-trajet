@@ -23,3 +23,308 @@ Identités : chaque contexte de navigateur crée sa propre session anonyme Supab
 - FE: src/lib/donnees.ts:59 `moyennes_nationales` (jalon 1) lue avec la session anonyme → BE: migration du jalon 1 `to anon, authenticated` — OK (la session persistante ne casse pas la lecture) ; `rpc stations_autour` idem.
 - FE: src/lib/geocodage.ts `data.geopf.fr/geocodage/search?q=…&limit=…&index=address[&type=municipality]` (service IGN, sans clé) → réponse `features[].geometry.coordinates` [lon, lat] et `properties.{city,name,label,type,context}` — OK : « Alb » → Albi (commune) en tête, « zzzz » → `features: []`.
 - Rejeu complet de ces appels, un par un, par `tests/e2e/exploration/m2-contrat-api.mjs` (2 sessions anonymes réelles, 25 contrôles, tous OK).
+
+## US-3.1 — Ouvrir les trajets
+
+### Happy Path
+- ✓ `US-3.1-01-ouvrir-les-trajets-avant.png` — l'appli est sur l'onglet Prix — onglet Prix actif (liste des stations visible), écran Trajets absent
+- ✓ `US-3.1-02-ouvrir-les-trajets-apres.png` — je touche l'onglet Trajets : formulaire et historique — formulaire (départ, arrivée, voiture, Calculer le coût) et section « Derniers trajets » affichés
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-3.2 — Saisir le départ
+
+### Happy Path
+- ✓ `US-3.2-01-saisir-le-dpart-avant.png` — le champ départ est vide — champ départ vide, aucune proposition
+- ✓ `US-3.2-02-saisir-le-dpart-apres.png` — je tape « Alb » : des propositions de lieux apparaissent — « Alb » → 6 propositions réelles du géocodeur IGN : Albi, Albertville, Albert, Albias, Albigny-sur-Saône, Alby-sur-Chéran
+- ✓ je choisis « Albi » : le champ prend la valeur « Albi », la liste se ferme
+
+### Edge Case
+- ✓ saisie libre sans choisir : le lieu est résolu par le géocodeur au moment de Calculer (voir US-3.E1 pour le cas sans résultat)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-3.3 — Saisir l'arrivée
+
+### Happy Path
+- ✓ `US-3.3-01-saisir-l-arrive-avant.png` — le champ arrivée est vide — champ arrivée vide, départ = Albi
+- ✓ `US-3.3-02-saisir-l-arrive-apres.png` — je tape « Bord » : des propositions de lieux apparaissent — « Bord » → 6 propositions : Bordeaux, Bordères-sur-l'Échez, Bordes, Bords, Bordes, Bordères
+- ✓ je choisis « Bordeaux » : champ rempli, liste fermée
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-3.E4 — Voiture absente de la base
+
+### Happy Path
+- (rien à signaler)
+
+### Edge Case
+- ✓ `US-3.E4-E1-01-declencheur.png` — un modèle est choisi — Peugeot 208 choisie (modèle réel de la base ADEME), motorisation non choisie
+- ✓ `US-3.E4-E1-02-resultat.png` — j'ouvre la liste des motorisations : classées par puissance avec leur carburant, la plus proche de la moyenne en premier — 5 motorisations de la base ADEME ; puissance moyenne 74.8 kW → proposée en premier : « 208 (102ch) · mécaniquePROPOSÉE 75 kW · Gazole » ; les autres par puissance croissante ; chaque ligne donne kW et carburant
+- ✓ `US-3.E4-E1-03-retour.png` — retour à l'état normal : liste fermée — Échap referme la liste sans rien choisir : modèle 208 conservé, motorisation toujours vide, rien de mémorisé en trop
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-3.4 — Choisir ma voiture
+
+### Happy Path
+- ✓ `US-3.4-01-choisir-ma-voiture-avant.png` — aucune voiture mémorisée — aucune voiture : Marque / Modèle / Motorisation vides, aucune ligne dans `preferences` (RLS : celle de cette session)
+- ✓ `US-3.4-02-choisir-ma-voiture-apres.png` — Peugeot → 208 → 208 (101ch) mécanique : voiture enregistrée, carburant affiché — voiture enregistrée dans `preferences` (vehicule_id cee16562fa96aa16, carburant SP95-E10) ; carburant affiché : « SP95-E10 · 1090 kg » ; mention « Voiture mémorisée »
+- ✓ `US-3.4-03-choisir-ma-voiture-avant.png` — une voiture est mémorisée — voiture mémorisée visible sur l'écran Trajets (focus retiré du sélecteur)
+- ✓ `US-3.4-04-choisir-ma-voiture-apres.png` — je rouvre l'appli : le choix de voiture est pré-rempli — après rechargement complet de la page (même session anonyme conservée) : Peugeot / 208 / 208 (101ch) mécanique pré-remplis depuis `preferences`, carburant affiché ; départ et arrivée vides (rechargés à neuf)
+- ℹ conception : le client Supabase conserve la session anonyme dans le navigateur (`persistSession`, clé `pt-auth`) ; sans cela chaque rechargement créerait un nouvel identifiant et la voiture ne serait jamais retrouvée.
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-3.5 — Calculer le coût
+
+### Happy Path
+- ✓ `US-3.5-01-calculer-le-cot-avant.png` — départ, arrivée et voiture renseignés — départ Albi, arrivée Bordeaux, voiture Peugeot 208 (101ch) renseignés
+- ✗ `US-3.5-02-calculer-le-cot-apres.png` — je touche Calculer : coût, litres, km et L/100 km — expect(received).toBe(expected) // Object.is equality  Expected: "Albi → Bordeaux" Received: "ALBI → BORDEAUX"
+- ✓ historique enregistré en base : 1 trajet (Albi → Bordeaux, 316.7 km, coût 40.78 €, prix 2.16)
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-4.1 — Comprendre le calcul
+
+### Happy Path
+- ✓ `US-4.1-01-comprendre-le-calcul-avant.png` — un résultat est affiché : tronçons repliés — 3 tronçons, tous repliés
+- ✓ `US-4.1-02-comprendre-le-calcul-apres.png` — je touche un tronçon : vitesse typique, arrêts, dénivelé et L/100 km — tronçon déplié : « 105 km/h en moyenne · 0 arrêt · +1020 m de dénivelé · 5,9 L/100 km sur ce tronçon »
+- ✓ `US-4.1-03-comprendre-le-calcul-avant.png` — un tronçon est déplié — tronçon toujours déplié, focus clavier sur son bouton
+- ✓ `US-4.1-04-comprendre-le-calcul-apres.png` — je le touche à nouveau : il se replie — tronçon replié (activé de nouveau au clavier : Entrée)
+
+### Edge Case
+- ✓ 3 tronçons (autoroute, route, ville) : chacun se déplie séparément, l'ouverture d'un tronçon replie le précédent
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-4.2 — Mettre mon propre prix
+
+### Happy Path
+- ✓ `US-4.2-01-mettre-mon-propre-prix-avant.png` — résultat au prix moyen France — libellé « Moyenne France du jour · SP95-E10 », coût 40,78 €
+- ✓ `US-4.2-02-mettre-mon-propre-prix-apres.png` — je saisis 1,699 : coût recalculé, libellé « Mon prix » — libellé « Mon prix », coût 32,08 € = 18.9 L × 1,699 €/L (avant : 40,78 €)
+- ✗ `US-4.2-03-mettre-mon-propre-prix-avant.png` — un prix perso est saisi — expect(locator).toBeFocused() failed  Locator:  locator('[data-el="revenir-moyenne"]') Expected: focused
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- ✗ erreur d'exploration : expect(locator).toContainText(expected) failed  Locator: locator('[data-el="libelle-prix"]')
+
+## US-4.E2 — Prix perso invalide
+
+### Happy Path
+- (rien à signaler)
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- ✗ erreur d'exploration : locator.click: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('[data-el="mettre-mon-prix"]')[22m
+
+## US-4.3 — Revenir aux trajets
+
+### Happy Path
+- ✓ `US-4.3-01-revenir-aux-trajets-avant.png` — un résultat est affiché — résultat Albi → Bordeaux affiché au prix moyen
+- ✓ `US-4.3-02-revenir-aux-trajets-apres.png` — je touche le bouton retour : formulaire et trajet en tête de l'historique — formulaire affiché ; ligne de tête de l'historique : « Albi → Bordeaux 317 km · 20 oct. 40,78 € ✕ » (en base : 1 trajet) ; focus revenu sur le bouton Calculer qui avait ouvert le résultat
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-3.6 — Rejouer un ancien trajet
+
+### Happy Path
+- ✓ `US-3.6-01-rejouer-un-ancien-trajet-avant.png` — un trajet est dans l'historique — ligne d'historique « Albi → Bordeaux 317 km · 20 oct. » (enregistrée le 2026-10-20T14:13:25.255+00:00)
+- ✗ `US-3.6-02-rejouer-un-ancien-trajet-apres.png` — je touche la ligne : recalcul au prix moyen du jour, résultat affiché — expect(received).toBe(expected) // Object.is equality  Expected: "Albi → Bordeaux" Received: "ALBI → BORDEAUX"
+
+### Edge Case
+- ✓ après retour, le focus revient sur la ligne d'historique qui avait ouvert le résultat
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-3.P1 — Inverser départ et arrivée
+
+### Happy Path
+- ✓ `US-3.P1-01-inverser-dpart-et-arrive-avant.png` — départ Albi et arrivée Bordeaux — départ Albi, arrivée Bordeaux ; pointeur sur le bouton d'inversion « Inverser les deux lieux »
+- ✓ `US-3.P1-02-inverser-dpart-et-arrive-apres.png` — je touche le bouton d'inversion : départ Bordeaux, arrivée Albi — départ = Bordeaux, arrivée = Albi (coordonnées échangées aussi : le calcul suivant part bien de Bordeaux)
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-3.7 — Supprimer un trajet
+
+### Happy Path
+- (rien à signaler)
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- ✗ erreur d'exploration : expect(received).toBe(expected) // Object.is equality  Expected: "Bordeaux → Albi"
+
+## US-3.P2 — Changer de voiture
+
+### Happy Path
+- (rien à signaler)
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- ✗ erreur d'exploration : locator.hover: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('#voiture-marque')[22m
+
+## US-3.E1 — Lieu introuvable
+
+### Happy Path
+- (rien à signaler)
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- ✗ erreur d'exploration : locator.click: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('[data-el="champ-depart"]')[22m
+
+## US-4.E1 — Itinéraire impossible
+
+### Happy Path
+- (rien à signaler)
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- ✗ erreur d'exploration : locator.click: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('[data-el="champ-arrivee"]')[22m
+
+## US-4.E3 — Calcul trop long
+
+### Happy Path
+- (rien à signaler)
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- ✗ erreur d'exploration : locator.click: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('[data-el="champ-arrivee"]')[22m
+
+## US-3.E2 — Formulaire incomplet
+
+### Happy Path
+- (rien à signaler)
+
+### Edge Case
+- ✓ `US-3.E2-E1-01-declencheur.png` — aucune voiture choisie — départ et arrivée remplis, aucune voiture choisie (préférences vides pour cette identité)
+- ✓ `US-3.E2-E1-02-resultat.png` — je touche Calculer — « Choisis ta voiture » (role=alert), sélecteur de marque marqué invalide et focalisé ; aucun appel à estimer-trajet
+- ✓ `US-3.E2-E1-03-retour.png` — retour à l'état normal : voiture choisie — voiture choisie (Dacia Sandero) : le formulaire est complet, Calculer devient possible ; toujours aucun calcul lancé
+- ✓ départ vide : « Saisis un lieu » sur le champ départ, aucun appel à estimer-trajet
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-3.E3 — Historique vide
+
+### Happy Path
+- (rien à signaler)
+
+### Edge Case
+- ✓ `US-3.E3-E1-01-declencheur.png` — aucun trajet calculé (nouvelle identité) — nouvel identifiant anonyme, appli ouverte sur Prix, aucun trajet calculé
+- ✓ `US-3.E3-E1-02-resultat.png` — j'ouvre l'onglet Trajets — « Aucun trajet pour l'instant » + invitation « Choisis un départ, une arrivée et ta voiture, puis touche « Calculer le coût » : ton premier trajet apparaîtra ici. »
+- ✓ `US-3.E3-E1-03-retour.png` — retour à l'état normal : invitation toujours là, prêt à saisir — après un aller-retour Prix → Trajets : même état vide (base : 0 trajet pour cet identifiant) ; curseur dans le champ départ, prêt pour le premier trajet
+
+### Issues Found
+- (rien à signaler)
+
+## US-A11Y-001 — Navigation au clavier
+
+### Happy Path
+- ✓ `US-A11Y-001-01-m2.png` — S3 : Tab fait parcourir les contrôles dans l'ordre de lecture, contour visible — S3 — Tab depuis le haut : Départ → Inverser les deux lieux → Arrivée → Marque → Modèle → Motorisation → Calculer le coût (ordre de lecture = ordre du DOM, chaque contrôle avec contour ≥ 2 px et visible) ; focus actuellement sur « Calculer le coût »
+- ✓ suite de l'ordre sur S3 : Recalculer le trajet Bordeaux → Albi au prix du jour → Supprimer le trajet Bordeaux → Albi → Recalculer le trajet Albi → Bordeaux au prix du jour → Supprimer le trajet Albi → Bordeaux → Trajets ; Maj+Tab ramène exactement sur « Calculer le coût » (ordre inverse)
+- ✓ `US-A11Y-001-02-m2.png` — S4 : Tab parcourt prix perso et tronçons dans l'ordre, contour visible — S4 — depuis le titre, Tab : Mettre mon prix → Autoroute, 70,6 km, 3,6 litres ; contour visible sur le tronçon focalisé ; le bouton « Retour aux trajets » précède le titre (Maj+Tab)
+- ✓ suite complète de S4 : Mettre mon prix → Autoroute, 70,6 km, 3,6 litres → Route, 8,7 km, 0,5 litres → Ville, 7,3 km, 0,6 litres → Trajets (ordre du DOM, contours et visibilité vérifiés à chaque pas)
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-A11Y-002 — Focus de la fiche (interprétation : l'écran Résultat S4)
+
+### Happy Path
+- ✓ `US-A11Y-002-01-m2.png` — S4 s'ouvre : le focus va sur son titre — S4 ouvert au clavier (Entrée sur « Calculer le coût ») : le focus va sur le titre « ALBI → TOULOUSE » (souligné) ; le bouton Calculer n'existe plus à l'écran
+- ✓ `US-A11Y-002-02-m2.png` — à la fermeture, le focus revient sur l'élément qui l'a ouvert — S4 fermé au clavier (Entrée sur « Retour aux trajets ») : le focus revient sur « Calculer le coût », l'élément qui avait ouvert le résultat, contour visible
+
+### Edge Case
+- ✓ la fiche station (jalon 1) garde ses règles : titre focalisé à l'ouverture, retour du focus, Échap (rejoué par tests/e2e/m1-explore.spec.ts)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-A11Y-003 — Touche Échap
+
+### Happy Path
+- ✓ `US-A11Y-003-01-m2.png` — un tronçon est déplié — un tronçon est déplié au clavier : « 96 km/h en moyenne · 0 arrêt · +320 m de dénivelé · 5,2 L/100 km sur ce tronçon »
+- ✓ `US-A11Y-003-02-m2.png` — Échap ferme le tronçon déplié — Échap : le tronçon se replie, le focus reste sur son bouton
+
+### Edge Case
+- ✓ Échap ferme aussi l'éditeur « Mettre mon prix » (focus rendu au bouton) ; sur S3, Échap ferme la liste de propositions de lieux et la liste de motorisations (US-3.E4-03, extrait US-A11Y-003)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-A11Y-004 — Libellés lisibles
+
+### Happy Path
+- ✓ `US-A11Y-004-01-m2.png` — S3 : chaque contrôle et chaque bouton icône a un libellé — S3 : 7 contrôles du formulaire nommés (Départ, Arrivée, Inverser les deux lieux, Marque, Modèle, Motorisation, Calculer le coût), 0 bouton ou champ sans nom ; boutons de l'historique : « Recalculer le trajet Bordeaux → Albi au prix du jour » ; « Supprimer le trajet Bordeaux → Albi » ; « Recalculer le trajet Albi → Bordeaux au prix du jour » ; « Supprimer le trajet Albi → Bordeaux » ; la croix ✕ et le ⇅ sont masqués aux lecteurs (aria-hidden) au profit de l'aria-label
+- ✓ `US-A11Y-004-02-m2.png` — S4 : chaque prix et chaque tronçon est annoncé en entier — S4 : coût annoncé « Coût estimé 10,04 euros », prix « 2,160 euros le litre », bouton retour « Retour aux trajets », tronçons « Autoroute, 70,6 km, 3,6 litres ; Route, 8,7 km, 0,5 litres ; Ville, 7,3 km, 0,6 litres » (type, km et litres, sans doublon de lecture) ; le bandeau orange est une annotation de test
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-PERF-001 — Ouverture rapide
+
+### Happy Path
+- ✓ `US-PERF-001-01-m2.png` — j'ouvre l'appli sur l'écran Trajets (4G simulée) — navigation vers /trajets lancée en 4G simulée, cache désactivé, t=124 ms
+- ✓ `US-PERF-001-02-m2.png` — l'écran est utilisable en moins de 2,5 s — Trajets prêt (formulaire, Marque
+▾, historique chargé) en 670 ms < 2 500 ms ; l'écran Prix mesuré à côté : 928 ms
+
+### Edge Case
+- ✓ contrôle : l'écran Prix (jalon 1) affiche sa liste en 928 ms en 4G simulée, session neuve
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## Contrôles de fin de passe
+
+- Captures écrites : 44 ; en échec : 3 (US-3.5-02-calculer-le-cot-apres.png, US-4.2-03-mettre-mon-propre-prix-avant.png, US-3.6-02-rejouer-un-ancien-trajet-apres.png).
+- Fichiers M2 présents dans delivery/ : 44 ; doublons d'octets (md5) : US-3.1-02-ouvrir-les-trajets-apres.png = US-3.E3-E1-02-resultat.png ; US-3.5-02-calculer-le-cot-apres.png = US-4.1-01-comprendre-le-calcul-avant.png.
+- Erreurs console / page observées pendant la passe : A : console.error « Failed to load resource: the server responded with a status of 400 () » ; A : console.error « vi: AJAXError:  (400): https://data.geopf.fr/tms/1.0.0/PLAN.IGN/metadata.json
+    at https://plein-et-trajet.vercel.app/ ».

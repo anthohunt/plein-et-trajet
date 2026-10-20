@@ -100,6 +100,7 @@ export function ListeDeroulante({ id, nom, placeholder, options, valeur, onChoix
         role="combobox"
         className={"dd-btn" + (courante ? "" : " vide")}
         aria-label={nom}
+        title={courante?.libelle}
         aria-haspopup="listbox"
         aria-expanded={ouvert}
         aria-controls={idListe}

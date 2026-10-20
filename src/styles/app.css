@@ -193,3 +193,4 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 .hrow .x:hover { color: var(--ink); border-color: var(--ink); }
 .swap:hover, .dd-btn:hover:not(:disabled) { border-color: var(--ink); }
 .rejoue { margin: 4px 16px 0; font-size: 13px; color: var(--muted); }
+.tr > button:hover { background: color-mix(in srgb, var(--ink) 4%, transparent); }

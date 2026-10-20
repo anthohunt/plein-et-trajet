@@ -93,7 +93,7 @@ export async function calculer(page, { attendre = "ok" } = {}) {
 export async function lireResultat(page) {
   const t = (s) => page.locator(s).first().innerText();
   return {
-    route: (await t('[data-el="route-titre"]')).replace(/\s+/g, " ").trim(),
+    route: ((await page.locator('[data-el="route-titre"]').first().textContent()) ?? "").replace(/\s+/g, " ").trim(),
     voiture: await t('[data-el="voiture-resultat"]'),
     cout: Number(await page.locator('[data-el="cout"] [data-cout]').getAttribute("data-cout")),
     litres: nombreFr(await t('[data-el="kpi-litres"]')),
