@@ -51,6 +51,9 @@ function disposer(map: maplibregl.Map, marques: Marque[]) {
     return { x1: r.left - cadre.left, x2: r.right - cadre.left, y1: r.top - cadre.top, y2: r.bottom - cadre.top };
   });
   const places: { x1: number; y1: number; x2: number; y2: number }[] = [];
+  // zone très dense (plus de 80 stations) à petite échelle : les pastilles qui ne trouvent pas de place à moins de 24 px de leur station
+  // sont masquées (elles restent dans la liste et reparaissent en zoomant) au lieu de former un amas de tiges illisible
+  const dense = marques.length > 80 && map.getZoom() < 13.5;
   // les moins chères d'abord : elles gardent la place la plus proche de leur station
   for (const q of marques.slice().sort((a, b) => a.prix - b.prix)) {
     const pt = map.project(q.m.getLngLat());
@@ -59,8 +62,17 @@ function disposer(map: maplibregl.Map, marques: Marque[]) {
     let decalage = 0;
     const rect = () => ({ x1: pt.x - w / 2 - 1, x2: pt.x + w / 2 + 1, y2: pt.y - TIGE - decalage + 1, y1: pt.y - TIGE - decalage - h - 1 });
     const chevauche = (r: ReturnType<typeof rect>) => places.some((o) => r.x1 < o.x2 && r.x2 > o.x1 && r.y1 < o.y2 && r.y2 > o.y1);
-    while (chevauche(rect()) && decalage < 160) decalage += 3;
+    while (chevauche(rect()) && decalage < (dense ? 24 : 160)) decalage += 3;
     const r = rect();
+    const masquee = dense && chevauche(r);
+    q.bouton.parentElement?.setAttribute("data-masquee", masquee ? "oui" : "non");
+    if (masquee) {
+      q.tige.style.height = `${TIGE}px`;
+      q.bouton.tabIndex = -1;
+      q.bouton.setAttribute("aria-hidden", "true");
+      q.bouton.dataset.horsCadre = "oui";
+      continue;
+    }
     places.push(r);
     q.tige.style.height = `${TIGE + decalage}px`;
     const dedans =

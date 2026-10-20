@@ -227,3 +227,4 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 .stt.ko { background: color-mix(in srgb, var(--dear) 18%, transparent); color: var(--dear); }
 .stt.wait { background: color-mix(in srgb, var(--muted) 18%, transparent); color: var(--muted); }
 .lien-cle a { color: var(--ink); font-weight: 600; text-underline-offset: 3px; }
+.pin-wrap[data-masquee="oui"], .pin-wrap[data-masquee="oui"] .pin { opacity: 0; pointer-events: none; }
