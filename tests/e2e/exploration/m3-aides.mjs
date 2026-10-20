@@ -152,18 +152,53 @@ export async function injecterCle(fournisseur, cle) {
   return r.json();
 }
 
-/** Total des péages TTC d'un trajet, recalculé à part : appel direct à PTV (clé lue en mémoire) + TVA du pays de chaque section. */
-export async function totalPeagesPtvDirect(cle, a, b) {
+/** Clé d'un fournisseur lue en mémoire (moteur_cle, rôle service) ; jamais écrite nulle part. */
+export async function cleEnMemoire(fournisseur) {
+  const r = await rpcService("moteur_cle", { p_fournisseur: fournisseur });
+  const c = await r.json();
+  return typeof c === "string" && c ? c : null;
+}
+// ---- recalcul INDÉPENDANT des péages sur le tracé (round 4) : ni le code des Edge Functions, ni leur échantillonnage ----
+function decoder6(s) {
+  const pts = [];
+  let i = 0, lat = 0, lon = 0;
+  const lire = () => { let r = 0, k = 0, b; do { b = s.charCodeAt(i++) - 63; r |= (b & 31) << k; k += 5; } while (b >= 32); return r & 1 ? ~(r >> 1) : r >> 1; };
+  while (i < s.length) { lat += lire(); lon += lire(); pts.push({ lat: lat / 1e6, lon: lon / 1e6 }); }
+  return pts;
+}
+const kmEntre = (a, b) => { const r = Math.PI / 180, x = (b.lon - a.lon) * r * Math.cos(((a.lat + b.lat) / 2) * r), y = (b.lat - a.lat) * r; return 6371 * Math.hypot(x, y); };
+/** Points du tracé tous les ~L/(n+1) km (n ≤ 23 : PTV accepte 25 waypoints) — écrit à part, approximation équirectangulaire. */
+function jalons(trace, n) {
+  const cumul = [0];
+  for (let i = 1; i < trace.length; i++) cumul.push(cumul[i - 1] + kmEntre(trace[i - 1], trace[i]));
+  const L = cumul.at(-1), out = [];
+  for (let k = 1; k <= n; k++) { const c = (k * L) / (n + 1); const j = cumul.findIndex((x) => x >= c); out.push(trace[Math.max(1, j)]); }
+  return { km: L, points: out };
+}
+/** Tracé de l'appli recalculé à part (appel direct à Stadia, même fournisseur que la prod) puis péages PTV sur ce tracé + TVA du pays.
+ *  Rend aussi les noms des voies du tracé (manœuvres Stadia) et les libellés des sections de péage, pour comparer les deux. */
+export async function peagesSurTraceDirect(a, b) {
+  const [ptv, stadia] = [await cleEnMemoire("ptv"), await cleEnMemoire("stadia")];
+  if (!ptv || !stadia) throw new Error("clé PTV ou Stadia absente de Vault");
+  const [f] = (await restService("fournisseurs?id=eq.stadia&select=url,chemin_route")).corps;
+  const rr = await fetch(f.url.replace(/\/$/, "") + f.chemin_route, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Stadia-Auth ${stadia}` }, body: JSON.stringify({ locations: [{ lat: a.lat, lon: a.lon }, { lat: b.lat, lon: b.lon }], costing: "auto", directions_options: { units: "kilometers" } }) });
+  if (!rr.ok) throw new Error(`Stadia direct ${rr.status}`);
+  const trip = (await rr.json()).trip;
+  const trace = decoder6(trip.legs[0].shape);
+  const voies = [...new Set(trip.legs[0].maneuvers.flatMap((m) => m.street_names ?? []))];
+  const { points } = jalons(trace, Math.min(23, Math.floor(Number(trip.summary.length) / 25)));
   const q = new URLSearchParams();
   q.append("waypoints", `${a.lat},${a.lon}`);
+  for (const p of points) q.append("waypoints", `${p.lat},${p.lon};radius=500`);
   q.append("waypoints", `${b.lat},${b.lon}`);
   q.set("profile", "EUR_CAR");
   q.set("results", "TOLL_COSTS,TOLL_SECTIONS,TOLL_SYSTEMS");
   q.set("options[currency]", "EUR");
-  const r = await fetch(`https://api.myptv.com/routing/v1/routes?${q}`, { headers: { apiKey: cle } });
+  const r = await fetch(`https://api.myptv.com/routing/v1/routes?${q}`, { headers: { apiKey: ptv } });
   if (!r.ok) throw new Error(`PTV direct ${r.status}`);
-  const j = await r.json();
-  const tva = Object.fromEntries((await rest("pays?select=code,tva")).map((x) => [x.code, Number(x.tva)]));
+  return { ...ttcPtv(await r.json(), Object.fromEntries((await rest("pays?select=code,tva")).map((x) => [x.code, Number(x.tva)]))), km: Number(trip.summary.length), voies };
+}
+function ttcPtv(j, tva) {
   let total = 0;
   const lignes = [];
   for (const s of j.toll.sections) {
@@ -172,8 +207,8 @@ export async function totalPeagesPtvDirect(cle, a, b) {
     const eur = liste.map((c) => (c.currency === "EUR" ? c.price : c.convertedPrice?.price)).filter((x) => typeof x === "number");
     const ht = eur.length ? Math.min(...eur) : 0;
     const ttc = ht === 0 ? 0 : Math.round(ht * (1 + tva[String(s.countryCode).slice(0, 2)] / 100) * 100) / 100;
-    lignes.push(ttc);
+    lignes.push({ pays: String(s.countryCode).slice(0, 2), libelle: [j.toll.systems?.[s.tollSystemIndex]?.name, s.displayName].filter(Boolean).join(" · "), ttc });
     total += ttc;
   }
-  return { total: Math.round(total * 100) / 100, sections: lignes.length };
+  return { total: Math.round(total * 100) / 100, sections: lignes.length, lignes };
 }

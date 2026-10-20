@@ -18,7 +18,7 @@ import {
 import { etapesDepuisAretes, pointEnFrance, vignettesTraversees } from "../_shared/europe.ts";
 import { executerChaine, lireCle, lireMoteur, noterBascule, noterIncident, type Essai } from "../_shared/moteurs.ts";
 import { ErreurItineraire, connexionDepuisFournisseur, routeValhalla, type RouteValhalla } from "../_shared/itineraire-europe.ts";
-import { ErreurPeages, peagesHere, peagesPtv, totalPeages, type LignePeage } from "../_shared/peages.ts";
+import { ErreurPeages, peagesHere, peagesPtv, pointsDePassage, totalPeages, type LignePeage } from "../_shared/peages.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -99,7 +99,7 @@ async function altitudes(pts: PointGeo[]): Promise<(number | null)[]> {
 }
 
 /** Itinéraire IGN (trajet 100 % France) : étapes avec dénivelé de l'altimétrie IGN. */
-async function itineraireIgn(depart: PointGeo, arrivee: PointGeo, avertissements: string[]): Promise<{ etapes: Etape[]; duree_s: number }> {
+async function itineraireIgn(depart: PointGeo, arrivee: PointGeo, avertissements: string[]): Promise<{ etapes: Etape[]; duree_s: number; trace: PointGeo[] }> {
   const urlIt =
     `${URL_ITINERAIRE}?resource=bdtopo-osrm&start=${depart.lon},${depart.lat}&end=${arrivee.lon},${arrivee.lat}` +
     `&profile=car&optimization=fastest&getSteps=true&geometryFormat=geojson&crs=EPSG:4326`;
@@ -132,10 +132,11 @@ async function itineraireIgn(depart: PointGeo, arrivee: PointGeo, avertissements
     manoeuvre: s.instruction?.type ?? "",
     denivele_m: denivs[i] ?? 0,
   }));
-  return { etapes, duree_s: nombre(ign.duration) ? (ign.duration as number) : 0 };
+  return { etapes, duree_s: nombre(ign.duration) ? (ign.duration as number) : 0, trace: geom.flat() };
 }
 
-/** Péages : fournisseur actif puis secours (table moteurs + Vault) ; l'échec n'empêche jamais le coût carburant. */
+/** Péages : fournisseur actif puis secours (table moteurs + Vault) ; l'échec n'empêche jamais le coût carburant.
+ *  Tarifés sur LE tracé affiché : points de passage échantillonnés sur ce tracé (pointsDePassage), envoyés à PTV/HERE. */
 interface ResPeages {
   etat: "ok" | "indisponible";
   motif?: string;
@@ -157,10 +158,11 @@ function identiteDuJeton(req: Request): string {
   }
 }
 async function calculerPeages(// deno-lint-ignore no-explicit-any
-  db: any, depart: PointGeo, arrivee: PointGeo, tva: Record<string, number>, identite: string): Promise<ResPeages> {
+  db: any, depart: PointGeo, arrivee: PointGeo, tva: Record<string, number>, identite: string, trace: PointGeo[]): Promise<ResPeages> {
   const { data: autorise } = await db.rpc("quota_peages_reserver", { p_identite: identite, p_max_identite: QUOTA_IDENTITE, p_max_global: QUOTA_GLOBAL });
   if (autorise === false) return { etat: "indisponible", motif: "quota_atteint", fournisseur: null, lignes: [], total: 0 };
   const m = await lireMoteur(db, "peages");
+  const passages = pointsDePassage(trace);
   const essais: Essai<LignePeage[]>[] = [];
   for (const f of [m.actif, m.secours].filter((x): x is string => !!x)) {
     essais.push({
@@ -168,8 +170,8 @@ async function calculerPeages(// deno-lint-ignore no-explicit-any
       appel: async () => {
         const cle = await lireCle(db, f);
         if (!cle) throw new ErreurPeages("cle_manquante");
-        if (f === "ptv") return await peagesPtv(cle, depart, arrivee, tva);
-        if (f === "here") return await peagesHere(cle, depart, arrivee);
+        if (f === "ptv") return await peagesPtv(cle, depart, arrivee, tva, passages);
+        if (f === "here") return await peagesHere(cle, depart, arrivee, passages);
         throw new ErreurPeages("aucun_fournisseur");
       },
     });
@@ -264,6 +266,7 @@ Deno.serve(async (req) => {
   let aPeage: boolean;
   let fournisseurItineraire: string;
   let kmAutoroute: Record<string, number> = {};
+  let trace: PointGeo[] = [];
   const france = pointEnFrance(depart.lat, depart.lon) && pointEnFrance(arrivee.lat, arrivee.lon);
   try {
     if (france) {
@@ -271,6 +274,7 @@ Deno.serve(async (req) => {
       etapesParPays = [["FR", r.etapes]];
       aPeage = r.etapes.some((e) => /^A\d/i.test(e.numero)); // aucune autoroute numérotée : aucun péage
       fournisseurItineraire = "itineraire-ign";
+      trace = r.trace;
       kmAutoroute = { FR: r.etapes.filter((e) => /^A\d/i.test(e.numero)).reduce((s, e) => s + e.distance_m / 1000, 0) };
     } else {
       const { route, fournisseur } = await itineraireEurope(db, depart, arrivee);
@@ -279,6 +283,7 @@ Deno.serve(async (req) => {
       etapesParPays = e.etapesParPays;
       aPeage = Object.values(e.kmPeageParPays).reduce((s, x) => s + x, 0) > 0.2;
       fournisseurItineraire = fournisseur;
+      trace = route.trace;
       kmAutoroute = e.kmAutorouteParPays;
     }
   } catch (e) {
@@ -304,7 +309,7 @@ Deno.serve(async (req) => {
   if (!aPeage) peages = { etat: "ok", fournisseur: null, lignes: [], total: 0 };
   else {
     try {
-      peages = await calculerPeages(db, depart, arrivee, tva, identiteDuJeton(req));
+      peages = await calculerPeages(db, depart, arrivee, tva, identiteDuJeton(req), trace);
     } catch {
       peages = { etat: "indisponible", motif: "indisponible", fournisseur: null, lignes: [], total: 0 };
     }

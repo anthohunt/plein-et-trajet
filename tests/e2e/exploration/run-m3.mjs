@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   BARCELONE, BRUXELLES, RACINE, URL_APP, ALBI, OPTIONS_CONTEXTE, appelerMoteurs, attendreAnimations, attendreFormulaire, calculer, carte, champ, choisirVoiture, connecterAdmin,
-  S4, adminsEphemeresRestants, carburantAffiche, creerAdminEphemere, empreinteCles, supprimerAdminsEphemeres, env, etatCarte, etatFocus, injecterCle, lireEtatReel, restaurerEtatReel, supprimerClesFausses, totalPeagesPtvDirect, verifierFournisseurs, lignesListe, lireResultat, moyenneDuJour, nombre, ouvrirMoteurs, ouvrirTrajets, propositions, reinitialiserMoteurs, rest, restService,
+  S4, adminsEphemeresRestants, carburantAffiche, creerAdminEphemere, empreinteCles, supprimerAdminsEphemeres, env, etatCarte, etatFocus, injecterCle, lireEtatReel, restaurerEtatReel, supprimerClesFausses, peagesSurTraceDirect, verifierFournisseurs, lignesListe, lireResultat, moyenneDuJour, nombre, ouvrirMoteurs, ouvrirTrajets, propositions, reinitialiserMoteurs, rest, restService,
   saisirLieu, session, sha, sqlGestion, virgule,
 } from "./m3-aides.mjs";
 
@@ -242,9 +242,9 @@ histoireDef("US-4.4", "US-4.4 — Voir les péages", async () => {
     expect(nombre(split.match(/Carburant ([\d,]+) €/)[1]) + nombre(split.match(/Péages ([\d,]+) €/)[1])).toBeCloseTo(await cout(pa), 2);
     let verif = "";
     if (ETAT_REEL.cles.ptv) {
-      const d = await totalPeagesPtvDirect(ETAT_REEL.cles.ptv, { lat: 43.9289, lon: 2.1464 }, { lat: 41.3874, lon: 2.1686 });
+      const d = await peagesSurTraceDirect({ lat: 43.9289, lon: 2.1464 }, { lat: 41.3874, lon: 2.1686 });
       expect(nombre(totalLigne.montant)).toBeCloseTo(d.total, 2);
-      verif = ` ; recalcul indépendant par appel direct à PTV + TVA du pays : ${virgule(d.total)} € sur ${d.sections} sections = total affiché`;
+      verif = ` ; recalcul indépendant SUR LE TRACÉ (Stadia direct ${Math.round(d.km)} km, échantillonné à part, puis PTV direct + TVA du pays) : ${virgule(d.total)} € sur ${d.sections} sections = total affiché`;
     }
     return `${lignes.length} sections : ${lignes.map((x) => `${x.texte.slice(0, 2)} ${x.montant}`).join(", ")} ; total ${totalLigne.montant} ; ${split}${verif}`;
   }, "détail des péages : chaque section en euros TTC (« gratuit » si 0), total ajouté au coût");

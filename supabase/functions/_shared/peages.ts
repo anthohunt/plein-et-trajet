@@ -3,6 +3,11 @@
 //  • PTV  GET https://api.myptv.com/routing/v1/routes?waypoints=lat,lon&waypoints=…&profile=EUR_CAR&results=TOLL_COSTS,TOLL_SECTIONS,TOLL_SYSTEMS&options[currency]=EUR
 //         en-tête `apiKey` ; réponse { toll: { costs, sections:[{costs:[{price,currency,paymentMethods,convertedPrice}],countryCode,displayName,tollSystemIndex}], systems:[{name,operatorName}] } } — « Toll prices do not include VAT ».
 //  • HERE GET https://router.hereapi.com/v8/routes?transportMode=car&origin=lat,lon&destination=lat,lon&return=tolls&currency=EUR&tolls[vignettes]=all&apiKey=…
+// Le péage est tarifé sur LE tracé affiché (celui du carburant) : des points de passage pris sur ce tracé sont envoyés au fournisseur.
+//  • PTV  : waypoint intermédiaire `lat,lon;radius=<m>` = « route-manipulation waypoint » (OpenAPI routing v1, paramètre `waypoints` :
+//           « influences the route path, so that the route passes an area defined by the given radius ») ; au plus 25 waypoints par requête
+//           (base de connaissances PTV, KA-05503 ; erreur ROUTING_TOO_MANY_WAYPOINTS au-delà) → départ + arrivée + 23 passages.
+//  • HERE : `via=lat,lon!passThrough=true` (Routing v8, « passthrough waypoint : changes the shape of the route only »).
 //         réponse { routes:[{ sections:[{ tolls:[{countryCode(alpha-3), tollSystem, fares:[{name, price:{currency,value}, convertedPrice, paymentMethods}]}] }] }] }
 export interface LignePeage {
   pays: string; // ISO alpha-2
@@ -150,13 +155,59 @@ function erreurHttp(status: number): ErreurPeages {
   return new ErreurPeages("indisponible", status);
 }
 
-export async function peagesPtv(cle: string, a: Point, b: Point, tvaParPays: Record<string, number>): Promise<LignePeage[]> {
+export const PASSAGES_MAX = 23; // PTV : 25 waypoints au plus, départ et arrivée compris
+export const PAS_PASSAGES_KM = 25; // un point de passage tous les 25 km au plus serré (resserré par PASSAGES_MAX sur les longs trajets)
+export const RAYON_PASSAGE_M = 500; // le tracé du fournisseur passe à moins de 500 m de chaque point
+
+const RAYON_TERRE_KM = 6371.0088;
+function km(a: Point, b: Point): number {
+  const r = Math.PI / 180;
+  const dLat = (b.lat - a.lat) * r;
+  const dLon = (b.lon - a.lon) * r;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
+  return 2 * RAYON_TERRE_KM * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+/** Points de passage régulièrement espacés le long du tracé (départ et arrivée exclus) : n = min(max, ⌊longueur / pas⌋),
+ *  le i-ième à i × longueur / (n + 1) du départ, interpolé sur le segment qui le contient. Pur : testé sans réseau. */
+export function pointsDePassage(trace: Point[], max = PASSAGES_MAX, pasKm = PAS_PASSAGES_KM): Point[] {
+  if (trace.length < 2 || max <= 0) return [];
+  const cumul = [0];
+  for (let i = 1; i < trace.length; i++) cumul.push(cumul[i - 1] + km(trace[i - 1], trace[i]));
+  const total = cumul[cumul.length - 1];
+  const n = Math.min(max, Math.floor(total / pasKm));
+  const out: Point[] = [];
+  let j = 1;
+  for (let i = 1; i <= n; i++) {
+    const cible = (i * total) / (n + 1);
+    while (j < trace.length - 1 && cumul[j] < cible) j++;
+    const seg = cumul[j] - cumul[j - 1];
+    const t = seg > 0 ? (cible - cumul[j - 1]) / seg : 0;
+    const a = trace[j - 1], b = trace[j];
+    out.push({ lat: Math.round((a.lat + t * (b.lat - a.lat)) * 1e6) / 1e6, lon: Math.round((a.lon + t * (b.lon - a.lon)) * 1e6) / 1e6 });
+  }
+  return out;
+}
+
+/** Requête PTV : départ, points de passage (route-manipulation, rayon), arrivée. */
+export function requetePtv(a: Point, b: Point, passages: Point[] = []): URLSearchParams {
   const q = new URLSearchParams();
   q.append("waypoints", `${a.lat},${a.lon}`);
+  for (const p of passages.slice(0, PASSAGES_MAX)) q.append("waypoints", `${p.lat},${p.lon};radius=${RAYON_PASSAGE_M}`);
   q.append("waypoints", `${b.lat},${b.lon}`);
   q.set("profile", "EUR_CAR");
   q.set("results", "TOLL_COSTS,TOLL_SECTIONS,TOLL_SYSTEMS");
   q.set("options[currency]", "EUR");
+  return q;
+}
+/** Requête HERE : départ, points de passage (passThrough : ne coupent pas le trajet), arrivée. */
+export function requeteHere(cle: string, a: Point, b: Point, passages: Point[] = []): URLSearchParams {
+  const q = new URLSearchParams({ transportMode: "car", origin: `${a.lat},${a.lon}`, destination: `${b.lat},${b.lon}`, return: "tolls", currency: "EUR", "tolls[vignettes]": "all", apiKey: cle });
+  for (const p of passages.slice(0, PASSAGES_MAX)) q.append("via", `${p.lat},${p.lon}!passThrough=true`);
+  return q;
+}
+
+export async function peagesPtv(cle: string, a: Point, b: Point, tvaParPays: Record<string, number>, passages: Point[] = []): Promise<LignePeage[]> {
+  const q = requetePtv(a, b, passages);
   const r = await appel(`https://api.myptv.com/routing/v1/routes?${q}`, { headers: { apiKey: cle } });
   if (!r.ok) throw erreurHttp(r.status);
   let j: ReponsePtv;
@@ -168,8 +219,8 @@ export async function peagesPtv(cle: string, a: Point, b: Point, tvaParPays: Rec
   return lignesDepuisPtv(j, tvaParPays);
 }
 
-export async function peagesHere(cle: string, a: Point, b: Point): Promise<LignePeage[]> {
-  const q = new URLSearchParams({ transportMode: "car", origin: `${a.lat},${a.lon}`, destination: `${b.lat},${b.lon}`, return: "tolls", currency: "EUR", "tolls[vignettes]": "all", apiKey: cle });
+export async function peagesHere(cle: string, a: Point, b: Point, passages: Point[] = []): Promise<LignePeage[]> {
+  const q = requeteHere(cle, a, b, passages);
   const r = await appel(`https://router.hereapi.com/v8/routes?${q}`, {});
   if (!r.ok) throw erreurHttp(r.status);
   let j: ReponseHere;

@@ -76,6 +76,7 @@ export interface RouteValhalla {
   km: number;
   aretes: Arete[];
   admins: AdminValhalla[];
+  trace: { lat: number; lon: number }[]; // tracé affiché (forme /route décodée) : sert aussi à tarifer les péages
 }
 
 export async function routeValhalla(c: ConnexionValhalla, a: { lat: number; lon: number }, b: { lat: number; lon: number }): Promise<RouteValhalla> {
@@ -83,7 +84,8 @@ export async function routeValhalla(c: ConnexionValhalla, a: { lat: number; lon:
   const trip = j?.trip;
   const forme = trip?.legs?.[0]?.shape;
   if (!trip || trip.status !== 0 || typeof forme !== "string" || !(trip.summary?.length > 0)) throw new ErreurItineraire("pas_itineraire");
-  const morceaux = decouperTrace(decoderPolyline6(forme)); // ≤ 14 000 points et ≤ 800 km par morceau
+  const pts = decoderPolyline6(forme);
+  const morceaux = decouperTrace(pts); // ≤ 14 000 points et ≤ 800 km par morceau
   const aretes: Arete[] = [];
   const admins: AdminValhalla[] = [];
   const index = new Map<string, number>();
@@ -109,5 +111,5 @@ export async function routeValhalla(c: ConnexionValhalla, a: { lat: number; lon:
     });
     for (const e of t.edges as Arete[]) aretes.push({ ...e, end_node: { admin_index: local[e.end_node?.admin_index ?? 0] ?? 0 } });
   }
-  return { duree_s: Number(trip.summary.time) || 0, km: Number(trip.summary.length), aretes, admins };
+  return { duree_s: Number(trip.summary.time) || 0, km: Number(trip.summary.length), aretes, admins, trace: pts.map(([lat, lon]) => ({ lat, lon })) };
 }

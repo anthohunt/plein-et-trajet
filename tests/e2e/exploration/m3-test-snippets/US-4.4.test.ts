@@ -1,4 +1,4 @@
-import { test, expect, formulaire, ALBI_, BARCELONE_, CASTRES, calculer, lireResultat, lignesListe, cout, nombre, env, totalPeagesPtvDirect } from "./_aides";
+import { test, expect, formulaire, ALBI_, BARCELONE_, CASTRES, MILAN, calculer, lignesListe, cout, nombre, peagesSurTraceDirect, cleEnMemoire } from "./_aides";
 
 test.describe("US-4.4 — Voir les péages", () => {
   test.describe("Happy Path", () => {
@@ -27,15 +27,23 @@ test.describe("US-4.4 — Voir les péages", () => {
       expect(nombre(split.match(/Carburant ([\d,]+) €/)![1]) + total).toBeCloseTo(await cout(page), 2);
       await expect(page.locator('[data-el="peages-indisponibles"]')).toHaveCount(0);
     });
-    test("US-4.4 — le total affiché égale un recalcul indépendant : appel direct à PTV (clé lue en mémoire) + TVA du pays", async ({ page }) => {
-      const cle = (await (await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/moteur_cle`, { method: "POST", headers: { apikey: env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify({ p_fournisseur: "ptv" }) })).json()) as string | null;
-      test.skip(!cle, "aucune clé PTV enregistrée : le manager doit la remettre");
-      await formulaire(page, ALBI_, BARCELONE_);
-      await calculer(page);
-      const l = await lignesListe(page, "detail-peages");
-      const d = await totalPeagesPtvDirect(cle, { lat: 43.9289, lon: 2.1464 }, { lat: 41.3874, lon: 2.1686 });
-      expect(nombre(l.find((x: any) => /Total péages/.test(x.texte)).montant)).toBeCloseTo(d.total, 2);
-    });
+    // Recalcul INDÉPENDANT (round 4) : le tracé est redemandé à Stadia (même fournisseur que la prod), échantillonné par un code écrit à part,
+    // puis tarifé par un appel direct à PTV (clés lues en mémoire) + TVA du pays. Il ne réutilise ni la requête ni le code de l'Edge Function.
+    for (const [nom, arrivee, point] of [["Barcelone", BARCELONE_, { lat: 41.3874, lon: 2.1686 }], ["Milan", MILAN, { lat: 45.4642, lon: 9.19 }]] as const) {
+      test(`US-4.4 — Albi → ${nom} : péages tarifés sur LE tracé affiché (recalcul indépendant sur le tracé, mêmes sections, pas de Fréjus hors tracé)`, async ({ page }) => {
+        test.skip(!(await cleEnMemoire("ptv")) || !(await cleEnMemoire("stadia")), "clé PTV ou Stadia absente : le manager doit la remettre");
+        await formulaire(page, ALBI_, arrivee);
+        await calculer(page);
+        const l = await lignesListe(page, "detail-peages");
+        const d = await peagesSurTraceDirect({ lat: 43.9289, lon: 2.1464 }, point);
+        expect(nombre(l.find((x: any) => /Total péages/.test(x.texte)).montant)).toBeCloseTo(d.total, 2);
+        const affichees = l.filter((x: any) => /^[A-Z]{2} /.test(x.texte) && !/Total péages/.test(x.texte)).map((x: any) => x.texte);
+        expect(affichees).toHaveLength(d.lignes.length);
+        // une section de péage n'existe que sur une voie du tracé : le Fréjus n'est tarifé que si le tracé passe par l'A43 / le tunnel
+        const tracePasseAuFrejus = d.voies.some((v: string) => /Fréjus|^A ?43$/.test(v));
+        expect(affichees.some((t: string) => /Fréjus/.test(t))).toBe(tracePasseAuFrejus);
+      });
+    }
   });
   test.describe("Edge Case", () => {
   });

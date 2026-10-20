@@ -9,7 +9,7 @@ import * as a from "../m3-aides.mjs";
 export const {
   URL_APP, env, rest, session, moyenneDuJour, virgule, nombreFr, nombre, ouvrirTrajets, attendreFormulaire, champ, propositions, saisirLieu,
   choisirDansListe, choisirVoiture, calculer, lireResultat, lignesHistorique, etatFocus, BARCELONE, BRUXELLES, ADMIN_TEST, connecterAdmin, ouvrirMoteurs,
-  carte, etatCarte, appelerMoteurs, restService, sqlGestion, reinitialiserMoteurs, supprimerClesFausses, empreinteCles, carburantAffiche, totalPeagesPtvDirect, verifierFournisseurs, lireEtatReel, injecterCle, trajetEurope, lignesListe,
+  carte, etatCarte, appelerMoteurs, restService, sqlGestion, reinitialiserMoteurs, supprimerClesFausses, empreinteCles, carburantAffiche, peagesSurTraceDirect, cleEnMemoire, verifierFournisseurs, lireEtatReel, injecterCle, trajetEurope, lignesListe,
 } = a as any;
 
 export const S4 = (p: Page, etat: string) => p.locator(`[data-screen="S4"][data-etat="${etat}"]`);
