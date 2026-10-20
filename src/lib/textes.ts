@@ -177,6 +177,8 @@ export const T = {
   aucunSecours: "Aucun secours",
   cleAColler: "Coller la clé d'API",
   cleEnregistree: (fin: string) => `Clé enregistrée ••••${fin} — coller pour remplacer`,
+  ouTrouverCle: "Où trouver ma clé",
+  ouTrouverCleLabel: (nom: string) => `Où trouver ma clé ${nom} (s'ouvre dans un nouvel onglet)`,
   cleDe: (nom: string) => `Clé ${nom}`,
   aucuneCleNecessaire: "Aucune clé nécessaire.",
   tester: "Tester la connexion",

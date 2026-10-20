@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { decouperTrace, encoderPolyline6, decoderPolyline6, longueurKm, type Pt } from "../../supabase/functions/_shared/europe";
 import { lignesDepuisHere } from "../../supabase/functions/_shared/peages";
 import { connexionDepuisFournisseur } from "../../supabase/functions/_shared/itineraire-europe";
-import { normaliserAutriche, normaliserCroatie, normaliserDanemark, normaliserIslande, normaliserItalie, normaliserPortugal, normaliserSlovenie } from "../../supabase/functions/_shared/stations-pays";
+import { normaliserAllemagne, normaliserAutriche, normaliserCroatie, normaliserDanemark, normaliserIslande, normaliserItalie, normaliserPortugal, normaliserSlovenie } from "../../supabase/functions/_shared/stations-pays";
 
 // ~1 340 km vers le sud-est à 0,001° de pas : 14 000 points ne suffisent pas à dépasser la limite de distance, la distance si
 const trace = (n: number, pasLat: number): Pt[] => Array.from({ length: n }, (_, i) => [43.9 + i * pasLat, 2.1 + i * pasLat * 0.8]);
@@ -93,5 +93,15 @@ describe("flux de stations hors de France", () => {
     expect(at[0].prix).toEqual({ Gazole: 2.107, "SP95-E10": 2.0, SP95: 2.0 });
     expect(normaliserDanemark({ items: [{ facility_number: 1, city: "Haderslev", coordinates: { latitude: 55.3, longitude: 9.4 }, prices: [{ product_name: "Blyfri 95", price: 17.39 }, { product_name: "Svovlfri Diesel", price: 19.09 }] }] }, 7.4746)[0].prix).toMatchObject({ "SP95-E10": 2.327, Gazole: 2.554 });
     expect(normaliserIslande({ stations: [{ key: "ao_000", name: "A", company: "Atlantsolía", geo: { lat: 65.7, lon: -18.1 }, bensin95: 255.3, diesel: 308.2 }] }, 136.2)[0].prix).toMatchObject({ SP95: 1.874, Gazole: 2.263 });
+  });
+  it("Allemagne (Tankerkönig) : E5 → SP95, E10 → SP95-E10 (à défaut E5), diesel ; stations fermées ignorées ; zones fusionnées", () => {
+    const a = { id: "uuid-1", name: "Aral", brand: "ARAL", street: "Hauptstr.", houseNumber: "1", postCode: 10115, place: "Berlin", lat: 52.5, lng: 13.4, isOpen: true, e5: 1.899, e10: 1.839, diesel: 1.799 };
+    const b = { id: "uuid-2", name: "Shell", lat: 52.6, lng: 13.5, isOpen: true, e5: 1.929, e10: null, diesel: null };
+    const c = { id: "uuid-3", lat: 52.7, lng: 13.6, isOpen: false, e5: 1.9 };
+    const s = normaliserAllemagne([[a, b], [a, c]]);
+    expect(s.map((x) => x.id)).toEqual(["DE-uuid-1", "DE-uuid-2"]);
+    expect(s[0].prix).toEqual({ SP95: 1.899, "SP95-E10": 1.839, Gazole: 1.799 });
+    expect(s[0].cp).toBe("10115");
+    expect(s[1].prix).toEqual({ SP95: 1.929, "SP95-E10": 1.929 });
   });
 });

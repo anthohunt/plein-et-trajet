@@ -805,6 +805,68 @@ histoireDef("US-5.E3", "US-5.E3 — Bascule de secours", async () => {
   await reinitialiserMoteurs();
 });
 
+// ================================================================= US-5.6
+histoireDef("US-5.6", "US-5.6 — Où trouver ma clé", async () => {
+  await reinitialiserMoteurs();
+  await pb.reload();
+  await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
+  await pb.evaluate(() => window.scrollTo(0, 0));
+  await pb.locator(".scroll").first().evaluate((e) => e.scrollTo(0, 0));
+  await capture(pb, "US-5.6-01-ou-trouver-ma-cle-avant.png", async () => {
+    await expect(pb.locator('[data-screen="S5"]')).toBeVisible();
+    return "écran Moteurs, connecté administrateur";
+  }, "l'écran Moteurs avant de regarder la fiche Péages");
+  await carte(pb, "peages").scrollIntoViewIfNeeded();
+  await verifier("lien PTV : href, target, rel, consigne ; le lien charge dans un nouvel onglet", async () => {
+    const lien = carte(pb, "peages").locator('[data-el="lien-cle"] a');
+    await expect(lien).toHaveText("Où trouver ma clé");
+    await expect(lien).toHaveAttribute("href", "https://developer.myptv.com/en");
+    await expect(lien).toHaveAttribute("target", "_blank");
+    await expect(lien).toHaveAttribute("rel", "noopener noreferrer");
+    const [onglet] = await Promise.all([pb.context().waitForEvent("page"), lien.click()]);
+    await onglet.waitForLoadState("domcontentloaded");
+    const titre = await onglet.title();
+    const url = onglet.url();
+    await onglet.close();
+    expect(url).toContain("developer.myptv.com");
+    note("happy", `- ✓ (hors capture) le lien PTV s'ouvre dans un nouvel onglet : ${url} (titre « ${titre} »).`);
+  });
+  await capture(pb, "US-5.6-02-ou-trouver-ma-cle-apres.png", async () => {
+    const lien = carte(pb, "peages").locator('[data-el="lien-cle"] a');
+    const href = await lien.getAttribute("href");
+    const cible = await lien.getAttribute("target");
+    const rel = await lien.getAttribute("rel");
+    expect([href, cible, rel]).toEqual(["https://developer.myptv.com/en", "_blank", "noopener noreferrer"]);
+    const consigne = await carte(pb, "peages").locator('[data-el="consigne-cle"]').innerText();
+    expect(consigne).toContain("API Keys");
+    return `fiche Péages (PTV) : « Où trouver ma clé » href=${href} target=${cible} rel=${rel} ; consigne « ${consigne.replace(/^ · /, "")} » (lues en table fournisseurs)`;
+  }, "le lien « Où trouver ma clé » sous le champ clé de PTV, avec la consigne « API Keys »");
+  await carte(pb, "itineraire").locator("select").first().selectOption("stadia");
+  await carte(pb, "itineraire").scrollIntoViewIfNeeded();
+  await capture(pb, "US-5.6-03-lien-stadia.png", async () => {
+    const lien = carte(pb, "itineraire").locator('[data-el="lien-cle"] a');
+    const href = await lien.getAttribute("href");
+    expect(href).toBe("https://client.stadiamaps.com/dashboard/");
+    expect(await lien.getAttribute("target")).toBe("_blank");
+    expect(await lien.getAttribute("rel")).toBe("noopener noreferrer");
+    return `Itinéraire basculé sur Stadia (non enregistré) : href=${href} target=_blank rel=noopener noreferrer`;
+  }, "l'itinéraire basculé sur Stadia : le lien pointe vers le tableau de bord Stadia");
+  await verifier("HERE et Tankerkönig ont leur lien", async () => {
+    await carte(pb, "peages").locator('[data-el="choix-fournisseur"]').selectOption("here");
+    await expect(carte(pb, "peages").locator('[data-el="lien-cle"] a')).toHaveAttribute("href", "https://platform.here.com/access/apps");
+    await carte(pb, "prix").locator("select").first().selectOption("tankerkoenig");
+    await expect(carte(pb, "prix").locator('[data-el="lien-cle"] a')).toHaveAttribute("href", "https://creativecommons.tankerkoenig.de/");
+    note("happy", "- ✓ (hors capture) HERE → https://platform.here.com/access/apps ; Tankerkönig (stations, Allemagne) → https://creativecommons.tankerkoenig.de/.");
+  });
+  await carte(pb, "voitures").scrollIntoViewIfNeeded();
+  await capture(pb, "US-5.6-04-sans-cle.png", async () => {
+    await expect(carte(pb, "voitures").locator('[data-el="lien-cle"]')).toHaveCount(0);
+    await expect(carte(pb, "voitures")).toContainText("Aucune clé nécessaire.");
+    return "fiche Voitures (ADEME, sans clé) : « Aucune clé nécessaire. », aucun lien de clé (Prix moyens et Recherche de lieux : idem)";
+  }, "une fiche sans clé : aucun lien");
+  await pb.reload();
+});
+
 // ================================================================= Transverses
 /** Parcours Tab depuis le haut de la page jusqu'aux onglets : relève chaque contrôle focalisé et le numérote (pastilles posées à la capture). */
 async function tabulation(page, max = 60) {

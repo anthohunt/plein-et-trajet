@@ -66,6 +66,13 @@ async function tester(db: Db, fournisseur: string, cleSaisie: string | null): Pr
         const [a, m, j] = String(data[0].jour).split("-");
         return { etat: "ok", message: `Connecté · semaine du ${j}/${m}/${a}` };
       }
+      case "tankerkoenig": {
+        const r = await fetchTimeout(`https://creativecommons.tankerkoenig.de/json/list.php?lat=52.52&lng=13.405&rad=4&sort=dist&type=all&apikey=${encodeURIComponent(cle!)}`, {}, 20000);
+        const j = await r.json().catch(() => null);
+        if (j?.ok === true) return { etat: "ok", message: `Connecté · test Berlin OK (${(j.stations ?? []).length} stations)` };
+        if (j && j.ok === false) return { etat: "ko", message: `Clé refusée par ${nomCourt} (${r.status === 200 ? 401 : r.status})` };
+        return { etat: "ko", message: `${nomCourt} ne répond pas (${r.status})` };
+      }
       case "ademe": {
         const { count } = await db.from("vehicules").select("id", { count: "exact", head: true });
         return { etat: "ok", message: `Connecté · ${nombreFr(count ?? 0)} versions` };
@@ -116,7 +123,7 @@ async function lister(db: Db) {
       dernier_test: m.dernier_test,
       bascule: m.bascule_le ? { le: m.bascule_le, de: m.bascule_de, vers: m.bascule_vers } : null,
       incident: m.incident_le ? { le: m.incident_le, message: m.incident_message } : null,
-      fournisseurs: liste.map((f: { id: string; nom: string; cle_requise: boolean }) => ({ id: f.id, nom: f.nom, cle_requise: f.cle_requise, cle_fin: fin[f.id] ?? null })),
+      fournisseurs: liste.map((f: { id: string; nom: string; cle_requise: boolean; url_cle: string | null; consigne_cle: string | null }) => ({ id: f.id, nom: f.nom, cle_requise: f.cle_requise, cle_fin: fin[f.id] ?? null, url_cle: f.cle_requise ? f.url_cle : null, consigne_cle: f.cle_requise ? f.consigne_cle : null })),
     };
   });
 }

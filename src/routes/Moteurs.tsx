@@ -23,6 +23,17 @@ const lireIncident = (m: Moteur, brut: string) => {
 };
 const heure = (iso: string) => new Date(iso).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
+/** Lien « Où trouver ma clé » : adresse et consigne viennent de la table fournisseurs ; rien pour un fournisseur sans clé. */
+function LienCle({ f }: { f: { nom: string; cle_requise: boolean; url_cle: string | null; consigne_cle: string | null } }) {
+  if (!f.cle_requise || !f.url_cle) return null;
+  return (
+    <div className="d lien-cle" data-el="lien-cle">
+      <a href={f.url_cle} target="_blank" rel="noopener noreferrer" aria-label={T.ouTrouverCleLabel(f.nom)}>{T.ouTrouverCle}</a>
+      {f.consigne_cle && <span data-el="consigne-cle"> · {f.consigne_cle}</span>}
+    </div>
+  );
+}
+
 export default function Moteurs() {
   const { pret, admin } = useAdmin();
   const nav = useNavigate();
@@ -128,18 +139,24 @@ export default function Moteurs() {
                   </div>
                 )}
                 {f.cle_requise ? (
-                  <div className="r">
-                    <label className="sr-only" htmlFor={`${id}-k`}>{T.cleDe(f.nom)}</label>
-                    <input id={`${id}-k`} type="password" autoComplete="off" data-el={peages ? "champ-cle" : "champ-cle-" + m.service} value={d.cle} placeholder={f.cle_fin ? T.cleEnregistree(f.cle_fin) : T.cleAColler} onChange={(e) => maj(m.service, { cle: e.target.value })} />
-                  </div>
+                  <>
+                    <div className="r">
+                      <label className="sr-only" htmlFor={`${id}-k`}>{T.cleDe(f.nom)}</label>
+                      <input id={`${id}-k`} type="password" autoComplete="off" data-el={peages ? "champ-cle" : "champ-cle-" + m.service} value={d.cle} placeholder={f.cle_fin ? T.cleEnregistree(f.cle_fin) : T.cleAColler} onChange={(e) => maj(m.service, { cle: e.target.value })} />
+                    </div>
+                    <LienCle f={f} />
+                  </>
                 ) : (
                   <div className="d">{T.aucuneCleNecessaire}</div>
                 )}
                 {fs?.cle_requise && (
-                  <div className="r">
-                    <label className="sr-only" htmlFor={`${id}-ks`}>{T.cleDe(fs.nom)}</label>
-                    <input id={`${id}-ks`} type="password" autoComplete="off" data-el={"champ-cle-secours-" + m.service} value={d.cleSecours} placeholder={fs.cle_fin ? T.cleEnregistree(fs.cle_fin) : `${T.cleAColler} · ${fs.nom}`} onChange={(e) => maj(m.service, { cleSecours: e.target.value })} />
-                  </div>
+                  <>
+                    <div className="r">
+                      <label className="sr-only" htmlFor={`${id}-ks`}>{T.cleDe(fs.nom)}</label>
+                      <input id={`${id}-ks`} type="password" autoComplete="off" data-el={"champ-cle-secours-" + m.service} value={d.cleSecours} placeholder={fs.cle_fin ? T.cleEnregistree(fs.cle_fin) : `${T.cleAColler} · ${fs.nom}`} onChange={(e) => maj(m.service, { cleSecours: e.target.value })} />
+                    </div>
+                    <LienCle f={fs} />
+                  </>
                 )}
                 <div className="r">
                   <button type="button" disabled={d.occupe} data-el={peages ? "tester-connexion" : "tester-connexion-" + m.service} onClick={() => tester(m)}>{T.tester}</button>

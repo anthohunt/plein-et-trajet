@@ -8,6 +8,8 @@ export interface FournisseurMoteur {
   nom: string;
   cle_requise: boolean;
   cle_fin: string | null; // 4 derniers caractères de la clé rangée dans Vault
+  url_cle: string | null; // page du fournisseur où trouver sa clé (table fournisseurs) ; absente sans clé
+  consigne_cle: string | null; // consigne du menu, lue en table
 }
 export interface Moteur {
   service: string;

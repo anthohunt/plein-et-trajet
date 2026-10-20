@@ -3,9 +3,10 @@
 // Espagne : le serveur du ministère n'accepte que TLS 1.2 à échange RSA statique (refusé par Deno) → lu via le relais Node de l'appli.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { fetchTimeout, json } from "../_shared/http.ts";
+import { lireCle } from "../_shared/moteurs.ts";
 import { dateEspagne, normaliserEspagne } from "../_shared/stations-es.ts";
 import {
-  AT_CARBURANTS, AT_POINTS, IT_POINTS, PT_CARBURANTS, normaliserAutriche, normaliserCroatie, normaliserDanemark, normaliserIslande, normaliserItalie, normaliserPortugal,
+  AT_CARBURANTS, AT_POINTS, DE_POINTS, IT_POINTS, PT_CARBURANTS, normaliserAllemagne, normaliserAutriche, normaliserCroatie, normaliserDanemark, normaliserIslande, normaliserItalie, normaliserPortugal,
   normaliserSlovenie, type Station,
 } from "../_shared/stations-pays.ts";
 
@@ -48,8 +49,23 @@ async function cours(monnaie: "DKK" | "ISK"): Promise<number> {
 }
 
 // deno-lint-ignore no-explicit-any
-type Source = () => Promise<Station[]>;
+type Source = (db: any) => Promise<Station[]>;
+class Ignore extends Error {}
 const SOURCES: Record<string, Source> = {
+  DE: async (db) => {
+    // clé Tankerkönig (gratuite) rangée dans Vault par l'écran Moteurs ; sans clé, rien à synchroniser
+    const cle = await lireCle(db, "tankerkoenig");
+    if (!cle) throw new Ignore("aucune clé Tankerkönig enregistrée");
+    const reps: unknown[][] = [];
+    for (const p of DE_POINTS) {
+      // deno-lint-ignore no-explicit-any
+      const j = (await lire(`https://creativecommons.tankerkoenig.de/json/list.php?lat=${p.lat}&lng=${p.lon}&rad=25&sort=dist&type=all&apikey=${encodeURIComponent(cle)}`, {}, 30000)) as any;
+      if (j?.ok !== true) throw new Error(`Tankerkönig : ${j?.message ?? "réponse refusée"}`);
+      reps.push(Array.isArray(j.stations) ? j.stations : []);
+      await new Promise((r) => setTimeout(r, 1100)); // ménage le service (1 requête/s)
+    }
+    return normaliserAllemagne(reps);
+  },
   ES: async () => {
     // deno-lint-ignore no-explicit-any
     const j = (await lire(RELAIS_ES, {}, 70000)) as any;
@@ -106,7 +122,7 @@ Deno.serve(async (req) => {
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
   const t0 = new Date();
   try {
-    const stations = await source();
+    const stations = await source(db);
     if (stations.length < (pays === "IS" ? 50 : pays === "AT" ? 20 : 150)) throw new Error(`flux anormalement court (${stations.length}) : base laissée telle quelle`);
     let n = 0;
     for (let i = 0; i < stations.length; i += LOT) {
@@ -121,6 +137,7 @@ Deno.serve(async (req) => {
     console.log(JSON.stringify({ sync_pays: "ok", ...rapport }));
     return json(200, rapport);
   } catch (e) {
+    if (e instanceof Ignore) return json(200, { ok: false, pays, ignore: e.message });
     console.error(JSON.stringify({ sync_pays: "erreur", pays, message: String(e) }));
     return json(502, { ok: false, pays, erreur: String(e) });
   }

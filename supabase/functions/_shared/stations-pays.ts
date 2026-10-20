@@ -180,3 +180,30 @@ export function normaliserIslande(d: any, iskParEuro: number): Station[] {
   }
   return out;
 }
+
+// ------------------------------------------------------------------ Allemagne (Tankerkönig, MTS-K) : clé gratuite lue dans Vault, rayon ≤ 25 km autour de villes
+export const DE_POINTS: PointSondage[] = [
+  [52.52, 13.405], [53.5511, 9.9937], [48.1351, 11.582], [50.9375, 6.9603], [50.1109, 8.6821], [48.7758, 9.1829], [51.2277, 6.7735], [51.5136, 7.4653],
+  [51.3397, 12.3731], [51.0504, 13.7373], [52.3759, 9.732], [49.4521, 11.0767], [53.0793, 8.8017], [54.3233, 10.1228], [50.0782, 8.2398], [49.4875, 8.466],
+  [48.3705, 10.8978], [52.2689, 10.5268], [51.4556, 7.0116], [50.7753, 6.0839], [51.9607, 7.6261], [52.0302, 8.5325], [53.8655, 10.6866], [54.0924, 12.0991],
+  [50.8278, 12.9214], [49.0069, 8.4037], [47.9959, 7.8522], [49.7913, 9.9534], [49.2402, 6.9969], [50.3569, 7.5890], [51.3127, 9.4797], [50.9787, 11.0328],
+  [52.1205, 11.6276], [53.5511, 13.2], [52.4, 13.0658], [48.4011, 9.9876],
+].map(([lat, lon]) => ({ lat, lon }));
+
+// deno-lint-ignore no-explicit-any
+export function normaliserAllemagne(reponses: any[][]): Station[] {
+  const m = new Map<string, Station>();
+  for (const liste of reponses) {
+    for (const s of liste) {
+      if (!s?.id || !Number.isFinite(s.lat) || !Number.isFinite(s.lng) || s.isOpen === false) continue;
+      const prix: Record<string, number> = {};
+      if (ok(s.e5)) prix.SP95 = s.e5;
+      if (ok(s.e10)) prix["SP95-E10"] = s.e10;
+      else if (ok(s.e5)) prix["SP95-E10"] = s.e5; // E5 compatible avec toute voiture E10
+      if (ok(s.diesel)) prix.Gazole = s.diesel;
+      if (Object.keys(prix).length === 0) continue;
+      m.set(`DE-${s.id}`, { id: `DE-${s.id}`, nom: s.name ?? null, enseigne: s.brand ? String(s.brand) : null, adresse: [s.street, s.houseNumber].filter(Boolean).join(" ") || null, cp: s.postCode != null ? String(s.postCode).padStart(5, "0") : null, ville: s.place ?? null, lat: s.lat, lon: s.lng, maj: null, prix });
+    }
+  }
+  return [...m.values()];
+}
