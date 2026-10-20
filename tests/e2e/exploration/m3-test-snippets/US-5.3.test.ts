@@ -20,7 +20,7 @@ test.describe("US-5.3 — Coller la clé", () => {
       await carte(page, "peages").locator('[data-el="enregistrer-moteur"]').click();
       await expect(etatCarte(page, "peages")).toHaveText("Enregistré · utilisé dès le prochain calcul", { timeout: 45000 });
       expect(await champ.inputValue()).toBe("");
-      await expect(champ).toHaveAttribute("placeholder", `Clé enregistrée ••••${reel.cles.ptv.slice(-4)} — coller pour remplacer`);
+      await expect(champ).toHaveAttribute("placeholder", `Clé ••••${reel.cles.ptv.slice(-4)} · coller pour changer`);
       const [v] = await sqlGestion("select updated_at, secret is distinct from decrypted_secret as chiffre from vault.decrypted_secrets where name = 'cle_ptv'");
       expect(v.chiffre).toBe(true);
       expect(v.updated_at > avant).toBe(true);
@@ -35,7 +35,7 @@ test.describe("US-5.3 — Coller la clé", () => {
       await expect(page.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
       const champ = carte(page, "peages").locator('[data-el="champ-cle"]');
       await expect(champ).toHaveAttribute("type", "password");
-      await expect(champ).toHaveAttribute("placeholder", /^Clé enregistrée ••••.{4} — coller pour remplacer$/);
+      await expect(champ).toHaveAttribute("placeholder", /^Clé ••••.{4} · coller pour changer$/);
       expect(await champ.inputValue()).toBe("");
       const [{ fin }] = await sqlGestion("select fin from public.cles_fournisseurs where fournisseur = 'ptv'");
       expect(reel.cles.ptv.endsWith(fin)).toBe(true);
@@ -44,10 +44,14 @@ test.describe("US-5.3 — Coller la clé", () => {
       reponses.length = 0;
       await page.reload();
       await expect(page.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
-      for (const cle of Object.values(reel.cles) as string[]) {
-        expect(await page.content()).not.toContain(cle);
-        expect((await page.locator("input").evaluateAll((els) => els.map((e: any) => e.value + "|" + e.placeholder))).join("\n")).not.toContain(cle);
-        expect(reponses.some((t) => t.includes(cle))).toBe(false);
+      // comparaisons BOOLÉENNES seulement (audit round 3, MEDIUM 2) : un not.toContain(cle) en échec imprimerait la clé ;
+      // en cas d'échec, le message ne nomme que le fournisseur concerné
+      const contenu = await page.content();
+      const champs = (await page.locator("input").evaluateAll((els) => els.map((e: any) => e.value + "|" + e.placeholder))).join("\n");
+      for (const [fournisseur, cle] of Object.entries(reel.cles) as [string, string][]) {
+        expect(contenu.includes(cle), `clé ${fournisseur} présente dans la page`).toBe(false);
+        expect(champs.includes(cle), `clé ${fournisseur} présente dans un champ`).toBe(false);
+        expect(reponses.some((t) => t.includes(cle)), `clé ${fournisseur} présente dans une réponse réseau`).toBe(false);
       }
       expect(reponses.some((t) => /"cle_fin":"[^"]{4}"/.test(t))).toBe(true);
     });

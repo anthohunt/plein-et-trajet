@@ -215,9 +215,9 @@ histoireDef("US-3.8", "US-3.8 — Partir à l'étranger", async () => {
     const tronconsPays = await pa.locator('[data-el="troncons"] li .tn').allInnerTexts();
     expect(tronconsPays.some((t) => /· FR$/.test(t.trim())) && tronconsPays.some((t) => /· ES$/.test(t.trim()))).toBe(true);
     memo.barcelone = r;
-    return `itinéraire ${r.km} km traversant ${pays.map((x) => x.pays).join(" puis ")} (Valhalla, instance publique) ; coût ${virgule(r.cout)} €`;
+    return `itinéraire ${r.km} km traversant ${pays.map((x) => x.pays).join(" puis ")} (moteur Itinéraire : Stadia Maps, secours Valhalla public) ; coût ${virgule(r.cout)} €`;
   }, "le calcul aboutit : itinéraire France puis Espagne");
-  note("issues", "- Dépendance : propositions étrangères = Photon (komoot) via la fonction `lieux` ; itinéraire = Valhalla FOSSGIS (instance publique, sans clé, ≤ 1 requête/s — politique d'usage lue le 20/10 : faible trafic, User-Agent identifiant, attribution OSM).");
+  note("issues", "- Dépendance : propositions étrangères = Photon (komoot) via la fonction `lieux` ; itinéraire = Stadia Maps (Valhalla hébergé, vraie clé dans Vault), secours Valhalla FOSSGIS (instance publique, sans clé, ≤ 1 requête/s — politique d'usage lue le 20/10 : faible trafic, User-Agent identifiant, attribution OSM).");
 });
 
 // ================================================================= US-4.4
@@ -564,7 +564,7 @@ histoireDef("US-5.3", "US-5.3 — Coller la clé", async () => {
     await expect(champCle).toBeFocused();
     await expect(champCle).toHaveAttribute("type", "password");
     const ph = await champCle.getAttribute("placeholder");
-    expect(ph).toMatch(/^Clé enregistrée ••••.{4} — coller pour remplacer$/);
+    expect(ph).toMatch(/^Clé ••••.{4} · coller pour changer$/);
     return `champ clé des péages (type password) : « ${ph} » — la vraie clé PTV d'Anthony est déjà rangée, seule sa fin s'affiche`;
   }, "le champ clé des péages (clé réelle déjà enregistrée)");
   // US-5.3 critère 1 (audit round 2, MEDIUM 4) : la VRAIE clé PTV — lue en mémoire depuis Vault, même valeur — est COLLÉE dans le champ
@@ -583,7 +583,7 @@ histoireDef("US-5.3", "US-5.3 — Coller la clé", async () => {
     await expect(etatCarte(pb, "peages")).toHaveText("Enregistré · utilisé dès le prochain calcul");
     expect(await champ53.inputValue()).toBe("");
     const ph = await champ53.getAttribute("placeholder");
-    expect(ph).toBe(`Clé enregistrée ••••${ETAT_REEL.cles.ptv.slice(-4)} — coller pour remplacer`);
+    expect(ph).toBe(`Clé ••••${ETAT_REEL.cles.ptv.slice(-4)} · coller pour changer`);
     const [v] = await sqlGestion("select updated_at, secret is distinct from decrypted_secret as chiffre from vault.decrypted_secrets where name = 'cle_ptv'");
     expect(v.chiffre).toBe(true);
     expect(v.updated_at > majAvant).toBe(true); // réécrite par CET enregistrement
@@ -605,7 +605,7 @@ histoireDef("US-5.3", "US-5.3 — Coller la clé", async () => {
   await carte(pb, "peages").scrollIntoViewIfNeeded();
   await capture(pb, "US-5.3-03-coller-la-cl-avant.png", async () => {
     const ph = await carte(pb, "peages").locator('[data-el="champ-cle"]').getAttribute("placeholder");
-    expect(ph).toMatch(/^Clé enregistrée ••••.{4} — coller pour remplacer$/);
+    expect(ph).toMatch(/^Clé ••••.{4} · coller pour changer$/);
     const [{ fin }] = await sqlGestion("select fin from public.cles_fournisseurs where fournisseur = 'ptv'");
     const [v] = await sqlGestion("select secret is distinct from decrypted_secret as chiffre, length(secret) as n from vault.decrypted_secrets where name = 'cle_ptv'");
     expect(v.chiffre).toBe(true);
@@ -645,7 +645,7 @@ histoireDef("US-5.4", "US-5.4 — Tester la connexion", async () => {
   await carte(pb, "peages").locator('[data-el="tester-connexion"]').focus(); // prêt à tester : le bouton a le focus
   await capture(pb, "US-5.4-01-tester-la-connexion-avant.png", async () => {
     await expect(carte(pb, "peages").locator('[data-el="tester-connexion"]')).toBeFocused();
-    await expect(carte(pb, "peages").locator('[data-el="champ-cle"]')).toHaveAttribute("placeholder", /Clé enregistrée ••••/);
+    await expect(carte(pb, "peages").locator('[data-el="champ-cle"]')).toHaveAttribute("placeholder", /^Clé ••••.{4} · /);
     return "clé PTV valide enregistrée (celle d'Anthony), avant le test";
   }, "une clé PTV valide est enregistrée");
   await carte(pb, "peages").locator('[data-el="tester-connexion"]').click();
@@ -1173,7 +1173,7 @@ for (const h of aJouer) {
     console.error("SUPPRESSION ADMIN", String(e.message).slice(0, 200));
   }
   const manquantes = MANQUANTES.length ? ` Clés absentes au départ du run (non réinventées) : ${MANQUANTES.join(", ")}.` : "";
-  const ligneFinale = `- Vérification finale (vrai appel estimer-trajet Albi → Barcelone, sans aucune clé) : ${JSON.stringify(verifFinale)}.${manquantes}`;
+  const ligneFinale = `- Vérification finale (vrai appel estimer-trajet Albi → Barcelone, visiteur anonyme : aucune clé côté navigateur, les clés PTV et Stadia restent dans Vault) : ${JSON.stringify(verifFinale)}.${manquantes}`;
   let j = fs.readFileSync(JOURNAL, "utf8").replace(/\n## Vérification finale de l'état des moteurs[\s\S]*?(?=\n## |$)/, "");
   fs.writeFileSync(JOURNAL, j.replace(/\s+$/, "\n") + `\n## Vérification finale de l'état des moteurs\n\n${ligneFinale}\n`);
   console.log(ligneFinale);

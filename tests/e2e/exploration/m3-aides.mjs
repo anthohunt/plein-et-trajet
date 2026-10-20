@@ -158,6 +158,14 @@ export async function cleEnMemoire(fournisseur) {
   const c = await r.json();
   return typeof c === "string" && c ? c : null;
 }
+/** Vrai appel estimer-trajet (session anonyme neuve) : rend la réponse entière. Round 5 : sert à la stabilité ×2 (le 2e appel est servi par le cache). */
+export async function estimerDirect(depart, arrivee) {
+  const s = await fetch(`${env.SUPABASE_URL}/auth/v1/signup`, { method: "POST", headers: { apikey: env.VITE_SUPABASE_ANON_KEY, "Content-Type": "application/json" }, body: "{}" });
+  const jeton = (await s.json()).access_token;
+  const [veh] = await rest("vehicules?select=id&marque=eq.Peugeot&limit=1", jeton);
+  const r = await fetch(`${env.SUPABASE_URL}/functions/v1/estimer-trajet`, { method: "POST", headers: { apikey: env.VITE_SUPABASE_ANON_KEY, Authorization: `Bearer ${jeton}`, "Content-Type": "application/json" }, body: JSON.stringify({ depart, arrivee, vehicule_id: veh.id }) });
+  return { statut: r.status, corps: await r.json() };
+}
 // ---- recalcul INDÉPENDANT des péages sur le tracé (round 4) : ni le code des Edge Functions, ni leur échantillonnage ----
 function decoder6(s) {
   const pts = [];

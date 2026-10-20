@@ -20,5 +20,36 @@ test.describe("US-5.1 — Ouvrir les moteurs", () => {
       await page.locator('[data-el="retour-moteurs"]').click();
       await expect(page.locator('[data-screen="S1"]')).toBeVisible();
     });
+    // Round 5 (audit round 3, LOW 5) : tenue de S5 à 390 et 360 px, versionnée (mesurée à la main aux rounds 3 et 4).
+    for (const largeur of [390, 360]) {
+      test(`US-5.1 — à ${largeur} px : rien ne dépasse de l'écran Moteurs, pastilles entières, texte d'aide du champ clé entier`, async ({ page }) => {
+        await page.setViewportSize({ width: largeur, height: 844 });
+        await connecterAdmin(page);
+        await expect(page.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
+        await expect(page.locator('[data-el="etat-moteur"]').first()).not.toHaveText("Test en cours…");
+        const m = await page.evaluate(() => {
+          const ecran = document.querySelector('[data-screen="S5"]') as HTMLElement;
+          const hors = [...ecran.querySelectorAll("*")].filter((e) => {
+            const r = e.getBoundingClientRect();
+            return r.width > 0 && !e.closest(".sr-only") && (r.left < -0.5 || r.right > window.innerWidth + 0.5);
+          }).map((e) => (e as HTMLElement).dataset.el ?? e.tagName);
+          const pastillesCoupees = [...document.querySelectorAll('[data-el="etat-moteur"]')].filter((e) => (e as HTMLElement).scrollWidth > (e as HTMLElement).clientWidth + 1).length;
+          // largeur du texte d'aide (placeholder) mesurée dans la police du champ, comparée à la place disponible
+          const ctx = document.createElement("canvas").getContext("2d")!;
+          const aides = [...document.querySelectorAll('input[type="password"]')].map((i) => {
+            const s = getComputedStyle(i);
+            ctx.font = `${s.fontStyle} ${s.fontWeight} ${s.fontSize} ${s.fontFamily}`;
+            const place = (i as HTMLElement).clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight);
+            return { aide: (i as HTMLInputElement).placeholder, deborde: ctx.measureText((i as HTMLInputElement).placeholder).width > place };
+          });
+          return { scroll: document.documentElement.scrollWidth, hors, pastillesCoupees, aides };
+        });
+        expect(m.scroll).toBeLessThanOrEqual(largeur);
+        expect(m.hors).toEqual([]);
+        expect(m.pastillesCoupees).toBe(0);
+        expect(m.aides.length).toBeGreaterThan(0);
+        expect(m.aides.filter((x) => x.deborde).map((x) => x.aide)).toEqual([]);
+      });
+    }
   });
 });
