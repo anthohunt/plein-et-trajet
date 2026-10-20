@@ -74,7 +74,7 @@ export function FicheStation({ station, onFermer, onTrajet }: Props) {
               <div key={c} style={{ display: "contents" }} data-carburant={c}>
                 <span className="lab">{c}</span>
                 {lignes == null ? (
-                  <span className="na" aria-label={T.chargementPrixStation}>…</span>
+                  <span className="na" aria-hidden="true">…</span>
                 ) : !l || l.prix == null || l.rupture ? (
                   <span className="na" data-el="non-vendu">{l?.rupture ? T.rupture : T.nonVendu}</span>
                 ) : (

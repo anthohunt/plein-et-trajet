@@ -78,7 +78,7 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 .grip { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 10px; }
 .sh-head { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
 .sh-name { font: 800 26px/1.05 var(--f-display); text-transform: uppercase; margin: 0; }
-.sh-name:focus-visible { outline-offset: 4px; }
+.sh-name:focus-visible { outline: none; text-decoration: underline 3px; text-underline-offset: 5px; }
 .x { border: 1px solid var(--line); background: transparent; border-radius: 50%; width: 34px; height: 34px; flex: none; }
 .board { background: var(--panel); border-radius: 10px; padding: 10px 12px; margin: 12px 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; align-items: center; }
 .board .lab { font: 600 13px var(--f-body); color: var(--on-panel); text-transform: uppercase; letter-spacing: .05em; }

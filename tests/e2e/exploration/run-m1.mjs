@@ -68,6 +68,13 @@ async function capture(page, nom, verif, description) {
     ok = false;
     detail = String(e.message).split("\n").slice(0, 3).join(" ");
   }
+  // fond de carte : attendre les tuiles visibles (5 s au plus) pour que la photo montre la carte
+  await page.evaluate(() => new Promise((ok) => {
+    const m = window.__carte; if (!m) return ok();
+    const t0 = Date.now();
+    const f = () => (m.areTilesLoaded() || Date.now() - t0 > 5000 ? ok() : setTimeout(f, 100));
+    f();
+  })).catch(() => {});
   // laisser finir les animations en cours (feuille montante, défilement des chiffres) avant la photo
   await page.evaluate(() => Promise.race([Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {}))), new Promise((r) => setTimeout(r, 1500))]));
   await page.screenshot({ path: path.join(LIVRAISON, nom) });
@@ -355,6 +362,18 @@ HISTOIRES["US-1.3 — Voir les stations sur la carte"] = async () => {
       return `un seul glisser de ${Math.round(Math.hypot(ecart.dx, ecart.dy))} px, bouton encore enfoncé : carte à ${km(c, { lat: ALBI.latitude, lon: ALBI.longitude }).toFixed(1)} km au nord d'Albi (${c.lat.toFixed(3)}, ${c.lon.toFixed(3)}, vers Carmaux), liste encore celle d'Albi (${nomsAlbi}…), aucun nouvel appel`;
     }, "je déplace la carte (un seul glisser, non relâché) : la liste montre encore Albi");
   });
+  // après relâchement : montrer une station de la nouvelle zone (surlignée) et l'annoncer
+  await expect.poll(() => appels.length, { timeout: 10000 }).toBeGreaterThan(nAppels);
+  await attendreListe(p);
+  await expect.poll(async () => (await lireLignes(p)).filter((x) => !avant.has(x.id)).length, { timeout: 15000 }).toBeGreaterThan(0);
+  {
+    const nouv = (await lireLignes(p)).filter((x) => !avant.has(x.id));
+    const l = p.locator(`[data-el="ligne-station"][data-station="${nouv[0].id}"]`);
+    await l.scrollIntoViewIfNeeded();
+    await surligner(l);
+    for (const x of nouv) await surligner(p.locator(`[data-el="pastille-station"][data-station="${x.id}"]`)).catch(() => {});
+    await annoter(p, `relâché : ${nouv.length} station(s) de la nouvelle zone chargée(s) — ${nouv.map((x) => x.nom).join(", ")} (surlignées)`);
+  }
   await capture(p, "US-1.3-04-voir-les-stations-sur-la-carte-apres.png", async () => {
     await expect.poll(() => appels.length, { timeout: 10000 }).toBeGreaterThanOrEqual(2);
     await attendreListe(p);
