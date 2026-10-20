@@ -32,7 +32,7 @@ const CARBURANTS_ES: [string, string[]][] = [
   ["GPLc", ["Precio Gases licuados del petróleo"]],
 ];
 
-interface Station {
+export interface Station {
   id: string;
   nom: string | null;
   enseigne: string | null;

@@ -78,20 +78,34 @@ export function lignesDepuisPtv(r: ReponsePtv, tvaParPays: Record<string, number
 }
 
 // ------------------------------------------------------------------ HERE
+/** HERE : FarePrice = SinglePrice {type:"value", value} | RangePrice {type:"range", minimum, maximum}. */
+interface PrixHere {
+  type?: string;
+  currency?: string;
+  value?: number;
+  minimum?: number;
+  maximum?: number;
+}
 interface FareHere {
   name?: string;
-  price?: { currency?: string; value?: number };
-  convertedPrice?: { currency?: string; value?: number };
+  price?: PrixHere;
+  convertedPrice?: PrixHere;
   paymentMethods?: string[];
 }
 export interface ReponseHere {
   routes?: { sections?: { tolls?: { countryCode?: string; tollSystem?: string; fares?: FareHere[] }[] }[] }[];
 }
 
-function eurosHere(f: FareHere): number | null {
-  if (f.convertedPrice?.currency === "EUR" && typeof f.convertedPrice.value === "number") return f.convertedPrice.value;
-  if (f.price?.currency === "EUR" && typeof f.price.value === "number") return f.price.value;
+/** Montant en euros d'un prix HERE ; pour une fourchette on retient le maximum (prudent) et on le signale. */
+function montantHere(p: PrixHere | undefined): { v: number; fourchette: boolean } | null {
+  if (!p || p.currency !== "EUR") return null;
+  if (typeof p.value === "number") return { v: p.value, fourchette: false };
+  if (typeof p.maximum === "number") return { v: p.maximum, fourchette: true };
+  if (typeof p.minimum === "number") return { v: p.minimum, fourchette: true };
   return null;
+}
+function eurosHere(f: FareHere): { v: number; fourchette: boolean } | null {
+  return montantHere(f.convertedPrice) ?? montantHere(f.price);
 }
 /** Réponse HERE → lignes (prix déjà TTC). Paiement le moins cher parmi espèces/carte ; à défaut, parmi tous. */
 export function lignesDepuisHere(r: ReponseHere): LignePeage[] {
@@ -102,10 +116,11 @@ export function lignesDepuisHere(r: ReponseHere): LignePeage[] {
     for (const t of sec.tolls ?? []) {
       const fares = t.fares ?? [];
       const classiques = fares.filter((f) => (f.paymentMethods ?? []).some((p) => ["cash", "bankCard", "creditCard"].includes(p)));
-      const prix = (classiques.length > 0 ? classiques : fares).map(eurosHere).filter((x): x is number => x != null);
+      const prix = (classiques.length > 0 ? classiques : fares).map(eurosHere).filter((x): x is { v: number; fourchette: boolean } => x != null);
       if (fares.length > 0 && prix.length === 0) throw new ErreurPeages("reponse_invalide");
-      const montant = prix.length > 0 ? Math.min(...prix) : 0;
-      out.push({ pays: alpha2(t.countryCode), libelle: [t.tollSystem, fares[0]?.name && fares[0].name !== t.tollSystem ? fares[0].name : ""].filter(Boolean).join(" · ") || "Péage", montant: arrondi2(montant) });
+      const choisi = prix.length > 0 ? prix.reduce((a, b) => (b.v < a.v ? b : a)) : { v: 0, fourchette: false };
+      const montant = choisi.v;
+      out.push({ pays: alpha2(t.countryCode), libelle: ([t.tollSystem, fares[0]?.name && fares[0].name !== t.tollSystem ? fares[0].name : ""].filter(Boolean).join(" · ") || "Péage") + (choisi.fourchette ? " (estimation : maximum de la fourchette)" : ""), montant: arrondi2(montant) });
     }
   }
   return out;

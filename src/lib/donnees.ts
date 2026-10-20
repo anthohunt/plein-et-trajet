@@ -78,11 +78,25 @@ export interface PaysInfo {
   code: string;
   nom: string;
   flux_stations: boolean;
+  statut_flux: "branche" | "non_branche" | "aucun";
 }
-/** rest/v1/pays (lecture publique). */
+let cachePays: Promise<Map<string, PaysInfo>> | null = null;
+/** rest/v1/pays (lecture publique) : nom et statut du flux station par station de chaque pays, lus une fois. */
+export function tousPays(): Promise<Map<string, PaysInfo>> {
+  if (!cachePays) {
+    cachePays = (async () => {
+      const { data, error } = await supabase.from("pays").select("code,nom,flux_stations,statut_flux");
+      if (error || !Array.isArray(data)) throw new Error(error?.message ?? "réponse mal formée");
+      return new Map((data as PaysInfo[]).map((p) => [p.code, p]));
+    })().catch((e) => {
+      cachePays = null;
+      throw e;
+    });
+  }
+  return cachePays;
+}
 export async function infoPays(code: string): Promise<PaysInfo | null> {
-  const { data } = await supabase.from("pays").select("code,nom,flux_stations").eq("code", code).maybeSingle();
-  return (data as PaysInfo | null) ?? null;
+  return (await tousPays().catch(() => new Map<string, PaysInfo>())).get(code) ?? null;
 }
 
 /** functions/v1/lieux {action:"pays"} : pays d'une position (la France est reconnue sans appel réseau externe). */

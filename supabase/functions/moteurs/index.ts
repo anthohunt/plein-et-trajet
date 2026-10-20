@@ -6,7 +6,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { CORS, fetchTimeout, json } from "../_shared/http.ts";
 import { lireCle } from "../_shared/moteurs.ts";
 import { messageErreurPeages, peagesHere, peagesPtv } from "../_shared/peages.ts";
-import { FOSSGIS, routeValhalla, stadia, ErreurItineraire } from "../_shared/itineraire-europe.ts";
+import { routeValhalla, connexionDepuisFournisseur, ErreurItineraire } from "../_shared/itineraire-europe.ts";
 
 const ALBI = { lat: 43.9289, lon: 2.1464 };
 const BARCELONE = { lat: 41.3874, lon: 2.1686 };
@@ -45,7 +45,9 @@ async function tester(db: Db, fournisseur: string, cleSaisie: string | null): Pr
       }
       case "stadia":
       case "valhalla-public": {
-        const r = await routeValhalla(fournisseur === "stadia" ? stadia(cle!) : FOSSGIS, ALBI, TOULOUSE);
+        const { data: ligne } = await db.from("fournisseurs").select("id,url,chemin_route,chemin_trace,pause_ms").eq("id", fournisseur).maybeSingle();
+        const reserver = async (nom: string, pauseMs: number) => Number((await db.rpc("limiteur_reserver", { p_nom: nom, p_intervalle_ms: pauseMs })).data ?? 0);
+        const r = await routeValhalla(connexionDepuisFournisseur(ligne, cle, reserver), ALBI, TOULOUSE);
         return { etat: "ok", message: `Connecté · test Albi → Toulouse OK (${Math.round(r.km)} km)` };
       }
       case "itineraire-ign": {
@@ -155,26 +157,49 @@ Deno.serve(async (req) => {
       const ids = (liste ?? []).map((f: { id: string }) => f.id);
       if (!m || !ids.includes(fournisseur) || (secours && (!ids.includes(secours) || secours === fournisseur))) return json(400, { erreur: "requete_invalide" });
 
-      // 1) les clés collées sont rangées dans Vault (chiffrées), même si le test échoue : on ne demande pas deux fois la même clé
       const cle = typeof c.cle === "string" ? c.cle.trim() : "";
       const cleSecours = typeof c.cle_secours === "string" ? c.cle_secours.trim() : "";
-      if (cle) await db.rpc("moteur_cle_enregistrer", { p_fournisseur: fournisseur, p_cle: cle });
-      if (cleSecours && secours) await db.rpc("moteur_cle_enregistrer", { p_fournisseur: secours, p_cle: cleSecours });
-
-      // 2) test réel du fournisseur choisi : seul un fournisseur qui répond devient actif
-      const t = await tester(db, fournisseur, null);
+      const nomDe = (id: string) => String((liste ?? []).find((f: { id: string }) => f.id === id)?.nom ?? id).split(/[ ·]/)[0];
       const maintenant = new Date().toISOString();
-      if (t.etat === "ok") {
-        await db.from("moteurs").update({ actif: fournisseur, secours, etat: "ok", message: "Enregistré · utilisé dès le prochain calcul", dernier_test: maintenant, maj: maintenant }).eq("service", service);
-        return json(200, { enregistre: true, etat: "ok", message: "Enregistré · utilisé dès le prochain calcul", moteurs: await lister(db) });
+      const notes: string[] = [];
+
+      // 1) une clé collée est TESTÉE avant d'être écrite : seule une clé qui répond est rangée dans Vault (chiffrée) ;
+      //    sinon l'ancienne clé est conservée (une faute de frappe ne coupe jamais un service qui marchait)
+      if (cle) {
+        const tc = await tester(db, fournisseur, cle);
+        if (tc.etat === "ok") await db.rpc("moteur_cle_enregistrer", { p_fournisseur: fournisseur, p_cle: cle });
+        else {
+          notes.push(`${tc.message} · clé non enregistrée, ancienne clé conservée`);
+        }
       }
-      // le fournisseur actif reste celui d'avant (son état reflète le dernier test s'il est le même) ;
-      // le secours, lui, est enregistré quand même : c'est précisément quand l'actif est en panne qu'on en a besoin
-      const secoursRetenu = secours && secours !== m.actif ? secours : null;
+      if (cleSecours && secours) {
+        const ts = await tester(db, secours, cleSecours);
+        if (ts.etat === "ok") await db.rpc("moteur_cle_enregistrer", { p_fournisseur: secours, p_cle: cleSecours });
+        else {
+          notes.push(`Secours ${nomDe(secours)} : ${ts.message} · clé non enregistrée`);
+        }
+      }
+
+      // 2) test réel du fournisseur choisi avec sa clé enregistrée : seul un fournisseur qui répond devient actif
+      const t = await tester(db, fournisseur, null);
+      // secours : retenu s'il est différent de l'actif d'après et si sa clé (si elle est requise) est rangée
+      const resultatActif = t.etat === "ok" ? fournisseur : m.actif;
+      const secoursInfo = secours ? (liste ?? []).find((f: { id: string }) => f.id === secours) : null;
+      let secoursRetenu: string | null = null;
+      if (secoursInfo && secours !== resultatActif) {
+        const { data: cleSec } = await db.from("cles_fournisseurs").select("fin").eq("fournisseur", secours).maybeSingle();
+        if (!secoursInfo.cle_requise || cleSec) secoursRetenu = secours;
+        else notes.push(`Secours ${nomDe(secours!)} non enregistré : aucune clé valide`);
+      }
+      if (t.etat === "ok") {
+        await db.from("moteurs").update({ actif: fournisseur, secours: secoursRetenu, etat: "ok", message: "Enregistré · utilisé dès le prochain calcul", dernier_test: maintenant, maj: maintenant }).eq("service", service);
+        return json(200, { enregistre: true, etat: "ok", message: ["Enregistré · utilisé dès le prochain calcul", ...notes].join(" · "), moteurs: await lister(db) });
+      }
+      // le fournisseur actif reste celui d'avant (son état reflète ce test s'il est le même) ; le secours est enregistré quand même
       const maj: Record<string, unknown> = { secours: secoursRetenu, dernier_test: maintenant, maj: maintenant };
       if (m.actif === fournisseur) Object.assign(maj, { etat: t.etat, message: t.message });
       await db.from("moteurs").update(maj).eq("service", service);
-      const message = cle || cleSecours ? `${t.message} · clé rangée, fournisseur actif inchangé` : `${t.message} · fournisseur actif inchangé`;
+      const message = [notes.length ? notes.join(" · ") : null, `${t.message} · fournisseur actif inchangé`].filter(Boolean).join(" · ");
       return json(200, { enregistre: false, etat: t.etat, message, moteurs: await lister(db) });
     }
     return json(400, { erreur: "requete_invalide" });

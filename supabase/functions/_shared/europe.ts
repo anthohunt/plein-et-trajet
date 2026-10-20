@@ -80,11 +80,36 @@ export function encoderPolyline6(pts: Pt[]): string {
   return out;
 }
 
-/** Découpe un tracé en morceaux d'au plus `max` points (le service limite à 16 000), en répétant le point de jonction. */
-export function decouperTrace(pts: Pt[], max = 14000): Pt[][] {
-  if (pts.length <= max) return [pts];
+export function distanceKm(a: Pt, b: Pt): number {
+  const R = 6371;
+  const dLat = ((b[0] - a[0]) * Math.PI) / 180;
+  const dLon = ((b[1] - a[1]) * Math.PI) / 180;
+  const s = Math.sin(dLat / 2) ** 2 + Math.cos((a[0] * Math.PI) / 180) * Math.cos((b[0] * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(s));
+}
+
+export const longueurKm = (pts: Pt[]) => pts.slice(1).reduce((s, p, i) => s + distanceKm(pts[i], p), 0);
+
+/**
+ * Découpe un tracé en morceaux d'au plus `maxPoints` points ET d'au plus `maxKm` kilomètres cumulés, en répétant le point de
+ * jonction. Valhalla /trace_attributes refuse un tracé de plus de 16 000 points (erreur 153) ou de plus de 1 000 km (erreur 154).
+ */
+export function decouperTrace(pts: Pt[], maxPoints = 14000, maxKm = 800): Pt[][] {
+  if (pts.length < 2) return [pts];
   const out: Pt[][] = [];
-  for (let d = 0; d < pts.length - 1; d += max - 1) out.push(pts.slice(d, Math.min(d + max, pts.length)));
+  let cur: Pt[] = [pts[0]];
+  let km = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const d = distanceKm(pts[i - 1], pts[i]);
+    if (cur.length >= maxPoints || km + d > maxKm) {
+      out.push(cur);
+      cur = [pts[i - 1]]; // point de jonction répété
+      km = 0;
+    }
+    cur.push(pts[i]);
+    km += d;
+  }
+  out.push(cur);
   return out;
 }
 

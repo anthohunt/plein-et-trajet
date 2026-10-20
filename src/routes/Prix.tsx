@@ -6,7 +6,7 @@ import { LigneStation, type StationAffichee } from "../components/LigneStation";
 import { FicheStation } from "../components/FicheStation";
 import type { Zone } from "../components/CarteStations";
 import { distanceKm, libellesStations, moitie, seuilMoitie, trier, type Carburant, type Tri } from "../lib/format";
-import { infoPays, moyennesParPays, paysDePosition, prixCarburant, stationsAutour, type Station } from "../lib/donnees";
+import { infoPays, moyennesParPays, paysDePosition, prixCarburant, stationsAutour, tousPays, type PaysInfo, type Station } from "../lib/donnees";
 import type { MoyennePays } from "../lib/pays";
 import { prix3 } from "../lib/format";
 import { memoriserVille, type Position } from "../lib/position";
@@ -24,8 +24,6 @@ interface Props {
 }
 
 type Etat = "chargement" | "pret" | "erreur";
-const NOMS_PAYS: Record<string, string> = { ES: "Espagne" };
-const nomPaysStation = (code: string) => NOMS_PAYS[code] ?? code;
 
 export default function Prix({ position, carburant, setCarburant, tri, setTri }: Props) {
   const nav = useNavigate();
@@ -34,7 +32,11 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
   // prix lus pour un carburant donné : jamais affichés sous le titre d'un autre carburant
   const [prix, setPrix] = useState<{ carburant: Carburant; parStation: Map<string, { prix: number; maj: string | null }> } | null>(null);
   const [moyennes, setMoyennes] = useState<Map<string, MoyennePays>>(new Map());
-  const [sansFlux, setSansFlux] = useState<{ nom: string; moyenne: number | null } | null>(null);
+  const [sansFlux, setSansFlux] = useState<{ nom: string; moyenne: number | null; statut: "non_branche" | "aucun" } | null>(null);
+  const [pays, setPays] = useState<Map<string, PaysInfo>>(new Map());
+  useEffect(() => {
+    tousPays().then(setPays).catch(() => setPays(new Map()));
+  }, []);
   const [etat, setEtat] = useState<Etat>("chargement");
   const [essai, setEssai] = useState(0);
   const [ouverte, setOuverte] = useState<StationAffichee | null>(null);
@@ -86,9 +88,9 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
       const p = await paysDePosition(zone.lat, zone.lon);
       if (!actif || !p || p.code === "FR") return;
       const info = await infoPays(p.code);
-      if (!actif || info?.flux_stations) return;
+      if (!actif || info?.statut_flux === "branche") return;
       const m = await moyennesParPays(carburant).catch(() => new Map<string, MoyennePays>());
-      if (actif) setSansFlux({ nom: info?.nom ?? p.nom, moyenne: m.get(p.code)?.prix_moyen ?? null });
+      if (actif) setSansFlux({ nom: info?.nom ?? p.nom, moyenne: m.get(p.code)?.prix_moyen ?? null, statut: info?.statut_flux === "non_branche" ? "non_branche" : "aucun" });
     })();
     return () => {
       actif = false;
@@ -197,7 +199,7 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
           <p className="etat d">{T.chargement}</p>
         ) : liste.length === 0 && etat === "pret" && sansFlux ? (
           <div className="etat" data-el="pays-sans-flux">
-            <p className="t" role="status">{T.paysSansFlux}</p>
+            <p className="t" role="status">{sansFlux.statut === "non_branche" ? T.paysNonBranche : T.paysSansFlux}</p>
             <p className="d" data-el="prix-moyen-national">
               {sansFlux.moyenne == null ? T.paysSansFluxAucuneMoyenne : T.paysSansFluxMoyenne(sansFlux.nom, carburant, prix3(sansFlux.moyenne))}
             </p>
@@ -207,7 +209,7 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
         ) : (
           <ul className="rows" data-el="liste-stations" data-tri={tri} data-carburant={carburant}>
             {liste.map((s) => (
-              <LigneStation key={s.id} s={s} moyenne={moyennes.get(s.pays ?? "FR")?.prix_moyen ?? null} nomPays={s.pays && s.pays !== "FR" ? nomPaysStation(s.pays) : undefined} carburant={carburant} onOuvrir={ouvrir} />
+              <LigneStation key={s.id} s={s} moyenne={moyennes.get(s.pays ?? "FR")?.prix_moyen ?? null} nomPays={s.pays && s.pays !== "FR" ? pays.get(s.pays)?.nom : undefined} carburant={carburant} onOuvrir={ouvrir} />
             ))}
           </ul>
         )}

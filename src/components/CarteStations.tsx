@@ -181,10 +181,10 @@ export default function CarteStations({ position, stations, selection, recentrag
       return { m, bouton: b, tige, prix: s.prix };
     });
     if (cadrer && stations.length > 0) {
-      // cadre centré sur l'utilisateur, à l'échelle des stations proches (≤ 4 km, au moins les 3 plus proches) ;
+      // cadre centré sur l'utilisateur, à l'échelle des stations proches (≤ 4 km, au moins les 3 plus proches, au plus les 25 plus proches) ;
       // les plus lointaines restent dans la liste et apparaissent en dézoomant
       const proches = stations.slice().sort((a, c) => a.distanceKm - c.distanceKm);
-      const coeur = proches.filter((x, i) => x.distanceKm <= 4 || i < 3);
+      const coeur = proches.filter((x, i) => i < 3 || (x.distanceKm <= 4 && i < 25)); // zone dense : cadre resserré sur les 25 plus proches
       const b = new maplibregl.LngLatBounds([position.lon, position.lat], [position.lon, position.lat]);
       // points miroirs : le cadre reste centré sur la position de l'utilisateur
       coeur.forEach((x) => b.extend([x.lon, x.lat]).extend([2 * position.lon - x.lon, 2 * position.lat - x.lat]));

@@ -271,7 +271,7 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
                   </span>
                   <span className="bar"><i style={{ width: `${Math.max(2, (t.litres / maxLitres) * 100)}%` }} /></span>
                 </span>
-                <span className="lit" aria-hidden="true">{fmt(t.litres, 1)} L</span>
+                <span className="lit" aria-hidden="true">{fmt(t.litres, 1)} {T.litresCourt}</span>
               </button>
               <div className="det" id={`troncon-${i}-det`} hidden={!est} data-el="troncon-detail">
                 {T.detailVitesse(t.vitesse_kmh)} · {T.detailArrets(t.arrets)}

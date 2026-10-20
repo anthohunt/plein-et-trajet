@@ -17,7 +17,7 @@ import {
 } from "../_shared/modele.ts";
 import { etapesDepuisAretes, pointEnFrance, vignettesTraversees } from "../_shared/europe.ts";
 import { executerChaine, lireCle, lireMoteur, noterBascule, noterIncident, type Essai } from "../_shared/moteurs.ts";
-import { ErreurItineraire, FOSSGIS, routeValhalla, stadia, type RouteValhalla } from "../_shared/itineraire-europe.ts";
+import { ErreurItineraire, connexionDepuisFournisseur, routeValhalla, type RouteValhalla } from "../_shared/itineraire-europe.ts";
 import { ErreurPeages, peagesHere, peagesPtv, totalPeages, type LignePeage } from "../_shared/peages.ts";
 
 const CORS = {
@@ -180,12 +180,19 @@ async function itineraireEurope(// deno-lint-ignore no-explicit-any
     .map((f) => ({
       fournisseur: f,
       appel: async () => {
-        if (f === "stadia") {
-          const cle = await lireCle(db, f);
+        // adresse, chemins et pause du fournisseur : table `fournisseurs` ; clé (Stadia) : Vault ; pause tenue par le limiteur partagé
+        const { data: ligne } = await db.from("fournisseurs").select("id,url,chemin_route,chemin_trace,pause_ms,cle_requise").eq("id", f).maybeSingle();
+        if (!ligne) throw new ErreurItineraire("indisponible", `fournisseur ${f} inconnu`);
+        let cle: string | null = null;
+        if (ligne.cle_requise) {
+          cle = await lireCle(db, f);
           if (!cle) throw new ErreurItineraire("cle_refusee", "clé manquante");
-          return await routeValhalla(stadia(cle), depart, arrivee);
         }
-        return await routeValhalla(FOSSGIS, depart, arrivee);
+        const reserver = async (nom: string, pauseMs: number) => {
+          const { data } = await db.rpc("limiteur_reserver", { p_nom: nom, p_intervalle_ms: pauseMs });
+          return Number(data ?? 0);
+        };
+        return await routeValhalla(connexionDepuisFournisseur(ligne, cle, reserver), depart, arrivee);
       },
     }));
   const s = await executerChaine(essais);
