@@ -67,3 +67,26 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 ## Vérification finale de l'état des moteurs
 
 - Vérification finale (vrai appel estimer-trajet Albi → Barcelone, sans aucune clé) : {"statut":200,"peages":"ptv","etatPeages":"ok","totalPeages":29,"itineraire":"stadia"}.
+
+## Round 2
+
+Réponse à l'audit round 1 (3 HIGH, 9 MEDIUM) et aux ajouts d'Anthony (US-5.6, vraies clés, Stadia). Toutes les captures du plan sont refaites sur le code déployé final (56/56 : 52 du plan + 4 de US-5.6), brutes propres (voir `m3-captures-brutes/LISEZMOI.md`), 0 ligne ✗ au dernier passage de `run-m3.mjs`.
+
+- **H1 flux de stations** : IT, PT, SI, HR (lat/long inversés remis à l'endroit), AT, DK, IS branchés (relevés en vrai à Rome, Lisbonne, Vienne, Ljubljana, Zagreb : vues `m3-captures-pays/`), Berlin (DE, non branché) = « Prix station par station pas encore disponibles pour ce pays », Bruxelles = phrase de la spec ; `pays.statut_flux` = branche | non_branche | aucun. RO (certificat TLS invalide) et UK (CSV à URL signée) non branchés ; DE : Tankerkönig branché mais sans clé (voir US-5.6).
+- **H2 tracé Valhalla** : découpage par distance (≤ 800 km, point de jonction répété) + par points ; Albi → Rome, Lisbonne, Belgrade fonctionnent ; US-4.E6 refait DEPUIS Albi vers Belgrade (1 870 km chez Stadia).
+- **H3 textes** : plus de chaîne visible hors `textes.ts` (grep des fichiers du jalon), noms de pays depuis la table `pays`.
+- **M4** clé candidate testée AVANT Vault (US-5.3, US-5.E2) · **M5** limiteur Postgres partagé + URL/pause lues dans `fournisseurs`, Stadia cible · **M6** `docs/pipeline/m3-decisions.md` · **M7-8** brutes propres, étiquettes en haut seulement quand la preuve n'est pas dans l'interface (réponses réseau, mesure 4G, ordre de tabulation) · **M9** A11Y sur S1, S3, S4, S5 · **M10** US-4.E4-01 sur S4 · **M11** pastilles sans place masquées à petite échelle en zone dense · **M12** prix HERE « fourchette » (maximum, signalé).
+
+### Vraies clés et état des moteurs
+Les vraies clés PTV et Stadia sont lues EN MÉMOIRE au début de `run-m3.mjs` (et du `globalSetup` des extraits) et restaurées dans un `finally` ; les tests n'écrivent jamais une clé factice sur une vraie clé (clés factices « FAUX- » sur HERE seulement, supprimées par valeur). US-4.4 (montants TTC réels), US-5.4 (« Connecté » PTV) et l'itinéraire Stadia sont donc vus en vrai, plus BLOQUÉ-CLÉ. Encore BLOQUÉ-CLÉ : HERE (US-5.5 et la forme PTV → HERE de US-5.E3 ; la bascule d'un principal en panne vers un secours qui répond est vue en vrai : HERE refusé → PTV, avec la note « Bascule HERE → PTV Developer le … ») et Tankerkönig (synchro allemande jamais exécutée avec une vraie clé).
+Vérification finale (vrai appel `estimer-trajet` Albi → Barcelone, sans clé) : `{"statut":200,"peages":"ptv","etatPeages":"ok","totalPeages":29,"itineraire":"stadia"}`.
+
+### Correctif Stadia (trace_attributes)
+Stadia valide strictement les attributs (« unknown variant `edge.traffic_signal` », idem `edge.end_node.admin_index`) ; liste exacte relevée dans le message 400 réel de Stadia. Une seule liste `ATTRIBUTS_TRACE` (node.admin_index pour le pays, edge.length/road_class/speed/speed_limit/weighted_grade/toll/roundabout/names/density, node.intersecting_edge.road_class, admin.country_code/text) vérifiée en vrai chez Stadia ET chez FOSSGIS (même forme de réponse). **Feux** : `edge.traffic_signal` n'existe pas chez Stadia → approximation documentée dans `europe.ts` : un carrefour rencontrant une route de classe ≥ tertiaire compte pour 0,45 arrêt (+ 1 par rond-point), reste fractionnaire reporté d'une étape à l'autre ; part mesurée sur FOSSGIS (vrais feux / carrefours prioritaires) : 24/43 Albi→Toulouse, 24/56 Albi→Barcelone, 20/42 Albi→Bordeaux, 14/51 Paris→Lyon (moyenne 82/192 = 0,43). Modèle de consommation et découpage par distance inchangés ; tests unitaires de la liste et de l'approximation. Vérification : `estimer-trajet` Albi → Barcelone renvoie `itineraire.fournisseur = "stadia"` ; `moteurs.incident_message` de l'itinéraire avant et après le déploiement et l'appel : identique (« stadia : indisponible 400 », 2026-10-20 19:42:35 UTC, relevé avant ET après) — pas de nouvel incident.
+
+### Écrans qui montrent légitimement le même état
+Aucune capture du dernier passage n'est identique à une autre (le script le signalerait à la ligne de la capture : « même écran que … ») ; une brute et sa livraison coïncident octet pour octet quand aucune étiquette n'est posée (deux prises successives d'une page fixe).
+
+### Limites connues
+- Albi → Barcelone : PTV ne renvoie pas de section pour l'AP-7 espagnole dans cette requête ; seuls les péages français (29,00 € TTC) sont comptés — signalé, non inventé.
+- Stadia et FOSSGIS ne calculent pas toujours le même itinéraire (Milan 861 km chez Stadia contre 950 chez FOSSGIS) : seuils des tests élargis.
