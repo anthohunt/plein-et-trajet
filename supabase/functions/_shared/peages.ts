@@ -1,0 +1,179 @@
+// Péages voiture (jalon 3) — adaptateurs PTV Developer (prix HT, TVA du pays ajoutée) et HERE v8 (prix TTC).
+// Formats vérifiés dans la documentation officielle (2026-10-20) :
+//  • PTV  GET https://api.myptv.com/routing/v1/routes?waypoints=lat,lon&waypoints=…&profile=EUR_CAR&results=TOLL_COSTS,TOLL_SECTIONS,TOLL_SYSTEMS&options[currency]=EUR
+//         en-tête `apiKey` ; réponse { toll: { costs, sections:[{costs:[{price,currency,paymentMethods,convertedPrice}],countryCode,displayName,tollSystemIndex}], systems:[{name,operatorName}] } } — « Toll prices do not include VAT ».
+//  • HERE GET https://router.hereapi.com/v8/routes?transportMode=car&origin=lat,lon&destination=lat,lon&return=tolls&currency=EUR&tolls[vignettes]=all&apiKey=…
+//         réponse { routes:[{ sections:[{ tolls:[{countryCode(alpha-3), tollSystem, fares:[{name, price:{currency,value}, convertedPrice, paymentMethods}]}] }] }] }
+export interface LignePeage {
+  pays: string; // ISO alpha-2
+  libelle: string;
+  montant: number; // € TTC
+}
+export type MotifPeages = "cle_manquante" | "cle_refusee" | "quota" | "indisponible" | "reponse_invalide" | "aucun_fournisseur";
+export class ErreurPeages extends Error {
+  constructor(public motif: MotifPeages, public http?: number) {
+    super(motif + (http ? ` (${http})` : ""));
+  }
+}
+
+export const arrondi2 = (x: number) => Math.round(x * 100) / 100;
+
+/** Prix HT → TTC avec la TVA du pays (taux en %), arrondi au centime. */
+export function ajouterTva(ht: number, tvaPct: number): number {
+  return arrondi2(ht * (1 + tvaPct / 100));
+}
+
+const ALPHA3: Record<string, string> = {
+  FRA: "FR", ESP: "ES", ITA: "IT", PRT: "PT", DEU: "DE", BEL: "BE", LUX: "LU", NLD: "NL", CHE: "CH", AUT: "AT", SVN: "SI", HRV: "HR", HUN: "HU",
+  SVK: "SK", CZE: "CZ", POL: "PL", DNK: "DK", SWE: "SE", FIN: "FI", NOR: "NO", IRL: "IE", GBR: "GB", ROU: "RO", BGR: "BG", GRC: "GR", SRB: "RS",
+  BIH: "BA", MNE: "ME", MKD: "MK", ALB: "AL", MLT: "MT", CYP: "CY", EST: "EE", LVA: "LV", LTU: "LT", AND: "AD", MCO: "MC", LIE: "LI",
+};
+export const alpha2 = (code: string | undefined): string => {
+  const c = (code ?? "").toUpperCase();
+  return c.length === 3 ? (ALPHA3[c] ?? c.slice(0, 2)) : c.slice(0, 2);
+};
+
+// ------------------------------------------------------------------ PTV
+interface CoutPtv {
+  price?: number;
+  currency?: string;
+  paymentMethods?: string[];
+  convertedPrice?: { price?: number; currency?: string };
+}
+export interface ReponsePtv {
+  toll?: {
+    sections?: { costs?: CoutPtv[]; countryCode?: string; displayName?: string; tollSystemIndex?: number }[];
+    systems?: { name?: string; operatorName?: string }[];
+  };
+}
+
+/** Prix HT en euros d'une section : le moins cher des paiements sans abonnement ; null si non convertible en euros. */
+export function prixHtEuros(couts: CoutPtv[] | undefined): number | null {
+  const liste = (couts ?? []).filter((c) => typeof c.price === "number");
+  if (liste.length === 0) return 0;
+  const sansAbonnement = liste.filter((c) => !(c.paymentMethods ?? []).includes("ELECTRONIC_TOLL_COLLECTION_SUBSCRIPTION"));
+  const candidats = sansAbonnement.length > 0 ? sansAbonnement : liste;
+  const euros = candidats
+    .map((c) => (c.currency === "EUR" ? (c.price as number) : typeof c.convertedPrice?.price === "number" && c.convertedPrice.currency === "EUR" ? c.convertedPrice.price : null))
+    .filter((x): x is number => x != null);
+  return euros.length > 0 ? Math.min(...euros) : null;
+}
+
+/** Réponse PTV → lignes TTC (TVA du pays de chaque section). Lève reponse_invalide si le bloc `toll` manque. */
+export function lignesDepuisPtv(r: ReponsePtv, tvaParPays: Record<string, number>): LignePeage[] {
+  if (!r || typeof r !== "object" || !r.toll || !Array.isArray(r.toll.sections)) throw new ErreurPeages("reponse_invalide");
+  const out: LignePeage[] = [];
+  for (const s of r.toll.sections) {
+    const ht = prixHtEuros(s.costs);
+    if (ht == null) throw new ErreurPeages("reponse_invalide");
+    const pays = alpha2(s.countryCode);
+    const tva = tvaParPays[pays];
+    if (tva == null && ht > 0) throw new ErreurPeages("reponse_invalide"); // pas de TVA connue : on ne devine pas
+    const sys = r.toll.systems?.[s.tollSystemIndex ?? -1];
+    const nom = sys?.name ?? sys?.operatorName ?? "";
+    const libelle = [nom, s.displayName].filter(Boolean).join(" · ") || "Péage";
+    out.push({ pays, libelle, montant: ht === 0 ? 0 : ajouterTva(ht, tva) });
+  }
+  return out;
+}
+
+// ------------------------------------------------------------------ HERE
+interface FareHere {
+  name?: string;
+  price?: { currency?: string; value?: number };
+  convertedPrice?: { currency?: string; value?: number };
+  paymentMethods?: string[];
+}
+export interface ReponseHere {
+  routes?: { sections?: { tolls?: { countryCode?: string; tollSystem?: string; fares?: FareHere[] }[] }[] }[];
+}
+
+function eurosHere(f: FareHere): number | null {
+  if (f.convertedPrice?.currency === "EUR" && typeof f.convertedPrice.value === "number") return f.convertedPrice.value;
+  if (f.price?.currency === "EUR" && typeof f.price.value === "number") return f.price.value;
+  return null;
+}
+/** Réponse HERE → lignes (prix déjà TTC). Paiement le moins cher parmi espèces/carte ; à défaut, parmi tous. */
+export function lignesDepuisHere(r: ReponseHere): LignePeage[] {
+  const route = r?.routes?.[0];
+  if (!route || !Array.isArray(route.sections)) throw new ErreurPeages("reponse_invalide");
+  const out: LignePeage[] = [];
+  for (const sec of route.sections) {
+    for (const t of sec.tolls ?? []) {
+      const fares = t.fares ?? [];
+      const classiques = fares.filter((f) => (f.paymentMethods ?? []).some((p) => ["cash", "bankCard", "creditCard"].includes(p)));
+      const prix = (classiques.length > 0 ? classiques : fares).map(eurosHere).filter((x): x is number => x != null);
+      if (fares.length > 0 && prix.length === 0) throw new ErreurPeages("reponse_invalide");
+      const montant = prix.length > 0 ? Math.min(...prix) : 0;
+      out.push({ pays: alpha2(t.countryCode), libelle: [t.tollSystem, fares[0]?.name && fares[0].name !== t.tollSystem ? fares[0].name : ""].filter(Boolean).join(" · ") || "Péage", montant: arrondi2(montant) });
+    }
+  }
+  return out;
+}
+
+export const totalPeages = (l: LignePeage[]) => arrondi2(l.reduce((s, x) => s + x.montant, 0));
+
+// ------------------------------------------------------------------ appels réseau
+export interface Point {
+  lat: number;
+  lon: number;
+}
+async function appel(url: string, init: RequestInit, ms = 25000): Promise<Response> {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), ms);
+  try {
+    return await fetch(url, { ...init, signal: c.signal, headers: { "User-Agent": "plein-et-trajet/1.0 (+https://plein-et-trajet.vercel.app)", ...(init.headers ?? {}) } });
+  } catch {
+    throw new ErreurPeages("indisponible");
+  } finally {
+    clearTimeout(t);
+  }
+}
+function erreurHttp(status: number): ErreurPeages {
+  if (status === 401 || status === 403) return new ErreurPeages("cle_refusee", status);
+  if (status === 429) return new ErreurPeages("quota", status);
+  return new ErreurPeages("indisponible", status);
+}
+
+export async function peagesPtv(cle: string, a: Point, b: Point, tvaParPays: Record<string, number>): Promise<LignePeage[]> {
+  const q = new URLSearchParams();
+  q.append("waypoints", `${a.lat},${a.lon}`);
+  q.append("waypoints", `${b.lat},${b.lon}`);
+  q.set("profile", "EUR_CAR");
+  q.set("results", "TOLL_COSTS,TOLL_SECTIONS,TOLL_SYSTEMS");
+  q.set("options[currency]", "EUR");
+  const r = await appel(`https://api.myptv.com/routing/v1/routes?${q}`, { headers: { apiKey: cle } });
+  if (!r.ok) throw erreurHttp(r.status);
+  let j: ReponsePtv;
+  try {
+    j = await r.json();
+  } catch {
+    throw new ErreurPeages("reponse_invalide");
+  }
+  return lignesDepuisPtv(j, tvaParPays);
+}
+
+export async function peagesHere(cle: string, a: Point, b: Point): Promise<LignePeage[]> {
+  const q = new URLSearchParams({ transportMode: "car", origin: `${a.lat},${a.lon}`, destination: `${b.lat},${b.lon}`, return: "tolls", currency: "EUR", "tolls[vignettes]": "all", apiKey: cle });
+  const r = await appel(`https://router.hereapi.com/v8/routes?${q}`, {});
+  if (!r.ok) throw erreurHttp(r.status);
+  let j: ReponseHere;
+  try {
+    j = await r.json();
+  } catch {
+    throw new ErreurPeages("reponse_invalide");
+  }
+  return lignesDepuisHere(j);
+}
+
+/** Message du test de connexion d'un fournisseur de péages (écran Moteurs). */
+export function messageErreurPeages(nom: string, e: unknown): string {
+  if (e instanceof ErreurPeages) {
+    if (e.motif === "cle_refusee") return `Clé refusée par ${nom} (${e.http ?? 401})`;
+    if (e.motif === "quota") return `Quota ${nom} atteint (429)`;
+    if (e.motif === "cle_manquante") return "Aucune clé : colle-la d'abord";
+    if (e.motif === "reponse_invalide") return `Réponse de ${nom} illisible`;
+    return `${nom} ne répond pas${e.http ? ` (${e.http})` : ""}`;
+  }
+  return `${nom} ne répond pas`;
+}

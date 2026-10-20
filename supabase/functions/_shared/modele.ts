@@ -100,6 +100,8 @@ export interface Etape {
   numero: string; // numéro de voie IGN (A68, N88, D988…), vide si inconnu
   manoeuvre: string; // type de manœuvre IGN (turn, fork, roundabout…)
   denivele_m: number; // dénivelé positif cumulé sur l'étape
+  type_force?: TypeTroncon; // jalon 3 : type imposé (autoroute d'après la classe de voie Valhalla)
+  arrets?: number; // jalon 3 : arrêts comptés directement (feux, ronds-points Valhalla) au lieu des manœuvres IGN
 }
 
 const MANOEUVRES_ARRET = new Set(["turn", "end of road", "roundabout", "rotary", "roundabout turn", "exit roundabout", "exit rotary", "traffic signals"]);
@@ -112,6 +114,7 @@ export function vitesseKmh(distanceM: number, dureeS: number): number {
 
 export function typeDeLEtape(e: Etape): TypeTroncon {
   const v = vitesseKmh(e.distance_m, e.duree_s);
+  if (e.type_force && !(e.distance_m >= MONTEE_LONGUEUR_MIN_M && e.denivele_m / (e.distance_m / 1000) >= MONTEE_M_PAR_KM)) return e.type_force;
   if (e.distance_m >= MONTEE_LONGUEUR_MIN_M && e.denivele_m / (e.distance_m / 1000) >= MONTEE_M_PAR_KM) return "montee";
   if (/^A\d/i.test(e.numero) || (v >= 105 && e.distance_m >= 2000)) return "autoroute";
   if (v < 50) return "ville";
@@ -121,8 +124,13 @@ export function typeDeLEtape(e: Etape): TypeTroncon {
 export function estUnArret(e: Etape, type: TypeTroncon): boolean {
   return type !== "autoroute" && MANOEUVRES_ARRET.has(e.manoeuvre);
 }
+function arretsDeLEtape(e: Etape, type: TypeTroncon): number {
+  if (e.arrets != null) return type === "autoroute" ? 0 : e.arrets;
+  return estUnArret(e, type) ? 1 : 0;
+}
 
 export interface Troncon {
+  pays?: string; // jalon 3 : code pays ISO du tronçon (trajet Europe)
   type: TypeTroncon;
   voies: string[]; // numéros de voie principaux (A68, N88…)
   km: number;
@@ -145,7 +153,7 @@ export function decouperTroncons(etapes: Etape[], v: VehiculeModele): Troncon[] 
     a.m += e.distance_m;
     a.s += e.duree_s;
     a.d += e.denivele_m;
-    if (estUnArret(e, type)) a.arrets += 1;
+    a.arrets += arretsDeLEtape(e, type);
     if (e.numero) a.voies.set(e.numero, (a.voies.get(e.numero) ?? 0) + e.distance_m);
     acc.set(type, a);
   }
@@ -242,4 +250,32 @@ export function deniveleParEtape(echantillons: Echantillon[], altitudes: (number
     prec = z;
   }
   return d;
+}
+
+// ------------------------------------------------------------------ jalon 3 : tronçons et litres par pays traversé
+
+export interface ResumePays {
+  code: string;
+  km: number;
+  litres: number;
+}
+
+/** Applique le découpage à chaque pays (dans l'ordre de traversée) ; chaque tronçon porte son code pays. */
+export function decouperParPays(etapesParPays: [string, Etape[]][], v: VehiculeModele): Troncon[] {
+  const out: Troncon[] = [];
+  for (const [pays, etapes] of etapesParPays) for (const t of decouperTroncons(etapes, v)) out.push({ ...t, pays });
+  return out;
+}
+
+/** km et litres par pays, dans l'ordre de première apparition ; la somme des litres égale celle des tronçons. */
+export function resumeParPays(troncons: Troncon[]): ResumePays[] {
+  const m = new Map<string, ResumePays>();
+  for (const t of troncons) {
+    const code = t.pays ?? "FR";
+    const r = m.get(code) ?? { code, km: 0, litres: 0 };
+    r.km += t.km;
+    r.litres += t.litres;
+    m.set(code, r);
+  }
+  return [...m.values()].map((r) => ({ code: r.code, km: arrondi(r.km, 1), litres: arrondi(r.litres, 3) }));
 }
