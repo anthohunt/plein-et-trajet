@@ -423,11 +423,13 @@ histoireDef("US-4.E2", "US-4.E2 — Prix perso invalide", async () => {
   await champPrix.pressSequentially("1,699", { delay: 60 });
   await expect(erreur).toHaveCount(0);
   await expect(pa.locator('[data-el="libelle-prix"]')).toHaveText("Mon prix");
+  await pa.keyboard.press("Tab"); // la saisie est validée en quittant le champ
   await capture(pa, "US-4.E2-E1-03-retour.png", async () => {
     const r = await lireResultat(pa);
     expect(r.detail).toContain("1,699 €/L");
+    await expect(pa.locator('[data-el="erreur-prix-perso"]')).toHaveCount(0);
     await expect(pa.locator('[data-el="libelle-prix"]')).toHaveText("Mon prix");
-    return `saisie corrigée à 1,699 : le message disparaît, coût recalculé ${virgule(r.cout)} €`;
+    return `saisie corrigée à 1,699 puis champ quitté (Tab) : le message a disparu, coût recalculé ${virgule(r.cout)} €`;
   }, "retour à une saisie valide : état normal", "edge");
   await pa.locator('[data-el="revenir-moyenne"]').click();
   await expect.poll(async () => (await lireResultat(pa)).cout).toBe(coutAvant);
@@ -698,10 +700,10 @@ histoireDef("US-3.E3", "US-3.E3 — Historique vide", async () => {
   await expect(pb.locator('[data-el="ligne-station"]').first()).toBeVisible();
   await pb.getByRole("tab", { name: "Trajets" }).click();
   await attendreFormulaire(pb);
-  await pb.locator('[data-el="champ-depart"]').focus();
+  await pb.locator('[data-el="champ-arrivee"]').focus();
   await capture(pb, "US-3.E3-E1-03-retour.png", async () => {
     await expect(pb.locator('[data-el="historique-vide"]')).toBeVisible();
-    return `après un aller-retour Prix → Trajets : même état vide (base : ${base.length} trajet pour cet identifiant) ; curseur dans le champ départ, prêt pour le premier trajet`;
+    return `après un aller-retour Prix → Trajets : même état vide (base : ${base.length} trajet pour cet identifiant) ; curseur dans le champ arrivée, prêt pour le premier trajet`;
   }, "retour à l'état normal : invitation toujours là, prêt à saisir", "edge");
 
   // ---- US-3.E2 (même identité neuve : aucune voiture)

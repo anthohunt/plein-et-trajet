@@ -25,7 +25,7 @@ test.describe("US-3.P2 — Changer de voiture", () => {
     test("US-3.P2 — choisir la même marque ne perd pas la voiture ; changer de modèle réinitialise la motorisation", async ({ page }) => {
       await ouvrirTrajets(page);
       await choisirVoiture(page, "Peugeot", "208", "208 (101ch) · mécanique");
-      await choisirDansListe(page, "voiture-modele", "Modèle", "3008");
+      await choisirDansListe(page, "voiture-modele", "Modèle", "308");
       await expect(page.locator("#voiture-moteur .dd-txt")).toHaveText("Motorisation");
       await expect(page.locator('[data-el="voiture-memorisee"]')).toHaveCount(0);
     });

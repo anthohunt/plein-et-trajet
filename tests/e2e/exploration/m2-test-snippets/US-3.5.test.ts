@@ -14,7 +14,7 @@ test.describe("US-3.5 — Calculer le coût", () => {
       expect(r.l100).toBeLessThan(8);
       expect(r.litres).toBeCloseTo((r.km * r.l100) / 100, 0);
       const moyenne = await moyenneDuJour("SP95-E10");
-      expect(r.cout).toBeCloseTo(Math.round(r.litres * moyenne * 100) / 100, 1);
+      expect(Math.abs(r.cout - r.litres * moyenne)).toBeLessThan(0.06 * moyenne + 0.01); // les litres affichés sont arrondis au dixième
       await expect(page.locator('[data-el="troncons"] li').first()).toBeVisible();
     });
   });

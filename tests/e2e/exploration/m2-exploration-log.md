@@ -138,10 +138,12 @@ Identités : chaque contexte de navigateur crée sa propre session anonyme Supab
 
 ### Edge Case
 - ✓ `US-4.E2-E1-01-declencheur.png` — le champ prix perso est ouvert — champ prix perso ouvert (vide), coût 40,78 €
-- ✗ `US-4.E2-E1-02-resultat.png` — je saisis 12 — expect(received).toBe(expected) // Object.is equality  Expected: 40.78 Received: 18.88
+- ✓ `US-4.E2-E1-02-resultat.png` — je saisis 12 — « 12 » refusé : message « Entre un prix entre 0,50 et 4,00 €/L », champ marqué invalide (aria-invalid), coût inchangé 40,78 €
+- ✓ « abc » : même message, coût inchangé ; « 0,49 » et « 4,01 » refusés, « 0,50 » et « 4,00 » acceptés (tests Vitest `validerPrix`)
+- ✓ `US-4.E2-E1-03-retour.png` — retour à une saisie valide : état normal — saisie corrigée à 1,699 puis champ quitté (Tab) : le message a disparu, coût recalculé 32,08 €
 
 ### Issues Found
-- ✗ erreur d'exploration : expect(received).toBe(expected) // Object.is equality  Expected: 40.78
+- Trouvé dans la 1re passe sur la prod : le prix était appliqué à chaque touche, donc taper « 12 » passait par « 1 » (1,00 €/L) et le coût affiché devenait celui de 1,00 €/L (18,88 € au lieu de 40,78 €) au lieu de rester « celui d'avant ». Corrigé : le prix n'est appliqué qu'une fois la frappe posée (Entrée, sortie du champ, ou 0,45 s sans touche) ; une saisie invalide annule l'application en attente. Captures reprises.
 
 ## US-4.3 — Revenir aux trajets
 
@@ -158,7 +160,7 @@ Identités : chaque contexte de navigateur crée sa propre session anonyme Supab
 ## US-3.6 — Rejouer un ancien trajet
 
 ### Happy Path
-- ✓ `US-3.6-01-rejouer-un-ancien-trajet-avant.png` — un trajet est dans l'historique — ligne d'historique « Albi → Bordeaux 317 km · 20 oct. » (enregistrée le 2026-10-20T14:18:23.215+00:00)
+- ✓ `US-3.6-01-rejouer-un-ancien-trajet-avant.png` — un trajet est dans l'historique — ligne d'historique « Albi → Bordeaux 317 km · 20 oct. » (enregistrée le 2026-10-20T14:36:01.953+00:00)
 - ✓ `US-3.6-02-rejouer-un-ancien-trajet-apres.png` — je touche la ligne : recalcul au prix moyen du jour, résultat affiché — recalcul réel (nouvel appel estimer-trajet) : 317 km, 18.9 L, coût 40,78 € au prix moyen du jour 2,160 €/L ; la ligne d'historique est mise à jour (pas de doublon), horodatage avancé
 
 ### Edge Case
@@ -196,12 +198,13 @@ Identités : chaque contexte de navigateur crée sa propre session anonyme Supab
 ### Happy Path
 - ✓ `US-3.P2-01-changer-de-voiture-avant.png` — une voiture est mémorisée — voiture mémorisée Peugeot 208 (101ch) mécanique, pointeur sur la marque
 - ✓ `US-3.P2-02-changer-de-voiture-apres.png` — je choisis Renault : modèle et motorisation se réinitialisent, la nouvelle voiture est mémorisée — marque Renault ; modèle et motorisation réinitialisés (« Modèle », « Motorisation ») ; `preferences` : marque=Renault, modèle et vehicule_id vidés (l'ancienne voiture n'est plus mémorisée)
+- ✓ nouvelle voiture complétée (Renault Clio « CLIO (101ch) · mécanique ») puis rechargement : la nouvelle voiture est pré-remplie, l'ancienne a disparu
 
 ### Edge Case
 - (rien à signaler)
 
 ### Issues Found
-- ✗ erreur d'exploration : expect(locator).toHaveText(expected) failed  Locator:  locator('#voiture-modele .dd-txt')
+- aucune sur la version déployée à cette passe.
 
 ## US-3.E1 — Lieu introuvable
 
@@ -236,7 +239,7 @@ Identités : chaque contexte de navigateur crée sa propre session anonyme Supab
 
 ### Edge Case
 - ✓ `US-4.E3-E1-01-declencheur.png` — un calcul qui dure plus d'une seconde — Albi → Toulouse prêt à calculer ; la réponse réelle d'estimer-trajet sera retardée de 3 s (MOCKED: délai ajouté, requête réelle)
-- ✓ `US-4.E3-E1-02-resultat.png` — j'attends — après 1342 ms : « Calcul de l'itinéraire… » avec bouton Annuler (focus dessus) ; aucun résultat affiché
+- ✓ `US-4.E3-E1-02-resultat.png` — j'attends — après 1348 ms : « Calcul de l'itinéraire… » avec bouton Annuler (focus dessus) ; aucun résultat affiché
 - ✓ `US-4.E3-E1-03-retour.png` — Annuler : retour au formulaire — Annuler ramène au formulaire, champs conservés, focus sur Calculer
 - ✓ 4,5 s plus tard (réponse réelle arrivée après l'annulation) : toujours le formulaire, historique inchangé (1 trajet en base)
 
@@ -265,7 +268,7 @@ Identités : chaque contexte de navigateur crée sa propre session anonyme Supab
 ### Edge Case
 - ✓ `US-3.E3-E1-01-declencheur.png` — aucun trajet calculé (nouvelle identité) — nouvel identifiant anonyme, appli ouverte sur Prix, aucun trajet calculé
 - ✓ `US-3.E3-E1-02-resultat.png` — j'ouvre l'onglet Trajets — « Aucun trajet pour l'instant » + invitation « Choisis un départ, une arrivée et ta voiture, puis touche « Calculer le coût » : ton premier trajet apparaîtra ici. »
-- ✓ `US-3.E3-E1-03-retour.png` — retour à l'état normal : invitation toujours là, prêt à saisir — après un aller-retour Prix → Trajets : même état vide (base : 0 trajet pour cet identifiant) ; curseur dans le champ départ, prêt pour le premier trajet
+- ✓ `US-3.E3-E1-03-retour.png` — retour à l'état normal : invitation toujours là, prêt à saisir — après un aller-retour Prix → Trajets : même état vide (base : 0 trajet pour cet identifiant) ; curseur dans le champ arrivée, prêt pour le premier trajet
 
 ### Issues Found
 - (rien à signaler)
@@ -323,18 +326,25 @@ Identités : chaque contexte de navigateur crée sa propre session anonyme Supab
 ## US-PERF-001 — Ouverture rapide
 
 ### Happy Path
-- ✓ `US-PERF-001-01-m2.png` — j'ouvre l'appli sur l'écran Trajets (4G simulée) — navigation vers /trajets lancée en 4G simulée, cache désactivé, t=125 ms
+- ✓ `US-PERF-001-01-m2.png` — j'ouvre l'appli sur l'écran Trajets (4G simulée) — navigation vers /trajets lancée en 4G simulée, cache désactivé, t=119 ms
 - ✓ `US-PERF-001-02-m2.png` — l'écran est utilisable en moins de 2,5 s — Trajets prêt (formulaire, Marque
-▾, historique chargé) en 1191 ms < 2 500 ms ; l'écran Prix mesuré à côté : 926 ms
+▾, historique chargé) en 768 ms < 2 500 ms ; l'écran Prix mesuré à côté : 931 ms
 
 ### Edge Case
-- ✓ contrôle : l'écran Prix (jalon 1) affiche sa liste en 926 ms en 4G simulée, session neuve
+- ✓ contrôle : l'écran Prix (jalon 1) affiche sa liste en 931 ms en 4G simulée, session neuve
 
 ### Issues Found
 - aucune sur la version déployée à cette passe.
 
 ## Contrôles de fin de passe
 
-- Captures écrites : 60 ; en échec : 1 (US-4.E2-E1-02-resultat.png).
-- Fichiers M2 présents dans delivery/ : 60 ; doublons d'octets (md5) : US-3.1-01-ouvrir-les-trajets-avant.png = US-3.E3-E1-01-declencheur.png ; US-3.1-02-ouvrir-les-trajets-apres.png = US-3.2-01-saisir-le-dpart-avant.png.
+- Captures écrites : 61 ; en échec : 0.
+- Fichiers M2 présents dans delivery/ : 61 ; doublons d'octets (md5) : aucun.
 - Erreurs console / page observées pendant la passe : aucune.
+
+## Résultats des tests rejoués sur la prod (commit déployé 84ae3b1)
+
+- Extraits Playwright `tests/e2e/exploration/m2-test-snippets/` (24 fichiers `US-<id>.test.ts`, config `playwright.config.ts`) : **56 passés / 56** contre https://plein-et-trajet.vercel.app (backend réel ; seul US-4.E3 ajoute un délai de 3 s à la vraie requête). 1re passe : 52/56 — 4 échecs dus aux extraits eux-mêmes (litres affichés arrondis au dixième comparés au centime ; modèle « 3008 » absent de la base ADEME ; import des extraits sans `test`), corrigés puis rejoués.
+- Régression du jalon 1 : `tests/e2e/m1-explore.spec.ts` contre la prod après les changements du jalon 2 : **25 passés / 25**.
+- Vitest : **79 passés** (format 24, calcul 31, modèle de consommation 24) ; `npx vite build` : 0 erreur.
+- Observation hors jalon 2 : lors de passes précédentes, la console de l'écran Prix a affiché une erreur `AJAXError 400` sur `data.geopf.fr/tms/1.0.0/PLAN.IGN/metadata.json` (service de fond de carte IGN, jalon 1, sans effet visible) ; elle n'est pas apparue dans la passe finale.

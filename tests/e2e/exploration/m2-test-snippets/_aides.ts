@@ -1,5 +1,5 @@
 // Aides des extraits Playwright du jalon 2 (appli déployée, base réelle). Réexporte les aides communes de m2-aides.mjs.
-import { expect, type Page } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 // @ts-ignore — module JS sans types
 import * as a from "../m2-aides.mjs";
 
@@ -33,4 +33,4 @@ export async function trajetCalcule(p: Page, depart = "Albi", arrivee = "Toulous
   await calculer(p);
   return lireResultat(p);
 }
-export { expect };
+export { expect, test };

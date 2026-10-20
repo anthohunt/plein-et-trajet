@@ -15,7 +15,7 @@ test.describe("US-3.6 — Rejouer un ancien trajet", () => {
       const r = await lireResultat(page);
       const moyenne = await moyenneDuJour("SP95-E10");
       expect(r.detail).toContain(moyenne.toFixed(3).replace(".", ","));
-      expect(r.cout).toBeCloseTo(Math.round(r.litres * moyenne * 100) / 100, 1);
+      expect(Math.abs(r.cout - r.litres * moyenne)).toBeLessThan(0.06 * moyenne + 0.01); // les litres affichés sont arrondis au dixième
       const apres = await dbTrajets(page);
       expect(apres).toHaveLength(1);
       expect(new Date(apres[0].cree_le).getTime()).toBeGreaterThan(new Date(avant.cree_le).getTime());
