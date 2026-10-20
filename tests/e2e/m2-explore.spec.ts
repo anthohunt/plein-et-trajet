@@ -2,8 +2,16 @@
 // Joué contre l'appli déployée, base réelle (Supabase, géocodeur et routeur IGN, edge function estimer-trajet).
 // Seul US-4.E3 intercepte le réseau (// MOCKED: délai puis route.continue — le vrai backend répond).
 // Aucune capture n'est écrite dans tests/e2e/delivery/ (preuves auditées).
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { S4, URL_APP, attendreFormulaire, calculer, champ, choisirDansListe, choisirVoiture, compterCalculs, dbPreference, dbTrajets, env, etatFocus, formulairePret, lignesHistorique, lireResultat, moyenneDuJour, ouvrirTrajets, propositions, rest, saisirLieu, session, trajetCalcule, virgule } from "./exploration/m2-test-snippets/_aides";
+
+// US-4.4 : le total inclut les péages depuis le jalon 3 — ces assertions comparent le coût CARBURANT (total moins péages établis), pas le total
+async function carburantSeul(page: Page): Promise<number> {
+  const total = Number(await page.locator('[data-el="cout"] [data-cout]').first().getAttribute("data-cout"));
+  const split = await page.locator('[data-el="repartition-cout"]').first().innerText().catch(() => "");
+  const p = split.match(/Péages ([\d,]+) €/);
+  return Math.round((total - (p ? Number(p[1].replace(",", ".")) : 0)) * 100) / 100;
+}
 
 test.describe("M2 — Le coût d'un trajet", () => {
   test.describe("US-3.1 — Ouvrir les trajets", () => {
@@ -139,7 +147,8 @@ test.describe("M2 — Le coût d'un trajet", () => {
         expect(r.l100).toBeLessThan(8);
         expect(r.litres).toBeCloseTo((r.km * r.l100) / 100, 0);
         const moyenne = await moyenneDuJour("SP95-E10");
-        expect(Math.abs(r.cout - r.litres * moyenne)).toBeLessThan(0.06 * moyenne + 0.01); // les litres affichés sont arrondis au dixième
+        // US-4.4 : le total inclut les péages depuis le jalon 3
+        expect(Math.abs((await carburantSeul(page)) - r.litres * moyenne)).toBeLessThan(0.06 * moyenne + 0.01); // les litres affichés sont arrondis au dixième
         await expect(page.locator('[data-el="troncons"] li').first()).toBeVisible();
       });
     });
@@ -178,7 +187,8 @@ test.describe("M2 — Le coût d'un trajet", () => {
         const r = await lireResultat(page);
         const moyenne = await moyenneDuJour("SP95-E10");
         expect(r.detail).toContain(moyenne.toFixed(3).replace(".", ","));
-        expect(Math.abs(r.cout - r.litres * moyenne)).toBeLessThan(0.06 * moyenne + 0.01); // les litres affichés sont arrondis au dixième
+        // US-4.4 : le total inclut les péages depuis le jalon 3
+        expect(Math.abs((await carburantSeul(page)) - r.litres * moyenne)).toBeLessThan(0.06 * moyenne + 0.01); // les litres affichés sont arrondis au dixième
         const apres = await dbTrajets(page);
         expect(apres).toHaveLength(1);
         expect(new Date(apres[0].cree_le).getTime()).toBeGreaterThan(new Date(avant.cree_le).getTime());
@@ -482,7 +492,8 @@ test.describe("M2 — Le coût d'un trajet", () => {
         await expect(page.locator('[data-el="libelle-prix"]')).toHaveText("Mon prix");
         const r1 = await lireResultat(page);
         expect(r1.detail).toContain("1,699 €/L");
-        expect(Math.abs(r1.cout - r1.litres * 1.699)).toBeLessThan(0.1);
+        // US-4.4 : le total inclut les péages depuis le jalon 3
+        expect(Math.abs((await carburantSeul(page)) - r1.litres * 1.699)).toBeLessThan(0.1);
         expect(r1.cout).toBeLessThan(r0.cout);
         await page.locator('[data-el="revenir-moyenne"]').click();
         await expect(page.locator('[data-el="libelle-prix"]')).toContainText("Moyenne France du jour");
@@ -499,9 +510,10 @@ test.describe("M2 — Le coût d'un trajet", () => {
         await c.fill("4,00");
         await expect(page.locator('[data-el="erreur-prix-perso"]')).toHaveCount(0);
         await expect(page.locator('[data-el="libelle-prix"]')).toHaveText("Mon prix");
-        await expect.poll(async () => Math.abs((await lireResultat(page)).cout / 4 - r0.litres)).toBeLessThan(0.06);
+        // US-4.4 : le total inclut les péages depuis le jalon 3
+        await expect.poll(async () => Math.abs((await carburantSeul(page)) / 4 - r0.litres)).toBeLessThan(0.06);
         await c.fill("0,50");
-        await expect.poll(async () => Math.abs((await lireResultat(page)).cout / 0.5 - r0.litres)).toBeLessThan(0.06);
+        await expect.poll(async () => Math.abs((await carburantSeul(page)) / 0.5 - r0.litres)).toBeLessThan(0.06);
         await page.locator('[data-el="retour-trajets"]').click();
         await expect(page.locator('[data-el="liste-historique"] .c').first()).toHaveText(`${virgule(r0.cout)} €`);
       });
