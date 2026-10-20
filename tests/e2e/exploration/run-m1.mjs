@@ -11,6 +11,8 @@ const ICI = path.dirname(fileURLToPath(import.meta.url));
 const RACINE = path.resolve(ICI, "../../..");
 const URL_APP = process.argv[2]?.startsWith("http") ? process.argv[2] : "https://plein-et-trajet.vercel.app/";
 const FILTRE = process.argv.slice(2).filter((a) => !a.startsWith("http"));
+// SEULES=nom1.png,nom2.png : seules ces captures sont réécrites (les autres étapes sont rejouées, assertions comprises)
+const SEULES = process.env.SEULES ? new Set(process.env.SEULES.split(",")) : null;
 const LIVRAISON = path.join(RACINE, "tests/e2e/delivery");
 const JOURNAL = path.join(ICI, "m1-exploration-log.md");
 const ALBI = { latitude: 43.9289, longitude: 2.1464 };
@@ -72,31 +74,44 @@ async function capture(page, nom, verif, description) {
   await page.evaluate(() => new Promise((ok) => {
     const m = window.__carte; if (!m) return ok();
     const t0 = Date.now();
-    const f = () => (m.areTilesLoaded() || Date.now() - t0 > 5000 ? ok() : setTimeout(f, 100));
+    const f = () => (m.loaded() && m.areTilesLoaded() && !m.isMoving() ? (m.once("idle", () => setTimeout(ok, 150)), m.triggerRepaint()) : Date.now() - t0 > 8000 ? ok() : setTimeout(f, 100));
     f();
+    setTimeout(ok, 9000);
   })).catch(() => {});
   // laisser finir les animations en cours (feuille montante, défilement des chiffres) avant la photo
   await page.evaluate(() => Promise.race([Promise.all(document.getAnimations().map((a) => a.finished.catch(() => {}))), new Promise((r) => setTimeout(r, 1500))]));
-  await page.screenshot({ path: path.join(LIVRAISON, nom) });
+  const ecrire = !SEULES || SEULES.has(nom);
+  if (ecrire) await page.screenshot({ path: path.join(LIVRAISON, nom) });
   await page.evaluate(() => {
     document.querySelectorAll("[data-annotation-test]").forEach((e) => e.remove());
     document.querySelectorAll("[data-surligne-test]").forEach((e) => { e.style.outline = ""; e.style.outlineOffset = ""; e.removeAttribute("data-surligne-test"); });
   });
+  if (!ecrire) return ok; // non reprise : rien au journal pour cette capture
   resultats.push({ nom, ok });
   note(`- ${ok ? "✓" : "✗"} \`${nom}\` — ${description}${detail ? ` — ${detail}` : ""}`);
   return ok;
 }
 
 // ---- annotations de capture (ajoutées par le test, absentes de l'appli, retirées après la photo) ----
-async function annoter(page, texte) {
-  await page.evaluate((t) => {
+async function annoter(page, texte, { bas = 58 } = {}) {
+  await page.evaluate(({ t, bas }) => {
     const d = document.createElement("div");
     d.setAttribute("data-annotation-test", "");
     d.textContent = "Annotation de test — " + t;
-    Object.assign(d.style, { position: "fixed", left: "8px", right: "8px", bottom: "58px", zIndex: 9999, background: "#ffb000", color: "#15181a", font: "600 13px/1.3 sans-serif", padding: "6px 8px", borderRadius: "6px", boxShadow: "0 2px 8px rgba(0,0,0,.3)" });
+    Object.assign(d.style, { position: "fixed", left: "8px", right: "8px", bottom: bas + "px", zIndex: 9999, background: "#ffb000", color: "#15181a", font: "600 13px/1.3 sans-serif", padding: "6px 8px", borderRadius: "6px", boxShadow: "0 2px 8px rgba(0,0,0,.3)" });
     document.body.appendChild(d);
-  }, texte);
+  }, { t: texte, bas });
 }
+/** lignes de station (visibles à l'écran) recouvertes par le bandeau d'annotation */
+const lignesCouvertes = (page) => page.evaluate(() => {
+  const a = document.querySelector("[data-annotation-test]");
+  if (!a) return [];
+  const r = a.getBoundingClientRect();
+  return [...document.querySelectorAll('[data-el="ligne-station"]')].filter((e) => {
+    const q = e.getBoundingClientRect();
+    return q.bottom > r.top && q.top < r.bottom && q.bottom > 0 && q.top < innerHeight;
+  }).map((e) => e.dataset.station);
+});
 async function surligner(loc) {
   await loc.evaluate((e) => { e.setAttribute("data-surligne-test", ""); e.style.outline = "3px dashed #ffb000"; e.style.outlineOffset = "-3px"; });
 }
@@ -369,10 +384,15 @@ HISTOIRES["US-1.3 — Voir les stations sur la carte"] = async () => {
   {
     const nouv = (await lireLignes(p)).filter((x) => !avant.has(x.id));
     const l = p.locator(`[data-el="ligne-station"][data-station="${nouv[0].id}"]`);
-    await l.scrollIntoViewIfNeeded();
-    await surligner(l);
+    // la première nouvelle ligne en haut de la liste visible
+    await l.evaluate((e) => { const sc = e.closest(".scroll"); sc.scrollTop += e.getBoundingClientRect().top - sc.getBoundingClientRect().top; });
+    for (const x of nouv) await surligner(p.locator(`[data-el="ligne-station"][data-station="${x.id}"]`));
     for (const x of nouv) await surligner(p.locator(`[data-el="pastille-station"][data-station="${x.id}"]`)).catch(() => {});
-    await annoter(p, `relâché : ${nouv.length} station(s) de la nouvelle zone chargée(s) — ${nouv.map((x) => x.nom).join(", ")} (surlignées)`);
+    await annoter(p, `relâché : ${nouv.length} station(s) de la nouvelle zone chargée(s) (surlignées)`);
+    const couvertes = await lignesCouvertes(p);
+    const visibles = await p.evaluate((ids) => ids.every((id) => { const r = document.querySelector(`[data-el="ligne-station"][data-station="${id}"]`).getBoundingClientRect(); const a = document.querySelector("[data-annotation-test]").getBoundingClientRect(); return r.top >= 0 && r.bottom <= a.top; }), nouv.map((x) => x.id));
+    expect(nouv.some((x) => couvertes.includes(x.id))).toBe(false);
+    expect(visibles).toBe(true);
   }
   await capture(p, "US-1.3-04-voir-les-stations-sur-la-carte-apres.png", async () => {
     await expect.poll(() => appels.length, { timeout: 10000 }).toBeGreaterThanOrEqual(2);
@@ -673,24 +693,39 @@ HISTOIRES["US-1.E4 — Station en rupture"] = async () => {
   await attendreListe(p);
   const ligne = p.locator(`[data-el="ligne-station"][data-station="${id}"]`);
   const nom = visible ? await ligne.locator(".n").innerText() : id;
-  if (visible) { await ligne.scrollIntoViewIfNeeded(); await surligner(ligne); }
-  await annoter(p, `${nom} (${id}) : rupture temporaire de gazole déclarée ; visible en ${visible}`);
+  // l'appli montre elle-même la rupture : fiche de la station ouverte, ligne GAZOLE « rupture »
+  await ligne.click();
+  await expect(p.locator('[data-el="tableau-prix"]')).toHaveAttribute("aria-busy", "false");
   await capture(p, "US-1.E4-E1-01-declencheur.png", async () => {
-    if (visible) await expect(ligne).toBeVisible();
-    return `${nom} (${id}) : ligne Gazole en base rupture=true ; visible en ${visible ?? "—"}`;
-  }, "une station en rupture temporaire de gazole");
+    await expect(p.locator("#sh-name")).toHaveText(nom);
+    await expect(p.locator('[data-carburant="Gazole"] [data-el="non-vendu"]')).toHaveText("rupture");
+    return `fiche « ${nom} » (${id}) ouverte en ${visible} : ligne GAZOLE « rupture » affichée par l'appli (en base : Gazole rupture=true)`;
+  }, "une station en rupture temporaire de gazole : sa fiche affiche « GAZOLE rupture »");
+  await p.getByRole("button", { name: "Fermer la fiche" }).click();
   await choisir(p, "Gazole");
   await attendreListe(p);
-  await annoter(p, `Gazole : « ${nom} » absente (les autres TotalEnergies portent un autre libellé)`);
+  // fenêtre agrandie le temps de la photo pour que les ${"lignes"} tiennent toutes à l'écran (vraie capture de l'appli)
+  const hauteur = await p.evaluate(() => {
+    const ul = document.querySelector('[data-el="liste-stations"]');
+    const sc = ul.closest(".scroll");
+    return Math.ceil(sc.getBoundingClientRect().top + ul.scrollHeight + 170);
+  });
+  await p.setViewportSize({ width: 390, height: Math.max(844, hauteur) });
+  await p.waitForTimeout(400);
+  await annoter(p, `Gazole : « ${nom} » absente de la liste complète`, { bas: 62 });
   await capture(p, "US-1.E4-E1-02-resultat.png", async () => {
+    expect(await lignesCouvertes(p)).toEqual([]);
+    const tout = await lignes(p).evaluateAll((els) => els.every((e) => { const r = e.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; }));
+    expect(tout).toBe(true);
     await expect(p.locator('[data-el="liste-stations"]')).toHaveAttribute("data-carburant", "Gazole");
     await expect(ligne).toHaveCount(0);
     await expect(p.locator(`[data-el="pastille-station"][data-station="${id}"]`)).toHaveCount(0);
     const l = await lireLignes(p);
     expect(croissant(l.map((x) => x.prix))).toBe(true);
     expect(l.map((x) => x.nom)).not.toContain(nom); // aucune autre station ne porte son libellé
-    return `en Gazole, liste triée par prix (${l.length} stations) sans ${nom}`;
-  }, "je choisis Gazole : elle n'apparaît pas");
+    return `en Gazole, les ${l.length} lignes triées par prix sont toutes à l'écran (fenêtre agrandie à ${Math.max(844, hauteur)} px de haut pour cette seule capture), aucune n'est « ${nom} », le bandeau ne couvre aucune ligne`;
+  }, "je choisis Gazole : elle n'apparaît pas (liste complète)");
+  await p.setViewportSize({ width: 390, height: 844 });
   if (visible) await choisir(p, visible);
   await attendreListe(p);
   if (visible) { await ligne.scrollIntoViewIfNeeded(); await surligner(ligne); }

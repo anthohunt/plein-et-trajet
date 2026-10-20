@@ -17,8 +17,8 @@ export function partiesPrix(p: number): { base: string; fin: string } {
 
 /** 1.734 → "1,7 km" ; 0.42 → "420 m". */
 export function distance(km: number): string {
-  if (km < 1) return `${Math.round(km * 100) * 10} m`;
-  return `${km.toFixed(1).replace(".", ",")} km`;
+  if (km < 1) return T.metres(Math.round(km * 100) * 10);
+  return T.kilometres(km.toFixed(1).replace(".", ","));
 }
 
 /** Écart au prix moyen national, en centimes : "−5,2 c vs France". */
@@ -34,18 +34,18 @@ const H = 3600_000;
 
 /** Ancienneté d'un prix. Au-delà de 48 h : « prix du JJ/MM », signalé comme ancien. */
 export function anciennete(maj: string | null | undefined, maintenant: Date = new Date()): { texte: string; ancien: boolean } {
-  if (!maj) return { texte: "date inconnue", ancien: true };
+  if (!maj) return { texte: T.dateInconnue, ancien: true };
   const d = new Date(maj);
   const ms = maintenant.getTime() - d.getTime();
   if (ms >= 48 * H) {
     const jj = String(d.getDate()).padStart(2, "0");
     const mm = String(d.getMonth() + 1).padStart(2, "0");
-    return { texte: `prix du ${jj}/${mm}`, ancien: true };
+    return { texte: T.prixDu(jj, mm), ancien: true };
   }
-  if (ms < 60_000) return { texte: "à l'instant", ancien: false };
-  if (ms < H) return { texte: `il y a ${Math.floor(ms / 60_000)} min`, ancien: false };
-  if (ms < 24 * H) return { texte: `il y a ${Math.floor(ms / H)} h`, ancien: false };
-  return { texte: "hier", ancien: false };
+  if (ms < 60_000) return { texte: T.alInstant, ancien: false };
+  if (ms < H) return { texte: T.ilYaMin(Math.floor(ms / 60_000)), ancien: false };
+  if (ms < 24 * H) return { texte: T.ilYaH(Math.floor(ms / H)), ancien: false };
+  return { texte: T.hier, ancien: false };
 }
 
 export type Tri = "prix" | "distance";
@@ -99,9 +99,16 @@ export function distanceKm(a: { lat: number; lon: number }, b: { lat: number; lo
   return 2 * R * Math.asin(Math.sqrt(s));
 }
 
+const SANS_ENSEIGNE = /sans enseigne/i;
+
 /** Nom affiché d'une station : enseigne + ville, sinon nom officiel, sinon « Station » + ville. */
 export function nomStation(s: { enseigne?: string | null; nom?: string | null; ville?: string | null }): string {
   const ville = (s.ville ?? "").trim();
+  // « Indépendant sans enseigne » (fiche officielle) n'est pas une marque : on garde le nom officiel
+  if (s.enseigne && SANS_ENSEIGNE.test(s.enseigne)) {
+    if (s.nom) return casseTitre(s.nom);
+    return ville ? `${T.marqueurStation} ${ville}` : T.marqueurStation;
+  }
   if (s.enseigne) return ville && !s.enseigne.toLowerCase().includes(ville.toLowerCase()) ? `${s.enseigne} ${ville}` : s.enseigne;
   if (s.nom) return s.nom;
   return ville ? `${T.marqueurStation} ${ville}` : T.marqueurStation;

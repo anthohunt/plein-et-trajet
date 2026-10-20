@@ -106,6 +106,10 @@ describe("nom de station", () => {
   it("enseigne + ville", () => {
     expect(nomStation({ enseigne: "Leclerc", ville: "Le Sequestre", nom: "LECLERC LE SEQUESTRE" })).toBe("Leclerc Le Sequestre");
   });
+  it("« Indépendant sans enseigne » n'est pas une marque", () => {
+    expect(nomStation({ enseigne: "Indépendant sans enseigne", nom: "SARL GARAGE DU PONT", ville: "Saussenac" })).toBe("Sarl Garage du Pont");
+    expect(nomStation({ enseigne: "Indépendant sans enseigne", ville: "Saussenac" })).toBe("Station Saussenac");
+  });
   it("repli sur nom puis ville", () => {
     expect(nomStation({ nom: "RELAIS", ville: "Albi" })).toBe("RELAIS");
     expect(nomStation({ ville: "Albi" })).toBe("Station Albi");
