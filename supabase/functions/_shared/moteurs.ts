@@ -70,7 +70,8 @@ export async function noterRetabli(db: any, service: string, m: Moteur): Promise
 export async function noterQuotaFournisseur(db: any, fournisseur: string, ancien: string | null): Promise<string> {
   const maintenant = new Date();
   const minuit = new Date(Date.UTC(maintenant.getUTCFullYear(), maintenant.getUTCMonth(), maintenant.getUTCDate() + 1));
-  const jusqua = ancien && maintenant.getTime() - new Date(ancien).getTime() < 3600e3 ? new Date(maintenant.getTime() + 30 * 60e3) : minuit;
+  const echu = ancien ? maintenant.getTime() - new Date(ancien).getTime() : -1; // > 0 : la remise à zéro attendue est passée
+  const jusqua = echu >= 0 && echu < 3600e3 ? new Date(maintenant.getTime() + 30 * 60e3) : minuit;
   await db.from("fournisseurs").update({ quota_epuise_jusqua: jusqua.toISOString() }).eq("id", fournisseur);
   return jusqua.toISOString();
 }
