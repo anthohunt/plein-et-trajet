@@ -27,121 +27,6 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 - BE→externe : estimer-trajet → Valhalla `/route` + `/trace_attributes` (valhalla1.openstreetmap.de ou api.stadiamaps.com), PTV `GET /routing/v1/routes?…results=TOLL_COSTS,TOLL_SECTIONS,TOLL_SYSTEMS&options[currency]=EUR` (en-tête `apiKey`), HERE `GET /v8/routes?…return=tolls&currency=EUR&tolls[vignettes]=all&apiKey=` : champs relus dans les documentations officielles (OpenAPI PTV routing v1.41, pages HERE « Get toll cost information for route ») — OK
 - BE→externe : sync-moyennes-ue → xlsx du Bulletin pétrolier (onglet « Prices with taxes », vérifié via workbook.xml) ; sync-stations-pays → relais `/api/relais-es` → MITECO — OK
 
-## US-4.E4 — Péages indisponibles
-
-### Happy Path
-- (rien à signaler)
-
-### Edge Case
-- ✓ `US-4.E4-E1-01-declencheur.png` — le service de péages est réellement en erreur (aucune clé active) — écran Moteurs : péages = PTV Developer, état « Clé à coller » (le service de péages est réellement hors service faute de clé) — pas de mock
-- ✓ `US-4.E4-E1-02-resultat.png` — le coût carburant s'affiche, « Péages non disponibles pour l'instant », rien ajouté au total — Albi → Bordeaux (autoroute A62 : péage à établir) : coût carburant 40,77 € affiché, « Péages non disponibles pour l'instant », aucun péage ajouté au total
-- ✓ `US-4.E4-E1-03-retour.png` — retour à l'état normal — retour à l'état normal : un trajet sans autoroute payante affiche à nouveau « Aucun péage sur cet itinéraire » (le calcul des péages d'un trajet à autoroute reste, lui, indisponible sans clé)
-
-### Issues Found
-- aucune sur la version déployée à cette passe.
-
-## US-1.8 — Stations hors de France
-
-### Happy Path
-- ✓ `US-1.8-01-stations-hors-de-france-avant.png` — ma position à Barcelone (avant d'ouvrir Prix) — visiteur géolocalisé à Barcelone (41,387 N ; 2,169 E), onglet Trajets ouvert
-- ✓ `US-1.8-02-stations-hors-de-france-apres.png` — la carte et la liste affichent les stations espagnoles avec leurs prix officiels — 153 stations espagnoles (liste et 153 pastilles) ; ES-16152 « Plenergy Hospitalet de llobregat (l') · Plenergy » 1,67 € = prix officiel MITECO 1,669 € ; écart affiché « −22,0 c vs Espagne »
-- ✓ `US-1.8-03-stations-hors-de-france-avant.png` — ma position dans un pays qui ne publie pas ses prix (Belgique) — visiteur géolocalisé à Bruxelles (50,850 N ; 4,352 E) — la Belgique ne publie pas de flux station par station
-- ✓ `US-1.8-04-stations-hors-de-france-apres.png` — message « Ce pays ne publie pas les prix station par station » et prix moyen national — message + « Prix moyen national · Belgique · SP95-E10 : 1,977 €/L » (Bulletin pétrolier UE : BE 1,977 €/L)
-
-### Edge Case
-- (rien à signaler)
-
-### Issues Found
-- Dépendance : seule l'Espagne est synchronisée (flux MITECO via le relais Vercel `api/relais-es` : le serveur du ministère n'accepte que TLS 1.2 à échange RSA statique, refusé par Deno/rustls — « Connection reset by peer »). IT, PT, SI, HR, AT, DE, DK, RO, UK : non branchés à cette passe (T3.5) ; ces pays affichent donc le message « Ce pays ne publie pas… » alors que certains publient — écart signalé.
-
-## US-5.E1 — Moteurs invisibles aux visiteurs
-
-### Happy Path
-- (rien à signaler)
-
-### Edge Case
-- ✓ `US-5.E1-E1-01-declencheur.png` — un appareil non administrateur — appareil non administrateur : session anonyme 9654ced5…, aucun claim admin
-- ✓ `US-5.E1-E1-02-resultat.png` — l'appli s'ouvre : pas de bouton ⚙, /moteurs redirige — le bouton ⚙ n'est pas affiché ; l'adresse /moteurs renvoie à l'écran Prix (S5 absent)
-- ✓ `US-5.E1-E1-03-retour.png` — lecture et écriture de la table moteurs refusées par le serveur ; l'appli reste normale — refus par le serveur (pas seulement le bouton caché) : lecture_moteurs 0 ligne(s) visible(s) / 6 en base ; insertion 403 ; modification 200 (0 ligne modifiée) ; suppression 200 (0 ligne supprimée) ; cles_fournisseurs 403 ; rpc_moteur_cle 403 ; fonction_moteurs 403 ; fonction_sans_session 401 ; la ligne péages est intacte (actif = ptv)
-
-### Issues Found
-- aucune sur la version déployée à cette passe.
-
-## US-5.E2 — Clé refusée
-
-### Happy Path
-- (rien à signaler)
-
-### Edge Case
-- ✓ `US-5.E2-E1-01-declencheur.png` — une clé invalide collée — clé volontairement invalide collée dans le champ des péages (PTV, masquée)
-- ✓ `US-5.E2-E1-02-resultat.png` — Tester la connexion : « Clé refusée par PTV (401) » — vrai appel à api.myptv.com → HTTP 401 → « Clé refusée par PTV (401) » (état ko)
-- ✓ `US-5.E2-E1-03-retour.png` — Enregistrer garde l'ancien fournisseur actif (PTV) — HERE + clé invalide + Enregistrer : refusé par le vrai HERE (401), le fournisseur actif reste PTV après rechargement (base : actif = ptv)
-
-### Issues Found
-- aucune sur la version déployée à cette passe.
-
-## US-5.E3 — Bascule de secours
-
-### Happy Path
-- (rien à signaler)
-
-### Edge Case
-- ✓ `US-5.E3-E1-01-declencheur.png` — PTV en panne et HERE enregistré en secours — péages : PTV actif (clé refusée = fournisseur principal hors service), HERE enregistré en secours. Le plan suppose une panne PTV simulée côté fonction (page.route impossible côté serveur) ; ici les deux fournisseurs sont réellement injoignables faute de clé valide
-- ✓ `US-5.E3-E1-02-resultat.png` — je calcule un trajet : la chaîne PTV → HERE est parcourue — calcul réel : la fonction essaie PTV (401) puis HERE (401) ; les deux refusent, « Péages non disponibles pour l'instant », coût carburant conservé
-- ✓ `US-5.E3-E1-03-retour.png` — l'écran Moteurs note l'incident (la bascule réussie est bloquée faute de clé HERE) — l'écran Moteurs note l'incident avec l'heure : « Dernier incident · PTV : clé refusée (401) · 20/10 18:40 » ; BLOQUÉ-CLÉ : la bascule réussie vers HERE (« Bascule PTV → HERE le … ») exige une clé HERE valide — bascule_le = null
-
-### Issues Found
-- BLOQUÉ-CLÉ : US-5.E3 (péages venant de HERE quand PTV tombe, bascule notée avec l'heure) : il manque une clé HERE valide (et une clé PTV valide pour provoquer une vraie panne côté PTV). La chaîne actif → secours, l'incident horodaté et la note de bascule sont construits et testés unitairement (executerChaine).
-
-## US-A11Y-001 — Navigation au clavier (jalon 3)
-
-### Happy Path
-- ✓ `US-A11Y-001-01-m3.png` — écran Moteurs avant Tab — écran Moteurs (S5) avant le parcours au clavier
-- ✓ `US-A11Y-001-02-m3.png` — Tab/Maj+Tab : ordre de lecture et contour visible sur l'écran Moteurs — 25 contrôles parcourus : Moteurs (administration) → ← Retour → Fournisseur · Prix des stations → Tester la connexion → Enregistrer → Fournisseur · Prix moyens par pays → Tester la connexion → Enregistrer → Fournisseur · Itinéraire → Secours · Itinéraire → Tester la connexion → Enregistrer → Fournisseur · Péages → Secours · Péages… ; tous avec contour visible, dans l'ordre de lecture
-
-### Edge Case
-- (rien à signaler)
-
-### Issues Found
-- aucune sur la version déployée à cette passe.
-
-## US-A11Y-002 — Focus de la fiche (jalon 3)
-
-### Happy Path
-- ✓ `US-A11Y-002-01-m3.png` — la fiche s'ouvre : le focus va sur son titre — fiche d'une station espagnole ouverte au clavier : le focus est sur son titre (H3|Plenergy Hospitalet de llobregat (l') · )
-- ✓ `US-A11Y-002-02-m3.png` — fermeture : le focus revient sur l'élément qui l'a ouverte — à la fermeture, le focus revient sur la ligne qui l'avait ouverte (ES-16152)
-
-### Edge Case
-- (rien à signaler)
-
-### Issues Found
-- aucune sur la version déployée à cette passe.
-
-## US-A11Y-003 — Touche Échap (jalon 3)
-
-### Happy Path
-- ✓ `US-A11Y-003-01-m3.png` — la fiche est ouverte — fiche d'une station espagnole ouverte
-- ✓ `US-A11Y-003-02-m3.png` — Échap ferme la fiche — Échap ferme la fiche
-- ✓ (hors capture) trajet Albi → Barcelone : tronçon espagnol déplié, Échap le replie et rend le focus au tronçon.
-
-### Edge Case
-- (rien à signaler)
-
-### Issues Found
-- aucune sur la version déployée à cette passe.
-
-## US-A11Y-004 — Libellés lisibles (jalon 3)
-
-### Happy Path
-- ✓ `US-A11Y-004-01-m3.png` — stations espagnoles avant la lecture des libellés — stations espagnoles : carte et liste
-- ✓ `US-A11Y-004-02-m3.png` — libellés : pastilles, prix et contrôles de l'écran Moteurs — 153 pastilles annoncées (ex. « Gratsa Barcelona · Gratsa, 1,869 euros le litre, plus cher ») ; 153 prix de liste annoncés en euros ; écran Moteurs : 0 contrôle sans nom ; bouton ⚙ nommé « Moteurs (administration) »
-
-### Edge Case
-- (rien à signaler)
-
-### Issues Found
-- aucune sur la version déployée à cette passe.
-
 ## US-3.8 — Partir à l'étranger
 
 ### Happy Path
@@ -159,8 +44,8 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 ### Happy Path
 - ✓ `US-4.4-01-voir-les-pages-avant.png` — trajet Albi → Barcelone calculé (écran Résultat) — résultat Albi → Barcelone 62,55 €
 - ✓ `US-4.4-02-voir-les-pages-apres.png` — lecture du détail des péages (état réel : « Péages non disponibles pour l'instant ») — BLOQUÉ-CLÉ : aucune clé PTV/HERE → impossible de lire les montants TTC par section ; état réel capturé : « Péages non disponibles pour l'instant — » (aucun montant inventé)
-- ✓ `US-4.4-03-voir-les-pages-avant.png` — trajet sans autoroute payante (écran Résultat) — résultat Albi → Castres 48 km, 6,82 €
-- ✓ `US-4.4-04-voir-les-pages-apres.png` — détail des péages : « Aucun péage sur cet itinéraire » et 0,00 € — « Aucun péage sur cet itinéraire » 0,00 € ; Carburant 6,82 € · Péages 0,00 € ; coût total inchangé
+- ✓ `US-4.4-03-voir-les-pages-avant.png` — trajet sans autoroute payante (écran Résultat) — résultat Albi → Castres 48 km, 6,83 €
+- ✓ `US-4.4-04-voir-les-pages-apres.png` — détail des péages : « Aucun péage sur cet itinéraire » et 0,00 € — « Aucun péage sur cet itinéraire » 0,00 € ; Carburant 6,83 € · Péages 0,00 € ; coût total inchangé
 
 ### Edge Case
 - (rien à signaler)
@@ -176,6 +61,19 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 
 ### Edge Case
 - (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-4.E4 — Péages indisponibles
+
+### Happy Path
+- (rien à signaler)
+
+### Edge Case
+- ✓ `US-4.E4-E1-01-declencheur.png` — le service de péages est réellement en erreur (aucune clé active) — écran Moteurs : péages = PTV Developer, état « Clé à coller » (le service de péages est réellement hors service faute de clé) — pas de mock
+- ✓ `US-4.E4-E1-02-resultat.png` — le coût carburant s'affiche, « Péages non disponibles pour l'instant », rien ajouté au total — Albi → Bordeaux (autoroute A62 : péage à établir) : coût carburant 40,78 € affiché, « Péages non disponibles pour l'instant », aucun péage ajouté au total
+- ✓ `US-4.E4-E1-03-retour.png` — retour à l'état normal — retour à l'état normal : un trajet sans autoroute payante affiche à nouveau « Aucun péage sur cet itinéraire » (le calcul des péages d'un trajet à autoroute reste, lui, indisponible sans clé)
 
 ### Issues Found
 - aucune sur la version déployée à cette passe.
@@ -206,6 +104,20 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 
 ### Issues Found
 - aucune sur la version déployée à cette passe.
+
+## US-1.8 — Stations hors de France
+
+### Happy Path
+- ✓ `US-1.8-01-stations-hors-de-france-avant.png` — ma position à Barcelone (avant d'ouvrir Prix) — visiteur géolocalisé à Barcelone (41,387 N ; 2,169 E), onglet Trajets ouvert
+- ✓ `US-1.8-02-stations-hors-de-france-apres.png` — la carte et la liste affichent les stations espagnoles avec leurs prix officiels — 153 stations espagnoles (liste et 153 pastilles) ; ES-16152 « Plenergy Hospitalet de llobregat (l') · Plenergy » 1,67 € = prix officiel MITECO 1,669 € ; écart affiché « −22,0 c vs Espagne »
+- ✓ `US-1.8-03-stations-hors-de-france-avant.png` — ma position dans un pays qui ne publie pas ses prix (Belgique) — visiteur géolocalisé à Bruxelles (50,850 N ; 4,352 E) — la Belgique ne publie pas de flux station par station
+- ✓ `US-1.8-04-stations-hors-de-france-apres.png` — message « Ce pays ne publie pas les prix station par station » et prix moyen national — message + « Prix moyen national · Belgique · SP95-E10 : 1,977 €/L » (Bulletin pétrolier UE : BE 1,977 €/L)
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- Dépendance : seule l'Espagne est synchronisée (flux MITECO via le relais Vercel `api/relais-es` : le serveur du ministère n'accepte que TLS 1.2 à échange RSA statique, refusé par Deno/rustls — « Connection reset by peer »). IT, PT, SI, HR, AT, DE, DK, RO, UK : non branchés à cette passe (T3.5) ; ces pays affichent donc le message « Ce pays ne publie pas… » alors que certains publient — écart signalé.
 
 ## US-5.1 — Ouvrir les moteurs
 
@@ -269,6 +181,94 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 
 ### Issues Found
 - BLOQUÉ-CLÉ : US-5.5 (péages venant de HERE sans redéploiement) : il manque une clé HERE (plan Base, carte bancaire) collée dans l'écran Moteurs. La lecture du moteur actif à chaque appel est en place (table moteurs + Vault) ; la bascule vers HERE n'a pas pu être vue avec de vrais montants.
+
+## US-5.E1 — Moteurs invisibles aux visiteurs
+
+### Happy Path
+- (rien à signaler)
+
+### Edge Case
+- ✓ `US-5.E1-E1-01-declencheur.png` — un appareil non administrateur — appareil non administrateur : session anonyme 9654ced5…, aucun claim admin
+- ✓ `US-5.E1-E1-02-resultat.png` — l'appli s'ouvre : pas de bouton ⚙, /moteurs redirige — le bouton ⚙ n'est pas affiché ; l'adresse /moteurs renvoie à l'écran Prix (S5 absent)
+- ✓ `US-5.E1-E1-03-retour.png` — lecture et écriture de la table moteurs refusées par le serveur ; l'appli reste normale — refus par le serveur (pas seulement le bouton caché) : lecture_moteurs 0 ligne(s) visible(s) / 6 en base ; insertion 403 ; modification 200 (0 ligne modifiée) ; suppression 200 (0 ligne supprimée) ; cles_fournisseurs 403 ; rpc_moteur_cle 403 ; fonction_moteurs 403 ; fonction_sans_session 401 ; la ligne péages est intacte (actif = ptv)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-5.E2 — Clé refusée
+
+### Happy Path
+- (rien à signaler)
+
+### Edge Case
+- ✓ `US-5.E2-E1-01-declencheur.png` — une clé invalide collée — clé volontairement invalide collée dans le champ des péages (PTV, masquée)
+- ✓ `US-5.E2-E1-02-resultat.png` — Tester la connexion : « Clé refusée par PTV (401) » — vrai appel à api.myptv.com → HTTP 401 → « Clé refusée par PTV (401) » (état ko)
+- ✓ `US-5.E2-E1-03-retour.png` — Enregistrer garde l'ancien fournisseur actif (PTV) — HERE + clé invalide + Enregistrer : refusé par le vrai HERE (401), le fournisseur actif reste PTV après rechargement (base : actif = ptv)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-5.E3 — Bascule de secours
+
+### Happy Path
+- (rien à signaler)
+
+### Edge Case
+- ✓ `US-5.E3-E1-01-declencheur.png` — PTV en panne et HERE enregistré en secours — péages : PTV actif (clé refusée = fournisseur principal hors service), HERE enregistré en secours. Le plan suppose une panne PTV simulée côté fonction (page.route impossible côté serveur) ; ici les deux fournisseurs sont réellement injoignables faute de clé valide
+- ✓ `US-5.E3-E1-02-resultat.png` — je calcule un trajet : la chaîne PTV → HERE est parcourue — calcul réel : la fonction essaie PTV (401) puis HERE (401) ; les deux refusent, « Péages non disponibles pour l'instant », coût carburant conservé
+- ✓ `US-5.E3-E1-03-retour.png` — l'écran Moteurs note l'incident (la bascule réussie est bloquée faute de clé HERE) — l'écran Moteurs note l'incident avec l'heure : « Dernier incident · PTV : clé refusée (401) · 20/10 19:08 » ; BLOQUÉ-CLÉ : la bascule réussie vers HERE (« Bascule PTV → HERE le … ») exige une clé HERE valide — bascule_le = null
+
+### Issues Found
+- BLOQUÉ-CLÉ : US-5.E3 (péages venant de HERE quand PTV tombe, bascule notée avec l'heure) : il manque une clé HERE valide (et une clé PTV valide pour provoquer une vraie panne côté PTV). La chaîne actif → secours, l'incident horodaté et la note de bascule sont construits et testés unitairement (executerChaine).
+
+## US-A11Y-001 — Navigation au clavier (jalon 3)
+
+### Happy Path
+- ✓ `US-A11Y-001-01-m3.png` — écran Moteurs avant Tab — écran Moteurs (S5) avant le parcours au clavier
+- ✓ `US-A11Y-001-02-m3.png` — Tab/Maj+Tab : ordre de lecture et contour visible sur l'écran Moteurs — 25 contrôles parcourus : Moteurs (administration) → ← Retour → Fournisseur · Prix des stations → Tester la connexion → Enregistrer → Fournisseur · Prix moyens par pays → Tester la connexion → Enregistrer → Fournisseur · Itinéraire → Secours · Itinéraire → Tester la connexion → Enregistrer → Fournisseur · Péages → Secours · Péages… ; tous avec contour visible, dans l'ordre de lecture
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-A11Y-002 — Focus de la fiche (jalon 3)
+
+### Happy Path
+- ✓ `US-A11Y-002-01-m3.png` — la fiche s'ouvre : le focus va sur son titre — fiche d'une station espagnole ouverte au clavier : le focus est sur son titre (H3|Plenergy Hospitalet de llobregat (l') · )
+- ✓ `US-A11Y-002-02-m3.png` — fermeture : le focus revient sur l'élément qui l'a ouverte — à la fermeture, le focus revient sur la ligne qui l'avait ouverte (ES-16152)
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-A11Y-003 — Touche Échap (jalon 3)
+
+### Happy Path
+- ✓ `US-A11Y-003-01-m3.png` — la fiche est ouverte — fiche d'une station espagnole ouverte
+- ✓ `US-A11Y-003-02-m3.png` — Échap ferme la fiche — Échap ferme la fiche
+- ✓ (hors capture) trajet Albi → Barcelone : tronçon espagnol déplié, Échap le replie et rend le focus au tronçon.
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-A11Y-004 — Libellés lisibles (jalon 3)
+
+### Happy Path
+- ✓ `US-A11Y-004-01-m3.png` — stations espagnoles avant la lecture des libellés — stations espagnoles : carte et liste
+- ✓ `US-A11Y-004-02-m3.png` — libellés : pastilles, prix et contrôles de l'écran Moteurs — 153 pastilles annoncées (ex. « Gratsa Barcelona · Gratsa, 1,869 euros le litre, plus cher ») ; 153 prix de liste annoncés en euros ; écran Moteurs : 0 contrôle sans nom ; bouton ⚙ nommé « Moteurs (administration) »
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
 
 ## US-PERF-001 — Ouverture rapide (jalon 3)
 
