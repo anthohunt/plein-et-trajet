@@ -1,0 +1,208 @@
+// S4 Résultat du trajet : coût, litres, km, L/100 km, prix utilisé (« Mettre mon prix »), tronçons dépliables.
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { coutCarburant, euros, fmt, libelleType, validerPrix } from "../lib/calcul";
+import { prix3 } from "../lib/format";
+import type { Estimation } from "../lib/trajets";
+import { T } from "../lib/textes";
+import { TotemPrix } from "./TotemPrix";
+
+export interface DonneesResultat {
+  departLabel: string;
+  arriveeLabel: string;
+  estimation: Estimation;
+  moyenne: number | null; // prix moyen national du jour (€/L) du carburant de la voiture
+  historiqueEchec: boolean;
+}
+export type EtatResultat =
+  | { genre: "ok"; donnees: DonneesResultat }
+  | { genre: "pas_itineraire"; departLabel: string; arriveeLabel: string }
+  | { genre: "erreur"; departLabel: string; arriveeLabel: string };
+
+interface Props {
+  etat: EtatResultat;
+  onRetour: () => void;
+  onReessayer: () => void;
+}
+
+export function Resultat({ etat, onRetour, onReessayer }: Props) {
+  const titre = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    titre.current?.focus({ preventScroll: true });
+  }, []);
+  const route = `${etat.genre === "ok" ? etat.donnees.departLabel : etat.departLabel} ${T.fleche} ${etat.genre === "ok" ? etat.donnees.arriveeLabel : etat.arriveeLabel}`;
+
+  return (
+    <section className="screen" data-screen="S4" role="tabpanel" id="panneau-trajets" aria-labelledby="onglet-trajets" data-etat={etat.genre}>
+      <div className="scroll">
+        <div className="rhead">
+          <button className="back" type="button" data-el="retour-trajets" aria-label={T.retourTrajetsLabel} onClick={onRetour}>
+            <span aria-hidden="true">{T.retourTrajets}</span>
+          </button>
+        </div>
+        <h2 className="route" tabIndex={-1} ref={titre} data-el="route-titre">
+          {route}
+        </h2>
+        {etat.genre === "ok" && <CorpsResultat d={etat.donnees} />}
+        {etat.genre === "pas_itineraire" && (
+          <div className="etat" data-el="pas-itineraire">
+            <p className="t" role="alert">{T.pasItineraire}</p>
+            <p className="d">{T.pasItineraireDetail}</p>
+          </div>
+        )}
+        {etat.genre === "erreur" && (
+          <div className="etat" data-el="calcul-impossible">
+            <p className="t" role="alert">{T.calculImpossible}</p>
+            <p className="d">{T.calculImpossibleDetail}</p>
+            <button className="btn small" type="button" data-el="reessayer-calcul" onClick={onReessayer}>{T.reessayer}</button>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function CorpsResultat({ d }: { d: DonneesResultat }) {
+  const e = d.estimation;
+  const [perso, setPerso] = useState<number | null>(null);
+  const [editeur, setEditeur] = useState(false);
+  const [saisie, setSaisie] = useState("");
+  const [erreurPrix, setErreurPrix] = useState(false);
+  const [ouvert, setOuvert] = useState<number | null>(null);
+  const champ = useRef<HTMLInputElement>(null);
+  const boutonPrix = useRef<HTMLButtonElement>(null);
+
+  const prix = perso ?? d.moyenne;
+  const cout = prix == null ? null : coutCarburant(e.litres, prix);
+  const maxLitres = useMemo(() => Math.max(...e.troncons.map((t) => t.litres), 0.001), [e.troncons]);
+
+  const ouvrirEditeur = () => {
+    setEditeur(true);
+    requestAnimationFrame(() => champ.current?.focus());
+  };
+  const revenir = () => {
+    setPerso(null);
+    setSaisie("");
+    setErreurPrix(false);
+    setEditeur(false);
+    requestAnimationFrame(() => boutonPrix.current?.focus());
+  };
+  const surSaisie = (v: string) => {
+    setSaisie(v);
+    if (v.trim() === "") {
+      setErreurPrix(false);
+      return;
+    }
+    const r = validerPrix(v);
+    if (r.ok) {
+      setPerso(r.valeur);
+      setErreurPrix(false);
+    } else {
+      setErreurPrix(true); // le coût reste celui d'avant
+    }
+  };
+  const toucheChamp = (ev: KeyboardEvent<HTMLInputElement>) => {
+    if (ev.key === "Escape") {
+      ev.preventDefault();
+      ev.stopPropagation();
+      setErreurPrix(false);
+      setSaisie(perso != null ? fmt(perso, 3) : "");
+      if (perso == null) setEditeur(false);
+      boutonPrix.current?.focus();
+    }
+  };
+  // Échap replie le tronçon ouvert (US-A11Y-003)
+  const toucheSection = (ev: KeyboardEvent<HTMLElement>) => {
+    if (ev.key === "Escape" && ouvert != null) {
+      const i = ouvert;
+      setOuvert(null);
+      document.getElementById(`troncon-${i}`)?.focus();
+    }
+  };
+
+  return (
+    <div onKeyDown={toucheSection}>
+      <p className="rsub" data-el="voiture-resultat">
+        {e.vehicule.libelle} · {e.vehicule.carburant}
+      </p>
+      <div className="costbox" data-el="cout">
+        {cout == null ? (
+          <p className="d" role="status">{T.moyenneIndisponible}</p>
+        ) : (
+          <span className="totem big" role="img" aria-label={T.coutEstime(euros(cout))} data-cout={cout.toFixed(2)}>
+            <span className="roll" key={cout.toFixed(2)} aria-hidden="true">{euros(cout)}</span>
+            <span className="u" aria-hidden="true">{T.euro}</span>
+          </span>
+        )}
+        {prix != null && <span className="split" data-el="detail-cout">{T.detailCout(fmt(e.litres, 1), fmt(prix, 3))}</span>}
+      </div>
+      <div className="kpis" data-el="indicateurs">
+        <div className="kpi"><b data-el="kpi-litres">{fmt(e.litres, 1)}</b><span>{T.litres}</span></div>
+        <div className="kpi"><b data-el="kpi-km">{fmt(e.km, 0)}</b><span>{T.km}</span></div>
+        <div className="kpi"><b data-el="kpi-l100">{fmt(e.l100, 1)}</b><span>{T.l100}</span></div>
+      </div>
+      <div className="price" data-el="prix-perso">
+        <div className="l">
+          <span data-el="libelle-prix">{perso != null ? T.monPrix : T.moyenneFrance(e.vehicule.carburant)}</span>
+          {prix != null && <TotemPrix prix={prix} cleAnim={prix3(prix)} />}
+        </div>
+        <div className="l">
+          <button ref={boutonPrix} className="link" type="button" data-el={perso != null ? "revenir-moyenne" : "mettre-mon-prix"} aria-expanded={perso == null ? editeur : undefined} onClick={() => (perso != null ? revenir() : editeur ? setEditeur(false) : ouvrirEditeur())}>
+            {perso != null ? T.revenirMoyenne : T.mettreMonPrix}
+          </button>
+          {editeur && (
+            <span className="perso-champ">
+              <label htmlFor="perso">{T.prixPersoLabel}</label>
+              <input
+                id="perso"
+                ref={champ}
+                data-el="champ-prix-perso"
+                inputMode="decimal"
+                autoComplete="off"
+                placeholder={T.prixPersoPlaceholder}
+                value={saisie}
+                aria-invalid={erreurPrix || undefined}
+                aria-describedby={erreurPrix ? "perso-erreur" : undefined}
+                onChange={(ev) => surSaisie(ev.target.value)}
+                onKeyDown={toucheChamp}
+              />
+            </span>
+          )}
+        </div>
+        {erreurPrix && (
+          <p className="err-msg" id="perso-erreur" role="alert" data-el="erreur-prix-perso">
+            {T.prixPersoErreur}
+          </p>
+        )}
+      </div>
+      {e.avertissements.includes("altimetrie_indisponible") && <p className="note" role="status">{T.altiIndispo}</p>}
+      {d.historiqueEchec && <p className="note" role="status">{T.sauvegardeHistErreur}</p>}
+      <h2 className="sec">{T.consommationTitre}</h2>
+      <ul className="segs" data-el="troncons">
+        {e.troncons.map((t, i) => {
+          const nom = libelleType(t.type, t.voies);
+          const est = ouvert === i;
+          return (
+            <li className="tr" key={t.type} data-troncon={t.type}>
+              <button id={`troncon-${i}`} type="button" aria-expanded={est} aria-controls={`troncon-${i}-det`} data-el={i === 0 ? "troncon-trajet" : "troncon-trajet-suite"} aria-label={T.tronconLabel(nom, fmt(t.km, 1), fmt(t.litres, 1))} onClick={() => setOuvert(est ? null : i)}>
+                <span className={"tag " + t.type} aria-hidden="true">{nom}</span>
+                <span aria-hidden="true">
+                  <span className="tn">
+                    {t.voies.length > 0 ? `${t.voies.join(" / ")} · ` : ""}
+                    {fmt(t.km, 1)} {T.km}
+                  </span>
+                  <span className="bar"><i style={{ width: `${Math.max(2, (t.litres / maxLitres) * 100)}%` }} /></span>
+                </span>
+                <span className="lit" aria-hidden="true">{fmt(t.litres, 1)} L</span>
+              </button>
+              <div className="det" id={`troncon-${i}-det`} hidden={!est} data-el="troncon-detail">
+                {T.detailVitesse(t.vitesse_kmh)} · {T.detailArrets(t.arrets)}
+                {t.denivele_m > 0 ? ` · ${T.detailDenivele(t.denivele_m)}` : ""} · {T.detailL100(fmt(t.l100, 1))}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="note">{T.noteEstimation}</p>
+    </div>
+  );
+}
