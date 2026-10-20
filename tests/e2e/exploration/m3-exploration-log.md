@@ -27,44 +27,6 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 - BE→externe : estimer-trajet → Valhalla `/route` + `/trace_attributes` (valhalla1.openstreetmap.de ou api.stadiamaps.com), PTV `GET /routing/v1/routes?…results=TOLL_COSTS,TOLL_SECTIONS,TOLL_SYSTEMS&options[currency]=EUR` (en-tête `apiKey`), HERE `GET /v8/routes?…return=tolls&currency=EUR&tolls[vignettes]=all&apiKey=` : champs relus dans les documentations officielles (OpenAPI PTV routing v1.41, pages HERE « Get toll cost information for route ») — OK
 - BE→externe : sync-moyennes-ue → xlsx du Bulletin pétrolier (onglet « Prices with taxes », vérifié via workbook.xml) ; sync-stations-pays → relais `/api/relais-es` → MITECO — OK
 
-## US-3.8 — Partir à l'étranger
-
-### Happy Path
-- ✓ `US-3.8-01-partir-l-tranger-avant.png` — champ arrivée : « Barce » propose Barcelone, Espagne — Photon propose « Barcelone — Catalogne, Espagne » à la suite des communes françaises (IGN)
-- ✗ `US-3.8-02-partir-l-tranger-apres.png` — le calcul aboutit : itinéraire France puis Espagne — locator.innerText: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('[data-el="detail-cout"]').first()[22m 
-
-### Edge Case
-- (rien à signaler)
-
-### Issues Found
-- Dépendance : propositions étrangères = Photon (komoot) via la fonction `lieux` ; itinéraire = Valhalla FOSSGIS (instance publique, sans clé, ≤ 1 requête/s — politique d'usage lue le 20/10 : faible trafic, User-Agent identifiant, attribution OSM).
-
-## US-4.4 — Voir les péages
-
-### Happy Path
-- ✗ `US-4.4-01-voir-les-pages-avant.png` — trajet Albi → Barcelone calculé (écran Résultat) — locator.innerText: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('[data-el="detail-cout"]').first()[22m 
-- ✓ `US-4.4-02-voir-les-pages-apres.png` — lecture du détail des péages (état réel : « Péages non disponibles pour l'instant ») — BLOQUÉ-CLÉ : aucune clé PTV/HERE → impossible de lire les montants TTC par section ; état réel capturé : « Péages non disponibles pour l'instant — » (aucun montant inventé)
-- ✓ `US-4.4-03-voir-les-pages-avant.png` — trajet sans autoroute payante (écran Résultat) — résultat Albi → Castres 48 km, 6,82 €
-- ✓ `US-4.4-04-voir-les-pages-apres.png` — détail des péages : « Aucun péage sur cet itinéraire » et 0,00 € — « Aucun péage sur cet itinéraire » 0,00 € ; Carburant 6,82 € · Péages 0,00 € ; coût total inchangé
-
-### Edge Case
-- (rien à signaler)
-
-### Issues Found
-- BLOQUÉ-CLÉ : US-4.4 (montants réels par section, total ajouté au coût) : il manque une clé PTV Developer (ou HERE) collée dans l'écran Moteurs. Le code est construit (PTV : prix HT + TVA du pays ; HERE : TTC) et couvert par les tests unitaires sur les formats documentés, mais aucun montant réel n'a pu être vu.
-
-## US-4.5 — Voir les pays traversés
-
-### Happy Path
-- ✗ `US-4.5-01-voir-les-pays-traverss-avant.png` — trajet Albi → Milan calculé (écran Résultat) — locator.innerText: Timeout 30000ms exceeded. Call log: [2m  - waiting for locator('[data-el="detail-cout"]').first()[22m 
-- ✓ `US-4.5-02-voir-les-pays-traverss-apres.png` — pays traversés : km, litres, prix moyen du jour, coût ; somme = coût carburant — FR 2,160 €/L (flux du jour), IT 2,021 €/L (Bulletin UE) ; Σ coûts pays = 137,20 € = coût carburant affiché 137,20 €
-
-### Edge Case
-- (rien à signaler)
-
-### Issues Found
-- aucune sur la version déployée à cette passe.
-
 ## US-4.E4 — Péages indisponibles
 
 ### Happy Path
@@ -74,33 +36,6 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 - ✓ `US-4.E4-E1-01-declencheur.png` — le service de péages est réellement en erreur (aucune clé active) — écran Moteurs : péages = PTV Developer, état « Clé à coller » (le service de péages est réellement hors service faute de clé) — pas de mock
 - ✓ `US-4.E4-E1-02-resultat.png` — le coût carburant s'affiche, « Péages non disponibles pour l'instant », rien ajouté au total — Albi → Bordeaux (autoroute A62 : péage à établir) : coût carburant 40,77 € affiché, « Péages non disponibles pour l'instant », aucun péage ajouté au total
 - ✓ `US-4.E4-E1-03-retour.png` — retour à l'état normal — retour à l'état normal : un trajet sans autoroute payante affiche à nouveau « Aucun péage sur cet itinéraire » (le calcul des péages d'un trajet à autoroute reste, lui, indisponible sans clé)
-
-### Issues Found
-- aucune sur la version déployée à cette passe.
-
-## US-4.E5 — Vignette sur le trajet
-
-### Happy Path
-- (rien à signaler)
-
-### Edge Case
-- ✓ `US-4.E5-E1-01-declencheur.png` — un trajet qui traverse la Suisse — arrivée Lausanne (Suisse) choisie ; plan : Albi → Milan via Genève — le moteur ne prend pas d'étape intermédiaire, la destination est donc fixée en Suisse pour traverser réellement le pays
-- ✓ `US-4.E5-E1-02-resultat.png` — le détail des péages porte la ligne « Vignette suisse obligatoire (non comptée) » — ligne « Vignette suisse obligatoire (non comptée) » ; pays traversés FR, CH
-- ✓ `US-4.E5-E1-03-retour.png` — retour à l'état normal — retour au formulaire ; le trajet Albi → Lausanne est en tête de l'historique
-
-### Issues Found
-- aucune sur la version déployée à cette passe.
-
-## US-4.E6 — Pays sans prix moyen
-
-### Happy Path
-- (rien à signaler)
-
-### Edge Case
-- ✓ `US-4.E6-E1-01-declencheur.png` — un pays traversé absent des moyennes (Serbie) — arrivée Belgrade (Serbie, absente du Bulletin pétrolier UE) ; départ Trieste : le routeur public refuse Albi → Belgrade (1 960 km, erreur 154 « distance au-delà de la limite »), affichée « Trajet trop long »
-- ✓ `US-4.E6-E1-02-resultat.png` — la ligne Serbie porte « prix non publié — moyenne européenne appliquée » et le prix utilisé — RS : « prix non publié — moyenne européenne appliquée » à 2,010 €/L (moyenne UE du bulletin) ; pays traversés IT, SI, HR, RS ; Σ coûts = coût
-- ✓ `US-4.E6-E1-03-retour.png` — retour à l'état normal — retour au formulaire ; le trajet Trieste → Belgrade est en tête de l'historique
-- ✓ Albi → Belgrade (1 960 km) : « Trajet trop long pour le moteur d'itinéraire actuel » (erreur réelle 154 de Valhalla, pas d'invention) — pas de capture au plan.
 
 ### Issues Found
 - aucune sur la version déployée à cette passe.
@@ -118,69 +53,6 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 
 ### Issues Found
 - Dépendance : seule l'Espagne est synchronisée (flux MITECO via le relais Vercel `api/relais-es` : le serveur du ministère n'accepte que TLS 1.2 à échange RSA statique, refusé par Deno/rustls — « Connection reset by peer »). IT, PT, SI, HR, AT, DE, DK, RO, UK : non branchés à cette passe (T3.5) ; ces pays affichent donc le message « Ce pays ne publie pas… » alors que certains publient — écart signalé.
-
-## US-5.1 — Ouvrir les moteurs
-
-### Happy Path
-- ✓ `US-5.1-01-ouvrir-les-moteurs-avant.png` — connecté comme administrateur : le bouton ⚙ est affiché — connecté par lien magique (m3-admin-test@example.org, app_metadata.role = admin) ; bouton ⚙ visible dans l'en-tête
-- ✓ `US-5.1-02-ouvrir-les-moteurs-apres.png` — l'écran Moteurs liste les 6 services avec leur fournisseur et leur état — 6 services : PRIX DES STATIONS (PRÊT · SANS CLÉ) ; PRIX MOYENS PAR PAYS (PRÊT · SANS CLÉ) ; ITINÉRAIRE (PRÊT · SANS CLÉ) ; PÉAGES (CLÉ À COLLER) ; VOITURES (PRÊT · SANS CLÉ) ; RECHERCHE DE LIEUX (PRÊT · SANS CLÉ)
-
-### Edge Case
-- (rien à signaler)
-
-### Issues Found
-- aucune sur la version déployée à cette passe.
-
-## US-5.2 — Choisir le fournisseur
-
-### Happy Path
-- ✓ `US-5.2-01-choisir-le-fournisseur-avant.png` — l'écran Moteurs, carte Péages — péages : fournisseur PTV Developer (état « Clé à coller »)
-- ✓ `US-5.2-02-choisir-le-fournisseur-apres.png` — HERE choisi pour les péages : l'état passe à « Clé à coller » — HERE demande une clé → « Clé à coller » ; IGN (sans clé) pour l'itinéraire → « Prêt · sans clé » (vérifié aussi)
-
-### Edge Case
-- (rien à signaler)
-
-### Issues Found
-- aucune sur la version déployée à cette passe.
-
-## US-5.3 — Coller la clé
-
-### Happy Path
-- ✓ `US-5.3-01-coller-la-cl-avant.png` — le champ clé des péages — champ clé des péages vide (type password) : « Coller la clé d'API »
-- ✓ `US-5.3-02-coller-la-cl-apres.png` — la clé est stockée chiffrée côté serveur ; le champ n'affiche plus que ses 4 derniers caractères — clé rangée dans Supabase Vault (secret chiffré en base ≠ clé en clair, 72 car.), fin enregistrée « 7d3f » ; champ : « Clé enregistrée ••••7d3f — coller pour remplacer » ; état : « CLÉ REFUSÉE PAR PTV (401) · CLÉ RANGÉE, FOURNISSEUR ACTIF INCHANGÉ » (la clé factice est refusée par le vrai PTV : le fournisseur actif ne change pas)
-- ✓ `US-5.3-03-coller-la-cl-avant.png` — une clé enregistrée — clé enregistrée (rechargement de l'écran)
-- ✓ `US-5.3-04-coller-la-cl-apres.png` — après rechargement, la clé complète n'apparaît nulle part (page, réseau) — 2 réponses réseau (dont 2 de la fonction moteurs) lues : la clé complète n'y figure pas, seule la fin « 7d3f » ; page, champs et stockage du navigateur : absente
-
-### Edge Case
-- (rien à signaler)
-
-### Issues Found
-- aucune sur la version déployée à cette passe.
-
-## US-5.4 — Tester la connexion
-
-### Happy Path
-- ✓ `US-5.4-01-tester-la-connexion-avant.png` — péages : aucune clé valide (état réel) — état réel : aucune clé PTV valide (le plan suppose « une clé PTV valide collée »)
-- ✓ `US-5.4-02-tester-la-connexion-apres.png` — Tester la connexion (état réel faute de clé : « Aucune clé : colle-la d'abord ») — BLOQUÉ-CLÉ : sans clé PTV valide, « Connecté » est impossible à obtenir ; état réel capturé : « Aucune clé : colle-la d'abord » (aucun appel PTV n'est fait sans clé)
-- ✓ (hors plan) « CONNECTÉ · TEST ALBI → TOULOUSE OK (76 KM) » : un vrai calcul de test part vers Valhalla et l'état affiche « Connecté » sur un moteur sans clé.
-
-### Edge Case
-- (rien à signaler)
-
-### Issues Found
-- BLOQUÉ-CLÉ : US-5.4 « Connecté » pour PTV : il manque une clé PTV Developer valide.
-
-## US-5.5 — Enregistrer le moteur
-
-### Happy Path
-- ✓ `US-5.5-01-enregistrer-le-moteur-avant.png` — le moteur péages basculé sur HERE (non enregistrable sans clé) — péages basculé sur HERE dans l'écran (aucune clé HERE n'existe : enregistrement impossible)
-- ✓ `US-5.5-02-enregistrer-le-moteur-apres.png` — Albi → Barcelone après la tentative (état réel : péages indisponibles) — BLOQUÉ-CLÉ : aucune clé HERE → impossible d'enregistrer HERE puis de voir des péages HERE ; état réel : le moteur actif reste PTV (sans clé), « Péages non disponibles pour l'instant »
-
-### Edge Case
-- (rien à signaler)
-
-### Issues Found
-- BLOQUÉ-CLÉ : US-5.5 (péages venant de HERE sans redéploiement) : il manque une clé HERE (plan Base, carte bancaire) collée dans l'écran Moteurs. La lecture du moteur actif à chaque appel est en place (table moteurs + Vault) ; la bascule vers HERE n'a pas pu être vue avec de vrais montants.
 
 ## US-5.E1 — Moteurs invisibles aux visiteurs
 
@@ -270,11 +142,139 @@ Pour chaque appel touché (client, fonction, RLS) : relu côté serveur (handler
 ### Issues Found
 - aucune sur la version déployée à cette passe.
 
+## US-3.8 — Partir à l'étranger
+
+### Happy Path
+- ✓ `US-3.8-01-partir-l-tranger-avant.png` — champ arrivée : « Barce » propose Barcelone, Espagne — Photon propose « Barcelone — Catalogne, Espagne » à la suite des communes françaises (IGN)
+- ✓ `US-3.8-02-partir-l-tranger-apres.png` — le calcul aboutit : itinéraire France puis Espagne — itinéraire 470 km traversant FR puis ES (Valhalla, instance publique) ; coût 62,55 €
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- Dépendance : propositions étrangères = Photon (komoot) via la fonction `lieux` ; itinéraire = Valhalla FOSSGIS (instance publique, sans clé, ≤ 1 requête/s — politique d'usage lue le 20/10 : faible trafic, User-Agent identifiant, attribution OSM).
+
+## US-4.4 — Voir les péages
+
+### Happy Path
+- ✓ `US-4.4-01-voir-les-pages-avant.png` — trajet Albi → Barcelone calculé (écran Résultat) — résultat Albi → Barcelone 62,55 €
+- ✓ `US-4.4-02-voir-les-pages-apres.png` — lecture du détail des péages (état réel : « Péages non disponibles pour l'instant ») — BLOQUÉ-CLÉ : aucune clé PTV/HERE → impossible de lire les montants TTC par section ; état réel capturé : « Péages non disponibles pour l'instant — » (aucun montant inventé)
+- ✓ `US-4.4-03-voir-les-pages-avant.png` — trajet sans autoroute payante (écran Résultat) — résultat Albi → Castres 48 km, 6,82 €
+- ✓ `US-4.4-04-voir-les-pages-apres.png` — détail des péages : « Aucun péage sur cet itinéraire » et 0,00 € — « Aucun péage sur cet itinéraire » 0,00 € ; Carburant 6,82 € · Péages 0,00 € ; coût total inchangé
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- BLOQUÉ-CLÉ : US-4.4 (montants réels par section, total ajouté au coût) : il manque une clé PTV Developer (ou HERE) collée dans l'écran Moteurs. Le code est construit (PTV : prix HT + TVA du pays ; HERE : TTC) et couvert par les tests unitaires sur les formats documentés, mais aucun montant réel n'a pu être vu.
+
+## US-4.5 — Voir les pays traversés
+
+### Happy Path
+- ✓ `US-4.5-01-voir-les-pays-traverss-avant.png` — trajet Albi → Milan calculé (écran Résultat) — résultat Albi → Milan 952 km
+- ✓ `US-4.5-02-voir-les-pays-traverss-apres.png` — pays traversés : km, litres, prix moyen du jour, coût ; somme = coût carburant — FR 2,160 €/L (flux du jour), IT 2,021 €/L (Bulletin UE) ; Σ coûts pays = 137,20 € = coût carburant affiché 137,20 €
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-4.E5 — Vignette sur le trajet
+
+### Happy Path
+- (rien à signaler)
+
+### Edge Case
+- ✓ `US-4.E5-E1-01-declencheur.png` — un trajet qui traverse la Suisse — arrivée Lausanne (Suisse) choisie ; plan : Albi → Milan via Genève — le moteur ne prend pas d'étape intermédiaire, la destination est donc fixée en Suisse pour traverser réellement le pays
+- ✓ `US-4.E5-E1-02-resultat.png` — le détail des péages porte la ligne « Vignette suisse obligatoire (non comptée) » — ligne « Vignette suisse obligatoire (non comptée) » ; pays traversés FR, CH
+- ✓ `US-4.E5-E1-03-retour.png` — retour à l'état normal — retour au formulaire ; le trajet Albi → Lausanne est en tête de l'historique
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-4.E6 — Pays sans prix moyen
+
+### Happy Path
+- (rien à signaler)
+
+### Edge Case
+- ✓ `US-4.E6-E1-01-declencheur.png` — un pays traversé absent des moyennes (Serbie) — arrivée Belgrade (Serbie, absente du Bulletin pétrolier UE) ; départ Trieste : le routeur public refuse Albi → Belgrade (1 960 km, erreur 154 « distance au-delà de la limite »), affichée « Trajet trop long »
+- ✓ `US-4.E6-E1-02-resultat.png` — la ligne Serbie porte « prix non publié — moyenne européenne appliquée » et le prix utilisé — RS : « prix non publié — moyenne européenne appliquée » à 2,010 €/L (moyenne UE du bulletin) ; pays traversés IT, SI, HR, RS ; Σ coûts = coût
+- ✓ `US-4.E6-E1-03-retour.png` — retour à l'état normal — retour au formulaire ; le trajet Trieste → Belgrade est en tête de l'historique
+- ✓ Albi → Belgrade (1 960 km) : « Trajet trop long pour le moteur d'itinéraire actuel » (erreur réelle 154 de Valhalla, pas d'invention) — pas de capture au plan.
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-5.1 — Ouvrir les moteurs
+
+### Happy Path
+- ✓ `US-5.1-01-ouvrir-les-moteurs-avant.png` — connecté comme administrateur : le bouton ⚙ est affiché — connecté par lien magique (m3-admin-test@example.org, app_metadata.role = admin) ; bouton ⚙ visible dans l'en-tête
+- ✓ `US-5.1-02-ouvrir-les-moteurs-apres.png` — l'écran Moteurs liste les 6 services avec leur fournisseur et leur état — 6 services : PRIX DES STATIONS (PRÊT · SANS CLÉ) ; PRIX MOYENS PAR PAYS (PRÊT · SANS CLÉ) ; ITINÉRAIRE (PRÊT · SANS CLÉ) ; PÉAGES (CLÉ À COLLER) ; VOITURES (PRÊT · SANS CLÉ) ; RECHERCHE DE LIEUX (PRÊT · SANS CLÉ)
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-5.2 — Choisir le fournisseur
+
+### Happy Path
+- ✓ `US-5.2-01-choisir-le-fournisseur-avant.png` — l'écran Moteurs, carte Péages — péages : fournisseur PTV Developer (état « Clé à coller »)
+- ✓ `US-5.2-02-choisir-le-fournisseur-apres.png` — HERE choisi pour les péages : l'état passe à « Clé à coller » — HERE demande une clé → « Clé à coller » ; IGN (sans clé) pour l'itinéraire → « Prêt · sans clé » (vérifié aussi)
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-5.3 — Coller la clé
+
+### Happy Path
+- ✓ `US-5.3-01-coller-la-cl-avant.png` — le champ clé des péages — champ clé des péages vide (type password) : « Coller la clé d'API »
+- ✓ `US-5.3-02-coller-la-cl-apres.png` — la clé est stockée chiffrée côté serveur ; le champ n'affiche plus que ses 4 derniers caractères — clé rangée dans Supabase Vault (secret chiffré en base ≠ clé en clair, 72 car.), fin enregistrée « 7d3f » ; champ : « Clé enregistrée ••••7d3f — coller pour remplacer » ; état : « CLÉ REFUSÉE PAR PTV (401) · CLÉ RANGÉE, FOURNISSEUR ACTIF INCHANGÉ » (la clé factice est refusée par le vrai PTV : le fournisseur actif ne change pas)
+- ✓ `US-5.3-03-coller-la-cl-avant.png` — une clé enregistrée — clé enregistrée (rechargement de l'écran)
+- ✓ `US-5.3-04-coller-la-cl-apres.png` — après rechargement, la clé complète n'apparaît nulle part (page, réseau) — 2 réponses réseau (dont 2 de la fonction moteurs) lues : la clé complète n'y figure pas, seule la fin « 7d3f » ; page, champs et stockage du navigateur : absente
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## US-5.4 — Tester la connexion
+
+### Happy Path
+- ✓ `US-5.4-01-tester-la-connexion-avant.png` — péages : aucune clé valide (état réel) — état réel : aucune clé PTV valide (le plan suppose « une clé PTV valide collée »)
+- ✓ `US-5.4-02-tester-la-connexion-apres.png` — Tester la connexion (état réel faute de clé : « Aucune clé : colle-la d'abord ») — BLOQUÉ-CLÉ : sans clé PTV valide, « Connecté » est impossible à obtenir ; état réel capturé : « Aucune clé : colle-la d'abord » (aucun appel PTV n'est fait sans clé)
+- ✓ (hors plan) « CONNECTÉ · TEST ALBI → TOULOUSE OK (76 KM) » : un vrai calcul de test part vers Valhalla et l'état affiche « Connecté » sur un moteur sans clé.
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- BLOQUÉ-CLÉ : US-5.4 « Connecté » pour PTV : il manque une clé PTV Developer valide.
+
+## US-5.5 — Enregistrer le moteur
+
+### Happy Path
+- ✓ `US-5.5-01-enregistrer-le-moteur-avant.png` — le moteur péages basculé sur HERE (non enregistrable sans clé) — péages basculé sur HERE dans l'écran (aucune clé HERE n'existe : enregistrement impossible)
+- ✓ `US-5.5-02-enregistrer-le-moteur-apres.png` — Albi → Barcelone après la tentative (état réel : péages indisponibles) — BLOQUÉ-CLÉ : aucune clé HERE → impossible d'enregistrer HERE puis de voir des péages HERE ; état réel : le moteur actif reste PTV (sans clé), « Péages non disponibles pour l'instant »
+
+### Edge Case
+- (rien à signaler)
+
+### Issues Found
+- BLOQUÉ-CLÉ : US-5.5 (péages venant de HERE sans redéploiement) : il manque une clé HERE (plan Base, carte bancaire) collée dans l'écran Moteurs. La lecture du moteur actif à chaque appel est en place (table moteurs + Vault) ; la bascule vers HERE n'a pas pu être vue avec de vrais montants.
+
 ## US-PERF-001 — Ouverture rapide (jalon 3)
 
 ### Happy Path
 - ✓ `US-PERF-001-01-m3.png` — avant l'ouverture (4G émulée) — contexte 4G émulée (latence 150 ms, 1,6 Mbit/s), position Barcelone, avant ouverture
-- ✓ `US-PERF-001-02-m3.png` — la liste des stations s'affiche en moins de 2,5 s — liste affichée en 2007 ms (seuil 2 500 ms) à Barcelone avec 4G émulée
+- ✓ `US-PERF-001-02-m3.png` — la liste des stations s'affiche en moins de 2,5 s — liste affichée en 1989 ms (seuil 2 500 ms) à Barcelone avec 4G émulée
 - ✓ (comparaison) Albi, même 4G émulée : 2000 ms.
 
 ### Edge Case

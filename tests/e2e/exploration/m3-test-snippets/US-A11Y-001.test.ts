@@ -29,7 +29,7 @@ test.describe("US-A11Y-001 — Navigation au clavier (jalon 3)", () => {
       await page.keyboard.press("Tab");
       const a = await etatFocus(page);
       await page.keyboard.press("Shift+Tab");
-      expect((await etatFocus(page)).id).not.toBe(a.id);
+      expect((await etatFocus(page)).i).not.toBe(a.i);
     });
   });
 });

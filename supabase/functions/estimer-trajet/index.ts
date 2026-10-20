@@ -273,6 +273,7 @@ Deno.serve(async (req) => {
   if (troncons.length === 0) return reponse(422, { erreur: "pas_itineraire" });
   const s = synthese(troncons);
   const pays = resumeParPays(troncons).map((p) => ({ ...p, nom: nomsPays[p.code] ?? p.code }));
+  if (pays.length === 1) pays[0].litres = s.litres; // un seul pays : mêmes litres que le total (coût identique à celui d'avant le jalon 3)
 
   // 3) péages (jamais bloquants) et vignettes des pays dont l'autoroute est empruntée
   const { data: vig } = await db.from("vignettes").select("pays,libelle");
