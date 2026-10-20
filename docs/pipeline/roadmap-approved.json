@@ -1,0 +1,134 @@
+{
+ "approuve": true,
+ "date": "2026-10-20T12:04:01+00:00",
+ "run": "prix-carburant-trajets-2026-10-20-114307",
+ "par": "agent (pré-vol autonome) après validation du mockup par Anthony le 2026-10-20",
+ "source_de_verite": "docs/pipeline/design/mockup.html",
+ "milestones": [
+  {
+   "n": 1,
+   "titre": "Les prix autour de moi",
+   "demontrable": true,
+   "demo": "J'ouvre l'appli à Albi, je vois les vraies stations sur la carte et dans la liste avec leurs prix officiels du jour, je change de carburant, je trie, j'ouvre une fiche.",
+   "use_case": "tests/e2e/use-cases/m1-use-case.md",
+   "ecrans": [
+    {
+     "id": "S1",
+     "nom": "Prix"
+    },
+    {
+     "id": "S2",
+     "nom": "Fiche station"
+    }
+   ],
+   "ecrans_traverses": [
+    {
+     "id": "S3",
+     "nom": "Trajets"
+    }
+   ],
+   "stories": [
+    "US-1.1",
+    "US-1.2",
+    "US-1.3",
+    "US-1.4",
+    "US-1.5",
+    "US-1.6",
+    "US-2.1",
+    "US-2.2",
+    "US-1.E1",
+    "US-1.E2",
+    "US-1.E3",
+    "US-1.E4",
+    "US-2.E1",
+    "US-1.P1"
+   ],
+   "nb_stories": 14
+  },
+  {
+   "n": 2,
+   "titre": "Le coût d'un trajet",
+   "demontrable": true,
+   "demo": "Je choisis ma voiture, je calcule Albi → Bordeaux, je vois le coût, les tronçons et leur consommation, je mets mon prix, je retrouve le trajet dans l'historique.",
+   "use_case": "tests/e2e/use-cases/m2-use-case.md",
+   "ecrans": [
+    {
+     "id": "S3",
+     "nom": "Trajets"
+    },
+    {
+     "id": "S4",
+     "nom": "Résultat du trajet"
+    }
+   ],
+   "ecrans_traverses": [],
+   "stories": [
+    "US-3.1",
+    "US-3.2",
+    "US-3.3",
+    "US-3.4",
+    "US-3.5",
+    "US-3.6",
+    "US-3.7",
+    "US-4.1",
+    "US-4.2",
+    "US-4.3",
+    "US-3.E1",
+    "US-3.E2",
+    "US-3.E3",
+    "US-3.E4",
+    "US-4.E1",
+    "US-4.E2",
+    "US-4.E3",
+    "US-3.P1",
+    "US-3.P2"
+   ],
+   "nb_stories": 19
+  }
+ ],
+ "stories_transverses": {
+  "motif": "Accessibilité et performance s'appliquent à tous les écrans : vérifiées à chaque jalon, auditées au durcissement.",
+  "ids": [
+   "US-A11Y-001",
+   "US-A11Y-002",
+   "US-A11Y-003",
+   "US-A11Y-004",
+   "US-PERF-001"
+  ]
+ },
+ "fusions": [
+  {
+   "de": "Jalon « Historique et prix perso » (écrans S3/S4)",
+   "vers": 2,
+   "raison": "Il ne possédait aucun écran propre : l'historique est sur S3 et le prix perso sur S4, déjà construits au jalon 2. Seul, il n'aurait rien eu de nouveau à montrer."
+  }
+ ],
+ "controles": {
+  "ecrans_total": 4,
+  "ecrans_places_une_fois": true,
+  "stories_total": 38,
+  "stories_placees_ou_transverses": 38,
+  "stories_en_double": 0,
+  "stories_jouees_par_un_pas_numerote": true,
+  "jalons_demontrables": [
+   1,
+   2
+  ],
+  "plans_cas_usage": [
+   "tests/e2e/use-cases/m1-use-case.md",
+   "tests/e2e/use-cases/m2-use-case.md"
+  ],
+  "kit": [
+   "spec.md",
+   "plan.md",
+   "tasks.md",
+   "rules.md"
+  ],
+  "depot": "https://github.com/anthohunt/plein-et-trajet (privé, commit initial ceea081)",
+  "secrets": "VERCEL_TOKEN et SUPABASE_ACCESS_TOKEN présents"
+ },
+ "corrections": [
+  "Jalon « Historique et prix perso » fusionné dans le jalon 2 (aucun écran propre).",
+  "Dépôt GitHub privé créé, aucun remote n'existait."
+ ]
+}

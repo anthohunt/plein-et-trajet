@@ -1,4 +1,7 @@
-- **Concept** : appli web FR — prix live des stations-service en France (carte + liste) et coût estimé d'un trajet (itinéraire réel en tronçons + modèle physique de la voiture × prix moyen national du jour, prix modifiable).
-- **Sections** : Prix (carte+liste, fiche station) · Trajets (formulaire, voiture, résultat, historique).
-- **Navigation** : deux onglets en bas.
-- **Décisions clés** : pas de GPS guidé, pas de comptes, pas d'électrique, pas de garage multi-voitures, pas d'aller-retour/partage ; Anthony a demandé qu'on arrête les questions — l'agent tranche le reste.
+- **Concept** : appli web FR mobile d'abord — prix officiels des stations autour de soi (carte + liste + fiche) et coût d'un trajet (itinéraire IGN en tronçons + modèle physique : WLTP ADEME par phase, arrêts, dénivelé × moyenne nationale du jour, prix perso possible).
+- **Écrans** : S1 Prix, S2 Fiche station, S3 Trajets, S4 Résultat. Deux onglets.
+- **Kit** : spec, plan, tasks, rules vérifiés ; 38 histoires (18 v1 validées + 20 ajoutées) ; couverture UI complète.
+- **Dépôt** : github.com/anthohunt/plein-et-trajet (privé), pushOnEpic.
+- **Déploiement** : Vercel (front) + Supabase dédié (PostGIS, pg_cron, auth anonyme, 3 Edge Functions). Sources sans clé : data.economie.gouv.fr, data.ademe.fr, data.geopf.fr.
+- **Feuille de route** : 2 jalons (Prix autour de moi ; Coût d'un trajet). « Historique et prix perso » fusionné dans le jalon 2 : aucun écran propre.
+- **Hors-périmètre** : GPS, comptes, électrique, aller-retour/partage, multi-voitures, péages.

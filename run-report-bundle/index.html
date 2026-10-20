@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rapport de run — prix-carburant-trajets-2026-10-20-114307</title>
+<style>
+  :root {
+    --bg:#0b1020; --panel:#101a33; --panel2:#0f1730; --line:#22304f;
+    --fg:#e6edf7; --dim:#8397ba; --accent:#5aa9e6;
+    --ok:#3ec48a; --warn:#f0b429; --err:#e5484d; --pending:#4a5675;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{padding:22px 28px;border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px}
+  header h1{margin:0;font-size:18px;font-weight:600}
+  header .meta{color:var(--dim);font-size:12px}
+  main{padding:24px 28px;max-width:1080px;margin:0 auto}
+  .global-pill{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;letter-spacing:.02em;margin-left:8px}
+  .p-done{background:rgba(62,196,138,.15);color:var(--ok)}
+  .p-running{background:rgba(90,169,230,.15);color:var(--accent)}
+  .p-failed{background:rgba(229,72,77,.15);color:var(--err)}
+  .p-idle,.p-pending{background:rgba(74,86,117,.2);color:var(--dim)}
+  .timeline{position:relative;margin-top:8px}
+  .timeline::before{content:"";position:absolute;left:22px;top:12px;bottom:12px;width:2px;background:var(--line)}
+  .step{position:relative;padding:14px 0 14px 60px;margin-bottom:4px}
+  .step .bullet{position:absolute;left:12px;top:18px;width:22px;height:22px;border-radius:50%;
+    background:var(--panel);border:2px solid var(--pending);color:var(--dim);
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .step.done .bullet{border-color:var(--ok);color:var(--ok)}
+  .step.failed .bullet{border-color:var(--err);color:var(--err)}
+  .step.running .bullet{border-color:var(--accent);color:var(--accent)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+  .step.failed .card{border-color:rgba(229,72,77,.35)}
+  .card .head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .card h2{margin:0;font-size:15px;font-weight:600}
+  .card .blurb{color:var(--dim);font-size:12px;margin-top:2px;margin-bottom:10px}
+  .kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px 16px;margin:8px 0}
+  .kv .k{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  .kv .v{font-size:15px;font-weight:600}
+  .kv .v.dim{color:var(--dim);font-weight:400;font-size:13px}
+  .funnel{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:6px 0 10px;font-size:12px}
+  .funnel .n{background:var(--panel2);border:1px solid var(--line);padding:3px 8px;border-radius:4px;font-weight:600}
+  .funnel .arrow{color:var(--dim)}
+  .funnel .drop{color:var(--warn);font-size:11px}
+  .validators{margin-top:8px}
+  .validators .row{display:flex;align-items:flex-start;gap:8px;font-size:12px;padding:3px 0;color:var(--dim)}
+  .validators .row.err{color:var(--err)}
+  .validators .row .marker{width:14px;font-weight:700;flex-shrink:0}
+  .validators .row.err .marker{color:var(--err)}
+  .validators .row.ok .marker{color:var(--ok)}
+  .artifacts{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+  .artifacts a{background:var(--panel2);border:1px solid var(--line);padding:2px 8px;border-radius:4px;
+    color:var(--accent);text-decoration:none;font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .artifacts a:hover{background:var(--line);color:var(--fg)}
+  .tiers{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .tiers .t{background:var(--panel2);border:1px solid var(--line);padding:2px 8px;border-radius:12px;font-size:11px}
+  footer{padding:24px 28px;color:var(--dim);font-size:11px;text-align:center;border-top:1px solid var(--line);margin-top:20px}
+  .empty{color:var(--dim);font-size:12px;font-style:italic}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Rapport de run — prix-carburant-trajets-2026-10-20-114307 <span id="global-pill" class="global-pill"></span></h1>
+    <div class="meta" id="meta"></div>
+  </div>
+</header>
+<main>
+  <div class="timeline" id="timeline"></div>
+</main>
+<footer>Généré par pipeline-runtime/build_run_report.py — page régénérée à chaque étape validée.</footer>
+
+<script id="report-data" type="application/json">{"run": "prix-carburant-trajets-2026-10-20-114307", "workspace": "/home/claude/flux-runs/prix-carburant-trajets-2026-10-20-114307", "subject": "prix-carburant-trajets-2026-10-20-114307", "owner": "anthony", "generated_at": "2026-10-20T12:04:01Z", "status": "idle", "active_step": 1, "steps": [{"n": 1, "name": "Préparer la run", "blurb": "Profil, sujet, axes, casting des chasseurs.", "status": "pending", "counts": {"axes": null, "chasseurs_casting": null, "sources_types": null, "volume_cible": null, "familiarity": null, "threshold": null, "langue": null, "workspace_ready": false}, "artifacts": [], "validator_errors": null, "live": []}, {"n": 2, "name": "Chasse", "blurb": "Chasseurs par axe → passants bruts, dédup + sélection, vérification.", "status": "pending", "counts": {"passants_raw": null, "retenus": null, "candidats_before_dedup": null, "dedup_dropped": null, "candidats": null, "verified_input": null, "kills": null, "survivors": null, "verdicts_batches": 0}, "artifacts": [], "validator_errors": null, "live": [{"label": "chasseurs rentrés", "done": 0, "total": null}, {"label": "vérificateurs", "done": 0, "total": null}]}, {"n": 3, "name": "Monter la constellation", "blurb": "Dédup, essentiels 4-temps, pré-classement en tiers, déploiement /c/<run>-eval/.", "status": "pending", "counts": {"findings": null, "sources": null, "groupes": null, "nodes": null, "nlanes": null, "tiers": null, "essentials_batches": null}, "artifacts": [], "validator_errors": null, "live": [{"label": "synthétiseurs", "done": 0, "total": null}, {"label": "essentiels rédigés", "done": 0, "total": null}, {"label": "verif-carte", "done": 0, "total": null}, {"label": "essentiels vérifiés", "done": 0, "total": null}]}, {"n": 4, "name": "Ta notation", "blurb": "Barrière humaine. Correction des tiers → notation-terminee.json.", "status": "pending", "counts": {"notation_terminee": false, "notes": null, "bilan_present": false, "profil_prochaine_run": false}, "artifacts": [], "validator_errors": null, "live": []}, {"n": 5, "name": "Feedback", "blurb": "Deck : consignes de chasse (fond) + règles de forme, pour la prochaine run.", "status": "pending", "counts": {}, "artifacts": [], "validator_errors": null, "live": []}, {"n": 6, "name": "Publier", "blurb": "Livrables niveau 2, carnet de sources, mémoire de domaine, constellation /c/<run>-publie/.", "status": "pending", "counts": {"gardes": null, "fils": null, "carnet_sources": false}, "artifacts": [], "validator_errors": null, "live": []}, {"n": 7, "name": "Post-mortem", "blurb": "Diagnostic étape par étape, mesures temps/tokens, propositions de fix.", "status": "pending", "counts": {"post_mortem": false, "tokens_run": false, "metrics_files": null}, "artifacts": [], "validator_errors": null, "live": []}]}</script>
+<script>
+(function(){
+  const d = JSON.parse(document.getElementById('report-data').textContent);
+  const $meta = document.getElementById('meta');
+  const $pill = document.getElementById('global-pill');
+  const $tl = document.getElementById('timeline');
+
+  $meta.textContent = `run: ${d.run} · owner: ${d.owner} · dernière mise à jour: ${d.generated_at}`;
+  $pill.className = 'global-pill p-' + d.status;
+  $pill.textContent = d.status.toUpperCase();
+
+  const STATUS_ICON = {done:'✓', failed:'✗', running:'…', pending:''};
+
+  for (const s of d.steps) {
+    const el = document.createElement('div');
+    el.className = 'step ' + s.status;
+
+    const bullet = document.createElement('div');
+    bullet.className = 'bullet';
+    bullet.textContent = STATUS_ICON[s.status] || s.n;
+    el.appendChild(bullet);
+
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const head = document.createElement('div');
+    head.className = 'head';
+    head.innerHTML = `<h2>${s.n}. ${s.name}</h2><span class="global-pill p-${s.status}">${s.status.toUpperCase()}</span>`;
+    card.appendChild(head);
+
+    const blurb = document.createElement('div');
+    blurb.className = 'blurb';
+    blurb.textContent = s.blurb;
+    card.appendChild(blurb);
+
+    if (s.status === 'pending') {
+      const p = document.createElement('div');
+      p.className = 'empty';
+      p.textContent = 'Étape non lancée.';
+      card.appendChild(p);
+    } else {
+      // Funnel spécifique étape 2 (chasse)
+      const c = s.counts || {};
+      if (s.n === 2 && (c.candidats_before_dedup || c.passants_raw || c.survivors || c.retenus)) {
+        const f = document.createElement('div');
+        f.className = 'funnel';
+        const bits = [];
+        if (c.passants_raw)              bits.push(`<span class="n">${c.passants_raw}</span><span class="dim" style="font-size:10px">raw</span>`);
+        if (c.candidats_before_dedup) {  bits.push(`<span class="arrow">→</span><span class="n">${c.candidats_before_dedup}</span><span class="dim" style="font-size:10px">candidats</span>`); }
+        if (c.dedup_dropped)             bits.push(`<span class="drop">(−${c.dedup_dropped} dédup)</span>`);
+        if (c.candidats)                 bits.push(`<span class="arrow">→</span><span class="n">${c.candidats}</span>`);
+        if (c.kills)                     bits.push(`<span class="drop">(−${c.kills} kills)</span>`);
+        if (c.survivors)                 bits.push(`<span class="arrow">→</span><span class="n">${c.survivors}</span><span class="dim" style="font-size:10px">survivants</span>`);
+        if (c.retenus) {                 bits.push(`<span class="arrow">→</span><span class="n">${c.retenus}</span><span class="dim" style="font-size:10px">dédupliqués</span>`);
+          if (c.passants_raw && c.passants_raw > c.retenus) bits.push(`<span class="drop">(−${c.passants_raw - c.retenus} doublons)</span>`); }
+        f.innerHTML = bits.join(' ');
+        card.appendChild(f);
+      }
+
+      // KV grid — filtrer les null/undefined
+      const kv = document.createElement('div');
+      kv.className = 'kv';
+      let hasKv = false;
+      for (const [k,v] of Object.entries(c)) {
+        if (v === null || v === undefined || v === false) continue;
+        if (k === 'tiers') continue;
+        if (typeof v === 'object') continue;
+        const item = document.createElement('div');
+        item.innerHTML = `<div class="k">${k.replaceAll('_',' ')}</div><div class="v">${v === true ? '✓' : v}</div>`;
+        kv.appendChild(item); hasKv = true;
+      }
+      if (hasKv) card.appendChild(kv);
+
+      // Tiers pill (étape 3)
+      if (c.tiers) {
+        const tw = document.createElement('div'); tw.className='kv';
+        const wrap = document.createElement('div');
+        wrap.innerHTML = `<div class="k">tiers</div>`;
+        const pills = document.createElement('div'); pills.className='tiers';
+        for (const [t,n] of Object.entries(c.tiers)) {
+          const p = document.createElement('span'); p.className='t';
+          p.textContent = `${t}: ${n}`; pills.appendChild(p);
+        }
+        wrap.appendChild(pills); tw.appendChild(wrap);
+        card.appendChild(tw);
+      }
+
+      // Validateurs
+      if (s.validator_errors !== null) {
+        const v = document.createElement('div'); v.className='validators';
+        if (s.validator_errors.length === 0) {
+          v.innerHTML = `<div class="row ok"><span class="marker">✓</span><span>tous les contrats du validateur passent</span></div>`;
+        } else {
+          for (const e of s.validator_errors) {
+            const r = document.createElement('div'); r.className='row err';
+            r.innerHTML = `<span class="marker">✗</span><span></span>`;
+            r.lastChild.textContent = e;
+            v.appendChild(r);
+          }
+        }
+        card.appendChild(v);
+      }
+
+      // Artefacts
+      if (s.artifacts && s.artifacts.length) {
+        const a = document.createElement('div'); a.className='artifacts';
+        for (const [label, path] of s.artifacts) {
+          const link = document.createElement('a');
+          link.textContent = label; link.title = path;
+          link.href = '#'; // artefacts non servis directement — placeholder
+          a.appendChild(link);
+        }
+        card.appendChild(a);
+      }
+    }
+
+    el.appendChild(card);
+    $tl.appendChild(el);
+  }
+})();
+</script>
+</body>
+</html>

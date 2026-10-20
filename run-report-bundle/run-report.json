@@ -1,0 +1,153 @@
+{
+  "run": "prix-carburant-trajets-2026-10-20-114307",
+  "workspace": "/home/claude/flux-runs/prix-carburant-trajets-2026-10-20-114307",
+  "subject": "prix-carburant-trajets-2026-10-20-114307",
+  "owner": "anthony",
+  "generated_at": "2026-10-20T12:04:01Z",
+  "status": "idle",
+  "active_step": 1,
+  "steps": [
+    {
+      "n": 1,
+      "name": "Préparer la run",
+      "blurb": "Profil, sujet, axes, casting des chasseurs.",
+      "status": "pending",
+      "counts": {
+        "axes": null,
+        "chasseurs_casting": null,
+        "sources_types": null,
+        "volume_cible": null,
+        "familiarity": null,
+        "threshold": null,
+        "langue": null,
+        "workspace_ready": false
+      },
+      "artifacts": [],
+      "validator_errors": null,
+      "live": []
+    },
+    {
+      "n": 2,
+      "name": "Chasse",
+      "blurb": "Chasseurs par axe → passants bruts, dédup + sélection, vérification.",
+      "status": "pending",
+      "counts": {
+        "passants_raw": null,
+        "retenus": null,
+        "candidats_before_dedup": null,
+        "dedup_dropped": null,
+        "candidats": null,
+        "verified_input": null,
+        "kills": null,
+        "survivors": null,
+        "verdicts_batches": 0
+      },
+      "artifacts": [],
+      "validator_errors": null,
+      "live": [
+        {
+          "label": "chasseurs rentrés",
+          "done": 0,
+          "total": null
+        },
+        {
+          "label": "vérificateurs",
+          "done": 0,
+          "total": null
+        }
+      ]
+    },
+    {
+      "n": 3,
+      "name": "Monter la constellation",
+      "blurb": "Dédup, essentiels 4-temps, pré-classement en tiers, déploiement /c/<run>-eval/.",
+      "status": "pending",
+      "counts": {
+        "findings": null,
+        "sources": null,
+        "groupes": null,
+        "nodes": null,
+        "nlanes": null,
+        "tiers": null,
+        "essentials_batches": null
+      },
+      "artifacts": [],
+      "validator_errors": null,
+      "live": [
+        {
+          "label": "synthétiseurs",
+          "done": 0,
+          "total": null
+        },
+        {
+          "label": "essentiels rédigés",
+          "done": 0,
+          "total": null
+        },
+        {
+          "label": "verif-carte",
+          "done": 0,
+          "total": null
+        },
+        {
+          "label": "essentiels vérifiés",
+          "done": 0,
+          "total": null
+        }
+      ]
+    },
+    {
+      "n": 4,
+      "name": "Ta notation",
+      "blurb": "Barrière humaine. Correction des tiers → notation-terminee.json.",
+      "status": "pending",
+      "counts": {
+        "notation_terminee": false,
+        "notes": null,
+        "bilan_present": false,
+        "profil_prochaine_run": false
+      },
+      "artifacts": [],
+      "validator_errors": null,
+      "live": []
+    },
+    {
+      "n": 5,
+      "name": "Feedback",
+      "blurb": "Deck : consignes de chasse (fond) + règles de forme, pour la prochaine run.",
+      "status": "pending",
+      "counts": {},
+      "artifacts": [],
+      "validator_errors": null,
+      "live": []
+    },
+    {
+      "n": 6,
+      "name": "Publier",
+      "blurb": "Livrables niveau 2, carnet de sources, mémoire de domaine, constellation /c/<run>-publie/.",
+      "status": "pending",
+      "counts": {
+        "gardes": null,
+        "fils": null,
+        "carnet_sources": false
+      },
+      "artifacts": [],
+      "validator_errors": null,
+      "live": []
+    },
+    {
+      "n": 7,
+      "name": "Post-mortem",
+      "blurb": "Diagnostic étape par étape, mesures temps/tokens, propositions de fix.",
+      "status": "pending",
+      "counts": {
+        "post_mortem": false,
+        "tokens_run": false,
+        "metrics_files": null
+      },
+      "artifacts": [],
+      "validator_errors": null,
+      "live": []
+    }
+  ]
+}

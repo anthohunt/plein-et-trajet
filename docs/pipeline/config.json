@@ -1,6 +1,21 @@
 {
-  "language": "fr",
-  "design_source": "artifact-mockup-dual-layer",
-  "design_bundle": "docs/pipeline/design/",
-  "three_d_screens": []
+ "language": "fr",
+ "design_source": "artifact-mockup-dual-layer",
+ "design_bundle": "docs/pipeline/design/",
+ "three_d_screens": [],
+ "gitRemoteUrl": "https://github.com/anthohunt/plein-et-trajet",
+ "pushOnEpic": true,
+ "deployment": {
+  "type": "vercel",
+  "front": "React + Vite statique sur Vercel (projet à lier au build)",
+  "database": "Supabase, projet dédié créé au build (postgis, pg_cron, auth anonyme)",
+  "secrets": "/home/claude/flux/secrets/webapp-stack.env (VERCEL_TOKEN, SUPABASE_ACCESS_TOKEN présents)",
+  "node": "20 LTS (VPS : 22 disponible)",
+  "externes_sans_cle": [
+   "data.economie.gouv.fr",
+   "data.ademe.fr",
+   "data.geopf.fr"
+  ]
+ },
+ "skippedFeatures": []
 }
