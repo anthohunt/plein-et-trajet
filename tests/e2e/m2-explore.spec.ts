@@ -8,7 +8,10 @@ import { S4, URL_APP, attendreFormulaire, calculer, champ, choisirDansListe, cho
 // US-4.4 : le total inclut les péages depuis le jalon 3 — ces assertions comparent le coût CARBURANT (total moins péages établis), pas le total
 async function carburantSeul(page: Page): Promise<number> {
   const total = Number(await page.locator('[data-el="cout"] [data-cout]').first().getAttribute("data-cout"));
-  const split = await page.locator('[data-el="repartition-cout"]').first().innerText().catch(() => "");
+  // round 5 : quand les péages sont indisponibles (ex. quota du jour PTV atteint), la répartition carburant/péages n'est pas affichée ;
+  // on ne l'attend pas (innerText sur un élément absent attendait jusqu'au délai du test) : le total est alors le carburant seul
+  const bloc = page.locator('[data-el="repartition-cout"]').first();
+  const split = (await bloc.count()) > 0 ? await bloc.innerText() : "";
   const p = split.match(/Péages ([\d,]+) €/);
   return Math.round((total - (p ? Number(p[1].replace(",", ".")) : 0)) * 100) / 100;
 }
