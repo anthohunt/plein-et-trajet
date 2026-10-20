@@ -43,6 +43,10 @@ En tant que conducteur, si le calcul des péages échoue, j'obtiens quand même 
 2. Action : je lance un calcul — capture `US-4.E4-E1-02-resultat.png`
 3. Vérifier : le coût carburant s'affiche et le détail des péages indique « Péages non disponibles pour l'instant » sans les ajouter au total ; puis rétablir le réseau / les données et vérifier le retour à l'état normal — capture `US-4.E4-E1-03-retour.png`
 
+**Cas limite 2 — quota du jour du fournisseur atteint** (ajout round 5). Mise en place : réelle, PTV répond 403 `GENERAL_QUOTA_EXCEEDED` (« Daily Quota Exceeded »).
+
+1. Vérifier : sur un trajet à péages (Albi → Barcelone), le coût carburant s'affiche et le détail des péages indique « PTV : quota du jour atteint — péages indisponibles jusqu'à <heure> », sans total de péages — capture `US-4.E4-E2-01-quota-ptv.png`
+
 
 ## US-4.E5 — Vignette sur le trajet
 
@@ -138,6 +142,10 @@ En tant qu'administrateur, une clé invalide est signalée et n'est pas enregist
 1. Mettre en place : une clé invalide collée (écran Moteurs) — capture `US-5.E2-E1-01-declencheur.png`
 2. Action : je touche Tester la connexion — capture `US-5.E2-E1-02-resultat.png`
 3. Vérifier : l'état affiche « Clé refusée par PTV (401) » et Enregistrer garde l'ancien fournisseur actif ; puis rétablir le réseau / les données et vérifier le retour à l'état normal — capture `US-5.E2-E1-03-retour.png`
+
+**Cas limite 2 — quota du jour, la clé n'est pas refusée** (ajout round 5). Mise en place : réelle, quota du jour PTV dépassé.
+
+1. Vérifier : Tester la connexion sur PTV affiche « PTV : quota du jour atteint — péages indisponibles jusqu'à <heure> », jamais « Clé refusée » — capture `US-5.E2-E2-01-quota-ptv.png`
 
 
 ## US-5.E3 — Bascule de secours
