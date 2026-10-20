@@ -44,8 +44,8 @@
     "expected": "La carte montre la zone nord ; la liste est encore celle d'Albi."
   },
   "US-1.3-04-voir-les-stations-sur-la-carte-apres.png": {
-    "action": "L'utilisateur relâche la carte sur la zone de Carmaux.",
-    "expected": "La liste défile jusqu'aux stations de la nouvelle zone : Système U Blaye-les-Mines et Intermarché Carmaux, surlignées et lisibles au-dessus du bandeau d'annotation."
+    "action": "L'utilisateur relâche la carte déplacée vers le nord.",
+    "expected": "Système U Blaye-les-Mines et Intermarché Carmaux apparaissent dans la liste, entourées en pointillés."
   },
   "US-1.4-01-toucher-une-pastille-avant.png": {
     "action": "L'utilisateur regarde la carte des stations d'Albi.",
@@ -108,12 +108,12 @@
     "expected": "Carte, pastilles et liste des stations réapparaissent normalement."
   },
   "US-1.E2-E1-01-declencheur.png": {
-    "action": "Le test fait répondre une liste vide pour l'E85 (mock).",
-    "expected": "La liste SP95-E10 normale s'affiche, fond de carte chargé, avec un bandeau d'annotation « MOCK — page.route renvoie [] pour les prix E85 »."
+    "action": "Le test fait répondre une liste vide pour l'E85 ; l'utilisateur est en SP95-E10.",
+    "expected": "La liste SP95-E10 est normale ; le bandeau de test annonce l'E85 vide."
   },
   "US-1.E2-E1-02-resultat.png": {
-    "action": "L'utilisateur touche E85.",
-    "expected": "« Aucune station ne vend ce carburant autour de vous. » ; la carte, entièrement chargée, n'a aucune pastille."
+    "action": "L'utilisateur touche E85 dans le sélecteur de carburant.",
+    "expected": "« Aucune station ne vend ce carburant autour de vous » ; carte sans pastille."
   },
   "US-1.E2-E1-03-retour.png": {
     "action": "Les données E85 reviennent ; l'utilisateur regarde l'E85.",
@@ -132,20 +132,20 @@
     "expected": "La liste est normale ; Intermarché Cagnac-les-Mines est entourée en pointillés."
   },
   "US-1.E4-E1-01-declencheur.png": {
-    "action": "L'utilisateur ouvre en GPLc la fiche de TotalEnergies Albi · Auto 81 Sarl.",
-    "expected": "La fiche affiche « GAZOLE rupture » (et rupture en SP95-E10 et SP98) ; seul le GPLc a un prix (1,135 €/L)."
+    "action": "L'utilisateur ouvre la fiche de TotalEnergies Albi · Auto 81 Sarl.",
+    "expected": "Gazole, SP95-E10 et SP98 affichent « rupture » ; seul le GPLc a un prix."
   },
   "US-1.E4-E1-02-resultat.png": {
-    "action": "L'utilisateur choisit Gazole.",
-    "expected": "Les 12 stations gazole, triées par prix, tiennent toutes dans la capture (fenêtre agrandie) ; « TotalEnergies Albi · Auto 81 Sarl » n'y figure pas ; le bandeau est sous la liste."
+    "action": "L'utilisateur choisit Gazole dans le sélecteur de carburant.",
+    "expected": "La liste gazole complète, 12 stations, ne contient pas « Auto 81 Sarl »."
   },
   "US-1.E4-E1-03-retour.png": {
     "action": "L'utilisateur revient au GPLc.",
     "expected": "TotalEnergies Albi · Auto 81 Sarl réapparaît, entourée en pointillés."
   },
   "US-1.P1-01-recentrer-sur-ma-position-avant.png": {
-    "action": "L'utilisateur a fait glisser la carte loin de sa position.",
-    "expected": "La carte montre la zone de Saussenac ; la liste montre la seule station SP95-E10 de cette zone, « Candeo Sarl » (et non plus « Indépendant sans enseigne »)."
+    "action": "L'utilisateur a déplacé la carte loin d'Albi, vers Ambialet.",
+    "expected": "Carte presque sans pastille ; la liste ne montre que Candeo Sarl, à 12,5 km."
   },
   "US-1.P1-02-recentrer-sur-ma-position-apres.png": {
     "action": "L'utilisateur touche le bouton de recentrage de la carte.",

@@ -239,3 +239,109 @@ LOW 7 : « Indépendant sans enseigne » n'est plus pris pour une marque (nom of
 En plus : « Prix mis à jour prix du JJ/MM » remplacé par « Derniers prix déclarés le JJ/MM » dans la fiche.
 
 Captures reprises : 1.3-04, E4-01, E4-02, E2-01, E2-02, P1-01 (6 ; md5 inchangé pour les 49 autres) ; toutes ouvertes ; entrées mises à jour dans `m1-step-descriptions.json`. Vitest 24/24, build OK, extraits Playwright sur la prod 25/25.
+- 13:32Z — Bâtisseur R3 terminé : prod 0ab355c READY, 24/24 unitaires, 25/25 Playwright prod, 6 captures refaites (1.3-04, E4-01, E4-02, E2-01/02, P1-01).
+
+## Evaluator Journal — Round 1 (Builder Transcript) — itération 3
+
+**Verdict : PASS — score 5/5.**
+
+**Stats (lignes 559-620 du transcript)** : 11 Bash, 4 Read (dont 1 planche de 5 PNG + E4-02 deux fois + E4-01 une fois). Aucun outil de navigateur MCP ; pilote = script Playwright `run-m1.mjs`. 3 commits (5a91be5, 192cbde, 0ab355c), 6 PNG réécrits.
+
+**Contrôle par point**
+• HIGH E4-02 : vrai changement de script (setViewportSize calculé sur la hauteur réelle de la liste, puis remise à 390x844 ; assertions : toutes les lignes dans le viewport, bandeau ne couvre aucune ligne). PNG ouvert par moi : 390x1376, 12 lignes Gazole complètes, aucune « TotalEnergies Albi · Auto 81 Sarl », bandeau sous la liste. La fenêtre agrandie est honnête : vraie appli en prod, rien masqué ni inventé ; le seul ajout est le bandeau « Annotation de test » étiqueté comme tel (convention des rounds précédents, ne simule aucune sortie de l'appli).
+• MEDIUM E4-01 : script modifié (clic sur la ligne, fiche ouverte, assertions sur #sh-name et `[data-carburant="Gazole"] [data-el="non-vendu"]` = « rupture », bandeau supprimé). PNG ouvert : fiche avec GAZOLE « rupture » rendu par l'appli.
+• MEDIUM 1.3-04 : vrai changement (défilement de la première nouvelle ligne en haut, surlignage des 2 stations, assertions « non couvertes » et « au-dessus du bandeau »). PNG ouvert : Système U Blaye-les-Mines et Intermarché Carmaux lisibles au-dessus du bandeau.
+• LOW 7 : `SANS_ENSEIGNE` dans format.ts + 2 tests Vitest ; requête SQL (48 stations, toutes avec nom). LOW 8 : 8 chaînes déplacées dans textes.ts (édition réelle). LOW 9 : attente `loaded()/idle` dans le script. Ajout non demandé et réel : libellé de la fiche « Derniers prix déclarés le JJ/MM » (commit 192cbde), repéré sur la capture E4-01.
+• Captures : mécanisme SEULES (page.screenshot conditionnel), md5 avant/après, 6 PNG modifiés (horodatages 13:28-13:30), aucun cp/copy de PNG. Les 6 ont été ouverts (planche de 5 + E4-02 séparée, puis relecture E4-01/E4-02).
+• Tests : vitest 24/24 (x2), build OK, `npx playwright test` sur la prod 25/25 après le dernier déploiement 0ab355c READY.
+
+**Défauts** : aucun déduction. Écart mineur : le Builder Summary cite « déploiement READY (192cbde) » alors que la prod finale est 0ab355c (commit de documentation seule). E2-01/E2-02 restent MOCK, déclaré comme tel dans le journal et le bandeau.
+
+**Flags pour l'Auditeur** : (1) rouvrir les 6 PNG sur la prod 0ab355c, surtout E4-02 (1376 px de haut, hors gabarit mobile 844 : jugez si cela convient à la livraison) ; (2) sur 1.3-04, une 3e ligne est en partie cachée sous le bandeau ; (3) vérifier « Derniers prix déclarés » sur une fiche à prix récent (branche `majPrix`) ; (4) vérifier les 48 stations « sans enseigne » sur la carte et la liste ; (5) rejouer l'assertion « ligne GAZOLE rupture » sur la prod.
+- Évaluateur R1 itération 3 : PASS 5/5. Descripteur : les 6 captures refaites sont conformes à leur étape ; plus aucun bandeau ne masque l'élément prouvé.
+
+## Auditor Journal — Round 3
+
+**Verdict : PASS** — 0 HIGH, 1 MEDIUM, 4 LOW (0 CRITICAL). Le HIGH 1 et les MEDIUM 2 et 3 du round 2 sont corrigés, de même que les LOW 7, 8 et 9. Pas de régression, à une exception près : un défaut d'accessibilité intermittent après un glisser (MEDIUM 1, peut-être déjà présent avant ; non bloquant d'après la règle de verdict).
+
+**Méthodes réellement lancées**
+• J'ai ouvert les 6 PNG refaites (1.3-04, E4-01, E4-02 en 390×1376, E2-01, E2-02, P1-01). Les 49 autres ont un md5 inchangé et je les ai déjà ouvertes au round 2.
+• J'ai lu le diff `src/` entre 9b29a9c et 0ab355c (FicheStation.tsx, format.ts, textes.ts), le Builder Summary R3, l'Évaluateur itération 3, `m1-step-descriptions.json` (E4-02, 1.3-04, P1-01) et le journal d'exploration (fenêtre agrandie déclarée, ligne 436).
+• `npx tsc --noEmit` : 0 erreur. `npx vite build` : OK. `npx vitest run` : 24/24. `npx playwright test` sur la prod : **25/25 passés**.
+• Script de régression `audit-live2.mjs` (le même qu'au round 2) rejoué sur la prod en 390 et 1280 px :
+  – RLS : 7 écritures, toutes à 401 ;
+  – carte : 4 carburants × 2 largeurs + glisser ;
+  – 24 Tab en SP95-E10 et en Gazole ;
+  – A11Y-002, et la fiche en chargement ;
+  – E4 (fiche « GAZOLE rupture », absente en Gazole) ;
+  – Castres (réel puis coupé) ;
+  – 3 mesures PERF.
+• Nouveau script `audit-live3.mjs` :
+  – compte en base les stations « sans enseigne » (51 aujourd'hui, toutes avec un nom officiel) ;
+  – pour 6 d'entre elles (Candeo Sarl et 5 hors Tarn), positionne la géolocalisation sur la station, puis lit le libellé de la ligne, de la pastille et de la fiche, et cherche « sans enseigne » dans le texte de la page et dans les aria-label ;
+  – lit la date de 4 fiches autour d'Albi, 2 récentes et 2 anciennes.
+• Script `audit-drag.mjs` : 4 essais de glisser en Gazole (3 en 390, 1 en 1280), avec relevé à 1,5 s, 4 s et 8 s des pastilles focusables hors cadre ; capture du cas fautif.
+• Pas de Playwright MCP.
+
+**Revérification des points du round 2**
+• HIGH 1 E4-02 : corrigé. Les 12 lignes Gazole sont visibles, aucune n'est « Auto 81 Sarl », le bandeau est sous la liste. En live : 0 ligne 81000004 en Gazole.
+• MEDIUM 2 E4-01 : corrigé. La fiche de l'appli affiche « GAZOLE rupture » (aussi SP95-E10 et SP98 en rupture). Revérifié en live.
+• MEDIUM 3 1.3-04 : corrigé. Système U Blaye-les-Mines et Intermarché Carmaux sont lisibles au-dessus du bandeau.
+• LOW 7 : corrigé. Les 6 stations « sans enseigne » testées s'affichent sous leur nom officiel dans la liste, la pastille et la fiche (« Candeo Sarl », « Station de la Croix de Mille »…), et « sans enseigne » n'apparaît nulle part dans la page ni dans les aria-label. Le compte en base est de 51 (et non 48) : l'enrichissement continue et les 51 ont toutes un nom.
+• LOW 8 : corrigé. Les textes de `format.ts` sont dans `textes.ts`.
+• LOW 9 : corrigé. E2-01 et E2-02 ont un fond de carte complet.
+• Régression : 0 chevauchement de pastilles, 0 élément focalisé hors cadre ou sans contour sur 24 Tab, A11Y-002 OK, annonce de chargement de la fiche OK, Castres OK (repli conservé hors ligne), PERF 926 / 921 / 1 489 ms, RLS 401.
+
+**Points de l'évaluateur**
+• **E4-02 en 390×1376** : acceptable pour la livraison. C'est la vraie appli de la prod, la largeur mobile est inchangée, seule la hauteur de fenêtre est agrandie pour cette photo, et c'est déclaré dans le journal d'exploration. → LOW 2 : le rapport de livraison et la description de la capture doivent le dire, car elle sort du gabarit 844.
+• **1.3-04, 3e ligne sous le bandeau** : c'est Esso Express Albi, qui n'est pas une nouvelle station. Les deux lignes qui prouvent l'étape sont dégagées. Écarté.
+• **« Derniers prix déclarés le JJ/MM »** : bon dans les deux branches.
+  – Fiches récentes : 81000002 « Prix mis à jour il y a 5 h », 81000005 « il y a 2 h », 81190002 « Prix mis à jour hier ».
+  – Fiches anciennes : 81000011 « Derniers prix déclarés le 16/09 », 81990001 « le 07/10 », cohérentes avec la ligne de liste (« prix du 16/09 », « prix du 07/10 »).
+• **Stations « sans enseigne »** : confirmé sur la carte et dans la liste (voir LOW 7).
+
+**Problèmes**
+
+1. **MEDIUM — US-A11Y-001 (intermittent)** — `src/components/CarteStations.tsx:46-75` (`disposer`). Dans 1 essai sur 4, après un glisser en Gazole à 390 px, deux pastilles hors cadre (2,399 rognée à droite, 2,345 au bord) restent focusables (`tabindex` ≠ -1, sans aria-hidden) pendant au moins 4 s ; c'est corrigé à 8 s. Les 3 autres essais et celui à 1280 px donnent 0. Une passe du script de régression a aussi relevé 2 pastilles focusables invisibles après glisser. Pendant ce délai, Tab peut tomber sur une pastille invisible. À faire : relancer `disposer` une fois la carte au repos après le rechargement des stations (événement `idle`, ou rAF après l'effet `stations`), et ajouter à l'extrait A11Y-001 un contrôle après glisser.
+2. **LOW — livraison** — E4-02 fait 390×1376, hors gabarit 844 : le préciser dans sa description (`m1-step-descriptions.json`) et dans le rapport de livraison.
+3. **LOW — journal** — le Builder Summary R3 cite le déploiement « 192cbde » alors que la prod finale est 0ab355c (commit de documentation seule).
+4. **LOW — US-1.E3** — E3-03 « retour » : rien à rétablir (inchangé, déclaré).
+5. **LOW — US-PERF-001** — PERF-01 reste une page blanche par nature ; la mesure fait foi (921 à 1 489 ms).
+
+**Pour l'annotateur** : la liste des surcouches déjà présentes (Round 2, point f) reste valable. En plus : 1.3-04 porte désormais des contours pointillés sur les deux nouvelles lignes, et E4-02 un bandeau sous la liste. E4-01 n'a plus de bandeau.
+- 13:37Z — Auditeur R3 : PASS (0 HIGH, 1 MEDIUM intermittent A11Y après glisser, 4 LOW). Contre-évaluation lancée.
+
+## Evaluator Journal — Round 2 (Auditor Honesty)
+
+**Verdict : PASS — 5/5.**
+
+**Stats transcript Auditor (auditor.jsonl, 3 rounds)** : 144 appels d'outils : Read 111 (105 PNG ; les 55 captures ouvertes au R1, 55 au R2, les 6 refaites + zooms/captures live du scratchpad au R3), Bash 32, Write 1 (+ scripts écrits par heredoc : audit-live/2/3.mjs, audit-drag.mjs). Grep tool 0, mais `grep` dans Bash 12 fois (compte comme usage). Bash : tsc, vite build, vitest, `playwright test` sur la prod à chaque round, md5 des PNG, lecture de `src/` en entier (cat -n), migrations SQL, diffs git entre rounds, scripts Playwright bibliothèque contre https://plein-et-trajet.vercel.app.
+
+**Porte de fabrication : OK.** Chaque méthode annoncée a sa trace dans le transcript :
+• tsc 0 erreur, build OK, vitest 20→23→24, Playwright prod 24/25/25 passés (sorties « 25 passed » présentes aux R2 et R3).
+• Scripts live (audit-live*.mjs, audit-drag.mjs) écrits puis lancés ; sorties lues : RLS 401 sur 7 écritures, 51 stations « sans enseigne » (JSON de audit-live3 avec liste/pastille/fiche/aria), mesures carte 390/1280 (« invis 2 clip 5 » après glisser = la source du MEDIUM R3), PERF.
+• Lecture des PNG : 55/55 au R1 et au R2, 6 refaites au R3 (+ zoom PIL), md5 comparés. « Pas de Playwright MCP » : exact, déclaré.
+
+**Rubber-stamping : non.** Le R1 FAIL avec 4 HIGH argumentés par captures + code + mesure live ; le R2 FAIL sur 1 HIGH + 2 MEDIUM (bandeau masquant la preuve) alors que l'évaluateur R1 avait validé ; le R3 PASS conserve un MEDIUM intermittent trouvé par sa propre sonde (4 essais de glisser). Il contredit l'évaluateur quand c'est justifié.
+
+**Exhaustivité** : 20 critères et 5 cas limites couverts à chaque round, RLS testée côté anon, mocks E1/E2 vérifiés, PERF mesuré en 4G simulée, mode sombre, sans-géoloc. Flags de l'évaluateur : R1 (5/5 investigués, écartés/confirmés avec preuve), R2 (4/4), R3 (5/5 : 6 PNG, 3e ligne sous le bandeau, branche `majPrix`, 48→51 stations sans enseigne, rupture Gazole rejouée). Flags du Descripteur tous traités un par un. Rien d'ignoré.
+
+**Spot-checks (3 critères COVERED, vérifiés par moi dans la source)**
+1. US-1.4 CA2 (vert/orange) : `src/lib/format.ts:72-87` `seuilMoitie` ignore les coupures au milieu d'une égalité et choisit la plus proche de n/2 ; le cas Gaillac 2,169/2,185/2,185 donne bien au moins une orange. Conforme à ce qu'il rapporte (6/6 Gazole ; 1 verte/6 orange SP95 consigné en LOW 5, honnête).
+2. US-1.1 CA2 (dernière ville) : `memoriserVille` appelée à `Prix.tsx:190` et `Trajets.tsx:25` (inatteignable avant, comme il l'avait relevé au R1 ; `position.ts:27`). Correct.
+3. US-A11Y-001 : `CarteStations.tsx:46-75` `disposer` fixe `tabIndex`/`aria-hidden` à l'instant du calcul ; l'extrait Playwright A11Y-001 ne contrôle pas l'état après glisser : cohérent avec le MEDIUM R3 (fenêtre de latence après rechargement). Réel, pas un faux fail. Également `Prix.tsx:80` `libellesStations(stations)` (fix E4) conforme.
+
+**Faux fails** : aucun trouvé ; les 4 HIGH du R1 reposent sur des défauts de capture/produit reconnus par le Builder et corrigés dans le code. Le HIGH R2 (E4-02) est factuel (bandeau sur la 6e ligne). **Faux pass HIGH/CRITICAL** : aucun détecté ; le PASS R3 est cohérent avec la règle (0 HIGH, MEDIUM intermittent consigné).
+
+**Précision file:line** : les références R1 (ex. run-m1.mjs:301-311) visent l'état d'alors du script, depuis réécrit ; celles du R3 (CarteStations.tsx:46-75, Prix.tsx, format.ts:72) tombent juste.
+
+**Barème** : 5 ; rubber-stamping 0 ; zones sautées 0 ; flags non investigués 0 ; faux pass 0 ; faux fail 0 ; Grep 0 (grep via Bash utilisé, 12 occurrences). **Score 5/5 → PASS.**
+- 13:38Z — Contre-évaluation (honnêteté de l'auditeur) : PASS 5/5. Cycle validé → tests, commit, déploiement.
+
+## Test & Regression
+
+• Consolidation : les 19 extraits `tests/e2e/exploration/m1-test-snippets/US-*.test.ts` sont réunis dans `tests/e2e/m1-explore.spec.ts` (M1 › story › Happy Path / Edge Case), aides `_aides.ts` réutilisées ; `playwright.config.ts` pointe sur ce spec (baseURL prod). Base réelle partout ; E1 et E2 seuls interceptent le réseau (`// MOCKED:` + `test.setTimeout(60000)`). Aucune capture écrite dans `tests/e2e/delivery/`.
+• Unitaires (vitest) : 24/24.
+• Build : PASS (tsc + vite). Chunks : index 408,96 kB (gzip 119,09), CarteStations 806,33 kB (gzip 219,41), CSS 9,64 + 65,48 kB.
+• E2E Playwright : 25/25 (un seul spec ; `tests/e2e/tests/ft-*.js` sont des scripts de registre, non Playwright). Aucun flaky, aucun `test.fixme`.
+• Régressions : aucune. Corrections : aucune (code applicatif gelé).
