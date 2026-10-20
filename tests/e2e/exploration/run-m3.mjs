@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   BARCELONE, BRUXELLES, RACINE, URL_APP, ALBI, OPTIONS_CONTEXTE, appelerMoteurs, attendreAnimations, attendreFormulaire, calculer, carte, champ, choisirVoiture, connecterAdmin,
-  S4, adminsEphemeresRestants, carburantAffiche, creerAdminEphemere, empreinteCles, supprimerAdminsEphemeres, env, etatCarte, etatFocus, injecterCle, lireEtatReel, restaurerEtatReel, supprimerClesFausses, peagesSurTraceDirect, verifierFournisseurs, lignesListe, lireResultat, moyenneDuJour, nombre, ouvrirMoteurs, ouvrirTrajets, propositions, reinitialiserMoteurs, rest, restService,
+  S4, adminsEphemeresRestants, carburantAffiche, creerAdminEphemere, empreinteCles, supprimerAdminsEphemeres, env, etatCarte, etatFocus, injecterCle, lireEtatReel, restaurerEtatReel, supprimerClesFausses, peagesSurTraceDirect, cleEnMemoire, verifierFournisseurs, lignesListe, lireResultat, moyenneDuJour, nombre, ouvrirMoteurs, ouvrirTrajets, propositions, reinitialiserMoteurs, rest, restService,
   saisirLieu, session, sha, sqlGestion, virgule,
 } from "./m3-aides.mjs";
 
@@ -184,7 +184,7 @@ await reinitialiserMoteurs();
 const A = await contexte(); // visiteur anonyme à Albi : tous les trajets
 const pa = await A.newPage();
 surveiller(pa, "A");
-const B = await contexte(); // administrateur (vrai lien magique)
+const B = await contexte({ permissions: [...OPTIONS_CONTEXTE.permissions, "clipboard-read", "clipboard-write"] }); // administrateur (vrai lien magique) ; presse-papiers pour COLLER la clé (US-5.3)
 const pb = await B.newPage();
 surveiller(pb, "B");
 const memo = {};
@@ -567,18 +567,39 @@ histoireDef("US-5.3", "US-5.3 — Coller la clé", async () => {
     expect(ph).toMatch(/^Clé enregistrée ••••.{4} — coller pour remplacer$/);
     return `champ clé des péages (type password) : « ${ph} » — la vraie clé PTV d'Anthony est déjà rangée, seule sa fin s'affiche`;
   }, "le champ clé des péages (clé réelle déjà enregistrée)");
-  // une clé collée est TESTÉE avant d'être écrite : une clé factice est refusée par le vrai PTV, la vraie clé reste en place
-  await carte(pb, "peages").locator('[data-el="champ-cle"]').fill(FAUSSE);
+  // US-5.3 critère 1 (audit round 2, MEDIUM 4) : la VRAIE clé PTV — lue en mémoire depuis Vault, même valeur — est COLLÉE dans le champ
+  // (presse-papiers du navigateur puis Ctrl+V), puis Enregistrer. Elle n'est jamais écrite ailleurs : comparaisons booléennes seulement.
+  if (!ETAT_REEL.cles.ptv) throw new Error("clé PTV absente de Vault : US-5.3 (coller la vraie clé) non jouable");
+  const champ53 = carte(pb, "peages").locator('[data-el="champ-cle"]');
+  const majAvant = (await sqlGestion("select updated_at from vault.decrypted_secrets where name = 'cle_ptv'"))[0].updated_at;
+  await pb.evaluate((v) => navigator.clipboard.writeText(v), ETAT_REEL.cles.ptv);
+  await champ53.focus();
+  await pb.keyboard.press("Control+V");
+  expect((await champ53.inputValue()) === ETAT_REEL.cles.ptv).toBe(true); // la valeur collée est bien la vraie clé (booléen, jamais la valeur)
+  await pb.evaluate(() => navigator.clipboard.writeText("")); // presse-papiers vidé
   await carte(pb, "peages").locator('[data-el="enregistrer-moteur"]').click();
   await attendreEnregistrement(pb, "peages");
   await capture(pb, "US-5.3-02-coller-la-cl-apres.png", async () => {
-    const msg = (await etatCarte(pb, "peages").innerText()).toLowerCase();
-    expect(msg).toContain("clé refusée par ptv (401)");
-    expect(msg).toContain("clé non enregistrée");
-    expect(msg).toContain("ancienne clé conservée");
-    expect(await empreinteCles()).toBe(avant); // mêmes clés, mêmes fins : la vraie clé n'a pas bougé
-    return `une clé collée est testée avant Vault : la clé factice est refusée par le vrai PTV (401), « clé non enregistrée, ancienne clé conservée » ; clés rangées inchangées (${avant.replace(/"/g, "")})`;
-  }, "une clé collée est testée avant d'être écrite : refusée, la vraie clé est conservée");
+    await expect(etatCarte(pb, "peages")).toHaveText("Enregistré · utilisé dès le prochain calcul");
+    expect(await champ53.inputValue()).toBe("");
+    const ph = await champ53.getAttribute("placeholder");
+    expect(ph).toBe(`Clé enregistrée ••••${ETAT_REEL.cles.ptv.slice(-4)} — coller pour remplacer`);
+    const [v] = await sqlGestion("select updated_at, secret is distinct from decrypted_secret as chiffre from vault.decrypted_secrets where name = 'cle_ptv'");
+    expect(v.chiffre).toBe(true);
+    expect(v.updated_at > majAvant).toBe(true); // réécrite par CET enregistrement
+    expect((await cleEnMemoire("ptv")) === ETAT_REEL.cles.ptv).toBe(true); // même valeur qu'avant (booléen)
+    return `vraie clé PTV collée (presse-papiers + Ctrl+V, valeur lue en mémoire depuis Vault) puis Enregistrer : testée par le vrai PTV, rangée chiffrée dans Vault (cle_ptv réécrite à ${String(v.updated_at).slice(11, 19)} UTC, même valeur) ; champ vide, « ${ph} »`;
+  }, "je colle la clé et j'enregistre : stockée chiffrée, le champ n'affiche plus que ses 4 derniers caractères");
+  // une clé collée est TESTÉE avant d'être écrite : une clé factice est refusée par le vrai PTV, la vraie clé reste en place (hors capture)
+  await verifier("une clé factice collée est refusée par le vrai PTV (401) et n'est pas écrite ; la vraie clé reste en place", async () => {
+    const avant2 = await empreinteCles();
+    await champ53.fill(FAUSSE);
+    await carte(pb, "peages").locator('[data-el="enregistrer-moteur"]').click();
+    await attendreEnregistrement(pb, "peages");
+    await expect(etatCarte(pb, "peages")).toHaveText("Clé refusée par PTV (401) · clé non enregistrée, ancienne clé conservée · fournisseur actif inchangé");
+    expect(await empreinteCles()).toBe(avant2);
+    expect((await cleEnMemoire("ptv")) === ETAT_REEL.cles.ptv).toBe(true);
+  });
   await pb.reload();
   await expect(pb.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
   await carte(pb, "peages").scrollIntoViewIfNeeded();
