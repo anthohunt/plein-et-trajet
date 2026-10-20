@@ -49,6 +49,11 @@ export default function CarteStations({ position, stations, selection, recentrag
       dragRotate: false,
       pitchWithRotate: false,
       touchPitch: false,
+      locale: {
+        "AttributionControl.ToggleAttribution": "Afficher ou masquer les crédits",
+        "AttributionControl.MapFeedback": "Signaler une erreur de carte",
+        "Map.Title": T.carteStations,
+      },
     });
     map.touchZoomRotate.disableRotation();
     map.getCanvas().setAttribute("aria-label", T.carteStations);
