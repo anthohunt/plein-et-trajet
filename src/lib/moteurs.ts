@@ -26,8 +26,8 @@ export interface Moteur {
   etat: EtatMoteur;
   code: string;
   params: ParamsEtat;
-  bascule: { le: string; de: string; vers: string } | null;
-  incident: { le: string; message: string } | null;
+  bascule: { le: string; de: string; vers: string; resolu?: boolean } | null; // resolu : le fournisseur actif a répondu depuis
+  incident: { le: string; message: string; resolu?: boolean } | null;
   fournisseurs: FournisseurMoteur[];
 }
 

@@ -6,6 +6,9 @@ export interface Moteur {
   service: string;
   actif: string;
   secours: string | null;
+  incident_le?: string | null;
+  bascule_le?: string | null;
+  retabli_le?: string | null;
 }
 export interface Essai<T> {
   fournisseur: string;
@@ -37,7 +40,7 @@ export async function executerChaine<T>(essais: Essai<T>[]): Promise<SortieChain
 }
 
 export async function lireMoteur(db: any, service: string): Promise<Moteur> {
-  const { data, error } = await db.from("moteurs").select("service,actif,secours").eq("service", service).maybeSingle();
+  const { data, error } = await db.from("moteurs").select("service,actif,secours,incident_le,bascule_le,retabli_le").eq("service", service).maybeSingle();
   if (error || !data) throw new Error(`moteur ${service} illisible`);
   return data as Moteur;
 }
@@ -54,4 +57,20 @@ export async function noterIncident(db: any, service: string, message: string): 
 }
 export async function noterBascule(db: any, service: string, de: string, vers: string): Promise<void> {
   await db.from("moteurs").update({ bascule_le: new Date().toISOString(), bascule_de: de, bascule_vers: vers }).eq("service", service);
+}
+/** Le fournisseur actif a répondu : un incident ou une bascule antérieurs sont marqués résolus (une écriture seulement s'il y en a un d'ouvert). */
+export async function noterRetabli(db: any, service: string, m: Moteur): Promise<void> {
+  const dernier = [m.incident_le, m.bascule_le].filter(Boolean).map((x) => new Date(x as string).getTime());
+  if (dernier.length === 0) return;
+  if (m.retabli_le && new Date(m.retabli_le).getTime() >= Math.max(...dernier)) return;
+  await db.from("moteurs").update({ retabli_le: new Date().toISOString() }).eq("service", service);
+}
+/** Quota du jour dépassé chez le fournisseur : plus aucun appel avant la remise à zéro attendue (00:00 UTC suivant).
+ *  Si le quota est encore dépassé juste après une remise à zéro attendue (`ancien` échu), on réessaie dans 30 min plutôt que demain. */
+export async function noterQuotaFournisseur(db: any, fournisseur: string, ancien: string | null): Promise<string> {
+  const maintenant = new Date();
+  const minuit = new Date(Date.UTC(maintenant.getUTCFullYear(), maintenant.getUTCMonth(), maintenant.getUTCDate() + 1));
+  const jusqua = ancien && maintenant.getTime() - new Date(ancien).getTime() < 3600e3 ? new Date(maintenant.getTime() + 30 * 60e3) : minuit;
+  await db.from("fournisseurs").update({ quota_epuise_jusqua: jusqua.toISOString() }).eq("id", fournisseur);
+  return jusqua.toISOString();
 }

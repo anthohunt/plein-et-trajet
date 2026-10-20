@@ -5,7 +5,7 @@
 // Sortie : 200 { moteurs:[…] } | { etat:"ok"|"ko"|"wait", code, params } | { enregistre, etat, code, params, notes:[{code, params?}], moteurs }  ·  401/403 { erreur }
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { CORS, fetchTimeout, json } from "../_shared/http.ts";
-import { lireCle } from "../_shared/moteurs.ts";
+import { lireCle, noterQuotaFournisseur } from "../_shared/moteurs.ts";
 import { ErreurPeages, peagesHere, peagesPtv } from "../_shared/peages.ts";
 import { routeValhalla, connexionDepuisFournisseur, ErreurItineraire } from "../_shared/itineraire-europe.ts";
 
@@ -17,7 +17,7 @@ type Etat = "ok" | "ko" | "wait";
 /** Codes d'état (liste close, partagée avec src/lib/moteurs.ts) ; `params` ne porte que des nombres, des dates et des identifiants de fournisseur. */
 type Code =
   | "ok_peages" | "ok_itineraire" | "ok_stations" | "ok_moyennes" | "ok_berlin" | "ok_voitures" | "ok_lieux"
-  | "aucune_moyenne" | "cle_manquante" | "cle_refusee" | "quota" | "reponse_illisible" | "injoignable" | "test_indisponible" | "fournisseur_inconnu"
+  | "aucune_moyenne" | "cle_manquante" | "cle_refusee" | "quota" | "quota_fournisseur" | "reponse_illisible" | "injoignable" | "test_indisponible" | "fournisseur_inconnu"
   | "enregistre" | "cle_a_coller" | "pret_sans_cle";
 type Params = Record<string, string | number>;
 interface Test {
@@ -27,6 +27,10 @@ interface Test {
 }
 const ok = (code: Code, params: Params = {}): Test => ({ etat: "ok", code, params });
 const ko = (code: Code, params: Params = {}): Test => ({ etat: "ko", code, params });
+/** Quota du jour du fournisseur dépassé : la clé est VALIDE (le fournisseur l'a reconnue), le service reprend à `jusqua`. */
+const enAttente = (code: Code, params: Params = {}): Test => ({ etat: "wait", code, params });
+/** Clé reconnue par le fournisseur : test réussi, ou quota du jour dépassé (audit round 3, HIGH 1 : ce n'est pas une clé refusée). */
+const cleReconnue = (t: Test) => t.etat === "ok" || t.code === "quota_fournisseur";
 /** Premier code HTTP (3 chiffres) d'un détail d'erreur, sinon rien. */
 const httpDe = (detail: string): Params => {
   const m = /\b([1-5]\d\d)\b/.exec(detail);
@@ -51,10 +55,12 @@ async function tester(db: Db, fournisseur: string, cleSaisie: string | null): Pr
         const { data: p } = await db.from("pays").select("code,tva");
         const tva = Object.fromEntries((p ?? []).map((x: { code: string; tva: number }) => [x.code, Number(x.tva)]));
         const l = await peagesPtv(cle!, ALBI, BARCELONE, tva);
+        await db.from("fournisseurs").update({ quota_epuise_jusqua: null }).eq("id", fournisseur);
         return ok("ok_peages", { sections: l.length });
       }
       case "here": {
         const l = await peagesHere(cle!, ALBI, BARCELONE);
+        await db.from("fournisseurs").update({ quota_epuise_jusqua: null }).eq("id", fournisseur);
         return ok("ok_peages", { peages: l.length });
       }
       case "stadia":
@@ -104,6 +110,10 @@ async function tester(db: Db, fournisseur: string, cleSaisie: string | null): Pr
     }
     if (e instanceof ErreurPeages) {
       const http: Params = e.http ? { http: e.http } : {};
+      if (e.motif === "quota_fournisseur") {
+        const { data: fq } = await db.from("fournisseurs").select("quota_epuise_jusqua").eq("id", fournisseur).maybeSingle();
+        return enAttente("quota_fournisseur", { ...de, jusqua: await noterQuotaFournisseur(db, fournisseur, fq?.quota_epuise_jusqua ?? null) });
+      }
       if (e.motif === "cle_refusee") return ko("cle_refusee", { ...de, http: e.http ?? 401 });
       if (e.motif === "quota") return ko("quota", { ...de, http: e.http ?? 429 });
       if (e.motif === "cle_manquante") return ko("cle_manquante", de);
@@ -132,7 +142,14 @@ async function lister(db: Db) {
       etat = "wait";
       code = "cle_a_coller";
       params = {};
+    } else if (actif?.quota_epuise_jusqua && new Date(actif.quota_epuise_jusqua) > new Date()) {
+      // quota du jour du fournisseur dépassé (constaté par un calcul ou un test) : la clé n'est pas en cause
+      etat = "wait";
+      code = "quota_fournisseur";
+      params = { fournisseur: actif.id, jusqua: new Date(actif.quota_epuise_jusqua).toISOString() };
     }
+    // un incident ou une bascule suivis d'une réponse du fournisseur actif sont « résolus » (audit round 3, LOW 9)
+    const retabli = m.retabli_le ? new Date(m.retabli_le as string).getTime() : 0;
     return {
       service: m.service,
       nom: m.nom,
@@ -143,8 +160,8 @@ async function lister(db: Db) {
       code,
       params,
       dernier_test: m.dernier_test,
-      bascule: m.bascule_le ? { le: m.bascule_le, de: m.bascule_de, vers: m.bascule_vers } : null,
-      incident: m.incident_le ? { le: m.incident_le, message: m.incident_message } : null,
+      bascule: m.bascule_le ? { le: m.bascule_le, de: m.bascule_de, vers: m.bascule_vers, resolu: retabli > new Date(m.bascule_le as string).getTime() } : null,
+      incident: m.incident_le ? { le: m.incident_le, message: m.incident_message, resolu: retabli > new Date(m.incident_le as string).getTime() } : null,
       fournisseurs: liste.map((f: { id: string; nom: string; cle_requise: boolean; url_cle: string | null; consigne_cle: string | null }) => ({ id: f.id, nom: f.nom, cle_requise: f.cle_requise, cle_fin: fin[f.id] ?? null, url_cle: f.cle_requise ? f.url_cle : null, consigne_cle: f.cle_requise ? f.consigne_cle : null })),
     };
   });
@@ -174,6 +191,8 @@ Deno.serve(async (req) => {
     if (c.action === "tester") {
       if (!c.fournisseur) return json(400, { erreur: "requete_invalide" });
       const t = await tester(db, c.fournisseur, typeof c.cle === "string" && c.cle.trim() ? c.cle.trim() : null);
+      // le fournisseur actif répond avec sa clé rangée : incidents et bascule antérieurs résolus (audit round 3, LOW 9)
+      if (t.etat === "ok" && c.service && !c.cle) await db.from("moteurs").update({ retabli_le: new Date().toISOString() }).eq("service", c.service).eq("actif", c.fournisseur);
       return json(200, t);
     }
 
@@ -195,9 +214,11 @@ Deno.serve(async (req) => {
       // 1) une clé collée est TESTÉE avant d'être écrite : seule une clé qui répond est rangée dans Vault (chiffrée) ;
       //    sinon l'ancienne clé est conservée (une faute de frappe ne coupe jamais un service qui marchait)
       let candidateRefusee: Test | null = null;
+      let tcQuota: Test | null = null;
       if (cle) {
         const tc = await tester(db, fournisseur, cle);
-        if (tc.etat === "ok") await db.rpc("moteur_cle_enregistrer", { p_fournisseur: fournisseur, p_cle: cle });
+        if (tc.code === "quota_fournisseur") tcQuota = tc;
+        if (cleReconnue(tc)) await db.rpc("moteur_cle_enregistrer", { p_fournisseur: fournisseur, p_cle: cle });
         else {
           candidateRefusee = tc;
           notes.push({ code: "cle_non_enregistree" });
@@ -205,12 +226,13 @@ Deno.serve(async (req) => {
       }
       if (cleSecours && secours) {
         const ts = await tester(db, secours, cleSecours);
-        if (ts.etat === "ok") await db.rpc("moteur_cle_enregistrer", { p_fournisseur: secours, p_cle: cleSecours });
+        if (cleReconnue(ts)) await db.rpc("moteur_cle_enregistrer", { p_fournisseur: secours, p_cle: cleSecours });
         else notes.push({ code: "secours_cle_refusee", params: { secours, test: ts.code, ...ts.params } });
       }
 
       // 2) test réel du fournisseur choisi avec sa clé enregistrée : seul un fournisseur qui répond devient actif
-      const t = candidateRefusee ? candidateRefusee : await tester(db, fournisseur, null);
+      // (une clé reconnue malgré un quota du jour dépassé n'est pas re-testée : ce serait un appel de plus, refusé de la même façon)
+      const t = candidateRefusee ? candidateRefusee : tcQuota ?? await tester(db, fournisseur, null);
       // secours : retenu s'il est différent de l'actif d'après et si sa clé (si elle est requise) est rangée
       const resultatActif = t.etat === "ok" ? fournisseur : m.actif;
       const secoursInfo = secours ? (liste ?? []).find((f: { id: string }) => f.id === secours) : null;
@@ -221,7 +243,7 @@ Deno.serve(async (req) => {
         else notes.push({ code: "secours_sans_cle", params: { secours: secours! } });
       }
       if (t.etat === "ok") {
-        await db.from("moteurs").update({ actif: fournisseur, secours: secoursRetenu, etat: "ok", code: "enregistre", params: {}, dernier_test: maintenant, maj: maintenant }).eq("service", service);
+        await db.from("moteurs").update({ actif: fournisseur, secours: secoursRetenu, etat: "ok", code: "enregistre", params: {}, dernier_test: maintenant, retabli_le: maintenant, maj: maintenant }).eq("service", service);
         return json(200, { enregistre: true, etat: "ok", code: "enregistre", params: {}, notes, moteurs: await lister(db) });
       }
       // le fournisseur actif reste celui d'avant (son état reflète ce test s'il est le même) ; le secours est enregistré quand même

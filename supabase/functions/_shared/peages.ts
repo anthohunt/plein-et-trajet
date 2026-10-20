@@ -9,12 +9,17 @@
 //           (base de connaissances PTV, KA-05503 ; erreur ROUTING_TOO_MANY_WAYPOINTS au-delà) → départ + arrivée + 23 passages.
 //  • HERE : `via=lat,lon!passThrough=true` (Routing v8, « passthrough waypoint : changes the shape of the route only »).
 //         réponse { routes:[{ sections:[{ tolls:[{countryCode(alpha-3), tollSystem, fares:[{name, price:{currency,value}, convertedPrice, paymentMethods}]}] }] }] }
+// AUCUN TEXTE ICI (audit round 3, MEDIUM 3) : une section sans nom rend libelle "", une fourchette HERE rend `fourchette: true` ;
+// l'écran compose « Péage » et « (estimation : maximum de la fourchette) » (src/lib/textes.ts).
 export interface LignePeage {
   pays: string; // ISO alpha-2
-  libelle: string;
+  libelle: string; // nom du réseau et de la section, tels que le fournisseur les donne ; "" si aucun
   montant: number; // € TTC
+  fourchette?: boolean; // HERE a donné une fourchette : montant = son maximum
 }
-export type MotifPeages = "cle_manquante" | "cle_refusee" | "quota" | "indisponible" | "reponse_invalide" | "aucun_fournisseur";
+// quota      = trop de requêtes (HTTP 429, limite de débit) ;
+// quota_fournisseur = quota de transactions du jour dépassé (PTV : 403 GENERAL_QUOTA_EXCEEDED « Daily Quota Exceeded ») — la clé est valide.
+export type MotifPeages = "cle_manquante" | "cle_refusee" | "quota" | "quota_fournisseur" | "indisponible" | "reponse_invalide" | "aucun_fournisseur";
 export class ErreurPeages extends Error {
   constructor(public motif: MotifPeages, public http?: number) {
     super(motif + (http ? ` (${http})` : ""));
@@ -76,7 +81,7 @@ export function lignesDepuisPtv(r: ReponsePtv, tvaParPays: Record<string, number
     if (tva == null && ht > 0) throw new ErreurPeages("reponse_invalide"); // pas de TVA connue : on ne devine pas
     const sys = r.toll.systems?.[s.tollSystemIndex ?? -1];
     const nom = sys?.name ?? sys?.operatorName ?? "";
-    const libelle = [nom, s.displayName].filter(Boolean).join(" · ") || "Péage";
+    const libelle = [nom, s.displayName].filter(Boolean).join(" · ");
     out.push({ pays, libelle, montant: ht === 0 ? 0 : ajouterTva(ht, tva) });
   }
   return out;
@@ -125,7 +130,9 @@ export function lignesDepuisHere(r: ReponseHere): LignePeage[] {
       if (fares.length > 0 && prix.length === 0) throw new ErreurPeages("reponse_invalide");
       const choisi = prix.length > 0 ? prix.reduce((a, b) => (b.v < a.v ? b : a)) : { v: 0, fourchette: false };
       const montant = choisi.v;
-      out.push({ pays: alpha2(t.countryCode), libelle: ([t.tollSystem, fares[0]?.name && fares[0].name !== t.tollSystem ? fares[0].name : ""].filter(Boolean).join(" · ") || "Péage") + (choisi.fourchette ? " (estimation : maximum de la fourchette)" : ""), montant: arrondi2(montant) });
+      const ligne: LignePeage = { pays: alpha2(t.countryCode), libelle: [t.tollSystem, fares[0]?.name && fares[0].name !== t.tollSystem ? fares[0].name : ""].filter(Boolean).join(" · "), montant: arrondi2(montant) };
+      if (choisi.fourchette) ligne.fourchette = true;
+      out.push(ligne);
     }
   }
   return out;
@@ -149,10 +156,26 @@ async function appel(url: string, init: RequestInit, ms = 25000): Promise<Respon
     clearTimeout(t);
   }
 }
-function erreurHttp(status: number): ErreurPeages {
+/** Erreur HTTP du fournisseur → motif. Le corps est lu : PTV répond 403 aussi bien pour une clé refusée (GENERAL_FORBIDDEN)
+ *  que pour un quota dépassé (GENERAL_QUOTA_EXCEEDED, OpenAPI routing v1 : « The transaction limit is exceeded »). */
+export function erreurHttp(status: number, corps = ""): ErreurPeages {
+  let code = "";
+  try {
+    code = String(JSON.parse(corps)?.errorCode ?? "");
+  } catch { /* corps non JSON */ }
+  if (code === "GENERAL_QUOTA_EXCEEDED" || /quota exceeded/i.test(corps)) return new ErreurPeages("quota_fournisseur", status);
   if (status === 401 || status === 403) return new ErreurPeages("cle_refusee", status);
   if (status === 429) return new ErreurPeages("quota", status);
   return new ErreurPeages("indisponible", status);
+}
+/** Heure de remise à zéro attendue du quota quotidien : 00:00 UTC suivant (journées d'usage PTV = journées UTC, API Account getUsage). */
+export function finQuotaJour(maintenant = new Date()): Date {
+  return new Date(Date.UTC(maintenant.getUTCFullYear(), maintenant.getUTCMonth(), maintenant.getUTCDate() + 1));
+}
+/** Clé de cache d'une demande de péages : fournisseur, départ, arrivée et points de passage arrondis à 1e-3 (≈ 100 m, sous le rayon de 500 m). */
+export function cleCachePeages(fournisseur: string, a: Point, b: Point, passages: Point[]): string {
+  const r = (p: Point) => `${p.lat.toFixed(3)},${p.lon.toFixed(3)}`;
+  return [fournisseur, r(a), ...passages.slice(0, PASSAGES_MAX).map(r), r(b)].join("|");
 }
 
 export const PASSAGES_MAX = 23; // PTV : 25 waypoints au plus, départ et arrivée compris
@@ -209,7 +232,7 @@ export function requeteHere(cle: string, a: Point, b: Point, passages: Point[] =
 export async function peagesPtv(cle: string, a: Point, b: Point, tvaParPays: Record<string, number>, passages: Point[] = []): Promise<LignePeage[]> {
   const q = requetePtv(a, b, passages);
   const r = await appel(`https://api.myptv.com/routing/v1/routes?${q}`, { headers: { apiKey: cle } });
-  if (!r.ok) throw erreurHttp(r.status);
+  if (!r.ok) throw erreurHttp(r.status, await r.text().catch(() => ""));
   let j: ReponsePtv;
   try {
     j = await r.json();
@@ -222,7 +245,7 @@ export async function peagesPtv(cle: string, a: Point, b: Point, tvaParPays: Rec
 export async function peagesHere(cle: string, a: Point, b: Point, passages: Point[] = []): Promise<LignePeage[]> {
   const q = requeteHere(cle, a, b, passages);
   const r = await appel(`https://router.hereapi.com/v8/routes?${q}`, {});
-  if (!r.ok) throw erreurHttp(r.status);
+  if (!r.ok) throw erreurHttp(r.status, await r.text().catch(() => ""));
   let j: ReponseHere;
   try {
     j = await r.json();

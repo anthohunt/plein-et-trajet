@@ -226,7 +226,7 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
         )}
         {e.peages.etat === "ok" && e.peages.lignes.map((l, i) => (
           <li className="pl" key={`${l.pays}-${i}`} data-el="ligne-peage">
-            <span><b>{l.pays}</b> {l.libelle}</span>
+            <span><b>{l.pays}</b> {l.libelle || T.peageSansNom}{l.fourchette ? T.peageFourchette : ""}</span>
             <span className="lit">{l.montant > 0 ? `${euros(l.montant)} ${T.euro}` : T.peageGratuit}</span>
           </li>
         ))}
@@ -234,13 +234,13 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
           <li className="pl tot" data-el="total-peages"><span>{T.peagesTotal}</span><span className="lit">{euros(e.peages.total)} {T.euro}</span></li>
         )}
         {e.peages.etat === "indisponible" && (
-          <li className="pl" data-el="peages-indisponibles"><span role="status">{e.peages.motif === "quota_atteint" ? T.peagesLimiteAtteinte : T.peagesIndisponibles}</span><span className="lit">—</span></li>
+          <li className="pl" data-el="peages-indisponibles"><span role="status">{e.peages.motif === "quota_fournisseur" ? T.peagesQuotaFournisseur(T.nomsFournisseursPeages[e.peages.fournisseur ?? ""] ?? e.peages.fournisseur ?? "", e.peages.jusqua ? T.heureCourte(e.peages.jusqua) : "demain") : e.peages.motif === "quota_atteint" ? T.peagesLimiteAtteinte : T.peagesIndisponibles}</span><span className="lit">—</span></li>
         )}
         {e.peages.vignettes.map((v) => (
           <li className="pl" key={v.pays} data-el="ligne-vignette"><span><b>{v.pays}</b> {v.libelle}</span></li>
         ))}
       </ul>
-      {e.peages.etat === "indisponible" && <p className="note" data-el="peages-indisponibles-detail">{e.peages.motif === "quota_atteint" ? T.peagesLimiteAtteinteDetail : T.peagesIndisponiblesDetail}</p>}
+      {e.peages.etat === "indisponible" && <p className="note" data-el="peages-indisponibles-detail">{e.peages.motif === "quota_fournisseur" ? T.peagesQuotaFournisseurDetail : e.peages.motif === "quota_atteint" ? T.peagesLimiteAtteinteDetail : T.peagesIndisponiblesDetail}</p>}
       <h2 className="sec">{T.paysTitre}</h2>
       <ul className="plist" data-el="pays-traverses">
         {repartition.lignes.map((l) => (

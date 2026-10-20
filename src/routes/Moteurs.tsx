@@ -66,7 +66,9 @@ export default function Moteurs() {
   const choisir = (m: Moteur, id: string) => {
     const f = m.fournisseurs.find((x) => x.id === id)!;
     const sansCle = f.cle_requise && !f.cle_fin;
-    maj(m.service, { actif: id, secours: b[m.service].secours === id ? "" : b[m.service].secours, cle: "", etat: sansCle ? "wait" : "ok", message: sansCle ? T.etatCleAColler : f.cle_requise ? T.cleEnregistree(f.cle_fin!) : T.etatPretSansCle });
+    // la pastille dit l'ÉTAT (audit round 3, LOW 10) : celui du moteur si on revient à l'actif, sinon « à tester » ; jamais la phrase du champ
+    const etat = id === m.actif ? { etat: m.etat, message: T.etatMoteur(m, nomCourt(m)) } : sansCle ? { etat: "wait" as EtatMoteur, message: T.etatCleAColler } : { etat: "ok" as EtatMoteur, message: f.cle_requise ? T.etatCleRangee : T.etatPretSansCle };
+    maj(m.service, { actif: id, secours: b[m.service].secours === id ? "" : b[m.service].secours, cle: "", ...etat });
   };
   const tester = async (m: Moteur) => {
     maj(m.service, { occupe: true, etat: "wait", message: T.testEnCours });
@@ -164,8 +166,8 @@ export default function Moteurs() {
                   <button type="button" disabled={d.occupe} data-el={peages ? "tester-connexion" : "tester-connexion-" + m.service} onClick={() => tester(m)}>{T.tester}</button>
                   <button type="button" className="save" disabled={d.occupe} data-el={peages ? "enregistrer-moteur" : "enregistrer-moteur-" + m.service} onClick={() => enregistrer(m)}>{T.enregistrer}</button>
                 </div>
-                {m.bascule && <div className="d" data-el="bascule">{T.basculeNotee(nomF(m, m.bascule.de), nomF(m, m.bascule.vers), heure(m.bascule.le))}</div>}
-                {m.incident && <div className="d" data-el="incident">{T.incidentNote(lireIncident(m, m.incident.message), heure(m.incident.le))}</div>}
+                {m.bascule && <div className="d" data-el="bascule" data-resolu={m.bascule.resolu ? "oui" : "non"}>{(m.bascule.resolu ? T.basculeResolue : T.basculeNotee)(nomF(m, m.bascule.de), nomF(m, m.bascule.vers), heure(m.bascule.le))}</div>}
+                {m.incident && <div className="d" data-el="incident" data-resolu={m.incident.resolu ? "oui" : "non"}>{(m.incident.resolu ? T.incidentResolu : T.incidentNote)(lireIncident(m, m.incident.message), heure(m.incident.le))}</div>}
               </li>
             );
           })}

@@ -1,7 +1,7 @@
 // estimer-trajet — itinéraire (IGN pour un trajet 100 % France, Valhalla ailleurs), modèle de consommation par tronçon et par pays, péages.
 // Entrée  : POST { depart:{lat,lon}, arrivee:{lat,lon}, vehicule_id }   (JWT Supabase exigé : clé anon ou session anonyme)
 // Sortie  : 200 { km, duree_min, litres, l100, vehicule, troncons:[{pays,…}], pays:[{code,nom,km,litres}], itineraire:{fournisseur},
-//                 peages:{ etat:"ok"|"indisponible", motif?, fournisseur?, lignes:[{pays,libelle,montant}], total, vignettes:[{pays,libelle}] }, avertissements }
+//                 peages:{ etat:"ok"|"indisponible", motif?, fournisseur?, jusqua?, cache?, lignes:[{pays,libelle,montant,fourchette?}], total, vignettes:[{pays,libelle}] }, avertissements }
 //           400 requete_invalide · 404 vehicule_inconnu · 422 pas_itineraire | hors_couverture | trop_long · 502 itineraire_indisponible
 // Sources : IGN (bdtopo-osrm, RGE ALTI), Valhalla (moteur « itineraire »), PTV / HERE (moteur « peages ») ; fournisseurs et clés lus dans la table moteurs + Vault à chaque appel.
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -16,9 +16,9 @@ import {
   type PointGeo,
 } from "../_shared/modele.ts";
 import { etapesDepuisAretes, pointEnFrance, vignettesTraversees } from "../_shared/europe.ts";
-import { executerChaine, lireCle, lireMoteur, noterBascule, noterIncident, type Essai } from "../_shared/moteurs.ts";
+import { executerChaine, lireCle, lireMoteur, noterBascule, noterIncident, noterQuotaFournisseur, noterRetabli, type Essai } from "../_shared/moteurs.ts";
 import { ErreurItineraire, connexionDepuisFournisseur, routeValhalla, type RouteValhalla } from "../_shared/itineraire-europe.ts";
-import { ErreurPeages, peagesHere, peagesPtv, pointsDePassage, totalPeages, type LignePeage } from "../_shared/peages.ts";
+import { ErreurPeages, cleCachePeages, finQuotaJour, peagesHere, peagesPtv, pointsDePassage, totalPeages, type LignePeage } from "../_shared/peages.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -136,18 +136,23 @@ async function itineraireIgn(depart: PointGeo, arrivee: PointGeo, avertissements
 }
 
 /** Péages : fournisseur actif puis secours (table moteurs + Vault) ; l'échec n'empêche jamais le coût carburant.
- *  Tarifés sur LE tracé affiché : points de passage échantillonnés sur ce tracé (pointsDePassage), envoyés à PTV/HERE. */
+ *  Tarifés sur LE tracé affiché : points de passage échantillonnés sur ce tracé (pointsDePassage), envoyés à PTV/HERE.
+ *  Round 5 (audit round 3, HIGH 1) : réponse mise en cache par tracé (cache_peages, 7 jours) ; un fournisseur dont le quota du jour
+ *  est dépassé n'est plus appelé avant sa remise à zéro (fournisseurs.quota_epuise_jusqua) et n'est pas déclaré « clé refusée ». */
 interface ResPeages {
   etat: "ok" | "indisponible";
   motif?: string;
   fournisseur: string | null;
+  jusqua?: string; // motif quota_fournisseur : remise à zéro attendue (ISO)
+  cache?: boolean; // réponse reprise du cache (aucun appel au fournisseur)
   lignes: LignePeage[];
   total: number;
 }
-// Limite d'appels de péages (LOW 19) : par identité anonyme et globale, par jour (table quota_peages). Au-delà, le calcul continue sans péages.
-// PTV offre 100 000 transactions/mois, HERE 2 500/mois (≈ 80/jour) : 60 par identité et 1 500 au total par jour bornent un abus isolé (un visiteur seul ne peut pas vider les quotas) tout en laissant passer l'usage normal et les campagnes de test.
+// Limite d'appels de péages : par identité anonyme et globale, par jour UTC (table quota_peages). Au-delà, le calcul continue sans péages.
+// Le plafond global est celui du fournisseur actif, en table (fournisseurs.plafond_jour), SOUS son quota réel ; un appel servi par le cache ne compte pas.
 const QUOTA_IDENTITE = 60;
-const QUOTA_GLOBAL = 1500;
+const PLAFOND_PAR_DEFAUT = 250;
+const CACHE_JOURS = 7;
 function identiteDuJeton(req: Request): string {
   try {
     const jeton = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
@@ -159,30 +164,63 @@ function identiteDuJeton(req: Request): string {
 }
 async function calculerPeages(// deno-lint-ignore no-explicit-any
   db: any, depart: PointGeo, arrivee: PointGeo, tva: Record<string, number>, identite: string, trace: PointGeo[]): Promise<ResPeages> {
-  const { data: autorise } = await db.rpc("quota_peages_reserver", { p_identite: identite, p_max_identite: QUOTA_IDENTITE, p_max_global: QUOTA_GLOBAL });
-  if (autorise === false) return { etat: "indisponible", motif: "quota_atteint", fournisseur: null, lignes: [], total: 0 };
   const m = await lireMoteur(db, "peages");
   const passages = pointsDePassage(trace);
-  const essais: Essai<LignePeage[]>[] = [];
-  for (const f of [m.actif, m.secours].filter((x): x is string => !!x)) {
-    essais.push({
-      fournisseur: f,
-      appel: async () => {
-        const cle = await lireCle(db, f);
-        if (!cle) throw new ErreurPeages("cle_manquante");
+  const chaine = [m.actif, m.secours].filter((x): x is string => !!x);
+  const { data: infos } = await db.from("fournisseurs").select("id,plafond_jour,quota_epuise_jusqua").in("id", chaine);
+  const info = (id: string) => ((infos ?? []) as { id: string; plafond_jour: number | null; quota_epuise_jusqua: string | null }[]).find((x) => x.id === id);
+
+  // 1) cache : même fournisseur, même départ, même arrivée, même tracé → réponse réutilisée, aucun appel ni créneau de quota consommé
+  const depuis = new Date(Date.now() - CACHE_JOURS * 86400e3).toISOString();
+  for (const f of chaine) {
+    const { data: c } = await db.from("cache_peages").select("lignes").eq("cle", cleCachePeages(f, depart, arrivee, passages)).gte("cree_le", depuis).maybeSingle();
+    if (c?.lignes) return { etat: "ok", fournisseur: f, cache: true, lignes: c.lignes as LignePeage[], total: totalPeages(c.lignes as LignePeage[]) };
+  }
+
+  // 2) tous les fournisseurs de la chaîne sont en quota dépassé : rien ne part, aucun créneau consommé
+  const enCours = (f: string) => { const j = info(f)?.quota_epuise_jusqua; return j && new Date(j) > new Date() ? j : null; };
+  if (chaine.length > 0 && chaine.every((f) => enCours(f))) {
+    return { etat: "indisponible", motif: "quota_fournisseur", fournisseur: m.actif, jusqua: new Date(enCours(m.actif)!).toISOString(), lignes: [], total: 0 };
+  }
+
+  // 3) plafond du jour de l'appli (sous le quota du fournisseur actif)
+  const plafond = info(m.actif)?.plafond_jour ?? PLAFOND_PAR_DEFAUT;
+  const { data: autorise } = await db.rpc("quota_peages_reserver", { p_identite: identite, p_max_identite: QUOTA_IDENTITE, p_max_global: plafond });
+  if (autorise === false) return { etat: "indisponible", motif: "quota_atteint", fournisseur: null, lignes: [], total: 0 };
+
+  // 4) fournisseurs : actif puis secours ; un quota fournisseur encore en cours ne déclenche aucun appel
+  const maintenant = new Date();
+  const essais: Essai<LignePeage[]>[] = chaine.map((f) => ({
+    fournisseur: f,
+    appel: async () => {
+      const jusqua = info(f)?.quota_epuise_jusqua;
+      if (jusqua && new Date(jusqua) > maintenant) throw new ErreurPeages("quota_fournisseur");
+      const cle = await lireCle(db, f);
+      if (!cle) throw new ErreurPeages("cle_manquante");
+      try {
         if (f === "ptv") return await peagesPtv(cle, depart, arrivee, tva, passages);
         if (f === "here") return await peagesHere(cle, depart, arrivee, passages);
-        throw new ErreurPeages("aucun_fournisseur");
-      },
-    });
-  }
+      } catch (e) {
+        if (e instanceof ErreurPeages && e.motif === "quota_fournisseur") await noterQuotaFournisseur(db, f, jusqua ?? null);
+        throw e;
+      }
+      throw new ErreurPeages("aucun_fournisseur");
+    },
+  }));
   const s = await executerChaine(essais);
   if (s.echecs.length > 0) await noterIncident(db, "peages", `${s.echecs[0].fournisseur} : ${s.echecs[0].message}`);
   if (s.resultat) {
     if (s.bascule) await noterBascule(db, "peages", m.actif, s.fournisseur!);
+    else await noterRetabli(db, "peages", m);
+    if (info(s.fournisseur!)?.quota_epuise_jusqua) await db.from("fournisseurs").update({ quota_epuise_jusqua: null }).eq("id", s.fournisseur);
+    await db.from("cache_peages").upsert({ cle: cleCachePeages(s.fournisseur!, depart, arrivee, passages), fournisseur: s.fournisseur, lignes: s.resultat, cree_le: new Date().toISOString() });
     return { etat: "ok", fournisseur: s.fournisseur, lignes: s.resultat, total: totalPeages(s.resultat) };
   }
-  const motif = (s.echecs[0] && /^(cle_manquante|cle_refusee|quota|reponse_invalide|aucun_fournisseur)/.exec(s.echecs[0].message)?.[1]) || "indisponible";
+  const motif = (s.echecs[0] && /^(cle_manquante|cle_refusee|quota_fournisseur|quota|reponse_invalide|aucun_fournisseur)/.exec(s.echecs[0].message)?.[1]) || "indisponible";
+  if (motif === "quota_fournisseur") {
+    const { data: f } = await db.from("fournisseurs").select("quota_epuise_jusqua").eq("id", s.echecs[0].fournisseur).maybeSingle();
+    return { etat: "indisponible", motif, fournisseur: s.echecs[0].fournisseur, jusqua: f?.quota_epuise_jusqua ? new Date(f.quota_epuise_jusqua).toISOString() : finQuotaJour().toISOString(), lignes: [], total: 0 };
+  }
   return { etat: "indisponible", motif, fournisseur: m.actif, lignes: [], total: 0 };
 }
 
@@ -220,6 +258,7 @@ async function itineraireEurope(// deno-lint-ignore no-explicit-any
     throw new ErreurItineraire("indisponible");
   }
   if (s.bascule) await noterBascule(db, "itineraire", m.actif, s.fournisseur!);
+  else await noterRetabli(db, "itineraire", m);
   return { route: s.resultat, fournisseur: s.fournisseur! };
 }
 

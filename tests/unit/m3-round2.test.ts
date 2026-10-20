@@ -42,9 +42,9 @@ describe("HERE : prix « fourchette » (RangePrice)", () => {
       { countryCode: "ESP", tollSystem: "AP-7", fares: [{ name: "AP-7", price: { type: "value", currency: "EUR", value: 4.2 }, paymentMethods: ["cash"] }] },
     ] }] }] });
     expect(l[0].montant).toBe(13.4);
-    expect(l[0].libelle).toContain("estimation");
+    expect(l[0].fourchette).toBe(true); // round 5 : drapeau, la phrase est composée par textes.ts (T.peageFourchette)
     expect(l[1].montant).toBe(4.2);
-    expect(l[1].libelle).not.toContain("estimation");
+    expect(l[1].fourchette).toBeUndefined();
   });
 });
 

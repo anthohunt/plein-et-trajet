@@ -142,6 +142,14 @@ export const T = {
   peagesLimiteAtteinte: "Péages non calculés : limite du jour atteinte",
   peagesLimiteAtteinteDetail: "Le nombre de calculs de péages est limité chaque jour ; cette limite est atteinte. Le coût ci-dessus ne comprend que le carburant ; les péages seront de nouveau calculés demain.",
   peagesFournisseur: (nom: string) => `Péages calculés par ${nom}`,
+  /** Quota du jour du fournisseur de péages dépassé (PTV : « Daily Quota Exceeded ») : la clé n'est pas en cause. */
+  peagesQuotaFournisseur: (nom: string, heure: string) => `${nom} : quota du jour atteint — péages indisponibles jusqu'à ${heure}`,
+  peagesQuotaFournisseurDetail: "Le fournisseur des péages limite le nombre de calculs par jour et cette limite est atteinte. Le coût ci-dessus ne comprend que le carburant.",
+  nomsFournisseursPeages: { ptv: "PTV", here: "HERE" } as Record<string, string>,
+  /** Heure locale d'une date ISO (« 02:00 »). */
+  heureCourte: (iso: string) => new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+  peageSansNom: "Péage",
+  peageFourchette: " (estimation : maximum de la fourchette)",
   peagesLigne: (pays: string, libelle: string, montant: string) => `${pays} ${libelle}, ${montant}`,
   carburantPeages: (c: string, p: string) => `Carburant ${c} € · Péages ${p} €`,
   carburantSeul: (c: string) => `Carburant ${c} €`,
@@ -178,7 +186,7 @@ export const T = {
   secours: "Secours",
   aucunSecours: "Aucun secours",
   cleAColler: "Coller la clé d'API",
-  cleEnregistree: (fin: string) => `Clé enregistrée ••••${fin} — coller pour remplacer`,
+  cleEnregistree: (fin: string) => `Clé ••••${fin} · coller pour changer`, // tient dans le champ à 360 px (audit round 3, LOW 4)
   ouTrouverCle: "Où trouver ma clé",
   ouTrouverCleLabel: (nom: string) => `Où trouver ma clé ${nom} (s'ouvre dans un nouvel onglet)`,
   cleDe: (nom: string) => `Clé ${nom}`,
@@ -188,6 +196,7 @@ export const T = {
   testEnCours: "Test en cours…",
   etatCleAColler: "Clé à coller",
   etatPretSansCle: "Prêt · sans clé",
+  etatCleRangee: "Clé enregistrée · à tester",
   /** État d'un moteur : la fonction `moteurs` renvoie un code et ses paramètres, la phrase est composée ici. `nom(id)` = nom court du fournisseur. */
   etatMoteur: (e: { code: string; params?: Record<string, string | number> }, nom: (id: string) => string): string => {
     const p = e.params ?? {};
@@ -196,7 +205,7 @@ export const T = {
     const http = p.http ? ` (${p.http})` : "";
     switch (e.code) {
       case "ok_peages":
-        return `Connecté · test Albi → Barcelone OK${p.sections != null ? ` (${p.sections} sections)` : p.peages != null ? ` (${p.peages} péages)` : ""}`;
+        return `Connecté · test Albi → Barcelone OK${p.sections != null ? ` (${p.sections} section${Number(p.sections) > 1 ? "s" : ""})` : p.peages != null ? ` (${p.peages} péage${Number(p.peages) > 1 ? "s" : ""})` : ""}`;
       case "ok_itineraire":
         return `Connecté · test Albi → Toulouse OK${p.km != null ? ` (${p.km} km)` : ""}`;
       case "ok_stations":
@@ -219,6 +228,8 @@ export const T = {
         return `Clé refusée par ${f}${http || " (401)"}`;
       case "quota":
         return `Quota ${f} atteint${http || " (429)"}`;
+      case "quota_fournisseur":
+        return T.peagesQuotaFournisseur(f, p.jusqua ? T.heureCourte(String(p.jusqua)) : "demain");
       case "reponse_illisible":
         return `Réponse de ${f} illisible`;
       case "injoignable":
@@ -249,7 +260,9 @@ export const T = {
   },
   basculeNotee: (de: string, vers: string, quand: string) => `Bascule ${de} → ${vers} le ${quand}`,
   incidentNote: (msg: string, quand: string) => `Dernier incident · ${msg} · ${quand}`,
-  incidentCodes: { cle_manquante: "clé manquante", cle_refusee: "clé refusée", quota: "quota atteint", indisponible: "service injoignable", reponse_invalide: "réponse illisible", trop_long: "trajet trop long", pas_itineraire: "aucun itinéraire", aucun_fournisseur: "fournisseur inconnu" } as Record<string, string>,
+  incidentResolu: (msg: string, quand: string) => `Incident résolu · ${msg} · ${quand}`,
+  basculeResolue: (de: string, vers: string, quand: string) => `Bascule ${de} → ${vers} le ${quand} · ${de} rétabli depuis`,
+  incidentCodes: { cle_manquante: "clé manquante", cle_refusee: "clé refusée", quota: "quota atteint", quota_fournisseur: "quota du jour atteint", indisponible: "service injoignable", reponse_invalide: "réponse illisible", trop_long: "trajet trop long", pas_itineraire: "aucun itinéraire", aucun_fournisseur: "fournisseur inconnu" } as Record<string, string>,
   // --- Connexion administrateur
   adminTitre: "Connexion administrateur",
   adminIntro: "Entre l'adresse de l'administrateur : un lien de connexion y est envoyé.",

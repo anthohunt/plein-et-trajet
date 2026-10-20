@@ -57,13 +57,16 @@ export function coutTotal(carburant: number | null, peages: { etat: string; tota
 
 export interface LignePeage {
   pays: string;
-  libelle: string;
+  libelle: string; // "" : section sans nom (l'écran affiche T.peageSansNom)
   montant: number;
+  fourchette?: boolean; // HERE : montant = maximum de la fourchette (l'écran ajoute T.peageFourchette)
 }
 export interface Peages {
   etat: "ok" | "indisponible";
   motif?: string;
   fournisseur: string | null;
+  jusqua?: string; // motif quota_fournisseur : remise à zéro attendue (ISO)
+  cache?: boolean;
   lignes: LignePeage[];
   total: number;
   vignettes: { pays: string; libelle: string }[];
