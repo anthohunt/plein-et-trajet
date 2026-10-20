@@ -28,3 +28,5 @@
 - Tant qu'une station n'est pas enrichie, son libellé est « Station <ville> ».
 - Écran Trajets volontairement minimal (départ, arrivée) : le calcul est au jalon 2.
 - Les cas E3/E4 dépendent des données du jour : les extraits se marquent `skip` (et non « passé ») si plus aucune station réelle n'est dans cet état autour d'Albi.
+
+Commit de livraison du code + tests + captures : `7413912` (branche main) ; ce journal est poussé juste après.
