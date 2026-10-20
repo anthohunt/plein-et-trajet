@@ -165,10 +165,12 @@ Deno.serve(async (req) => {
 
       // 1) une clé collée est TESTÉE avant d'être écrite : seule une clé qui répond est rangée dans Vault (chiffrée) ;
       //    sinon l'ancienne clé est conservée (une faute de frappe ne coupe jamais un service qui marchait)
+      let candidateRefusee: Test | null = null;
       if (cle) {
         const tc = await tester(db, fournisseur, cle);
         if (tc.etat === "ok") await db.rpc("moteur_cle_enregistrer", { p_fournisseur: fournisseur, p_cle: cle });
         else {
+          candidateRefusee = tc;
           notes.push(`${tc.message} · clé non enregistrée, ancienne clé conservée`);
         }
       }
@@ -181,7 +183,7 @@ Deno.serve(async (req) => {
       }
 
       // 2) test réel du fournisseur choisi avec sa clé enregistrée : seul un fournisseur qui répond devient actif
-      const t = await tester(db, fournisseur, null);
+      const t = candidateRefusee ? candidateRefusee : await tester(db, fournisseur, null);
       // secours : retenu s'il est différent de l'actif d'après et si sa clé (si elle est requise) est rangée
       const resultatActif = t.etat === "ok" ? fournisseur : m.actif;
       const secoursInfo = secours ? (liste ?? []).find((f: { id: string }) => f.id === secours) : null;

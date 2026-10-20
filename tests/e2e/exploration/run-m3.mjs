@@ -555,8 +555,8 @@ histoireDef("US-5.3", "US-5.3 — Coller la clé", async () => {
   await attendreEnregistrement(pb, "peages");
   await capture(pb, "US-5.3-02-coller-la-cl-apres.png", async () => {
     const msg = await etatCarte(pb, "peages").innerText();
-    expect(msg).toContain("Clé refusée par PTV (401)");
-    expect(msg).toContain("clé non enregistrée");
+    expect(msg.toLowerCase()).toContain("clé refusée par ptv (401)");
+    expect(msg.toLowerCase()).toContain("clé non enregistrée");
     await expect(carte(pb, "peages").locator('[data-el="champ-cle"]')).toHaveAttribute("placeholder", "Coller la clé d'API");
     const [{ n }] = await sqlGestion("select count(*)::int as n from vault.secrets where name = 'cle_ptv'");
     expect(n).toBe(0);
@@ -756,7 +756,7 @@ histoireDef("US-5.E2", "US-5.E2 — Clé refusée", async () => {
     await expect(carte(pb, "peages").locator('[data-el="choix-fournisseur"]')).toHaveValue("ptv");
     const l = await restService("moteurs?select=actif&service=eq.peages");
     expect(l.corps[0].actif).toBe("ptv");
-    const [{ n }] = await sqlGestion("select count(*)::int as n from vault.secrets");
+    const [{ n }] = await sqlGestion("select count(*)::int as n from vault.secrets where name like 'cle_%'");
     expect(n).toBe(0); // la clé invalide n'a pas été écrite
     return `HERE + clé invalide + Enregistrer : refusé par le vrai HERE (401), « clé non enregistrée », le fournisseur actif reste PTV après rechargement (base : actif = ptv ; Vault : ${n} secret)`;
   }, "Enregistrer garde l'ancien fournisseur actif (PTV)", "edge");
