@@ -127,7 +127,10 @@ export async function garderTrajetV1(t: TrajetV1): Promise<void> {
   await (await db()).put("trajets", t);
   signaler();
 }
+/** Trajets supprimés pendant cette session : une correction encore en vol (nom des lieux, moyenne du jour) ne les recrée pas. */
+const supprimes = new Set<string>();
 export async function supprimerTrajetV1(id: string): Promise<void> {
+  supprimes.add(id);
   await (await db()).delete("trajets", id);
   signaler();
 }
@@ -139,19 +142,31 @@ export async function lireArrete(): Promise<TrajetV1 | null> {
 export async function garderArrete(t: TrajetV1): Promise<void> {
   await (await db()).put("en_cours", t, CLE_ARRETE);
 }
-export async function oublierArrete(): Promise<void> {
+export async function oublierArrete(id?: string): Promise<void> {
+  if (id) supprimes.add(id);
   await (await db()).delete("en_cours", CLE_ARRETE);
 }
 /**
  * Garde une correction de fin de trajet, même si l'écran a été quitté entre-temps : trajet de l'historique, ou trajet arrêté
  * encore en attente ; si « Enregistrer » est passé pendant ce temps, la correction va au trajet de l'historique (le trajet arrêté
- * n'est pas recréé).
+ * n'est pas recréé). Une suppression l'emporte toujours (V-6.4, round 3) : un trajet supprimé n'est jamais réécrit — ni s'il a été
+ * supprimé pendant cette session, ni s'il n'existe plus. Lecture et écriture dans une seule transaction : une suppression ne peut
+ * pas passer entre les deux.
  */
 export async function garderCorrection(t: TrajetV1): Promise<void> {
-  if (t.enregistre) return garderTrajetV1(t);
-  const a = await lireArrete();
-  if (a?.id === t.id) return garderArrete(t);
-  if (await lireTrajetV1(t.id)) return garderTrajetV1({ ...t, enregistre: true });
+  if (supprimes.has(t.id)) return;
+  const tx = (await db()).transaction(["trajets", "en_cours"], "readwrite");
+  const trajets = tx.objectStore("trajets");
+  const enCours = tx.objectStore("en_cours");
+  let ecrit = false;
+  const a = t.enregistre ? null : ((await enCours.get(CLE_ARRETE)) as TrajetV1 | undefined);
+  if (a?.id === t.id) await enCours.put(t, CLE_ARRETE);
+  else if (await trajets.get(t.id)) {
+    await trajets.put({ ...t, enregistre: true });
+    ecrit = true;
+  }
+  await tx.done;
+  if (ecrit) signaler();
 }
 /** « Enregistrer » : le trajet arrêté rejoint l'historique. */
 export async function enregistrerArrete(t: TrajetV1): Promise<void> {

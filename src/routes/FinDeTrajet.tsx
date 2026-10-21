@@ -176,7 +176,7 @@ export default function FinDeTrajet() {
     nav("/historique", { replace: true, state: { nouveau: t.id } });
   };
   const supprimerNeuf = async () => {
-    await oublierArrete();
+    await oublierArrete(t.id);
     nav("/", { replace: true });
   };
   const supprimerRouvert = async () => {
