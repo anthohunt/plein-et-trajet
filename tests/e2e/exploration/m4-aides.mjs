@@ -90,6 +90,7 @@ export async function lireDirect(page) {
     etat: await S6(page).getAttribute("data-etat"),
     vitesse: Number(await page.locator('[data-el="vitesse"]').getAttribute("data-kmh")),
     courbe: Number(await page.locator('[data-el="courbe-direct"]').getAttribute("data-points")),
+    chemin: (await page.locator('[data-el="courbe-direct"] path').getAttribute("d")) ?? "", // tracé de la courbe : change à chaque rafraîchissement
     km: base.nombreFr(await t("direct-km")),
     litres: base.nombreFr(await t("direct-litres")),
     euros: (await t("direct-euros")) === "—" ? null : base.nombreFr(await t("direct-euros")),
