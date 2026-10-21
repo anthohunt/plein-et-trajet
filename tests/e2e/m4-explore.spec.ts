@@ -69,7 +69,7 @@ test.describe("M4 — Enregistrer en roulant et Royaume-Uni", () => {
         const bouton = page.locator('[data-el="bouton-enregistrer"]');
         await expect(bouton).toHaveAttribute("aria-disabled", "true");
         await bouton.click({ force: true }); // un doigt peut toucher un bouton aria-disabled : rien ne doit être écrasé
-        await expect(page.locator('[data-el="message-enregistrer"]')).toContainText("Un enregistrement attend déjà ci-dessus : reprends-le ou arrête-le");
+        await expect(page.locator('[data-el="message-enregistrer"]')).toContainText("Reprends ou arrête l'enregistrement en cours");
         await page.waitForTimeout(2000);
         await expect(S6(page)).toHaveCount(0);
         expect(await page.evaluate(() => localStorage.getItem("pt-en-route"))).toBe(avant);
@@ -122,8 +122,6 @@ test.describe("M4 — Enregistrer en roulant et Royaume-Uni", () => {
         const fr = Number((await rest("moyennes_nationales?select=prix_moyen&pays=eq.FR&carburant=eq.SP95-E10&order=jour.desc&limit=1"))[0].prix_moyen);
         await expect(page.locator('[data-el="prix-direct"]')).toContainText(virgule(fr, 3));
         expect(d.euros).toBeCloseTo(d.litres * fr, 1);
-        // audit M3 : l'écran dit que le direct ne compte pas les montées
-        await expect(page.locator('[data-el="direct-sans-montees"]')).toHaveText("Litres et € en direct sans les montées : le dénivelé du tracé s'ajoute au calcul final, à l'arrêt.");
       });
     });
   });
@@ -135,7 +133,7 @@ test.describe("M4 — Enregistrer en roulant et Royaume-Uni", () => {
         await enregistrerDepuis(page, context, KM5);
         await page.waitForTimeout(20_000);
         expect((await lireDirect(page)).verrou).toBe("actif");
-        await expect(page.locator('[data-el="ecran-allume"]')).toContainText("L'écran reste allumé pendant l'enregistrement");
+        await expect(page.locator('[data-el="ecran-allume"]')).toHaveText("Écran allumé");
       });
       test("US-6.3 — plus de 15 s sans position : « GPS perdu », distance figée ; le retour du signal relance la distance", async ({ page, context }) => {
         test.setTimeout(150_000);
@@ -165,7 +163,7 @@ test.describe("M4 — Enregistrer en roulant et Royaume-Uni", () => {
         await choisirVoiture(page);
         await lancerEnregistrement(page);
         await expect(page.locator('[data-el="ecran-allume"]')).toHaveAttribute("data-verrou", "indisponible", { timeout: 10_000 });
-        await expect(page.locator('[data-el="ecran-allume"]')).toContainText("Ce navigateur ne peut pas garder l'écran allumé");
+        await expect(page.locator('[data-el="ecran-allume"]')).toHaveText("Désactive la mise en veille de l'écran");
       });
       test("US-6.3 — tant que le navigateur n'a pas répondu, l'écran ne prétend pas qu'il reste allumé (audit LOW 10)", async ({ page, context }) => {
         test.setTimeout(90_000);
@@ -181,8 +179,7 @@ test.describe("M4 — Enregistrer en roulant et Royaume-Uni", () => {
         await page.waitForTimeout(3000);
         const allume = page.locator('[data-el="ecran-allume"]');
         await expect(allume).toHaveAttribute("data-verrou", "attente");
-        await expect(allume).not.toContainText("L'écran reste allumé");
-        await expect(allume).toContainText("Demande au navigateur de garder l'écran allumé");
+        await expect(allume).toHaveText(""); // passe streamline : rien n'est affirmé tant que le navigateur n'a pas répondu
       });
     });
   });
@@ -280,6 +277,7 @@ test.describe("M4 — Enregistrer en roulant et Royaume-Uni", () => {
         test.setTimeout(120_000);
         await ouvrirTrajets(page);
         for (const [nom, texte] of [["depart", "Albi"], ["arrivee", "Castres"]]) {
+          await champ(page, nom).fill(""); // passe streamline : départ pré-rempli par la commune GPS
           await champ(page, nom).pressSequentially(texte, { delay: 40 });
           const o = propositions(page, nom).filter({ hasText: texte }).first();
           await expect(o).toBeVisible({ timeout: 20_000 });
@@ -289,7 +287,7 @@ test.describe("M4 — Enregistrer en roulant et Royaume-Uni", () => {
         await page.locator("#bouton-calculer").click();
         await expect(page.locator('[data-screen="S4"][data-etat="ok"]')).toBeVisible({ timeout: 60_000 });
         await expect(page.locator('[data-el="courbe-vitesse"]')).toHaveCount(0);
-        await expect(page.locator('[data-el="note-estimation"]')).toBeVisible();
+        await expect(page.locator('[data-el="note-roule"]')).toHaveCount(0);
       });
     });
   });
@@ -306,7 +304,7 @@ test.describe("M4 — Enregistrer en roulant et Royaume-Uni", () => {
         const m = page.locator('[data-el="localisation-refusee"]');
         await expect(m).toBeVisible({ timeout: 15_000 });
         await expect(m).toContainText("L'enregistrement a besoin de ta localisation");
-        await expect(m).toContainText("« Position » sur « Autoriser »");
+        await expect(m).toContainText("Position → Autoriser");
         await expect(S6(page)).toHaveCount(0);
         expect(await page.evaluate(() => localStorage.getItem("pt-en-route"))).toBeNull();
         expect((await trajetsDeLaPage(page)).length).toBe(avant);
@@ -324,7 +322,7 @@ test.describe("M4 — Enregistrer en roulant et Royaume-Uni", () => {
         await arreterEtAttendre(page);
         const m = page.locator('[data-el="trajet-trop-court"]');
         await expect(m).toContainText("Trajet trop court pour être calculé");
-        await expect(m).toContainText("il en faut au moins 1");
+        await expect(m).toContainText("sur 1 minimum");
         expect((await trajetsDeLaPage(page)).length).toBe(avant);
         expect(await page.evaluate(() => localStorage.getItem("pt-en-route"))).toBeNull();
       });
@@ -342,8 +340,8 @@ test.describe("M4 — Enregistrer en roulant et Royaume-Uni", () => {
         await page.reload();
         const b = page.locator('[data-el="reprise-enregistrement"]');
         await expect(b).toBeVisible({ timeout: 20_000 });
-        await expect(b).toContainText("Un enregistrement est en cours");
-        const km = nombreFr(/([\d,]+) km déjà enregistrés/.exec(await b.innerText())![1]);
+        await expect(b).toContainText("Enregistrement en cours");
+        const km = nombreFr(/([\d,]+) km ·/.exec(await b.innerText())![1]);
         expect(Math.abs(km - avant.km)).toBeLessThanOrEqual(0.1);
         await expect(page.locator('[data-el="arreter-enregistrement"]')).toBeVisible();
         await accorderVerrouEcran(context, page);
@@ -359,6 +357,7 @@ test.describe("M4 — Enregistrer en roulant et Royaume-Uni", () => {
       test("US-3.9 — Albi → Londres : Royaume-Uni au prix moyen du jour (€), Manche non comptée, pas d'Eurotunnel dans les péages", async ({ page }) => {
         test.setTimeout(150_000);
         await ouvrirTrajets(page);
+        await champ(page, "depart").fill(""); // passe streamline : départ pré-rempli par la commune GPS
         await champ(page, "depart").pressSequentially("Albi", { delay: 40 });
         await propositions(page, "depart").filter({ hasText: "Albi" }).first().click();
         await champ(page, "arrivee").pressSequentially("Londres", { delay: 40 });
@@ -377,7 +376,7 @@ test.describe("M4 — Enregistrer en roulant et Royaume-Uni", () => {
         await expect(ligne).toContainText("Royaume-Uni");
         await expect(ligne).toContainText(virgule(Number(gb.prix_moyen), 3));
         await expect(ligne).toContainText("stations");
-        await expect(page.locator('[data-el="manche-non-comptee"]')).toHaveText("Traversée de la Manche (tunnel ou ferry) non comptée : ni son prix, ni ses kilomètres.");
+        await expect(page.locator('[data-el="manche-non-comptee"]')).toHaveText("Traversée de la Manche (tunnel ou ferry) non comptée");
         await expect(page.locator('[data-el="detail-peages"]')).not.toContainText("Eurotunnel");
       });
     });

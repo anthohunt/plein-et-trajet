@@ -10,10 +10,10 @@ async function carburantSeul(page: Page): Promise<number> {
   const total = Number(await page.locator('[data-el="cout"] [data-cout]').first().getAttribute("data-cout"));
   // round 5 : quand les péages sont indisponibles (ex. quota du jour PTV atteint), la répartition carburant/péages n'est pas affichée ;
   // on ne l'attend pas (innerText sur un élément absent attendait jusqu'au délai du test) : le total est alors le carburant seul
-  const bloc = page.locator('[data-el="repartition-cout"]').first();
-  const split = (await bloc.count()) > 0 ? await bloc.innerText() : "";
-  const p = split.match(/Péages ([\d,]+) €/);
-  return Math.round((total - (p ? Number(p[1].replace(",", ".")) : 0)) * 100) / 100;
+  // passe streamline : la ligne « Carburant · Péages » est retirée ; les péages établis se lisent sur la ligne « Total péages »
+  const tot = page.locator('[data-el="total-peages"] .lit').first();
+  const p = (await tot.count()) > 0 ? Number((await tot.innerText()).replace(/[^\d,]/g, "").replace(",", ".")) : 0;
+  return Math.round((total - p) * 100) / 100;
 }
 
 test.describe("M2 — Le coût d'un trajet", () => {
@@ -48,6 +48,8 @@ test.describe("M2 — Le coût d'un trajet", () => {
     test.describe("Happy Path", () => {
       test("US-3.2 — « Alb » propose des lieux réels (géocodeur IGN) dont Albi ; je choisis Albi", async ({ page }) => {
         await ouvrirTrajets(page);
+        // passe streamline : le départ est pré-rempli par la commune GPS ; on part d'un champ vidé
+        await champ(page, "depart").fill("");
         await expect(champ(page, "depart")).toHaveValue("");
         await champ(page, "depart").pressSequentially("Alb", { delay: 50 });
         await expect(propositions(page, "depart").first()).toBeVisible();
@@ -62,6 +64,7 @@ test.describe("M2 — Le coût d'un trajet", () => {
     test.describe("Edge Case", () => {
       test("US-3.2 — un seul caractère : aucune proposition ; flèches et Entrée choisissent au clavier ; Échap ferme", async ({ page }) => {
         await ouvrirTrajets(page);
+        await champ(page, "depart").fill("");
         await champ(page, "depart").pressSequentially("A", { delay: 50 });
         await page.waitForTimeout(600);
         await expect(propositions(page, "depart")).toHaveCount(0);
@@ -113,7 +116,7 @@ test.describe("M2 — Le coût d'un trajet", () => {
         expect(p).toMatchObject({ marque: "Peugeot", modele: "208", carburant: "SP95-E10" });
         const v = (await rest(`vehicules?select=masse_kg,carburant,motorisation&id=eq.${p.vehicule_id}`))[0];
         expect(v.motorisation).toBe("208 (101ch) · mécanique");
-        await expect(page.locator('[data-el="voiture-info"]')).toHaveText(`SP95-E10 · ${v.masse_kg} kg`);
+        await expect(page.locator('[data-el="voiture-info"]')).toHaveText("SP95-E10");
         await page.reload();
         await ouvrirTrajets(page);
         await expect(page.locator("#voiture-moteur .dd-txt")).toHaveText("208 (101ch) · mécanique");
@@ -188,7 +191,7 @@ test.describe("M2 — Le coût d'un trajet", () => {
         await page.locator('[data-el="ligne-historique"]').click();
         await expect(S4(page, "ok")).toBeVisible({ timeout: 45000 });
         expect(calculs.n).toBe(1);
-        await expect(page.locator('[data-el="trajet-rejoue"]')).toHaveText("Trajet recalculé au prix moyen du jour");
+        await expect(page.locator('[data-el="trajet-rejoue"]')).toHaveText("Recalculé au prix du jour");
         const r = await lireResultat(page);
         const moyenne = await moyenneDuJour("SP95-E10");
         expect(r.detail).toContain(moyenne.toFixed(3).replace(".", ","));
@@ -223,7 +226,7 @@ test.describe("M2 — Le coût d'un trajet", () => {
         await attendreFormulaire(page);
         const avant = calculs.n;
         await page.locator('[data-el="ligne-historique"]').click();
-        await expect(page.locator('[data-el="erreur-rejeu"]')).toContainText("n'est plus dans la base");
+        await expect(page.locator('[data-el="erreur-rejeu"]')).toContainText("introuvable");
         expect(calculs.n).toBe(avant);
         await expect(page.locator('[data-screen="S3"]')).toBeVisible();
       });
@@ -297,7 +300,7 @@ test.describe("M2 — Le coût d'un trajet", () => {
         await choisirDansListe(page, "voiture-marque", "Marque", "Renault");
         await expect(page.locator("#voiture-modele .dd-txt")).toHaveText("Modèle");
         await expect(page.locator("#voiture-moteur .dd-txt")).toHaveText("Motorisation");
-        await expect(page.locator('[data-el="voiture-memorisee"]')).toHaveCount(0);
+        await expect(page.locator('[data-el="voiture-info"]')).toHaveCount(0);
         await expect.poll(async () => (await dbPreference(page))?.marque).toBe("Renault");
         expect(await dbPreference(page)).toMatchObject({ modele: null, vehicule_id: null });
         await choisirVoiture(page, "Renault", "Clio", "");
@@ -314,17 +317,17 @@ test.describe("M2 — Le coût d'un trajet", () => {
         await choisirVoiture(page, "Peugeot", "208", "208 (101ch) · mécanique");
         await choisirDansListe(page, "voiture-modele", "Modèle", "308");
         await expect(page.locator("#voiture-moteur .dd-txt")).toHaveText("Motorisation");
-        await expect(page.locator('[data-el="voiture-memorisee"]')).toHaveCount(0);
+        await expect(page.locator('[data-el="voiture-info"]')).toHaveCount(0);
       });
     });
     test.describe("Happy Path — indicateur", () => {
-      test("US-3.P2 — après le choix de la marque, « Marque mémorisée » est visible ; le libellé complet de la motorisation s'affiche sous les sélecteurs", async ({ page }) => {
+      test("US-3.P2 — marque seule : aucun libellé ; voiture complète : motorisation entière et carburant sous les sélecteurs, sur une ligne", async ({ page }) => {
         await ouvrirTrajets(page);
         await choisirDansListe(page, "voiture-marque", "Marque", "Renault");
-        await expect(page.locator('[data-el="marque-memorisee"]')).toHaveText("Marque mémorisée");
+        await expect(page.locator('[data-el="voiture-libelle"]')).toHaveCount(0);
         await choisirVoiture(page, "Peugeot", "208", "208 (101ch) · mécanique");
         await expect(page.locator('[data-el="voiture-libelle"]')).toHaveText("208 (101ch) · mécanique");
-        await expect(page.locator('[data-el="marque-memorisee"]')).toHaveCount(0);
+        await expect(page.locator(".carlib")).toHaveText("208 (101ch) · mécanique · SP95-E10");
       });
     });
   });
@@ -383,6 +386,7 @@ test.describe("M2 — Le coût d'un trajet", () => {
       test("US-3.E2 — départ vide : « Saisis un lieu » ; formulaire entièrement vide : trois signalements", async ({ page }) => {
         const calculs = compterCalculs(page);
         await ouvrirTrajets(page);
+        await champ(page, "depart").fill(""); // passe streamline : départ pré-rempli par la commune GPS
         await page.locator("#bouton-calculer").click();
         await expect(page.locator('[data-el="champ-depart-erreur"]')).toHaveText("Saisis un lieu");
         await expect(page.locator('[data-el="champ-arrivee-erreur"]')).toHaveText("Saisis un lieu");
@@ -397,7 +401,7 @@ test.describe("M2 — Le coût d'un trajet", () => {
       test("US-3.E3 — nouvelle identité : « Aucun trajet pour l'instant » et l'invitation à calculer le premier", async ({ page }) => {
         await ouvrirTrajets(page);
         await expect(page.locator('[data-el="historique-vide"] .t')).toHaveText("Aucun trajet pour l'instant");
-        await expect(page.locator('[data-el="historique-vide"] .d')).toContainText("Calculer le coût");
+        await expect(page.locator('[data-el="historique-vide"] .d')).toContainText("premier trajet");
         await expect(lignesHistorique(page)).toHaveCount(0);
         expect(await rest("trajets?select=id", (await session(page)).jeton)).toEqual([]);
       });
@@ -461,9 +465,9 @@ test.describe("M2 — Le coût d'un trajet", () => {
         await t.click();
         await expect(t).toHaveAttribute("aria-expanded", "true");
         const d = (await page.locator('[data-el="troncon-detail"]:visible').innerText()).replace(/\s+/g, " ");
-        expect(d).toMatch(/\d+ km\/h en moyenne/);
+        expect(d).toMatch(/\d+ km\/h/);
         expect(d).toMatch(/\d+ arrêts?/);
-        expect(d).toMatch(/\d+,\d L\/100 km sur ce tronçon/);
+        expect(d).toMatch(/\d+,\d L\/100 km$/);
         await t.click();
         await expect(t).toHaveAttribute("aria-expanded", "false");
         await expect(page.locator('[data-el="troncon-detail"]:visible')).toHaveCount(0);
@@ -748,15 +752,18 @@ test.describe("M2 — Le coût d'un trajet", () => {
       });
     });
     test.describe("Edge Case", () => {
-      test("US-A11Y-003 — Échap ferme l'éditeur de prix (focus rendu au bouton)", async ({ page }) => {
+      test("US-A11Y-003 — Échap dans le champ prix efface la saisie et revient à la moyenne (focus gardé)", async ({ page }) => {
         await formulairePret(page, "Albi", "Toulouse");
         await calculer(page);
-        await page.locator('[data-el="mettre-mon-prix"]').focus();
-        await page.keyboard.press("Enter");
+        await page.locator('[data-el="mettre-mon-prix"]').click(); // passe streamline : le champ est là d'emblée, « Mettre mon prix » y place le curseur
         await expect(page.locator('[data-el="champ-prix-perso"]')).toBeFocused();
+        await page.keyboard.type("1,699");
+        await page.keyboard.press("Enter");
+        await expect(page.locator('[data-el="libelle-prix"]')).toHaveText("Mon prix");
         await page.keyboard.press("Escape");
-        await expect(page.locator('[data-el="champ-prix-perso"]')).toHaveCount(0);
-        await expect(page.locator('[data-el="mettre-mon-prix"]')).toBeFocused();
+        await expect(page.locator('[data-el="champ-prix-perso"]')).toHaveValue("");
+        await expect(page.locator('[data-el="libelle-prix"]')).toContainText("Moyenne France du jour");
+        await expect(page.locator('[data-el="champ-prix-perso"]')).toBeFocused();
       });
       test("US-A11Y-003 — S3 : Échap ferme la liste de propositions de lieux et la liste de marques", async ({ page }) => {
         await formulairePret(page, "Albi", "Toulouse");

@@ -80,7 +80,7 @@ En tant que conducteur, je ferme la fiche station pour revenir à la carte.
 En tant que conducteur, je lance un trajet vers cette station depuis sa fiche.
 
 1. Partir de : la fiche d'une station (écran Fiche station) — capture `US-2.2-01-calculer-un-trajet-vers-la-station-avant.png`
-2. Faire : je touche « Coût d'un trajet jusqu'ici » (bouton trajet station) ; constater : l'onglet Trajets s'ouvre avec l'arrivée pré-remplie à l'adresse de la station — capture `US-2.2-02-calculer-un-trajet-vers-la-station-apres.png`
+2. Faire : je touche « Coût d'un trajet jusqu'ici » (bouton trajet station) ; constater : l'onglet Trajets s'ouvre avec l'arrivée pré-remplie à l'adresse de la station (position GPS connue : le départ est aussi pré-rempli par ma commune, il ne reste qu'à toucher « Calculer le coût ») — capture `US-2.2-02-calculer-un-trajet-vers-la-station-apres.png`
 
 
 ## US-1.E1 — Source des prix injoignable

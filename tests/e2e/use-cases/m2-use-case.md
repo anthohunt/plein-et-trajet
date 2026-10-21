@@ -19,7 +19,7 @@ En tant que conducteur, je touche l'onglet Trajets pour estimer le coût d'un tr
 
 En tant que conducteur, je saisis mon lieu de départ.
 
-1. Partir de : le champ départ vide (écran Trajets) — capture `US-3.2-01-saisir-le-dpart-avant.png`
+1. Partir de : le champ départ vide (écran Trajets ; position GPS connue, il est pré-rempli par ma commune : je l'efface, ou je tape par-dessus, le texte étant sélectionné au toucher) — capture `US-3.2-01-saisir-le-dpart-avant.png`
 2. Faire : je tape « Alb » ; constater : des propositions de lieux apparaissent et je peux en choisir une — capture `US-3.2-02-saisir-le-dpart-apres.png`
 
 
@@ -80,7 +80,7 @@ En tant que conducteur, je déplie un tronçon du trajet pour voir d'où vient l
 En tant que conducteur, je saisis mon prix perso au litre pour recalculer le coût.
 
 1. Partir de : un résultat au prix moyen France (écran Résultat du trajet) — capture `US-4.2-01-mettre-mon-propre-prix-avant.png`
-2. Faire : je touche « Mettre mon prix » (prix perso) et je saisis 1,699 ; constater : le coût est recalculé avec 1,699 €/L et le libellé devient « Mon prix » — capture `US-4.2-02-mettre-mon-propre-prix-apres.png`
+2. Faire : je touche « Mettre mon prix » (prix perso : le champ est déjà affiché, le toucher y place le curseur) et je saisis 1,699 ; constater : le coût est recalculé avec 1,699 €/L et le libellé devient « Mon prix » — capture `US-4.2-02-mettre-mon-propre-prix-apres.png`
 3. Partir de : un prix perso saisi (écran Résultat du trajet) — capture `US-4.2-03-mettre-mon-propre-prix-avant.png`
 4. Faire : je touche « Revenir à la moyenne » ; constater : le coût revient à la moyenne nationale — capture `US-4.2-04-mettre-mon-propre-prix-apres.png`
 

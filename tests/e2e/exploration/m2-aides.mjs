@@ -90,7 +90,7 @@ export async function choisirVoiture(page, marque = "Peugeot", modele = "208", m
   await choisirDansListe(page, "voiture-marque", "Marque", marque);
   await choisirDansListe(page, "voiture-modele", "Modèle", modele);
   await choisirDansListe(page, "voiture-moteur", "Motorisation", moteur);
-  await expect(page.locator('[data-el="voiture-memorisee"]')).toBeVisible();
+  await expect(page.locator('[data-el="voiture-info"]')).toBeVisible(); // passe streamline : carburant affiché = voiture choisie (et mémorisée)
 }
 /** Touche Calculer et attend un état final : « ok » (résultat), « pas_itineraire », « erreur », ou « formulaire » (validation refusée). */
 export async function calculer(page, { attendre = "ok" } = {}) {
@@ -108,7 +108,8 @@ export async function lireResultat(page) {
     km: nombreFr(await t('[data-el="kpi-km"]')),
     l100: nombreFr(await t('[data-el="kpi-l100"]')),
     libellePrix: await t('[data-el="libelle-prix"]'),
-    detail: await t('[data-el="detail-cout"]'),
+    // passe streamline : la ligne « litres × prix » est retirée ; le prix utilisé se lit sur la plaque (un seul pays)
+    detail: (await page.locator('[data-el="prix-utilise"]').count()) ? `${await page.locator('[data-el="prix-utilise"]').getAttribute("data-prix")} €/L` : "",
   };
 }
 export const lignesHistorique = (page) => page.locator('[data-el="liste-historique"] li');

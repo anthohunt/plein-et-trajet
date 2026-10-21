@@ -123,9 +123,10 @@ export async function verifierFournisseurs() {
 /** Carburant seul d'un résultat affiché : coût total moins les péages établis. */
 export async function carburantAffiche(page) {
   const cout = Number(await page.locator('[data-el="cout"] [data-cout]').getAttribute("data-cout"));
-  const split = await page.locator('[data-el="repartition-cout"]').innerText().catch(() => "");
-  const p = split.match(/Péages ([\d,]+) €/);
-  return Math.round((cout - (p ? nombre(p[1]) : 0)) * 100) / 100;
+  // passe streamline : la ligne « Carburant · Péages » est retirée ; les péages établis se lisent sur la ligne « Total péages »
+  const tot = page.locator('[data-el="total-peages"] .lit');
+  const p = (await tot.count()) > 0 ? nombre(await tot.innerText()) : 0;
+  return Math.round((cout - p) * 100) / 100;
 }
 
 export const sha = (buf) => crypto.createHash("sha256").update(buf).digest("hex");

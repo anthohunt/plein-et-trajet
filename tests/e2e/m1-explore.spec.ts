@@ -24,7 +24,7 @@ test.describe("M1 — Les prix autour de moi", () => {
         test("US-1.1 — centrée sur Albi par défaut avec un message", async ({ page }) => {
           await page.goto("/trajets");
           await page.getByRole("tab", { name: "Prix" }).click();
-          await expect(page.locator('[data-el="message-localisation"]')).toContainText("Localisation désactivée : carte centrée sur Albi");
+          await expect(page.locator('[data-el="message-localisation"]')).toContainText("Active la localisation · carte centrée sur Albi");
           await expect(lignes(page).first()).toBeVisible();
           expect(km(await centre(page), { lat: ALBI.latitude, lon: ALBI.longitude })).toBeLessThan(0.5);
         });

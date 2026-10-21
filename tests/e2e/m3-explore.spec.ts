@@ -131,9 +131,9 @@ test.describe("M3 — Péages, Europe et moteurs", () => {
         for (const x of lignes) expect(x.montant).toMatch(/^(\d+,\d{2} €|gratuit)$/);
         const total = nombre(l.find((x: any) => /Total péages/.test(x.texte)).montant);
         expect(total).toBeCloseTo(lignes.reduce((s: number, x: any) => s + (x.montant === "gratuit" ? 0 : nombre(x.montant)), 0), 2);
-        const split = await page.locator('[data-el="repartition-cout"]').innerText();
-        expect(nombre(split.match(/Péages ([\d,]+) €/)![1])).toBeCloseTo(total, 2);
-        expect(nombre(split.match(/Carburant ([\d,]+) €/)![1]) + total).toBeCloseTo(await cout(page), 2);
+        // passe streamline : plus de ligne « Carburant · Péages » ; somme des pays (carburant) + total péages = coût affiché
+        const pays = await lignesListe(page, "pays-traverses");
+        expect(pays.reduce((s: number, x: any) => s + nombre(x.montant), 0) + total).toBeCloseTo(await cout(page), 2);
         await expect(page.locator('[data-el="peages-indisponibles"]')).toHaveCount(0);
       });
       // Recalcul INDÉPENDANT (round 4) : le tracé est redemandé à Stadia (même fournisseur que la prod), échantillonné par un code écrit à part,
@@ -182,9 +182,7 @@ test.describe("M3 — Péages, Europe et moteurs", () => {
         expect(l).toHaveLength(1);
         expect(l[0].texte).toContain("Aucun péage sur cet itinéraire");
         expect(l[0].montant).toBe("0,00 €");
-        const split = await page.locator('[data-el="repartition-cout"]').innerText();
-        expect(split).toMatch(/Péages 0,00 €$/);
-        expect(nombre(split.match(/Carburant ([\d,]+) €/)![1])).toBeCloseTo(await cout(page), 2);
+        expect(await carburantAffiche(page)).toBeCloseTo(await cout(page), 2); // aucun péage : le coût est le carburant seul
       });
     });
   });
@@ -196,7 +194,7 @@ test.describe("M3 — Péages, Europe et moteurs", () => {
         await calculer(page);
         const l = await lignesListe(page, "pays-traverses");
         expect(l.map((x: any) => x.pays)).toEqual(["FR", "IT"]);
-        for (const x of l) expect(x.texte).toMatch(/\d+ km · \d+,\d L × \d,\d{3}.*\d+,\d{2} €$/);
+        for (const x of l) expect(x.texte).toMatch(/\d+ km · \d+,\d L · \d,\d{3} €\/L.*\d+,\d{2} €$/);
         const somme = l.reduce((s: number, x: any) => s + nombre(x.montant), 0);
         expect(somme).toBeCloseTo(await carburantAffiche(page), 2);
         const fr = Number((await rest("moyennes_nationales?select=prix_moyen&pays=eq.FR&carburant=eq.SP95-E10&order=jour.desc&limit=1"))[0].prix_moyen);
