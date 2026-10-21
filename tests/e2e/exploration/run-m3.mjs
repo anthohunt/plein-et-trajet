@@ -319,7 +319,7 @@ histoireDef("US-4.E4", "US-4.E4 — Péages indisponibles", async () => {
   await capture(pa, "US-4.E4-E1-02-resultat.png", async () => {
     const r = await lireResultat(pa);
     const moyFr = await moyenneDuJour("SP95-E10");
-    expect(r.cout).toBeCloseTo(Math.round(r.litres * moyFr * 100) / 100, 1); // coût carburant seul
+    expect(Math.abs(r.cout - r.litres * moyFr)).toBeLessThan(0.06 * moyFr + 0.01); // coût carburant seul ; les litres affichés sont arrondis au dixième (même tolérance que M2)
     await expect(pa.locator('[data-el="repartition-cout"]')).toHaveCount(0);
     return `coût affiché ${virgule(r.cout)} € = carburant seul (${virgule(r.litres, 1)} L × ${virgule(moyFr, 3)} €/L) ; rien n'est ajouté au total pour les péages`;
   }, "le coût carburant s'affiche et rien n'est ajouté au total", "edge");
@@ -652,7 +652,7 @@ histoireDef("US-5.4", "US-5.4 — Tester la connexion", async () => {
   await expect(etatCarte(pb, "peages")).toContainText("Connecté", { timeout: 60000 });
   await capture(pb, "US-5.4-02-tester-la-connexion-apres.png", async () => {
     const msg = await etatCarte(pb, "peages").innerText();
-    expect(msg.toLowerCase()).toMatch(/connecté · test albi → barcelone ok \(\d+ sections\)/);
+    expect(msg.toLowerCase()).toMatch(/connecté · test albi → barcelone ok \(\d+ sections?\)/);
     return `vrai calcul de test Albi → Barcelone envoyé à PTV avec la vraie clé : « ${msg} »`;
   }, "Tester la connexion : un vrai calcul part vers PTV et l'état affiche « Connecté »");
   await carte(pb, "itineraire").locator('[data-el="tester-connexion-itineraire"]').click();

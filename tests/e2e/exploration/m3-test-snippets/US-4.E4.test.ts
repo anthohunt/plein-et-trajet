@@ -8,7 +8,8 @@ test.describe("US-4.E4 — Péages indisponibles", () => {
       await formulaire(page, ALBI_, BORDEAUX);
       await calculer(page);
       const r = await lireResultat(page);
-      expect(r.cout).toBeCloseTo(Math.round(r.litres * (await moyenneDuJour("SP95-E10")) * 100) / 100, 1);
+      const moy = await moyenneDuJour("SP95-E10");
+      expect(Math.abs(r.cout - r.litres * moy)).toBeLessThan(0.06 * moy + 0.01); // litres affichés arrondis au dixième (même tolérance que M2)
       await expect(page.locator('[data-el="peages-indisponibles"]')).toContainText("Péages non disponibles pour l'instant");
       await expect(page.locator('[data-el="total-peages"]')).toHaveCount(0);
       await expect(page.locator('[data-el="repartition-cout"]')).toHaveCount(0);
