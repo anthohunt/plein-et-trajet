@@ -858,4 +858,56 @@ test.describe("M3 — Péages, Europe et moteurs", () => {
       });
     });
   });
+
+  // ---- Streamline R2 : défauts relevés par le vérificateur indépendant (pt-streamline-verif) ----
+  test.describe("Streamline R2 — coût et moteurs", () => {
+    test("R1 / US-4.4 — avec des péages : « Carburant X € · Péages Y € » sous le total, une seule fois ; X + Y = total, Y = total des péages", async ({ page }) => {
+      await formulaire(page, ALBI_, BORDEAUX); // Albi (centre) → Bordeaux : péages servis par le cache (PTV refuse la clé)
+      await calculer(page);
+      await expect(page.locator('[data-el="total-peages"]')).toBeVisible();
+      const rep = page.locator('[data-el="repartition-cout"]');
+      await expect(rep).toHaveCount(1);
+      await expect(rep).toHaveText(/^Carburant \d+,\d{2} € · Péages \d+,\d{2} €$/);
+      const [x, y] = (await rep.innerText()).match(/\d+,\d{2}/g)!.map(nombre);
+      expect(y).toBeCloseTo(nombre(await page.locator('[data-el="total-peages"] .lit').innerText()), 2);
+      expect(x + y).toBeCloseTo(await cout(page), 2);
+      expect(((await page.locator('[data-screen="S4"]').innerText()).match(/Carburant \d/g) ?? []).length).toBe(1);
+    });
+    test("R1 — sans péage établi (aucun péage, ou péages indisponibles) : pas de ligne de répartition", async ({ page }) => {
+      await formulaire(page, ALBI_, CASTRES);
+      await calculer(page);
+      await expect(page.locator('[data-el="repartition-cout"]')).toHaveCount(0);
+    });
+    test("R4 / US-4.5 — plusieurs pays : km, litres, prix et coût sur chaque ligne (Albi → Milan)", async ({ page }) => {
+      await formulaire(page, ALBI_, MILAN);
+      await calculer(page);
+      const l = await lignesListe(page, "pays-traverses");
+      expect(l.map((x: any) => x.pays)).toEqual(["FR", "IT"]);
+      for (const x of l) expect(x.texte).toMatch(/\d+ km · \d+,\d L · \d,\d{3} €\/L.*\d+,\d{2} €$/);
+    });
+  });
+
+  test.describe("Streamline R2 — P8 état des moteurs", () => {
+    modifieLesMoteurs();
+    test("P8 — un incident plus récent que le dernier test l'emporte : pas de « Connecté » sous « Dernier incident » ; un test plus récent fait foi", async ({ page }) => {
+      const champs = "dernier_test,incident_le,incident_message,retabli_le";
+      const avant = (await restService(`moteurs?service=eq.peages&select=${champs}`)).corps[0];
+      try {
+        const il_y_a = (min: number) => new Date(Date.now() - min * 60_000).toISOString();
+        await restService("moteurs?service=eq.peages", { method: "PATCH", body: JSON.stringify({ dernier_test: il_y_a(60), incident_le: il_y_a(5), incident_message: "ptv : cle_refusee (401)", retabli_le: il_y_a(120) }) });
+        await connecterAdmin(page);
+        await expect(page.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
+        await expect(etatCarte(page, "peages")).toHaveAttribute("data-etat", "ko");
+        await expect(etatCarte(page, "peages")).toHaveText("Clé refusée par PTV (401)");
+        await expect(carte(page, "peages").locator('[data-el="incident"]')).toContainText("PTV : clé refusée (401)");
+        // test réussi APRÈS l'incident : l'état enregistré du moteur revient
+        await restService("moteurs?service=eq.peages", { method: "PATCH", body: JSON.stringify({ dernier_test: il_y_a(1) }) });
+        await page.reload();
+        await expect(page.locator('[data-el="moteur"]')).toHaveCount(6, { timeout: 20000 });
+        await expect(etatCarte(page, "peages")).not.toHaveAttribute("data-etat", "ko");
+      } finally {
+        await restService("moteurs?service=eq.peages", { method: "PATCH", body: JSON.stringify(avant) });
+      }
+    });
+  });
 });

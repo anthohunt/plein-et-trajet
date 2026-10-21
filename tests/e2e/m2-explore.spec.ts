@@ -861,4 +861,92 @@ test.describe("M2 — Le coût d'un trajet", () => {
       });
     });
   });
+
+  // ---- Streamline R2 : défauts relevés par le vérificateur indépendant (pt-streamline-verif) ----
+  test.describe("Streamline R2 — trajets et résultat", () => {
+    test("R3 / US-4.2 — « Mettre mon prix » ouvre le champ au toucher ; aucun faux prix visible ; le prix saisi n'apparaît qu'une fois", async ({ page }) => {
+      await trajetCalcule(page, "Albi", "Toulouse");
+      const boite = page.locator('[data-el="prix-perso"]');
+      await expect(page.locator('[data-el="champ-prix-perso"]')).toHaveCount(0);
+      await expect(boite).not.toContainText("1,699");
+      await expect(page.locator('[data-el="mettre-mon-prix"]')).toHaveText("Mettre mon prix");
+      await page.locator('[data-el="mettre-mon-prix"]').click();
+      const c = page.locator('[data-el="champ-prix-perso"]');
+      await expect(c).toBeFocused();
+      await expect(c).not.toHaveAttribute("placeholder", /\d/);
+      await c.pressSequentially("1,699", { delay: 40 });
+      await c.press("Enter");
+      await expect(c).toHaveCount(0);
+      await expect(page.locator('[data-el="prix-utilise"]')).toHaveAttribute("data-prix", "1,699");
+      expect(((await boite.innerText()).match(/1,69\s*9/g) ?? []).length).toBe(1);
+      const m = page.locator('[data-el="revenir-moyenne"]');
+      await expect(m).toHaveText("moyenne");
+      await expect(m).toHaveAccessibleName("Revenir à la moyenne");
+      await m.click();
+      await expect(page.locator('[data-el="libelle-prix"]')).toContainText("Moyenne France du jour");
+      await expect(m).toHaveCount(0);
+    });
+
+    test("R6 — départ pré-rempli par le GPS : centre de la commune (même position que « Albi » choisi), les péages en cache sont retrouvés", async ({ page }) => {
+      await ouvrirTrajets(page);
+      await expect(champ(page, "depart")).toHaveValue("Albi", { timeout: 15000 });
+      await saisirLieu(page, "arrivee", "Bord", "Bordeaux");
+      await choisirVoiture(page);
+      const req = page.waitForRequest((r) => r.method() === "POST" && r.url().includes("/functions/v1/estimer-trajet"));
+      await calculer(page);
+      const corps = JSON.parse((await req).postData() ?? "{}");
+      const albi = (await (await fetch("https://data.geopf.fr/geocodage/search?q=Albi&type=municipality&citycode=81004&index=address&limit=1")).json()).features[0].geometry.coordinates;
+      expect(corps.depart.lat).toBeCloseTo(albi[1], 5);
+      expect(corps.depart.lon).toBeCloseTo(albi[0], 5);
+      // Albi (centre) → Bordeaux est dans le cache des péages : la clé refusée par PTV n'y change rien
+      await expect(page.locator('[data-el="total-peages"]')).toBeVisible();
+    });
+
+    test("P1 / US-4.1 — tronçons : badges (ROUTE compris) et textes alignés sur la même colonne, badge sans débordement", async ({ page }) => {
+      await trajetCalcule(page, "Albi", "Toulouse");
+      const l = await page.locator('[data-el="troncons"] .tr > button').evaluateAll((els) => els.map((b) => {
+        const tag = b.querySelector(".tag") as HTMLElement, tn = b.querySelector(".tn") as HTMLElement;
+        return { type: tag.className, tag: Math.round(tag.getBoundingClientRect().left), w: Math.round(tag.getBoundingClientRect().width), tn: Math.round(tn.getBoundingClientRect().left), deborde: tag.scrollWidth > tag.clientWidth + 1 };
+      }));
+      expect(l.length).toBeGreaterThan(1);
+      expect(l.some((x) => x.type.includes("route") && !x.type.includes("autoroute"))).toBe(true);
+      for (const x of l) {
+        expect(Math.abs(x.tag - l[0].tag), x.type).toBeLessThanOrEqual(1);
+        expect(Math.abs(x.w - l[0].w), x.type).toBeLessThanOrEqual(1);
+        expect(Math.abs(x.tn - l[0].tn), x.type).toBeLessThanOrEqual(1);
+        expect(x.deborde, x.type).toBe(false);
+      }
+    });
+
+    test("P2 / US-3.P1 — ⇅ à la jonction des deux champs, hors du contour de focus de l'arrivée, même avec l'erreur du départ", async ({ page }) => {
+      await ouvrirTrajets(page);
+      const box = async (s: string) => (await page.locator(s).boundingBox())!;
+      await champ(page, "arrivee").focus();
+      const sw = await box('[data-el="inverser"]'), arr = await box('[data-el="champ-arrivee"]');
+      expect(sw.x).toBeGreaterThanOrEqual(arr.x + arr.width - 1); // le champ (et son contour) s'arrête avant le bouton
+      expect(await champ(page, "arrivee").evaluate((e) => parseFloat(getComputedStyle(e).paddingLeft))).toBeGreaterThanOrEqual(6); // contour hors de la 1re lettre
+      // erreur sous le départ : le bouton reste à cheval sur la jonction départ / arrivée
+      await champ(page, "depart").fill("");
+      await page.locator("#bouton-calculer").click();
+      await expect(page.locator('[data-el="champ-depart-erreur"]')).toBeVisible();
+      const dep = await box('[data-el="champ-depart-ligne"]'), sw2 = await box('[data-el="inverser"]');
+      expect(Math.abs(sw2.y + sw2.height / 2 - (dep.y + dep.height))).toBeLessThanOrEqual(2);
+    });
+
+    test("Préférence C / US-3.4 — après la marque, la liste des modèles s'ouvre seule, puis celle des motorisations : 4 touchers", async ({ page }) => {
+      await ouvrirTrajets(page);
+      let touchers = 0;
+      await page.locator("#voiture-marque").click(); touchers++;
+      await page.getByRole("listbox", { name: "Marque" }).getByRole("option").filter({ hasText: "Peugeot" }).first().click(); touchers++;
+      const modeles = page.getByRole("listbox", { name: "Modèle" });
+      await expect(modeles).toBeVisible(); // ouverte sans toucher le menu
+      await expect(page.locator("#voiture-modele")).toBeFocused();
+      await modeles.getByRole("option").filter({ hasText: /^208/ }).first().click(); touchers++;
+      const moteurs = page.getByRole("listbox", { name: "Motorisation" });
+      await expect(moteurs).toBeVisible();
+      await moteurs.getByRole("option").filter({ hasText: "208 (101ch) · mécanique" }).first().click(); touchers++;
+      await expect(page.locator('[data-el="voiture-info"]')).toHaveText("SP95-E10");
+      expect(touchers).toBe(4);
+    });
+  });
 });
