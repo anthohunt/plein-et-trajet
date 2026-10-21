@@ -68,7 +68,9 @@ jobs:
             adb uninstall cloud.ingevision.pleinettrajet
             adb install -r -g debug/app-debug.apk
             adb shell appops set cloud.ingevision.pleinettrajet android:mock_location allow || true
-            node tests/android/trajet-emulateur.mjs
+            adb logcat -c
+            node tests/android/trajet-emulateur.mjs || (adb exec-out screencap -p > echec.png; adb logcat -d > logcat.txt; exit 1)
+            adb logcat -d > logcat.txt
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
@@ -80,3 +82,4 @@ jobs:
             *.png
             verdicts.txt
             notification.txt
+            logcat.txt
