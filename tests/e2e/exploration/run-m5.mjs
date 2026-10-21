@@ -147,6 +147,8 @@ async function fluxVoiture() {
     const masses = new Set(textes.map((t) => t.match(/· ([\d\s ]+) kg/)?.[1]));
     const annees = new Set(textes.map((t) => t.match(/(?:^|\s)(\d{4}) ·/)?.[1]));
     verifier(marques.size >= 2 || masses.size >= 2 || annees.size >= 2, "versions indiscernables");
+    // round 3 (audit r2 lot 1, LOW 6) : un code dont la base EEA porte la puissance — « — kW » refusé
+    verifier(textes.every((t) => /\d+ kW/.test(t)), `puissance absente : ${textes.filter((t) => !/\d+ kW/.test(t)).join(" | ")}`);
     const cle = await vb.nth(1).getAttribute("data-cle");
     await vb.nth(1).tap();
     verifier((await vb.nth(1).getAttribute("aria-pressed")) === "true", "choix non retenu");
@@ -901,13 +903,17 @@ async function fluxCas() {
     });
     ecrireHistoire("V-3.E2");
     await rouler(C, p, TUN, g + 1, TUN.length);
-    await etape("V-4.1", 1, p, "V-4.1-01-avant.png", "la fin d'un trajet en Clio SP95-E10 parti de France (juste avant « Arrêter »)", async () => `« ${await txt(p, sel("prix-direct"))} » ; ${directTexte(await lireDirect(p))}`);
+    const directAvant = `« ${await txt(p, sel("prix-direct"))} » ; ${directTexte(await lireDirect(p))}`;
     await touche(p, "bouton-arreter");
     await p.waitForURL("**/fin", { timeout: 15000 });
     await p.clock.runFor(500);
     await p.waitForFunction(() => document.querySelector('[data-el="titre-trajet"]')?.getAttribute("data-noms") === "oui", null, { timeout: 20000 }).catch(() => {});
     const litres = Number(await attr(p, sel("fin-litres"), "data-litres"));
-    await etape("V-4.1", 2, p, "V-4.1-02-apres.png", "l'écran Fin de trajet s'ouvre", async () => {
+    // round 3 (audit r2 lot 2, LOW 4) : l'état de départ est l'écran Fin de trajet lui-même (haut de l'écran : trajet, voiture,
+    // litres) ; l'étape 2 montre le sélecteur de carburant et le prix
+    await etape("V-4.1", 1, p, "V-4.1-01-avant.png", "la fin d'un trajet en Clio SP95-E10 parti de France (écran Fin de trajet, haut de l'écran)", async () => `En route juste avant « Arrêter » : ${directAvant} ; fin : « ${await txt(p, sel("titre-trajet"))} » · « ${await txt(p, sel("sous-titre-trajet"))} » ; ${virgule(litres, 2)} L`, { haut: true });
+    await p.evaluate(() => document.querySelector('[data-el="carburant-apres"]')?.scrollIntoView({ block: "start" }));
+    await etape("V-4.1", 2, p, "V-4.1-02-apres.png", "l'écran Fin de trajet s'ouvre (sélecteur et prix)", async () => {
       const choisi = await attr(p, `${sel("carburant-apres")} [aria-pressed="true"]`, "data-carburant");
       const boutons = await p.locator(`${sel("carburant-apres")} button`).allInnerTexts();
       verifier(JSON.stringify(boutons) === JSON.stringify(["Gazole", "SP95-E10", "SP95", "SP98", "E85", "GPLc"]), boutons.join(","));
@@ -1330,19 +1336,21 @@ async function fluxHistorique() {
       await p.waitForURL("**/fin", { timeout: 15000 });
       await p.clock.runFor(500);
       await p.waitForFunction(() => document.querySelector('[data-el="titre-trajet"]')?.getAttribute("data-noms") === "oui", null, { timeout: 20000 }).catch(() => {});
+      // round 3 (audit r2 lot 2, LOW 4) : l'état de départ sans le résultat — la fin du trajet d'octobre juste avant
+      // « Enregistrer », celui de septembre déjà enregistré (lu en IndexedDB) ; l'historique trié n'apparaît qu'à l'étape 2
+      if (date.startsWith("2026-10")) {
+        const idb = await lireIdb(p);
+        await etape("V-6.1", 1, p, "V-6.1-01-avant.png", "des trajets enregistrés en septembre et en octobre 2026 (deux trajets réellement rejoués, horloge de la page posée au 14/09 08:00 et au 05/10 17:30) : la fin du trajet d'octobre juste avant « Enregistrer »", async () => {
+          verifier(idb.trajets.length === 1 && new Date(idb.trajets[0].debut).getMonth() === 8, `IndexedDB : ${idb.trajets.length} trajet(s)`);
+          return `IndexedDB : ${idb.trajets.map((t) => `${new Date(t.debut).toISOString().slice(0, 10)} ${t.km.toFixed(1)} km`).join(" ; ")} (septembre, enregistré) ; écran : « ${await txt(p, sel("titre-trajet"))} » · « ${await txt(p, sel("sous-titre-trajet"))} » (octobre, pas encore enregistré)`;
+        }, { haut: true });
+      }
       await touche(p, "enregistrer-trajet");
       await p.waitForURL("**/historique");
       if (derniere) await derniere.close();
       derniere = p;
     }
-    // round 2 : l'état de départ se voit — l'historique juste après « Enregistrer » du trajet d'octobre (les deux trajets listés,
-    // le nouveau en tête) ; l'étape 2 rouvre l'onglet depuis l'accueil d'une appli relancée
-    {
-      const idb = await lireIdb(derniere);
-      await derniere.waitForSelector("li.hrow");
-      await etape("V-6.1", 1, derniere, "V-6.1-01-avant.png", "des trajets enregistrés en septembre et en octobre 2026 (deux trajets réellement rejoués, horloge de la page posée au 14/09 08:00 et au 05/10 17:30) : l'historique juste après le second « Enregistrer »", async () => `IndexedDB : ${idb.trajets.map((t) => `${new Date(t.debut).toISOString().slice(0, 10)} ${t.km.toFixed(1)} km`).join(" ; ")} ; lignes « ${(await derniere.locator("li.hrow").allInnerTexts()).map((x) => x.replace(/\s+/g, " ")).join(" | ")} »`);
-      await derniere.close();
-    }
+    await derniere.close();
     const p = await c.newPage();
     surveiller(p, "historique-reel");
     await p.goto(URL_APP);
@@ -1362,13 +1370,13 @@ async function fluxHistorique() {
     const { c, p } = await nouveauContexte("historique-vide");
     await p.goto(URL_APP);
     await p.waitForSelector(sel("nom-voiture"));
-    // round 2 : l'état de départ se voit — l'historique vide, ouvert par son adresse ; l'étape 4 rouvre l'onglet depuis l'accueil
-    // (même écran, même état : image attendue identique, déclarée)
-    await p.goto(URL_APP + "/historique");
-    await p.waitForSelector(sel("historique-vide"));
-    await etape("V-6.1", 3, p, "V-6.1-03-avant.png", "aucun trajet enregistré (téléphone neuf, voiture enregistrée) : l'historique ouvert par son adresse", async () => `IndexedDB : ${(await lireIdb(p)).trajets.length} trajet ; « ${await txt(p, sel("historique-vide"))} »`);
-    await touche(p, "onglet-trajet");
-    await p.waitForSelector(sel("nom-voiture"));
+    // round 3 (audit r2 lot 2, LOW 4) : « aucun trajet » ne s'affiche que dans l'Historique, qui est le résultat de l'étape 4 ;
+    // l'état de départ est l'appli neuve d'où l'on ouvre l'onglet (IndexedDB lue : 0 trajet)
+    await etape("V-6.1", 3, p, "V-6.1-03-avant.png", "aucun trajet enregistré (téléphone neuf, voiture enregistrée) : l'accueil, onglet Historique pas encore ouvert", async () => {
+      const n = (await lireIdb(p)).trajets.length;
+      verifier(n === 0, `${n} trajet(s)`);
+      return `IndexedDB : ${n} trajet ; onglet actif « ${await ongletActif(p)} »`;
+    });
     await touche(p, "onglet-historique");
     await etape("V-6.1", 4, p, "V-6.1-04-apres.png", "j'ouvre l'onglet Historique", async () => {
       await p.waitForSelector(sel("historique-vide"));
