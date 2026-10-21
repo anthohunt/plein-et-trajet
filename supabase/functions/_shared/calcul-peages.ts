@@ -33,6 +33,9 @@ export function identiteDuJeton(req: Request): string {
 }
 export async function calculerPeages(// deno-lint-ignore no-explicit-any
   db: any, depart: PointGeo, arrivee: PointGeo, tva: Record<string, number>, identite: string, trace: PointGeo[]): Promise<ResPeages> {
+  // V1 (jalon 5, T5.9) : service des péages mis hors service dans le registre → aucun appel au fournisseur (PTV), aucun quota consommé
+  const { data: service } = await db.from("moteurs").select("en_service").eq("service", "peages").maybeSingle();
+  if (service?.en_service === false) return { etat: "indisponible", motif: "hors_service", fournisseur: null, lignes: [], total: 0 };
   const m = await lireMoteur(db, "peages");
   const passages = pointsDePassage(trace);
   const chaine = [m.actif, m.secours].filter((x): x is string => !!x);
