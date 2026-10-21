@@ -33,7 +33,7 @@ describe("D.2 : normalisation", () => {
 
 describe("recherche « clio 2017 120 »", () => {
   it("mots, année, chevaux → kW ± 4", () => {
-    expect(analyserRecherche("clio 2017 120")).toEqual({ mots: ["CLIO"], annee: 2017, kwMin: 84, kwMax: 92 });
+    expect(analyserRecherche("clio 2017 120")).toEqual({ mots: ["CLIO"], annee: 2017, kwMin: 85, kwMax: 91 });
     expect(analyserRecherche("renault clio")).toEqual({ mots: ["RENAULT", "CLIO"], annee: null, kwMin: null, kwMax: null });
   });
   it("caractères hors liste, plus de 4 mots ou aucun mot : refusé", () => {
@@ -44,7 +44,7 @@ describe("recherche « clio 2017 120 »", () => {
   });
   it("SQL : LIKE sur le nom ou la marque, année et fourchette de puissance en entiers", () => {
     const sql = requeteRecherche(TABLES[0], analyserRecherche("clio 2017 120")!);
-    expect(sql).toContain("(Cn LIKE '%CLIO%' OR Mk LIKE '%CLIO%') AND Year=2017 AND [Ep (KW)] BETWEEN 84 AND 92");
+    expect(sql).toContain("(Cn LIKE '%CLIO%' OR Mk LIKE '%CLIO%') AND Year=2017 AND [Ep (KW)] BETWEEN 85 AND 91");
   });
   it("tables : l'année choisit la sienne, sinon la table 2010-2022 ; sans année toutes", () => {
     expect(tablesPour(TABLES, 2024)).toEqual([TABLES[2]]);

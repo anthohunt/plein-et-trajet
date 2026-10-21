@@ -66,7 +66,7 @@ export function EnRoute({ e, maintenant, onArreter }: { e: EnCours; maintenant: 
   const prix = prixDirect(e);
   const euros = prix ? d.litres * prix.prix : null;
   const moy = d.dureeS >= 60 && d.km > 0 ? Math.round(d.km / (d.dureeS / 3600)) : null;
-  const nomPays = (c: string) => pays.get(c)?.nom ?? (c === "FR" ? "France" : c);
+  const nomPays = (c: string) => T.nomPays(c, pays.get(c)?.nom);
   const immobile = e.immobile != null;
   const etatTexte = immobile ? T.immobileEtat : e.enPause ? T.enPause : T.enregistrement;
 
@@ -89,16 +89,16 @@ export function EnRoute({ e, maintenant, onArreter }: { e: EnCours; maintenant: 
               <span className="u">{T.kmh}</span>
             </span>
           </div>
-          <Courbe className="spark" valeurs={d.courbe} max={Math.max(140, ...d.courbe)} hauteur={56} label={T.courbeDirect} couleur="var(--accent)" el="courbe-direct" />
+          <Courbe className="spark" valeurs={d.courbe} max={Math.max(50, ...d.courbe) * 1.1} /* plancher 50 km/h : une courbe de ville occupe le cadre */ hauteur={56} label={T.courbeDirect} couleur="var(--accent)" el="courbe-direct" />
           <div className="lgrid">
             <div><b data-el="direct-km">{fmt(d.km, 1)}</b><span>{T.km}</span></div>
             <div><b data-el="direct-litres">{fmt(d.litres, 2)}</b><span>{T.litres}</span></div>
-            <div><b data-el="direct-euros">{euros == null ? "—" : fmt(euros, 2)}</b><span>{T.eurosEssence}</span></div>
+            <div><b data-el="direct-euros">{euros == null ? T.vide : fmt(euros, 2)}</b><span>{T.eurosEssence}</span></div>
           </div>
           <div className="lgrid">
             <div><b data-el="direct-duree">{dureeTexte(d.dureeS)}</b><span>{T.duree}</span></div>
-            <div><b data-el="direct-moyenne">{moy == null ? "—" : moy}</b><span>{T.kmhMoy}</span></div>
-            <div><b data-el="direct-l100">{d.l100 == null ? "—" : fmt(d.l100, 1)}</b><span>{T.l100}</span></div>
+            <div><b data-el="direct-moyenne">{moy == null ? T.vide : moy}</b><span>{T.kmhMoy}</span></div>
+            <div><b data-el="direct-l100">{d.l100 == null ? T.vide : fmt(d.l100, 1)}</b><span>{T.l100}</span></div>
           </div>
         </div>
         <p className="hint" data-el="ecran-eteint" data-plateforme={rec.plateforme} data-verrou={verrou}>

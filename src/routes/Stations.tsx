@@ -212,9 +212,11 @@ export default function Stations({ position, onZone, carburant, setCarburant, tr
   return (
     <section className="screen" data-screen="T5" role="tabpanel" id="panneau-stations" aria-labelledby="onglet-stations">
       {enCours && (
-        <div className="ongoing" data-el="retour-trajet" role="status">
+        <div className="ongoing" data-el="retour-trajet">
+          {/* annoncé une fois à son apparition ; le coût, mis à jour chaque seconde, n'est pas une région annoncée */}
+          <span className="sr-only" role="status">{T.trajetEnCoursSansPrix}</span>
           <span>
-            <span aria-hidden="true">● </span>
+            <span aria-hidden="true">{T.puce}</span>
             {coutEnCours == null ? T.trajetEnCoursSansPrix : T.trajetEnCours(fmt(coutEnCours, 2))}
           </span>
         </div>

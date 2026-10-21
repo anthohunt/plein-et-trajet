@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ErreurEea, versionsParCode, versionsParNom, type CodeErreurEea } from "../lib/eea";
-import { chevaux, enregistrerVoiture, nomVoiture, type VoitureV1 } from "../lib/voiture";
-import { libelleVersion } from "../../supabase/functions/_shared/eea.ts";
+import { chevaux, enregistrerVoiture, nomVoiture, versionTexte, type VoitureV1 } from "../lib/voiture";
 import { T } from "../lib/textes";
 
 const ATTENTE_MS = 400;
@@ -16,20 +15,20 @@ type EtatRecherche = { e: "vide" } | { e: "chargement" } | { e: "ok"; versions: 
 function Fiche({ v }: { v: VoitureV1 }) {
   return (
     <div className="spec" data-el="fiche-voiture" data-cle={v.cle}>
-      <div className="nm">{`${nomVoiture(v)} ${libelleVersion(v)}`.trim()}</div>
+      <div className="nm">{`${nomVoiture(v)} ${versionTexte(v)}`.trim()}</div>
       <dl>
         <dt>{T.ficheAnnee}</dt>
         <dd data-el="fiche-annee">{v.annee}</dd>
         <dt>{T.fichePuissance}</dt>
-        <dd data-el="fiche-puissance">{v.puissance_kw ? T.puissanceKwCh(nombre(v.puissance_kw), chevaux(v.puissance_kw)) : "—"}</dd>
+        <dd data-el="fiche-puissance">{v.puissance_kw ? T.puissanceKwCh(nombre(v.puissance_kw), chevaux(v.puissance_kw)) : T.vide}</dd>
         <dt>{T.ficheCylindree}</dt>
-        <dd data-el="fiche-cylindree">{v.cylindree_cm3 ? T.cm3(nombre(v.cylindree_cm3)) : "—"}</dd>
+        <dd data-el="fiche-cylindree">{v.cylindree_cm3 ? T.cm3(nombre(v.cylindree_cm3)) : T.vide}</dd>
         <dt>{T.ficheMasse}</dt>
         <dd data-el="fiche-masse">{T.kg(nombre(v.masse_kg))}</dd>
         <dt>{T.ficheCarburant}</dt>
         <dd data-el="fiche-carburant">{v.carburant}</dd>
         <dt>{T.ficheCo2}</dt>
-        <dd data-el="fiche-co2">{v.co2_wltp ?? v.co2_nedc ? T.gkm(nombre((v.co2_wltp ?? v.co2_nedc) as number), v.co2_wltp ? "WLTP" : "NEDC") : "—"}</dd>
+        <dd data-el="fiche-co2">{v.co2_wltp ?? v.co2_nedc ? T.gkm(nombre((v.co2_wltp ?? v.co2_nedc) as number), v.co2_wltp ? T.procedureWltp : T.procedureNedc) : T.vide}</dd>
       </dl>
       <p className="hint" style={{ margin: 0 }}>{T.sourceEea}</p>
     </div>
@@ -123,7 +122,7 @@ export default function MaVoiture() {
             autoComplete="off"
             spellCheck={false}
             autoCapitalize="characters"
-            placeholder="5RBU0C"
+            placeholder={T.placeholderD2}
             value={d2}
             aria-describedby="aide-d2"
             aria-invalid={code.e === "erreur" && code.code !== "base_injoignable"}
@@ -161,9 +160,9 @@ export default function MaVoiture() {
                 {code.versions.map((v) => (
                   <li key={v.cle}>
                     <button type="button" aria-pressed={choix?.cle === v.cle} data-cle={v.cle} onClick={() => setChoix(v)}>
-                      {`${nomVoiture(v)} ${libelleVersion(v)}`}
+                      {`${nomVoiture(v)} ${versionTexte(v)}`}
                       <br />
-                      <span className="m">{T.versionLigne(v.annee, v.puissance_kw ? nombre(v.puissance_kw) : "—", nombre(v.masse_kg), v.carburant, nombre(v.immatriculations))}</span>
+                      <span className="m">{T.versionLigne(v.annee, v.puissance_kw ? nombre(v.puissance_kw) : T.vide, nombre(v.masse_kg), v.carburant, nombre(v.immatriculations))}</span>
                     </button>
                   </li>
                 ))}
@@ -175,7 +174,7 @@ export default function MaVoiture() {
         <p className="or">{T.pasLaCarteGrise}</p>
         <div className="d2" data-el="recherche-voiture">
           <label htmlFor="q">{T.champRecherche}</label>
-          <input id="q" className="q" autoComplete="off" placeholder="clio 2017 120" value={q} onChange={(e) => setQ(e.target.value)} />
+          <input id="q" className="q" autoComplete="off" placeholder={T.placeholderRecherche} value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
         <div aria-live="polite" data-el="resultat-recherche" data-etat={recherche.e}>
           {recherche.e === "chargement" && <p className="hint">{T.rechercheEnCours}</p>}
@@ -197,9 +196,9 @@ export default function MaVoiture() {
                       setCode({ e: "vide" });
                     }}
                   >
-                    {`${nomVoiture(v)} ${libelleVersion(v)}`}
+                    {`${nomVoiture(v)} ${versionTexte(v)}`}
                     <br />
-                    <span className="m">{T.suggestionLigne(v.annee, v.puissance_kw ? nombre(v.puissance_kw) : "—", nombre(v.masse_kg), v.carburant, v.ve)}</span>
+                    <span className="m">{T.suggestionLigne(v.annee, v.puissance_kw ? nombre(v.puissance_kw) : T.vide, nombre(v.masse_kg), v.carburant, v.ve)}</span>
                   </button>
                 </li>
               ))}
@@ -207,7 +206,7 @@ export default function MaVoiture() {
           )}
         </div>
         <div style={{ margin: "16px 16px 20px" }}>
-          <button className="btn" type="button" data-el="enregistrer-voiture" disabled={!choix} onClick={enregistrer}>
+          <button className="btn" type="button" data-el="enregistrer-voiture" disabled={!choix} aria-disabled={!choix} onClick={enregistrer}>
             {T.enregistrerVoiture}
           </button>
         </div>

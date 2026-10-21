@@ -96,7 +96,7 @@ export function FicheStation({ station, onFermer, carburantVoiture, onUtiliserPr
           </div>
         </div>
         <button className="x" type="button" data-el="fermer-fiche" aria-label={T.fermerFiche} onClick={onFermer}>
-          <span aria-hidden="true">✕</span>
+          <span aria-hidden="true">{T.croix}</span>
         </button>
       </div>
       {erreur ? (
@@ -111,7 +111,7 @@ export function FicheStation({ station, onFermer, carburantVoiture, onUtiliserPr
               <div key={c} style={{ display: "contents" }} data-carburant={c}>
                 <span className="lab">{c}</span>
                 {lignes == null ? (
-                  <span className="na" aria-hidden="true">…</span>
+                  <span className="na" aria-hidden="true">{T.attente}</span>
                 ) : !l || l.prix == null || l.rupture ? (
                   <span className="na" data-el="non-vendu">{l?.rupture ? T.rupture : T.nonVendu}</span>
                 ) : (
@@ -147,7 +147,7 @@ export function FicheStation({ station, onFermer, carburantVoiture, onUtiliserPr
               : T.majPrix(anciennete(derniereMaj).texte)}
           </span>
         )}
-        {services.length > 0 && <span>{services.slice(0, 3).join(" · ")}</span>}
+        {services.length > 0 && <span>{services.slice(0, 3).join(T.sep)}</span>}
         {nomEnPlus && <span>{nomEnPlus}</span>}
       </div>
       {prixVoiture != null && (

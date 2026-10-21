@@ -52,9 +52,16 @@ Deno.serve(async (req) => {
   const qBrut = url.searchParams.get("q");
   const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
 
-  // registre : fournisseur et tables
-  const { data: moteur } = await db.from("moteurs").select("actif,params").eq("service", "vehicules").maybeSingle();
-  const { data: fournisseur } = moteur ? await db.from("fournisseurs").select("id,url").eq("id", moteur.actif).maybeSingle() : { data: null };
+  // registre : fournisseur et tables ; un aléa de lecture de la base est réessayé une fois (round 2 : un 502 « registre » isolé
+  // devenait « la base européenne ne répond pas »)
+  const lireRegistre = async () => {
+    const m = await db.from("moteurs").select("actif,params").eq("service", "vehicules").maybeSingle();
+    const f = m.data ? await db.from("fournisseurs").select("id,url").eq("id", m.data.actif).maybeSingle() : { data: null, error: null };
+    return { moteur: m.data, fournisseur: f.data, erreur: m.error ?? f.error };
+  };
+  let registre = await lireRegistre();
+  if (registre.erreur || !registre.moteur || !registre.fournisseur) registre = await lireRegistre();
+  const { moteur, fournisseur } = registre;
   const tables: string[] = Array.isArray(moteur?.params?.tables) ? moteur.params.tables.filter((t: unknown) => typeof t === "string") : [];
   const base = typeof fournisseur?.url === "string" && fournisseur.url.startsWith("https://") ? fournisseur.url : null;
   if (!base || tables.length === 0) return json(502, { erreur: "base_injoignable", detail: "registre" });

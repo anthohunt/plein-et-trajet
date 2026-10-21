@@ -7,7 +7,7 @@ export function CarteVoiture({ voiture, onChanger }: { voiture: VoitureV1; onCha
     <div className="carcard" data-el="ma-voiture" data-cle={voiture.cle}>
       <div className="nm" data-el="nom-voiture">{nomVoiture(voiture)}</div>
       <div className="sp" data-el="detail-voiture">{detailVoiture(voiture)}</div>
-      <button type="button" className="chg" data-el="changer-voiture" onClick={onChanger}>
+      <button type="button" className="chg" data-el="changer-voiture" aria-label={T.changerVoitureLabel} onClick={onChanger}>
         {T.changerVoiture}
       </button>
     </div>

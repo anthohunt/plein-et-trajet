@@ -2,6 +2,7 @@
 // Copie complète de la ligne `versions_eea` : l'appli marche sans réseau une fois la voiture enregistrée.
 import type { VersionEea } from "../../supabase/functions/_shared/eea.ts";
 import { libelleVersion } from "../../supabase/functions/_shared/eea.ts";
+import { T } from "./textes";
 import type { VehiculeRoule } from "../../supabase/functions/_shared/roule.ts";
 
 export type VoitureV1 = VersionEea;
@@ -29,7 +30,9 @@ export function enregistrerVoiture(v: VoitureV1): void {
 /** « Renault Clio » */
 export const nomVoiture = (v: Pick<VoitureV1, "marque" | "modele">) => `${v.marque} ${v.modele}`.trim();
 /** « 1.2 · 118 ch · 2017 · SP95-E10 » */
-export const detailVoiture = (v: VoitureV1) => [libelleVersion(v), String(v.annee), v.carburant].filter(Boolean).join(" · ");
+/** « 1.2 · 118 ch » : cylindrée et chevaux, unités et séparateur de textes.ts. */
+export const versionTexte = (v: Pick<VoitureV1, "cylindree_cm3" | "puissance_kw">) => libelleVersion(v, T.chevaux, T.sep);
+export const detailVoiture = (v: VoitureV1) => [versionTexte(v), String(v.annee), v.carburant].filter(Boolean).join(T.sep);
 export const chevaux = (kw: number) => Math.round(kw / 0.7355);
 
 export function vehiculeDe(v: VoitureV1): VehiculeRoule {

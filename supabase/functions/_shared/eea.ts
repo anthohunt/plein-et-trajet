@@ -37,21 +37,22 @@ export interface Recherche {
   kwMax: number | null;
 }
 
-/** « clio 2017 120 » → mots [CLIO], année 2017, 120 ch ±4 kW. Null si un mot sort de la liste de caractères permise ou s'il n'y a aucun mot. */
+/** « clio 2017 120 » → mots [CLIO], année 2017, 120 ch ± 5 ch (85-91 kW). Null si un mot sort de la liste de caractères permise ou s'il n'y a aucun mot. */
 export function analyserRecherche(q: string): Recherche | null {
   const brut = q.toUpperCase().trim().split(/\s+/).filter(Boolean);
   if (brut.length === 0) return null;
   const mots: string[] = [];
   let annee: number | null = null;
-  let kw: number | null = null;
+  let ch: number | null = null;
   for (const m of brut) {
     if (/^\d{4}$/.test(m) && +m >= ANNEE_MIN && +m <= ANNEE_MAX && annee == null) annee = +m;
-    else if (/^\d{2,3}$/.test(m) && +m >= 50 && +m <= 400 && kw == null) kw = Math.round(+m * KW_PAR_CH);
+    else if (/^\d{2,3}$/.test(m) && +m >= 50 && +m <= 400 && ch == null) ch = +m;
     else if (RE_MOT.test(m)) mots.push(m);
     else return null;
   }
   if (mots.length === 0 || mots.length > 4) return null;
-  return { mots, annee, kwMin: kw == null ? null : kw - 4, kwMax: kw == null ? null : kw + 4 };
+  // ± 5 ch, bornes en kW entiers à l'intérieur de la fourchette (120 ch → 115-125 ch → 85-91 kW)
+  return { mots, annee, kwMin: ch == null ? null : Math.ceil((ch - 5) * KW_PAR_CH), kwMax: ch == null ? null : Math.floor((ch + 5) * KW_PAR_CH) };
 }
 
 /** Année couverte par une table : `co2cars_2024Fv30` → 2024 ; la table sans année (`co2cars`) couvre 2010-2022. */
@@ -245,8 +246,8 @@ export function agreger(lignes: LigneEea[], opts: { bruit?: boolean; max?: numbe
 }
 
 /** Libellé court d'une version : « 1.2 · 118 ch » (la base EEA ne porte pas le nom commercial de la finition). */
-export function libelleVersion(v: { cylindree_cm3: number | null; puissance_kw: number | null }): string {
+export function libelleVersion(v: { cylindree_cm3: number | null; puissance_kw: number | null }, unite = "ch", sep = " · "): string {
   const l = v.cylindree_cm3 ? (Math.round(v.cylindree_cm3 / 100) / 10).toFixed(1) : null;
-  const ch = v.puissance_kw ? `${Math.round(v.puissance_kw / KW_PAR_CH)} ch` : null;
-  return [l, ch].filter(Boolean).join(" · ");
+  const ch = v.puissance_kw ? `${Math.round(v.puissance_kw / KW_PAR_CH)} ${unite}` : null;
+  return [l, ch].filter(Boolean).join(sep);
 }
