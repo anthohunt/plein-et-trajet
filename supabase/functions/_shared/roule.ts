@@ -147,7 +147,11 @@ export function enDirect(points: PointRoule[], pauses: Pause[], debut: number, m
   const km = pas.reduce((s, p) => s + p.d, 0) / 1000;
   const litres = pas.reduce((s, p) => s + litresPas(p, veh), 0);
   const dernier = points.length > 0 ? points[points.length - 1][0] : null;
-  const gpsPerdu = !enPause && dernier != null && maintenant - dernier > GPS_PERDU_MS;
+  // « GPS perdu » se compte depuis la dernière position ou la dernière reprise : les positions reçues pendant une pause (ou une
+  // alerte d'immobilité) ne sont pas gardées, la reprise ne doit donc pas afficher « GPS perdu » avant la position suivante
+  const finPause = pauses.reduce((m, [, b]) => (b != null && b > m ? b : m), -Infinity);
+  const reference = dernier == null ? null : Math.max(dernier, finPause);
+  const gpsPerdu = !enPause && reference != null && maintenant - reference > GPS_PERDU_MS;
   const vitesses = pas.map((p) => p.v);
   const derniers = pas.filter((p) => p.t >= maintenant - COURBE_DIRECT_S * 1000).map((p) => p.v);
   return {
