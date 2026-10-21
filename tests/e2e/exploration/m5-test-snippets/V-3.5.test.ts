@@ -1,12 +1,12 @@
-import { test, expect, D, PTS, avecVoiture, demarrer, arreter, direct, rejouer, lireIdb, moyenne, virgule, nb, euros2 } from "./_aides";
+import { test, expect, D, PTS, PTS3, avecVoiture, demarrer, arreter, direct, rejouer, lireIdb, moyenne, virgule, nb, euros2 } from "./_aides";
 
 test.describe("V-3.5 — Arrêter", () => {
   test.describe("Happy Path", () => {
     test("V-3.5 — fin de trajet : Albi → Toulouse, date, durée, litres, km, L/100 km", async ({ page, context }) => {
-      test.setTimeout(420_000); // 4 300 positions rejouées (LOW 13 lot 1 : 180 s ne suffisaient pas sous charge)
+      test.setTimeout(300_000); // tracé complet à un relevé toutes les 3 s (PTS3) : rejeu ~3 fois plus court qu'à 1 s (audit r2 LOW 2 / LOW 7)
       await avecVoiture(context);
       await demarrer(page);
-      await rejouer(context, page, PTS, 1, PTS.length);
+      await rejouer(context, page, PTS3, 1, PTS3.length);
       await arreter(page);
       await expect(page.locator(D("titre-trajet"))).toHaveAttribute("data-noms", "oui", { timeout: 20_000 });
       await expect(page.locator(D("titre-trajet"))).toHaveText("Albi → Toulouse");

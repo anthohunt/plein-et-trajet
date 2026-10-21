@@ -8,6 +8,9 @@ import * as a from "../m5-aides.mjs";
 export const { URL_APP, lireGpx, rejouer, voitureEea, compterIndexedDb } = a as any;
 export { expect, test };
 export const PTS = lireGpx("albi-toulouse.gpx");
+/** Même tracé, un relevé toutes les 3 s (1 435 positions au lieu de 4 300) : même départ, même arrivée, même durée ; le rejeu
+ *  complet tient sous le plafond CPU de `lourd` (round 3 : V-4.5 et V-3.5 dépassaient 420 s). */
+export const PTS3 = PTS.filter((_: unknown, i: number) => i % 3 === 0 || i === PTS.length - 1);
 export const D = (el: string) => `[data-el="${el}"]`;
 const env = process.env;
 const anon = { apikey: env.VITE_SUPABASE_ANON_KEY!, Authorization: `Bearer ${env.VITE_SUPABASE_ANON_KEY}` };
