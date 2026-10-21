@@ -141,7 +141,9 @@ export function libellesStations<S extends { id: string; enseigne?: string | nul
     const b = base.get(s.id)!;
     if ((compte.get(b) ?? 0) < 2) out.set(s.id, b);
     else {
-      const precision = s.nom && s.nom !== b ? casseTitre(s.nom) : s.adresse ? casseTitre(s.adresse) : s.id;
+      // un nom qui commence déjà par le libellé (Royaume-Uni : « Asda · 112 Vallance Road ») n'est pas redoublé
+      const nom = s.nom && s.nom.startsWith(`${b} · `) ? s.nom.slice(b.length + 3) : s.nom;
+      const precision = nom && nom !== b ? casseTitre(nom) : s.adresse ? casseTitre(s.adresse) : s.id;
       out.set(s.id, `${b} · ${precision}`);
     }
   }

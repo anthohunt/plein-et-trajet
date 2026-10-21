@@ -127,6 +127,14 @@ describe("libellés sans doublon", () => {
     expect(l.get("2")).toBe("TotalEnergies Albi · Auto 81 Sarl");
     expect(l.get("3")).toBe("Esso Express Albi");
   });
+  it("Royaume-Uni : le nom « Asda · adresse » ne redouble pas l'enseigne (audit LOW 12)", () => {
+    const l = libellesStations([
+      { id: "GB-1", enseigne: "Asda", nom: "Asda · 112 Vallance Road", adresse: "112 Vallance Road" },
+      { id: "GB-2", enseigne: "Asda", nom: "Asda · Old Kent Road", adresse: "Old Kent Road" },
+    ]);
+    expect(l.get("GB-1")).toBe("Asda · 112 Vallance Road");
+    expect(l.get("GB-2")).toBe("Asda · Old Kent Road");
+  });
   it("casse de titre seulement pour les majuscules", () => {
     expect(casseTitre("ROUTE DE CORDES")).toBe("Route de Cordes");
     expect(casseTitre("Carrefour Contact")).toBe("Carrefour Contact");
