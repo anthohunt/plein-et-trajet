@@ -110,6 +110,12 @@ export const coordonnees = (l: LieuTrajet) => T.coordonnees(l.lat.toFixed(3).rep
 export const nomLieu = (l: LieuTrajet) => l.nom ?? coordonnees(l);
 
 // ---------------------------------------------------------------- IndexedDB
+/** Un trajet de l'historique a changé : l'écran Historique ouvert relit sa liste (une correction peut arriver après qu'on a quitté
+ *  la fin de trajet, le temps de lire une moyenne du jour). */
+export const EVT_TRAJETS = "pt-trajets";
+const signaler = () => {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(EVT_TRAJETS));
+};
 export async function listerTrajetsV1(): Promise<TrajetV1[]> {
   const d = await db();
   return (await d.getAll("trajets")).sort((a, b) => b.debut - a.debut);
@@ -119,9 +125,11 @@ export async function lireTrajetV1(id: string): Promise<TrajetV1 | null> {
 }
 export async function garderTrajetV1(t: TrajetV1): Promise<void> {
   await (await db()).put("trajets", t);
+  signaler();
 }
 export async function supprimerTrajetV1(id: string): Promise<void> {
   await (await db()).delete("trajets", id);
+  signaler();
 }
 /** Trajet arrêté pas encore tranché (rouvert au lancement de l'appli). */
 export async function lireArrete(): Promise<TrajetV1 | null> {

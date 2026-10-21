@@ -2,7 +2,7 @@
 // toucher une ligne rouvre sa fin de trajet pour la corriger ou la supprimer.
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { coutTrajet, grouperParMois, listerTrajetsV1, nomLieu, partPersonne, prixUtilise, totaux, type TrajetV1 } from "../lib/historique";
+import { EVT_TRAJETS, coutTrajet, grouperParMois, listerTrajetsV1, nomLieu, partPersonne, prixUtilise, totaux, type TrajetV1 } from "../lib/historique";
 import { prix3 } from "../lib/format";
 import { fmt } from "../lib/calcul";
 import { T } from "../lib/textes";
@@ -17,12 +17,18 @@ export default function Historique() {
   const titre = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    listerTrajetsV1()
-      .then(setListe)
-      .catch(() => setListe([]));
+    const lire = () =>
+      listerTrajetsV1()
+        .then(setListe)
+        .catch(() => setListe([]));
+    lire();
+    window.addEventListener(EVT_TRAJETS, lire);
+    return () => window.removeEventListener(EVT_TRAJETS, lire);
   }, []);
+  const focusFait = useRef(false);
   useEffect(() => {
-    if (!liste) return;
+    if (!liste || focusFait.current) return; // une liste relue (correction arrivée après coup) ne déplace pas le focus
+    focusFait.current = true;
     const ligne = nouveau ? (document.querySelector(`[data-trajet="${nouveau}"] button`) as HTMLElement | null) : null;
     (ligne ?? titre.current)?.focus({ preventScroll: true });
   }, [liste, nouveau]);
