@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useLocation } from "react-router-dom";
 import { T } from "../lib/textes";
-import { geocoderLieu, geocoderVille, nomDuLieu } from "../lib/geocodage";
+import { communeDuLieu, geocoderLieu, geocoderVille } from "../lib/geocodage";
 import { memoriserVille, type Lieu, type Position } from "../lib/position";
 import { coutTotal, repartirCouts } from "../lib/pays";
 import { distanceKm } from "../lib/format";
@@ -94,12 +94,13 @@ export default function Trajets({ position }: { position: Position | null }) {
   useEffect(() => {
     if (latGps == null || lonGps == null) return;
     const c = new AbortController();
-    nomDuLieu(latGps, lonGps, c.signal).then((nom) => {
+    // centre de la commune (pas la position exacte) : même lieu, donc même cache des péages, que la commune choisie à la main
+    communeDuLieu(latGps, lonGps, c.signal).then((lieu) => {
       // champ déjà touché (saisie ou curseur dedans) : on ne remplit pas sous les doigts
-      if (!nom || c.signal.aborted || departTouche.current || document.activeElement === champDepart.current) return;
+      if (!lieu || c.signal.aborted || departTouche.current || document.activeElement === champDepart.current) return;
       departTouche.current = true;
-      setDepart(nom);
-      setLieuDepart({ lat: latGps, lon: lonGps, label: nom });
+      setDepart(lieu.label);
+      setLieuDepart(lieu);
     });
     return () => c.abort();
   }, [latGps, lonGps]);
@@ -489,10 +490,12 @@ export default function Trajets({ position }: { position: Position | null }) {
               }}
               onChoix={setLieuDepart}
               onSortie={() => depart.trim() && retenirVille(depart, lieuDepart)}
+              apres={
+                <button type="button" className="swap" data-el="inverser" aria-label={T.inverser} onClick={inverser}>
+                  <span aria-hidden="true">⇅</span>
+                </button>
+              }
             />
-            <button type="button" className="swap" data-el="inverser" aria-label={T.inverser} onClick={inverser}>
-              <span aria-hidden="true">⇅</span>
-            </button>
             <ChampLieu
               id="arr"
               etiquette={T.arrivee}

@@ -80,7 +80,10 @@ async function attendreListeChargee(page, id) {
 }
 export async function choisirDansListe(page, id, nom, option) {
   await attendreListeChargee(page, id);
-  await page.locator(`#${id}`).click();
+  // streamline R2 : après la marque, la liste des modèles s'ouvre seule (puis celle des motorisations) ; on ne la referme pas en la touchant
+  const liste = page.getByRole("listbox", { name: nom });
+  const dejaOuverte = id !== "voiture-marque" && (await liste.waitFor({ state: "visible", timeout: 1500 }).then(() => true, () => false));
+  if (!dejaOuverte) await page.locator(`#${id}`).click();
   const o = page.getByRole("listbox", { name: nom }).getByRole("option").filter({ hasText: option }).first();
   await expect(o).toBeVisible();
   await o.click();

@@ -1,6 +1,7 @@
 // Géocodage IGN Géoplateforme (sans clé, CORS ouvert) : texte saisi → ville et coordonnées.
 import type { Lieu } from "./position";
 import { supabase } from "./supabase";
+import { distanceKm } from "./format";
 
 const URL_RECHERCHE = "https://data.geopf.fr/geocodage/search";
 
@@ -122,13 +123,22 @@ export async function geocoderLieu(texte: string, signal?: AbortSignal): Promise
   return tous[0] ?? null;
 }
 
-/** Commune d'une position (pré-remplit le départ) : IGN en France (à moins de 2 km), Photon ailleurs ; null si aucune. */
-export async function nomDuLieu(lat: number, lon: number, signal?: AbortSignal): Promise<string | null> {
+/** Commune d'une position (pré-remplit le départ), au CENTRE de la commune : la même position que la commune choisie
+ *  dans les propositions, donc la même clé du cache des péages (streamline R2, R6). IGN en France (à moins de 2 km),
+ *  Photon ailleurs ; si le centre est introuvable, la position elle-même ; null si aucune commune. */
+export async function communeDuLieu(lat: number, lon: number, signal?: AbortSignal): Promise<Lieu | null> {
+  const ici = (label: string): Lieu => ({ lat, lon, label });
   try {
     const r = await fetch(`https://data.geopf.fr/geocodage/reverse?lon=${lon}&lat=${lat}&index=address&limit=1`, { signal });
     if (r.ok) {
       const p = (await r.json())?.features?.[0]?.properties;
-      if (p?.city && (p.distance == null || p.distance < 2000)) return p.city as string;
+      if (p?.city && (p.distance == null || p.distance < 2000)) {
+        const c = await fetch(`${URL_RECHERCHE}?q=${encodeURIComponent(p.city)}&type=municipality&citycode=${encodeURIComponent(p.citycode ?? "")}&index=address&limit=1`, { signal })
+          .then((x) => (x.ok ? x.json() : null))
+          .catch(() => null);
+        const centre = c?.features?.[0]?.geometry?.coordinates;
+        return Array.isArray(centre) && Number.isFinite(centre[0]) && Number.isFinite(centre[1]) ? { lat: centre[1], lon: centre[0], label: p.city } : ici(p.city);
+      }
     }
   } catch {
     if (signal?.aborted) return null;
@@ -136,10 +146,17 @@ export async function nomDuLieu(lat: number, lon: number, signal?: AbortSignal):
   try {
     const r = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&lang=fr&limit=1`, { signal });
     if (!r.ok) return null;
-    const p = (await r.json())?.features?.[0]?.properties;
+    const f = (await r.json())?.features?.[0];
+    const p = f?.properties;
     if (!p) return null;
-    if (p.osm_key === "place" && ["city", "town", "village"].includes(p.osm_value)) return p.name ?? null;
-    return p.city ?? p.name ?? null;
+    // la ville elle-même : son point est le centre
+    const c = f.geometry?.coordinates;
+    if (p.osm_key === "place" && ["city", "town", "village"].includes(p.osm_value) && p.name && Array.isArray(c)) return { lat: c[1], lon: c[0], label: p.name };
+    const nom: string | undefined = p.city ?? p.name;
+    if (!nom) return null;
+    // sinon le centre de la ville géocodée par le moteur « lieux », s'il est bien la même (moins de 25 km)
+    const centre = await lieuEtranger(nom, signal).catch(() => null);
+    return centre && distanceKm({ lat, lon }, centre) < 25 ? { ...centre, label: nom } : ici(nom);
   } catch {
     return null;
   }

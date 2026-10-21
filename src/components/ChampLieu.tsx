@@ -15,9 +15,10 @@ interface Props {
   onSortie: () => void;
   erreur: string | null;
   inputRef?: React.Ref<HTMLInputElement>;
+  apres?: React.ReactNode; // bouton ⇅ du départ : posé dans la ligne, à sa jonction avec l'arrivée, même quand une erreur l'allonge
 }
 
-export function ChampLieu({ id, etiquette, placeholder, dataEl, texte, onTexte, onChoix, onSortie, erreur, inputRef }: Props) {
+export function ChampLieu({ id, etiquette, placeholder, dataEl, texte, onTexte, onChoix, onSortie, erreur, inputRef, apres }: Props) {
   const [propositions, setPropositions] = useState<Suggestion[]>([]);
   const [ouvert, setOuvert] = useState(false);
   const [actif, setActif] = useState(-1);
@@ -129,6 +130,7 @@ export function ChampLieu({ id, etiquette, placeholder, dataEl, texte, onTexte, 
           onSortie();
         }}
       />
+      {apres}
       {ouvert && (
         <ul className="sugg" id={idListe} role="listbox" aria-label={T.propositionsLieux} data-el={`${dataEl}-propositions`}>
           {propositions.map((s, i) => (

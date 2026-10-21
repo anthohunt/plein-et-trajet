@@ -21,9 +21,10 @@ interface Props {
   chargement?: boolean;
   invalide?: boolean;
   decrit?: string;
+  ouvrirAuto?: number; // change à chaque choix du niveau précédent : la liste s'ouvre seule dès que ses options sont là
 }
 
-export function ListeDeroulante({ id, nom, placeholder, options, valeur, onChoix, desactive, chargement, invalide, decrit }: Props) {
+export function ListeDeroulante({ id, nom, placeholder, options, valeur, onChoix, desactive, chargement, invalide, decrit, ouvrirAuto }: Props) {
   const [ouvert, setOuvert] = useState(false);
   const [actif, setActif] = useState(0);
   const racine = useRef<HTMLDivElement>(null);
@@ -50,6 +51,23 @@ export function ListeDeroulante({ id, nom, placeholder, options, valeur, onChoix
     setActif(i >= 0 ? i : 0);
     setOuvert(true);
   };
+
+  // marque choisie → la liste des modèles s'ouvre seule (puis les motorisations après le modèle) : un toucher de moins à chaque niveau
+  const [demandee, setDemandee] = useState(false);
+  useEffect(() => {
+    if (ouvrirAuto) setDemandee(true);
+  }, [ouvrirAuto]);
+  useEffect(() => {
+    if (!demandee || desactive || chargement || options.length === 0) return;
+    setDemandee(false);
+    // pendant le chargement, l'utilisateur a pu ouvrir une autre liste ou aller ailleurs : on n'ouvre rien par-dessus, on ne vole pas le focus
+    const ici = document.activeElement;
+    const groupe = racine.current?.parentElement;
+    if (document.querySelector(".dd-liste") || (ici && ici !== document.body && !groupe?.contains(ici))) return;
+    bouton.current?.focus();
+    ouvrir();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [demandee, desactive, chargement, options.length]);
   const choisir = (i: number) => {
     const o = options[i];
     if (!o) return;

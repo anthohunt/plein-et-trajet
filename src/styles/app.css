@@ -93,7 +93,7 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 .fld:last-child { border-bottom: 0; }
 .fld label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding-left: 12px; }
 .fld input:focus-visible { outline-offset: -3px; }
-.fld input { border: 0; background: transparent; padding: 12px 52px 12px 0; width: 100%; min-width: 0; }
+.fld input { border: 0; background: transparent; padding: 12px 8px; margin-right: 52px; width: calc(100% - 52px); min-width: 0; } /* la marge de droite garde le contour de focus hors du bouton ⇅ */
 .note { font-size: 12px; color: var(--muted); margin: 0 16px 14px; }
 
 /* onglets */
@@ -114,7 +114,7 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 .sugg-opt.actif { background: color-mix(in srgb, var(--ink) 8%, transparent); }
 .sugg-l { font-weight: 600; }
 .sugg-c { font-size: 12px; color: var(--muted); }
-.swap { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); font-size: 16px; line-height: 1; z-index: 3; }
+.swap { position: absolute; right: 10px; bottom: -17px; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); font-size: 16px; line-height: 1; z-index: 3; }
 .voiture { display: grid; gap: 6px; }
 .car { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; position: relative; }
 .dd { min-width: 0; }

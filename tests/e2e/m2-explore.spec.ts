@@ -321,13 +321,15 @@ test.describe("M2 — Le coût d'un trajet", () => {
       });
     });
     test.describe("Happy Path — indicateur", () => {
-      test("US-3.P2 — marque seule : aucun libellé ; voiture complète : motorisation entière et carburant sous les sélecteurs, sur une ligne", async ({ page }) => {
+      test("US-3.P2 — marque seule : aucune ligne ; voiture complète : seulement ce que les menus ne disent pas (carburant · masse), sur une ligne", async ({ page }) => {
         await ouvrirTrajets(page);
         await choisirDansListe(page, "voiture-marque", "Marque", "Renault");
-        await expect(page.locator('[data-el="voiture-libelle"]')).toHaveCount(0);
+        await expect(page.locator(".carlib")).toHaveCount(0);
         await choisirVoiture(page, "Peugeot", "208", "208 (101ch) · mécanique");
-        await expect(page.locator('[data-el="voiture-libelle"]')).toHaveText("208 (101ch) · mécanique");
-        await expect(page.locator(".carlib")).toHaveText("208 (101ch) · mécanique · SP95-E10");
+        // streamline R2 (préférence C) : la motorisation est dans son menu (et son infobulle), elle n'est plus répétée dessous
+        await expect(page.locator("#voiture-moteur")).toHaveAttribute("title", "208 (101ch) · mécanique");
+        await expect(page.locator(".carlib")).toHaveText(/^SP95-E10 · \d+ kg$/);
+        await expect(page.locator(".carlib")).not.toContainText("208");
       });
     });
   });
@@ -421,7 +423,7 @@ test.describe("M2 — Le coût d'un trajet", () => {
         await choisirDansListe(page, "voiture-marque", "Marque", "Peugeot");
         await choisirDansListe(page, "voiture-modele", "Modèle", "208");
         await page.waitForFunction(() => { const e = document.getElementById("voiture-moteur") as HTMLButtonElement; return e && !e.disabled && !/Chargement/.test(e.textContent ?? ""); });
-        await page.locator("#voiture-moteur").click();
+        await expect(page.getByRole("listbox", { name: "Motorisation" })).toBeVisible(); // streamline R2 : la liste s'ouvre seule après le modèle
         const opts = await page.getByRole("listbox", { name: "Motorisation" }).getByRole("option").evaluateAll((els) => els.map((e) => ({ id: (e as HTMLElement).dataset.valeur, txt: (e as HTMLElement).innerText.replace(/\s+/g, " ") })));
         const base = await rest("vehicules?select=id,puissance_kw&marque=eq.Peugeot&modele=eq.208&order=puissance_kw");
         expect(opts).toHaveLength(base.length);
@@ -448,7 +450,7 @@ test.describe("M2 — Le coût d'un trajet", () => {
         await choisirDansListe(page, "voiture-marque", "Marque", "Renault");
         await choisirDansListe(page, "voiture-modele", "Modèle", "Clio");
         await page.waitForFunction(() => { const e = document.getElementById("voiture-moteur") as HTMLButtonElement; return e && !e.disabled && !/Chargement/.test(e.textContent ?? ""); });
-        await page.locator("#voiture-moteur").click();
+        await expect(page.getByRole("listbox", { name: "Motorisation" })).toBeVisible(); // streamline R2 : la liste s'ouvre seule après le modèle
         const txt = await page.getByRole("listbox", { name: "Motorisation" }).getByRole("option").allInnerTexts();
         expect(txt.some((t) => /essence/.test(t) && /SP95-E10/.test(t))).toBe(true);
         expect(txt.some((t) => /GPL/.test(t) && /GPLc/.test(t))).toBe(true);
