@@ -6,7 +6,7 @@ import { fetchTimeout, json } from "../_shared/http.ts";
 import { lireCle } from "../_shared/moteurs.ts";
 import { dateEspagne, normaliserEspagne } from "../_shared/stations-es.ts";
 import {
-  AT_CARBURANTS, AT_POINTS, DE_POINTS, IT_POINTS, RO_POINTS, RO_PRODUITS, PT_CARBURANTS, normaliserAllemagne, normaliserAutriche, normaliserCroatie, normaliserDanemark, normaliserIslande, normaliserItalie, normaliserPortugal, normaliserRoumanie, normaliserRoyaumeUni,
+  AT_CARBURANTS, AT_POINTS, DE_POINTS, IT_POINTS, RO_POINTS, RO_PRODUITS, PT_CARBURANTS, normaliserAllemagne, normaliserAutriche, normaliserCroatie, normaliserDanemark, normaliserIslande, normaliserItalie, normaliserPortugal, normaliserRoumanie, normaliserRoyaumeUni, fusionnerRoyaumeUni, SOURCES_ROYAUME_UNI,
   normaliserSlovenie, type Station,
 } from "../_shared/stations-pays.ts";
 
@@ -40,11 +40,14 @@ async function parLots<T, R>(items: T[], n: number, f: (x: T) => Promise<R>): Pr
   }));
   return out;
 }
-/** Cours du jour (BCE via Frankfurter) pour les monnaies non euro. */
-async function cours(monnaie: "DKK" | "ISK" | "GBP" | "RON"): Promise<number> {
-  const j = (await lire(`https://api.frankfurter.dev/v1/latest?base=EUR&symbols=${monnaie}`, {}, 15000)) as { rates?: Record<string, number> };
+/** Cours du jour (référence BCE, servie par Frankfurter) pour les monnaies non euro ; gardé dans `cours_change` pour être cité par l'écran. */
+const URL_COURS = "https://api.frankfurter.dev/v1/latest?base=EUR&symbols=";
+// deno-lint-ignore no-explicit-any
+async function cours(monnaie: "DKK" | "ISK" | "GBP" | "RON", db?: any): Promise<number> {
+  const j = (await lire(URL_COURS + monnaie, {}, 15000)) as { rates?: Record<string, number>; date?: string };
   const c = j.rates?.[monnaie];
   if (!c || !(c > 0)) throw new Error(`cours ${monnaie} indisponible`);
+  if (db && j.date) await db.from("cours_change").upsert({ monnaie, taux: c, jour: j.date, source: URL_COURS + monnaie, maj: new Date().toISOString() });
   return c;
 }
 
@@ -53,7 +56,13 @@ type Source = (db: any) => Promise<Station[]>;
 class Ignore extends Error {}
 const RELAIS_RO = "https://plein-et-trajet.vercel.app/api/relais-ro"; // relaie monitorulpreturilor.info (certificat TLS invalide)
 const SOURCES: Record<string, Source> = {
-  GB: async () => normaliserRoyaumeUni(await lire("https://storelocator.asda.com/fuel_prices_data.json", {}, 40000), await cours("GBP")),
+  GB: async (db) => {
+    const taux = await cours("GBP", db);
+    const flux = await Promise.all(SOURCES_ROYAUME_UNI.map(async ([nom, url]) => ({ nom, stations: await lire(url, {}, 40000).then((d) => normaliserRoyaumeUni(d, taux)).catch(() => []) })));
+    const f = fusionnerRoyaumeUni(flux);
+    console.log(JSON.stringify({ sync_gb: "flux", retenus: f.retenus, ecartes: f.ecartes, stations: f.stations.length }));
+    return f.stations;
+  },
   RO: async () => {
     const taches = RO_POINTS.flatMap((p) => RO_PRODUITS.map(([id]) => ({ p, id })));
     const reps = await parLots(taches, 4, async ({ p, id }) => {
@@ -151,7 +160,9 @@ Deno.serve(async (req) => {
     // un flux partiel (Autriche, Italie par sondage) ne supprime que ce qui n'a pas été revu depuis 3 jours
     const avant = pays === "AT" || pays === "IT" || pays === "RO" ? new Date(t0.getTime() - 3 * 86400_000) : t0;
     const { data: supprimees } = await db.rpc("sync_stations_pays_nettoyer", { p_pays: pays, p_avant: avant.toISOString() });
-    const rapport = { ok: true, pays, stations: n, supprimees, duree_ms: Date.now() - t0.getTime() };
+    // Royaume-Uni : moyenne du jour des stations publiées (absent du Bulletin pétrolier UE depuis le Brexit)
+    const moyennes = pays === "GB" ? (await db.rpc("recalculer_moyenne_pays", { p_pays: "GB" })).data : undefined;
+    const rapport = { ok: true, pays, stations: n, supprimees, moyennes, duree_ms: Date.now() - t0.getTime() };
     console.log(JSON.stringify({ sync_pays: "ok", ...rapport }));
     return json(200, rapport);
   } catch (e) {

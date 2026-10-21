@@ -123,6 +123,7 @@ export interface Arete {
   toll?: boolean;
   roundabout?: boolean;
   names?: string[];
+  use?: string; // jalon 4 : « ferry », « rail-ferry » : traversée sans carburant (Manche)
   end_node?: { admin_index?: number; intersecting_edges?: { road_class?: string }[] };
 }
 
@@ -132,7 +133,7 @@ export interface Arete {
  * avec la documentation Valhalla « map-matching / trace_attributes »).
  */
 export const ATTRIBUTS_TRACE = [
-  "edge.length", "edge.road_class", "edge.speed", "edge.speed_limit", "edge.weighted_grade", "edge.toll", "edge.roundabout", "edge.names", "edge.density",
+  "edge.length", "edge.road_class", "edge.speed", "edge.speed_limit", "edge.weighted_grade", "edge.toll", "edge.roundabout", "edge.names", "edge.density", "edge.use",
   "node.admin_index", "node.intersecting_edge.road_class", "admin.country_code", "admin.country_text",
 ];
 
@@ -146,6 +147,7 @@ export function carrefourPrioritaire(a: Arete): boolean {
 }
 export interface AdminValhalla {
   country_code?: string;
+  country_text?: string;
 }
 
 export interface ResultatEurope {
@@ -153,6 +155,7 @@ export interface ResultatEurope {
   km: number;
   kmPeageParPays: Record<string, number>;
   kmAutorouteParPays: Record<string, number>;
+  traversee: boolean; // jalon 4 : ferry ou navette ferroviaire sur le tracé (non comptée)
 }
 
 const PAS_ETAPE_M = 500;
@@ -200,8 +203,13 @@ export function etapesDepuisAretes(aretes: Arete[], admins: AdminValhalla[]): Re
     parPays.set(cur.pays, liste);
     cur = null;
   };
+  let traversee = false;
   for (const a of aretes) {
     if (!(a.length > 0)) continue;
+    if (a.use === "ferry" || a.use === "rail-ferry" || a.use === "rail_ferry") {
+      traversee = true; // la voiture est embarquée : ni km roulés ni carburant
+      continue;
+    }
     const pays = admins[a.end_node?.admin_index ?? 0]?.country_code?.toUpperCase() ?? "ZZ";
     const auto = estAutoroute(a);
     const m = a.length * 1000;
@@ -221,7 +229,7 @@ export function etapesDepuisAretes(aretes: Arete[], admins: AdminValhalla[]): Re
   fermer();
   // ordre de traversée : ordre de première apparition (Map conserve l'ordre d'insertion)
   const etapesParPays = [...parPays.entries()].map(([p, e]) => [p, e] as [string, Etape[]]);
-  return { etapesParPays, km, kmPeageParPays: kmPeage, kmAutorouteParPays: kmAuto };
+  return { etapesParPays, km, kmPeageParPays: kmPeage, kmAutorouteParPays: kmAuto, traversee };
 }
 
 /** Vignettes exigées : pays dont l'autoroute (classe « motorway ») est empruntée sur plus de 500 m et qui figure dans la table des vignettes. */

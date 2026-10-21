@@ -208,29 +208,75 @@ export function normaliserAllemagne(reponses: any[][]): Station[] {
   return [...m.values()];
 }
 
-// ------------------------------------------------------------------ Royaume-Uni : flux JSON d'Asda (CMA Fuel Finder, sans clé), prix en pence/L
+// ------------------------------------------------------------------ Royaume-Uni : flux JSON ouverts des distributeurs (dispositif de la CMA,
+// format commun « fuel_prices_data.json », sans clé), prix en pence/L. Le service officiel Fuel Finder (GOV.UK) n'ouvre son API qu'aux
+// comptes GOV.UK One Login (OAuth) : écart déclaré dans docs/pipeline/m4-journal.md.
+export const SOURCES_ROYAUME_UNI: [string, string][] = [
+  ["Asda", "https://storelocator.asda.com/fuel_prices_data.json"],
+  ["Esso", "https://fuelprices.esso.co.uk/latestdata.json"],
+  ["Motor Fuel Group", "https://fuel.motorfuelgroup.com/fuel_prices_data.json"],
+  ["SGN Retail", "https://www.sgnretail.uk/files/data/SGN_daily_fuel_prices.json"],
+];
+export const FRAICHEUR_ROYAUME_UNI_JOURS = 3; // un flux dont « last_updated » a plus de 3 jours est écarté
+
+/** « 20/10/2026 09:51:41 » (heure de Londres) → ISO ; null si illisible. */
+export function dateRoyaumeUni(s: unknown): string | null {
+  const m = typeof s === "string" ? /^(\d{2})\/(\d{2})\/(\d{4})[ T](\d{2}):(\d{2})(?::(\d{2}))?/.exec(s.trim()) : null;
+  if (!m) return null;
+  const utc = Date.UTC(+m[3], +m[2] - 1, +m[1], +m[4], +m[5], +(m[6] ?? 0));
+  // décalage de Londres à cette date (GMT ou BST), lu dans la base horaire du moteur JavaScript
+  const nom = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", timeZoneName: "shortOffset" }).formatToParts(new Date(utc)).find((p) => p.type === "timeZoneName")?.value ?? "GMT";
+  const dec = /GMT([+-]\d+)?/.exec(nom)?.[1];
+  return new Date(utc - (dec ? +dec : 0) * 3600_000).toISOString();
+}
+
 // deno-lint-ignore no-explicit-any
 export function normaliserRoyaumeUni(d: any, gbpParEuro: number): Station[] {
   const out = new Map<string, Station>(); // le flux répète certains sites : un seul par identifiant
+  const maj = dateRoyaumeUni(d?.last_updated);
   for (const s of d?.stations ?? []) {
     const lat = s?.location?.latitude;
     const lon = s?.location?.longitude;
     if (!s?.site_id || !Number.isFinite(lat) || !Number.isFinite(lon)) continue;
-    const eur = (pence: unknown) => (typeof pence === "number" ? arrondi3(pence / 100 / gbpParEuro) : NaN);
+    const pence = (x: unknown) => (typeof x === "number" && x > 30 && x < 500 ? x : NaN);
+    const eur = (p: number) => arrondi3(p / 100 / gbpParEuro);
     const prix: Record<string, number> = {};
-    const e10 = eur(s.prices?.E10);
-    const b7 = eur(s.prices?.B7);
-    const e5 = eur(s.prices?.E5);
-    if (ok(e10)) {
-      prix["SP95-E10"] = e10;
-      prix.SP95 = e10;
-    }
-    if (ok(b7)) prix.Gazole = b7;
-    if (ok(e5)) prix.SP98 = e5; // E5 « super » (97-99 octane)
+    const origine: Record<string, number> = {};
+    const poser = (cles: string[], p: number) => {
+      if (!Number.isFinite(p) || !ok(eur(p))) return;
+      for (const c of cles) {
+        prix[c] = eur(p);
+        origine[c] = p;
+      }
+    };
+    poser(["SP95-E10", "SP95"], pence(s.prices?.E10));
+    poser(["Gazole"], pence(s.prices?.B7));
+    poser(["SP98"], pence(s.prices?.E5)); // E5 « super » (97-99 octane)
     if (Object.keys(prix).length === 0) continue;
-    out.set(`GB-${s.site_id}`, { id: `GB-${s.site_id}`, nom: [s.brand, s.address].filter(Boolean).join(" · ") || null, enseigne: s.brand ?? null, adresse: s.address ?? null, cp: s.postcode ?? null, ville: null, lat, lon, maj: null, prix });
+    out.set(`GB-${s.site_id}`, { id: `GB-${s.site_id}`, nom: [s.brand, s.address].filter(Boolean).join(" · ") || null, enseigne: s.brand ?? null, adresse: s.address ?? null, cp: s.postcode ?? null, ville: null, lat, lon, maj, prix, origine, unite_origine: "p/L" });
   }
   return [...out.values()];
+}
+
+/** Fusionne les flux des distributeurs : un flux trop ancien (> 3 jours) est écarté ; un site présent deux fois garde le flux le plus récent. */
+export function fusionnerRoyaumeUni(flux: { nom: string; stations: Station[] }[], maintenant = new Date()): { stations: Station[]; retenus: string[]; ecartes: string[] } {
+  const limite = maintenant.getTime() - FRAICHEUR_ROYAUME_UNI_JOURS * 86400_000;
+  const m = new Map<string, Station>();
+  const retenus: string[] = [];
+  const ecartes: string[] = [];
+  for (const f of flux) {
+    const maj = f.stations[0]?.maj;
+    if (f.stations.length === 0 || !maj || Date.parse(maj) < limite) {
+      ecartes.push(f.nom);
+      continue;
+    }
+    retenus.push(f.nom);
+    for (const s of f.stations) {
+      const deja = m.get(s.id);
+      if (!deja || (deja.maj ?? "") < (s.maj ?? "")) m.set(s.id, s);
+    }
+  }
+  return { stations: [...m.values()], retenus, ecartes };
 }
 
 // ------------------------------------------------------------------ Roumanie : Monitorul Prețurilor (XML), prix en RON, via le relais Node (certificat TLS invalide)

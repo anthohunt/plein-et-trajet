@@ -2,7 +2,8 @@
 // (FOSSGIS : « les URL ne devraient pas être codées en dur », ≤ 1 requête/s, User-Agent identifiant, faible trafic —
 // https://www.fossgis.de/arbeitsgruppen/osm-server/nutzungsbedingungen/). La pause est tenue entre invocations simultanées
 // par le limiteur Postgres (`limiteur_reserver`). Cible de production : Stadia Maps (clé collée dans l'écran Moteurs).
-import { ATTRIBUTS_TRACE, decoderPolyline6, decouperTrace, encoderPolyline6, type AdminValhalla, type Arete } from "./europe.ts";
+import { ATTRIBUTS_TRACE, decoderPolyline6, decouperTrace, distanceKm, encoderPolyline6, type AdminValhalla, type Arete } from "./europe.ts";
+import { codePaysAdmin } from "./roule.ts";
 
 export interface ConnexionValhalla {
   base: string; // sans / final
@@ -42,7 +43,7 @@ export class ErreurItineraire extends Error {
 const UA = { "User-Agent": "plein-et-trajet/1.0 (+https://plein-et-trajet.vercel.app)", "Content-Type": "application/json" };
 
 // deno-lint-ignore no-explicit-any
-async function post(c: ConnexionValhalla, chemin: string, corps: unknown, estRoute: boolean, ms = 60000): Promise<any> {
+export async function post(c: ConnexionValhalla, chemin: string, corps: unknown, estRoute: boolean, ms = 60000): Promise<any> {
   await c.avantRequete();
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), ms);
@@ -102,7 +103,7 @@ export async function routeValhalla(c: ConnexionValhalla, a: { lat: number; lon:
     if (!Array.isArray(t?.edges) || !Array.isArray(t?.admins)) throw new ErreurItineraire("indisponible", "trace illisible");
     // index d'admin propre à chaque morceau : on le ramène à une liste commune
     const local: number[] = (t.admins as AdminValhalla[]).map((ad) => {
-      const code = ad.country_code ?? "ZZ";
+      const code = codePaysAdmin(ad); // Royaume-Uni : admin « England » sans code pays
       if (!index.has(code)) {
         index.set(code, admins.length);
         admins.push({ country_code: code });
@@ -112,4 +113,81 @@ export async function routeValhalla(c: ConnexionValhalla, a: { lat: number; lon:
     for (const e of t.edges as Arete[]) aretes.push({ ...e, end_node: { admin_index: local[e.end_node?.admin_index ?? 0] ?? 0 } });
   }
   return { duree_s: Number(trip.summary.time) || 0, km: Number(trip.summary.length), aretes, admins, trace: pts.map(([lat, lon]) => ({ lat, lon })) };
+}
+
+// ------------------------------------------------------------------ jalon 4 : recalage d'un tracé GPS sur la carte (map matching)
+// Valhalla /trace_attributes avec shape_match « map_snap » (algorithme de recalage Meili : les points GPS ne suivent pas exactement
+// les arêtes) — documentation Valhalla « Map Matching » et Stadia Maps « Trace Attributes » (POST /trace_attributes/v1, mêmes options).
+// Liste d'attributs acceptée par Stadia (vérifié le 21/10/2026 par une vraie requête : 200, 330 arêtes, 1 044 points recalés).
+export const ATTRIBUTS_RECALAGE = [
+  "edge.length", "edge.road_class", "edge.speed", "edge.speed_limit", "edge.weighted_grade", "edge.toll", "edge.names", "edge.density", "edge.use",
+  "node.admin_index", "admin.country_code", "admin.country_text", "matched.point", "matched.type", "matched.edge_index", "shape",
+];
+export interface PointHorodate {
+  lat: number;
+  lon: number;
+  t: number; // ms
+}
+export interface Recalage {
+  aretes: (Arete & { use?: string; density?: number })[];
+  admins: AdminValhalla[];
+  matched: ({ edge_index?: number; type?: string } | undefined)[]; // un par point envoyé, dans l'ordre
+  forme: { lat: number; lon: number }[]; // tracé recalé (sert à tarifer les péages réellement franchis)
+}
+
+/** Morceaux d'au plus `maxPoints` points et `maxKm` km (Valhalla : 200 km par défaut pour map_snap), le point de jonction répété. */
+export function morceauxRecalage(pts: PointHorodate[], maxPoints = 3000, maxKm = 150): { debut: number; fin: number }[] {
+  const out: { debut: number; fin: number }[] = [];
+  let debut = 0;
+  let km = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const d = distanceKm([pts[i - 1].lat, pts[i - 1].lon], [pts[i].lat, pts[i].lon]);
+    if (i - debut + 1 > maxPoints || km + d > maxKm) {
+      out.push({ debut, fin: i - 1 });
+      debut = i - 1;
+      km = 0;
+    }
+    km += d;
+  }
+  out.push({ debut, fin: pts.length - 1 });
+  return out;
+}
+
+export async function recalerTrace(c: ConnexionValhalla, pts: PointHorodate[]): Promise<Recalage> {
+  const aretes: Recalage["aretes"] = [];
+  const admins: AdminValhalla[] = [];
+  const index = new Map<string, number>();
+  const matched: Recalage["matched"] = new Array(pts.length).fill(undefined);
+  const forme: { lat: number; lon: number }[] = [];
+  for (const m of morceauxRecalage(pts)) {
+    const part = pts.slice(m.debut, m.fin + 1);
+    const t = await post(c, c.trace, {
+      shape: part.map((p) => ({ lat: p.lat, lon: p.lon, time: Math.round(p.t / 1000) })),
+      costing: "auto",
+      shape_match: "map_snap",
+      use_timestamps: true,
+      trace_options: { search_radius: 50, gps_accuracy: 15 },
+      filters: { attributes: ATTRIBUTS_RECALAGE, action: "include" },
+    }, false);
+    if (!Array.isArray(t?.edges) || !Array.isArray(t?.admins) || !Array.isArray(t?.matched_points)) throw new ErreurItineraire("indisponible", "recalage illisible");
+    const local: number[] = (t.admins as AdminValhalla[]).map((ad) => {
+      const code = codePaysAdmin(ad);
+      if (!index.has(code)) {
+        index.set(code, admins.length);
+        admins.push({ country_code: code });
+      }
+      return index.get(code)!;
+    });
+    const decalage = aretes.length;
+    for (const e of t.edges as Recalage["aretes"]) aretes.push({ ...e, end_node: { admin_index: local[e.end_node?.admin_index ?? 0] ?? 0 } });
+    (t.matched_points as { edge_index?: number; type?: string }[]).forEach((mp, k) => {
+      const i = m.debut + k;
+      if (k === 0 && m.debut > 0 && matched[i]) return; // point de jonction : déjà recalé par le morceau précédent
+      const valide = typeof mp.edge_index === "number" && mp.edge_index >= 0 && mp.edge_index < (t.edges as unknown[]).length;
+      matched[i] = { type: mp.type, edge_index: valide ? (mp.edge_index as number) + decalage : undefined };
+    });
+    if (typeof t.shape === "string") for (const [lat, lon] of decoderPolyline6(t.shape)) forme.push({ lat, lon });
+  }
+  if (aretes.length === 0) throw new ErreurItineraire("pas_itineraire", "aucune route reconnue");
+  return { aretes, admins, matched, forme };
 }

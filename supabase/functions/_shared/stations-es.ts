@@ -43,6 +43,8 @@ export interface Station {
   lon: number;
   maj: string | null;
   prix: Record<string, number>;
+  origine?: Record<string, number>; // prix publiés dans la monnaie du pays (Royaume-Uni : pence/L), mêmes clés que `prix`
+  unite_origine?: string; // « p/L »
 }
 
 // deno-lint-ignore no-explicit-any
