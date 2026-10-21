@@ -20,7 +20,7 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 .totem { background: var(--panel); color: var(--accent); font: 600 20px/1 var(--f-digits); padding: 6px 8px; border-radius: var(--r-sm); display: inline-flex; align-items: flex-start; font-variant-numeric: tabular-nums; letter-spacing: .02em; text-shadow: 0 0 6px color-mix(in srgb, var(--accent) 55%, transparent); white-space: nowrap; }
 .totem sup { font-size: .6em; margin-left: 1px; line-height: 1; }
 .totem .u { font: 500 10px/1 var(--f-body); color: color-mix(in srgb, var(--accent) 70%, var(--panel)); margin-left: 5px; align-self: flex-end; text-shadow: none; }
-.totem.ancien { color: color-mix(in srgb, var(--accent) 45%, var(--panel)); text-shadow: none; }
+.totem.ancien { color: color-mix(in srgb, var(--accent) 60%, var(--panel)); text-shadow: none; } /* contraste ≥ 4,5:1 sur la plaque */
 .roll { display: inline-block; animation: roll .45s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes roll { from { transform: translateY(-60%); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .roll { animation: none; } }

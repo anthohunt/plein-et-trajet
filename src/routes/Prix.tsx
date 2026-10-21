@@ -10,6 +10,7 @@ import { infoPays, moyennesParPays, paysDePosition, prixCarburant, stationsAutou
 import type { MoyennePays } from "../lib/pays";
 import { prix3 } from "../lib/format";
 import { memoriserVille, type Position } from "../lib/position";
+import { communeDuLieu } from "../lib/geocodage";
 import { T } from "../lib/textes";
 
 const CarteStations = lazy(() => import("../components/CarteStations"));
@@ -17,6 +18,7 @@ const RAYON_INITIAL = 10_000;
 
 interface Props {
   position: Position | null;
+  onZone: (libelle: string | null) => void; // en-tête : zone de la carte quand on l'a déplacée, null = autour de la position
   carburant: Carburant;
   setCarburant: (c: Carburant) => void;
   tri: Tri;
@@ -25,7 +27,7 @@ interface Props {
 
 type Etat = "chargement" | "pret" | "erreur";
 
-export default function Prix({ position, carburant, setCarburant, tri, setTri }: Props) {
+export default function Prix({ position, onZone, carburant, setCarburant, tri, setTri }: Props) {
   const nav = useNavigate();
   const [zone, setZone] = useState<Zone | null>(null);
   const [stations, setStations] = useState<Station[] | null>(null);
@@ -110,7 +112,9 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
     return l;
   }, [etat, stations, prix, position, carburant]);
 
-  const seuil = useMemo(() => seuilMoitie(affichees.map((s) => s.prix)), [affichees]);
+  // à égalité de coupures, la moyenne du pays départage : une pastille ne contredit pas l'écart « vs France » de sa ligne
+  const moyenneZone = moyennes.get(affichees[0]?.pays ?? "FR")?.prix_moyen ?? null;
+  const seuil = useMemo(() => seuilMoitie(affichees.map((s) => s.prix), moyenneZone), [affichees, moyenneZone]);
   const pastilles = useMemo(() => affichees.map((s) => ({ ...s, moitie: moitie(s.prix, seuil) })), [affichees, seuil]);
   const liste = useMemo(() => trier(affichees, tri), [affichees, tri]);
 
@@ -143,8 +147,24 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
     return () => document.removeEventListener("keydown", k);
   }, [ouverte, fermer]);
 
+  // carte déplacée : l'en-tête nomme la commune au centre de la carte (« Autour de Gaillac ») ; recentrée ou quittée : la position
+  const zoneNommee = useRef<AbortController | null>(null);
+  const nommerZone = (z: Zone | null) => {
+    zoneNommee.current?.abort();
+    if (!z) return onZone(null);
+    const c = new AbortController();
+    zoneNommee.current = c;
+    communeDuLieu(z.lat, z.lon, c.signal).then((l) => !c.signal.aborted && onZone(l ? T.autourDe(l.label) : T.carteDeplacee));
+  };
+  useEffect(() => () => {
+    zoneNommee.current?.abort();
+    onZone(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const recentrer = () => {
     if (!position) return;
+    nommerZone(null);
     setRecentrage((x) => x + 1);
     setCadrer(true);
     setZone({ lat: position.lat, lon: position.lon, rayonM: RAYON_INITIAL });
@@ -163,6 +183,7 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
           <Suspense fallback={<div className="map-load">{T.chargement}</div>}>
             <CarteStations
               position={position}
+              moi={position.source === "gps"}
               stations={pastilles}
               selection={ouverte?.id ?? null}
               recentrage={recentrage}
@@ -170,15 +191,18 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
               onDeplacement={(z) => {
                 setCadrer(false);
                 setZone(z);
+                nommerZone(z);
               }}
               onPastille={ouvrir}
             />
           </Suspense>
         )}
-        <div className="legend" aria-hidden="true">
-          <span><i style={{ background: "var(--cheap)" }} />{T.legendeBas}</span>
-          <span><i style={{ background: "var(--dear)" }} />{T.legendeHaut}</span>
-        </div>
+        {etat !== "erreur" && (
+          <div className="legend" aria-hidden="true" data-el="legende">
+            <span><i style={{ background: "var(--cheap)" }} />{T.legendeBas}</span>
+            <span><i style={{ background: "var(--dear)" }} />{T.legendeHaut}</span>
+          </div>
+        )}
         <button type="button" className="recentre" aria-label={T.recentrer} title={T.recentrer} data-el="recentrer" onClick={recentrer}>
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="12" r="4" />

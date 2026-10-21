@@ -140,3 +140,16 @@ describe("libellés sans doublon", () => {
     expect(casseTitre("Carrefour Contact")).toBe("Carrefour Contact");
   });
 });
+
+describe("moitié la moins chère, prix à égalité et moyenne nationale (streamline R2, P3)", () => {
+  const couleurs = (p: number[], moy?: number) => { const s = seuilMoitie(p, moy); return p.map((x) => moitie(x, s)); };
+  it("cas E85 Albi (0,858 / 0,879 ×3 / 1,068, moyenne 0,912) : les trois 0,879 sous la moyenne sont vertes, comme leur écart", () => {
+    expect(couleurs([0.858, 0.879, 0.879, 0.879, 1.068], 0.912)).toEqual(["lo", "lo", "lo", "lo", "hi"]);
+  });
+  it("aucune pastille verte au-dessus de la moyenne quand une coupure aussi proche de la moitié l'évite", () => {
+    expect(couleurs([1.99, 2.182, 2.182, 2.182, 2.182, 2.182, 2.191], 2.1)).toEqual(["lo", "hi", "hi", "hi", "hi", "hi", "hi"]);
+  });
+  it("sans égalité de coupures, la moyenne ne change rien", () => {
+    expect(couleurs([2.3, 2.1, 2.2, 2.4], 3)).toEqual(["hi", "lo", "lo", "hi"]);
+  });
+});

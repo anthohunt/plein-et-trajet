@@ -66,21 +66,29 @@ export function trier<T extends StationPrix>(liste: T[], tri: Tri): T[] {
 
 /**
  * Moitié la moins chère : on coupe la liste triée entre deux prix DIFFÉRENTS (deux stations au même prix
- * ont toujours la même couleur), à la coupure la plus proche de la moitié ; à égalité, la plus stricte.
+ * ont toujours la même couleur), à la coupure la plus proche de la moitié.
+ * Deux coupures aussi proches de la moitié (prix à égalité) : celle qui s'accorde le mieux avec la moyenne
+ * nationale (une station sous la moyenne, dont l'écart s'affiche en vert, reste verte) ; sans moyenne, la plus stricte.
  * Dès qu'il y a au moins deux prix distincts, il y a au moins une verte et une orange.
  * Renvoie le prix le plus haut encore « vert » (lo = prix ≤ seuil).
  */
-export function seuilMoitie(prix: number[]): number | null {
+export function seuilMoitie(prix: number[], moyenne?: number | null): number | null {
   if (prix.length === 0) return null;
   const t = prix.slice().sort((a, b) => a - b);
   const n = t.length;
+  // désaccords d'une coupure avec la moyenne : verte au-dessus de la moyenne, ou orange en dessous
+  const desaccords = (k: number) =>
+    moyenne == null || !Number.isFinite(moyenne) ? 0 : t.reduce((s, p, i) => s + ((i < k && p > moyenne) || (i >= k && p < moyenne) ? 1 : 0), 0);
   let meilleur: number | null = null;
   let ecartMin = Infinity;
+  let desaccordMin = Infinity;
   for (let k = 1; k < n; k++) {
     if (t[k] === t[k - 1]) continue; // coupure impossible au milieu d'une égalité
     const e = Math.abs(k - n / 2);
-    if (e < ecartMin) {
+    const d = desaccords(k);
+    if (e < ecartMin || (e === ecartMin && d < desaccordMin)) {
       ecartMin = e;
+      desaccordMin = d;
       meilleur = t[k - 1];
     }
   }

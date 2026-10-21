@@ -26,6 +26,7 @@ export default function App() {
   const [position, setPosition] = useState<Position | null>(null);
   const [carburant, setCarburantEtat] = useState<Carburant>(carburantMemorise);
   const [tri, setTri] = useState<Tri>("prix");
+  const [zone, setZone] = useState<string | null>(null); // carte déplacée : « Autour de <commune> »
   const { admin } = useAdmin();
   const nav = useNavigate();
   const { pathname } = useLocation();
@@ -43,7 +44,7 @@ export default function App() {
     }
   };
 
-  const lieu = position ? (position.source === "gps" ? T.autourDeMoi : position.label) : "…";
+  const lieu = zone ?? (position ? (position.source === "gps" ? T.autourDeMoi : position.label) : "…");
 
   return (
     <div className="app">
@@ -64,7 +65,7 @@ export default function App() {
         <Route path="/trajets" element={<Trajets position={position} />} />
         <Route path="/moteurs" element={<Moteurs />} />
         <Route path="/admin" element={<Admin />} />
-        <Route path="*" element={<Prix position={position} carburant={carburant} setCarburant={setCarburant} tri={tri} setTri={setTri} />} />
+        <Route path="*" element={<Prix position={position} onZone={setZone} carburant={carburant} setCarburant={setCarburant} tri={tri} setTri={setTri} />} />
       </Routes>
       <BarreOnglets />
     </div>

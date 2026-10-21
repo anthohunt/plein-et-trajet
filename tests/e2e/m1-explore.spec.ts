@@ -421,4 +421,94 @@ test.describe("M1 — Les prix autour de moi", () => {
     });
   });
 
+
+  // ---- Streamline R2 : défauts relevés par le vérificateur indépendant (pt-streamline-verif) ----
+  test.describe("Streamline R2 — écran Prix", () => {
+    test("P3 / US-1.4 — prix à égalité : une coupure aussi proche de la moitié qui s'accorde avec l'écart « vs France » est retenue", async ({ page }) => {
+      await ouvrirPrix(page);
+      for (const c of ["E85", "Gazole", "GPLc"]) {
+        await choisir(page, c);
+        await expect(page.locator('[data-el="carte-stations"]')).toHaveAttribute("data-pastilles", /\d+/);
+        await expect(page.locator('[data-el="ecart"]').first()).toBeVisible();
+        // l'écart de chaque ligne (vert = sous la moyenne du pays) sert d'oracle
+        const l = await lignes(page).evaluateAll((els) => els.map((e) => ({ id: (e as HTMLElement).dataset.station!, p: Number(e.querySelector(".totem")!.getAttribute("aria-label")!.match(/\d,\d{3}/)![0].replace(",", ".")), s: e.querySelector('[data-el="ecart"]')?.className.split(" ")[1] ?? "egal" })));
+        const m = new Map(await page.locator('[data-el="pastille-station"]').evaluateAll((els) => els.map((b) => [(b as HTMLElement).dataset.station!, (b as HTMLElement).dataset.moitie!] as [string, string])));
+        const t = l.slice().sort((a, b) => a.p - b.p);
+        const n = t.length;
+        if (new Set(t.map((x) => x.p)).size < 2) continue;
+        const coupures = [];
+        for (let k = 1; k < n; k++) if (t[k].p !== t[k - 1].p) coupures.push({ k, e: Math.abs(k - n / 2), d: t.reduce((s, x, i) => s + ((i < k && x.s === "hi") || (i >= k && x.s === "lo") ? 1 : 0), 0) });
+        const eMin = Math.min(...coupures.map((x) => x.e));
+        const dMin = Math.min(...coupures.filter((x) => x.e === eMin).map((x) => x.d));
+        const k = coupures.find((x) => x.e === eMin && x.d === dMin)!.k;
+        for (let i = 0; i < n; i++) expect(m.get(t[i].id), `${c} ${t[i].p}`).toBe(i < k ? "lo" : "hi");
+      }
+    });
+
+    test.describe("P4 — position refusée", () => {
+      test.use({ permissions: [] });
+      test("P4 — position refusée : pas de point bleu « vous êtes ici » au centre de repli", async ({ page }) => {
+        await page.goto("/");
+        await expect(page.locator('[data-el="message-localisation"]')).toBeVisible();
+        await expect(lignes(page).first()).toBeVisible();
+        await expect(page.locator(".maplibregl-marker.me, .me")).toHaveCount(0);
+      });
+    });
+    test("P4 — position GPS : le point bleu est là", async ({ page }) => {
+      await ouvrirPrix(page);
+      await expect(page.locator(".me")).toHaveCount(1);
+    });
+
+    test("P5 — fiche modale : aria-modal, Tab et Maj+Tab restent dans la fiche", async ({ page }) => {
+      await ouvrirPrix(page);
+      await lignes(page).first().click();
+      const fiche = page.locator('[data-el="fiche-station"]');
+      await expect(fiche).toHaveAttribute("aria-modal", "true");
+      await expect(page.locator("#sh-name")).toBeFocused();
+      for (const touche of ["Tab", "Tab", "Tab", "Tab", "Tab", "Shift+Tab", "Shift+Tab", "Shift+Tab", "Shift+Tab", "Shift+Tab"]) {
+        await page.keyboard.press(touche);
+        expect(await page.evaluate(() => !!document.activeElement?.closest('[data-el="fiche-station"]')), touche).toBe(true);
+      }
+    });
+
+    test("P6 / US-1.E3 — plaque d'un prix ancien : contraste ≥ 4,5:1 sur la plaque", async ({ page }) => {
+      await ouvrirPrix(page);
+      const r = await page.evaluate(() => {
+        document.body.insertAdjacentHTML("beforeend", '<span class="totem ancien" id="essai-ancien">1,234</span>');
+        const e = document.getElementById("essai-ancien")!;
+        // « rgb(r, g, b) » ou, pour un color-mix, « color(srgb r g b) » en 0..1
+        const rgb = (s: string) => { const v = s.match(/[\d.]+/g)!.slice(0, 3).map(Number); return s.startsWith("color(") ? v.map((x) => x * 255) : v; };
+        const lum = (c: number[]) => { const v = c.map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+        const a = lum(rgb(getComputedStyle(e).color)), b = lum(rgb(getComputedStyle(e).backgroundColor));
+        return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      });
+      expect(r).toBeGreaterThanOrEqual(4.5);
+    });
+
+    test("P7 — carte déplacée : l'en-tête nomme la zone ; recentrée : « Autour de moi »", async ({ page }) => {
+      await ouvrirPrix(page);
+      await expect(page.locator('[data-el="lieu"]')).toHaveText("Autour de moi");
+      const ec = await page.evaluate(() => {
+        const m = (window as any).__carte, a = m.project([1.897, 43.905]), c = m.project(m.getCenter()), r = m.getContainer().getBoundingClientRect();
+        const dx = c.x - a.x, dy = c.y - a.y, k = Math.min(1, (r.width - 60) / Math.abs(dx || 1), (r.height - 70) / Math.abs(dy || 1));
+        return { dx: dx * k, dy: dy * k };
+      });
+      await glisser(page, ec.dx, ec.dy);
+      await expect(page.locator('[data-el="lieu"]')).toHaveText(/^Autour d(e |')(?!moi)/, { timeout: 15000 });
+      await page.locator('[data-el="recentrer"]').click();
+      await expect(page.locator('[data-el="lieu"]')).toHaveText("Autour de moi");
+    });
+
+    // MOCKED: page.route — coupure réseau de la lecture des prix (comme US-1.E1)
+    test("P7 — prix en erreur : la légende « moins cher / plus cher » n'est pas affichée", async ({ page }) => {
+      await page.route("**/rest/v1/prix*", (r) => r.abort());
+      await page.goto("/");
+      await expect(page.locator('[data-el="etat-erreur"]')).toBeVisible();
+      await expect(page.locator('[data-el="legende"]')).toHaveCount(0);
+      await page.unroute("**/rest/v1/prix*");
+      await page.getByRole("button", { name: "Réessayer" }).click();
+      await expect(lignes(page).first()).toBeVisible();
+      await expect(page.locator('[data-el="legende"]')).toBeVisible();
+    });
+  });
 });

@@ -10,6 +10,8 @@ export const T = {
   recentrer: "Recentrer sur ma position",
   vousEtesIci: "Vous êtes ici",
   autourDeMoi: "Autour de moi",
+  autourDe: (lieu: string) => (/^[aeiouyàâäéèêëîïôöùûü]/i.test(lieu) ? `Autour d'${lieu}` : `Autour de ${lieu}`),
+  carteDeplacee: "Carte déplacée",
   legendeBas: "moins cher",
   legendeHaut: "plus cher",
   stations: (c: string) => `Stations · ${c}`,

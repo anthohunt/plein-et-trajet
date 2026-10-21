@@ -21,6 +21,7 @@ export interface Zone {
 
 interface Props {
   position: { lat: number; lon: number };
+  moi: boolean; // vrai seulement si la position vient du GPS : centre de repli (localisation refusée) = pas de « vous êtes ici »
   stations: (StationAffichee & { moitie: "lo" | "hi" })[];
   selection: string | null;
   recentrage: number; // incrémenté pour demander un recentrage
@@ -86,7 +87,7 @@ function disposer(map: maplibregl.Map, marques: Marque[]) {
   }
 }
 
-export default function CarteStations({ position, stations, selection, recentrage, cadrer, onDeplacement, onPastille }: Props) {
+export default function CarteStations({ position, moi: estIci, stations, selection, recentrage, cadrer, onDeplacement, onPastille }: Props) {
   const conteneur = useRef<HTMLDivElement>(null);
   const carte = useRef<maplibregl.Map | null>(null);
   const marques = useRef<Marque[]>([]);
@@ -135,12 +136,6 @@ export default function CarteStations({ position, stations, selection, recentrag
     });
     map.on("resize", () => disposer(map, marques.current));
     carte.current = map;
-    const el = document.createElement("div");
-    el.className = "me";
-    el.title = T.vousEtesIci;
-    el.setAttribute("role", "img");
-    el.setAttribute("aria-label", T.vousEtesIci);
-    moi.current = new maplibregl.Marker({ element: el }).setLngLat([position.lon, position.lat]).addTo(map);
     (window as unknown as { __carte?: maplibregl.Map }).__carte = map; // inspection par les tests e2e
     return () => {
       map.remove();
@@ -149,9 +144,25 @@ export default function CarteStations({ position, stations, selection, recentrag
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // « vous êtes ici » : seulement quand la position vient du GPS
   useEffect(() => {
-    moi.current?.setLngLat([position.lon, position.lat]);
-  }, [position.lat, position.lon]);
+    const map = carte.current;
+    if (!map) return;
+    if (!estIci) {
+      moi.current?.remove();
+      moi.current = null;
+      return;
+    }
+    if (!moi.current) {
+      const el = document.createElement("div");
+      el.className = "me";
+      el.dataset.el = "vous-etes-ici";
+      el.title = T.vousEtesIci;
+      el.setAttribute("role", "img");
+      el.setAttribute("aria-label", T.vousEtesIci);
+      moi.current = new maplibregl.Marker({ element: el }).setLngLat([position.lon, position.lat]).addTo(map);
+    } else moi.current.setLngLat([position.lon, position.lat]);
+  }, [estIci, position.lat, position.lon]);
 
   // recentrage demandé : retour immédiat sur la position (le cadrage suit quand la liste est rechargée)
   useEffect(() => {

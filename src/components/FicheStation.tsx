@@ -1,5 +1,5 @@
 // Fiche station (S2) : feuille montante, tous les carburants ou « non vendu », focus et Échap.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { CARBURANTS, anciennete, distance } from "../lib/format";
 import { coursDuJour, prixStation, type Cours, type LignePrix } from "../lib/donnees";
 import { fmt } from "../lib/calcul";
@@ -19,6 +19,7 @@ export function adresseComplete(s: { adresse: string | null; cp: string | null; 
 
 export function FicheStation({ station, onFermer, onTrajet }: Props) {
   const titre = useRef<HTMLHeadingElement>(null);
+  const feuille = useRef<HTMLDivElement>(null);
   const [lignes, setLignes] = useState<LignePrix[] | null>(null);
   const [erreur, setErreur] = useState(false);
   const [cours, setCours] = useState<Cours | null>(null);
@@ -60,8 +61,25 @@ export function FicheStation({ station, onFermer, onTrajet }: Props) {
   // le nom déclaré n'est montré que s'il n'est pas déjà dans le titre
   const nomEnPlus = station.nom && !station.libelle.toLowerCase().includes(station.nom.toLowerCase()) ? station.nom : null;
 
+  // fiche modale : Tab et Maj+Tab tournent dans la fiche, sans passer aux onglets ni à la liste cachée dessous
+  const pieger = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "Tab" || !feuille.current) return;
+    const f = [...feuille.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input, select, [tabindex]:not([tabindex="-1"])')].filter((x) => x.offsetParent !== null);
+    if (f.length === 0) return;
+    const premier = f[0];
+    const dernier = f[f.length - 1];
+    const ici = document.activeElement;
+    if (e.shiftKey && (ici === premier || ici === titre.current || !feuille.current.contains(ici))) {
+      e.preventDefault();
+      dernier.focus();
+    } else if (!e.shiftKey && (ici === dernier || !feuille.current.contains(ici))) {
+      e.preventDefault();
+      premier.focus();
+    }
+  };
+
   return (
-    <div className="sheet" role="dialog" aria-modal="false" aria-labelledby="sh-name" data-el="fiche-station" data-station={station.id}>
+    <div className="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-name" data-el="fiche-station" data-station={station.id} ref={feuille} onKeyDown={pieger}>
       <div className="grip" aria-hidden="true" />
       <div className="sh-head">
         <div>
