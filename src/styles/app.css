@@ -228,3 +228,40 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 .stt.wait { background: color-mix(in srgb, var(--muted) 18%, transparent); color: var(--muted); }
 .lien-cle a { color: var(--ink); font-weight: 600; text-underline-offset: 3px; }
 .pin-wrap[data-masquee="oui"], .pin-wrap[data-masquee="oui"] .pin { opacity: 0; pointer-events: none; }
+
+/* ---------- jalon 4 : enregistrer en roulant (maquette v4, S6 et bloc « Ma vitesse enregistrée » de S4) ---------- */
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.recbtn { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.recdot { width: 10px; height: 10px; border-radius: 50%; background: var(--dear); flex: none; }
+.etat-enr { border: 1px solid var(--line); border-left: 3px solid var(--dear); border-radius: 10px; padding: 10px 12px; display: grid; gap: 6px; }
+.etat-enr p { margin: 0; }
+.etat-enr .t { font-weight: 600; }
+.etat-enr .d { color: var(--muted); font-size: 14px; }
+.reprise { margin: 12px 16px 0; border: 1px solid var(--line); border-left: 3px solid var(--dear); border-radius: 10px; padding: 10px 12px; display: grid; gap: 8px; }
+.reprise p { margin: 0; }
+.reprise .t { font-weight: 600; }
+.reprise .d { color: var(--muted); font-size: 14px; }
+.etat-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.live { margin: 10px 16px 0; background: var(--panel); border-radius: 14px; padding: 14px 14px 12px; color: var(--on-panel); display: grid; gap: 10px; }
+.live .lab { font: 600 11px/1 var(--f-body); text-transform: uppercase; letter-spacing: .08em; color: var(--on-panel-muted); }
+.speed { display: flex; align-items: flex-end; gap: 8px; }
+.speed .totem { background: transparent; padding: 0; font-size: 72px; }
+.speed .totem .u { font-size: 16px; }
+.lgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.lgrid b { display: block; font: 600 19px var(--f-digits); color: var(--accent); font-variant-numeric: tabular-nums; }
+.lgrid span { font-size: 11px; color: var(--on-panel-muted); }
+.spark { width: 100%; height: 56px; display: block; }
+.recstate { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin: 10px 16px 0; flex-wrap: wrap; }
+.recstate .on { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--dear); }
+.recstate .on.pause { color: var(--muted); }
+.recstate .on i { width: 9px; height: 9px; border-radius: 50%; background: var(--dear); animation: clignote 1.2s steps(2) infinite; }
+@keyframes clignote { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .recstate .on i { animation: none; } }
+.gps-perdu { margin: 10px 16px 0; border-radius: 10px; padding: 10px 12px; background: color-mix(in srgb, var(--dear) 14%, transparent); color: var(--ink); display: grid; gap: 4px; font-size: 14px; }
+.gps-perdu b { color: var(--dear); text-transform: uppercase; letter-spacing: .04em; }
+.rec-note { margin-top: 10px; }
+.recbar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 8px; margin: 12px 16px 16px; }
+.trace { margin: 12px 16px 0; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.trace .h { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+.trace svg { width: 100%; height: 70px; display: block; margin-top: 6px; }
+.note.manche { margin-top: 8px; }

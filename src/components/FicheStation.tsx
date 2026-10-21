@@ -1,7 +1,8 @@
 // Fiche station (S2) : feuille montante, tous les carburants ou « non vendu », focus et Échap.
 import { useEffect, useRef, useState } from "react";
 import { CARBURANTS, anciennete, distance } from "../lib/format";
-import { prixStation, type LignePrix } from "../lib/donnees";
+import { coursDuJour, prixStation, type Cours, type LignePrix } from "../lib/donnees";
+import { fmt } from "../lib/calcul";
 import { T } from "../lib/textes";
 import { TotemPrix } from "./TotemPrix";
 import type { StationAffichee } from "./LigneStation";
@@ -20,6 +21,7 @@ export function FicheStation({ station, onFermer, onTrajet }: Props) {
   const titre = useRef<HTMLHeadingElement>(null);
   const [lignes, setLignes] = useState<LignePrix[] | null>(null);
   const [erreur, setErreur] = useState(false);
+  const [cours, setCours] = useState<Cours | null>(null);
 
   useEffect(() => {
     titre.current?.focus({ preventScroll: true });
@@ -36,6 +38,17 @@ export function FicheStation({ station, onFermer, onTrajet }: Props) {
       actif = false;
     };
   }, [station.id]);
+
+  // Royaume-Uni (US-1.9) : prix publiés en pence/L, convertis au cours BCE du jour (cité)
+  const origines = (lignes ?? []).filter((l) => l.prix_origine != null && l.unite_origine && !l.rupture);
+  const enPence = origines.some((l) => l.unite_origine === "p/L");
+  useEffect(() => {
+    let actif = true;
+    if (enPence) coursDuJour("GBP").then((c) => actif && setCours(c));
+    return () => {
+      actif = false;
+    };
+  }, [enPence]);
 
   const parCarburant = new Map((lignes ?? []).map((l) => [l.carburant, l]));
   const derniereMaj = (lignes ?? [])
@@ -83,6 +96,23 @@ export function FicheStation({ station, onFermer, onTrajet }: Props) {
               </div>
             );
           })}
+        </div>
+      )}
+      {origines.length > 0 && (
+        <div className="meta orig" data-el="prix-origine">
+          {CARBURANTS.filter((c) => origines.some((l) => l.carburant === c)).map((c) => {
+            const l = origines.find((x) => x.carburant === c)!;
+            return (
+              <span key={c} data-carburant={c} data-origine={l.prix_origine}>
+                {c} {T.prixOrigine(fmt(l.prix_origine as number, 1), l.unite_origine as string)}
+              </span>
+            );
+          })}
+          {cours && (
+            <span data-el="cours-du-jour" data-taux={cours.taux}>
+              {T.coursDuJour(fmt(cours.taux, 4), new Date(cours.jour).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }))}
+            </span>
+          )}
         </div>
       )}
       <div className="meta" data-el="fiche-meta">

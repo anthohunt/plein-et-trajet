@@ -6,6 +6,7 @@ import { prix3 } from "../lib/format";
 import type { Estimation } from "../lib/trajets";
 import { T } from "../lib/textes";
 import { TotemPrix } from "./TotemPrix";
+import { cheminCourbe } from "./EnRoute";
 
 export interface DonneesResultat {
   departLabel: string;
@@ -14,6 +15,7 @@ export interface DonneesResultat {
   moyennes: Map<string, MoyennePays>; // prix moyen du jour par pays (€/L) du carburant de la voiture
   historiqueEchec: boolean;
   rejoue: boolean; // trajet de l'historique recalculé au prix du jour (US-3.6)
+  enregistre?: { vitesses: number[]; vitesse_moy: number; accelerations: number }; // jalon 4 : trajet enregistré en roulant
 }
 export type EtatResultat =
   | { genre: "ok"; donnees: DonneesResultat }
@@ -32,7 +34,7 @@ export function Resultat({ etat, onRetour, onReessayer }: Props) {
   useEffect(() => {
     titre.current?.focus({ preventScroll: true });
   }, []);
-  const route = `${etat.genre === "ok" ? etat.donnees.departLabel : etat.departLabel} ${T.fleche} ${etat.genre === "ok" ? etat.donnees.arriveeLabel : etat.arriveeLabel}`;
+  const route = `${etat.genre === "ok" ? etat.donnees.departLabel : etat.departLabel} ${T.fleche} ${etat.genre === "ok" ? etat.donnees.arriveeLabel : etat.arriveeLabel}${etat.genre === "ok" && etat.donnees.enregistre ? ` ${T.enregistreSuffixe}` : ""}`;
 
   return (
     <section className="screen" data-screen="S4" role="tabpanel" id="panneau-trajets" aria-labelledby="onglet-trajets" data-etat={etat.genre}>
@@ -217,6 +219,17 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
           </p>
         )}
       </div>
+      {d.enregistre && (
+        <div className="trace" data-el="courbe-vitesse">
+          <div className="h">
+            <span>{T.maVitesse}</span>
+            <span data-el="vitesse-info" data-moy={d.enregistre.vitesse_moy} data-acc={d.enregistre.accelerations}>{T.vitesseInfo(d.enregistre.vitesse_moy, d.enregistre.accelerations)}</span>
+          </div>
+          <svg viewBox="0 0 300 70" preserveAspectRatio="none" role="img" aria-label={T.courbeTrajet} data-points={d.enregistre.vitesses.length}>
+            <path d={cheminCourbe(d.enregistre.vitesses, 300, 70, Math.max(140, ...d.enregistre.vitesses))} fill="none" stroke="var(--ink)" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+          </svg>
+        </div>
+      )}
       {e.avertissements.includes("altimetrie_indisponible") && <p className="note" role="status">{T.altiIndispo}</p>}
       {d.historiqueEchec && <p className="note" role="status">{T.sauvegardeHistErreur}</p>}
       <h2 className="sec">{T.peagesTitre}</h2>
@@ -248,12 +261,14 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
             <span>
               <b>{l.code}</b> {l.nom} · {Math.round(l.km)} {T.km} · {l.prix == null ? T.prixAbsent : T.paysLigne2(fmt(l.litres, 1), fmt(l.prix, 3))}
               {l.source === "ue" && <small className="pl-note" data-el="prix-non-publie"> — {T.prixNonPublie}</small>}
+              {l.source === "flux" && l.code === "GB" && <small className="pl-note" data-el="prix-flux-pays"> — {T.prixFluxPays((d.moyennes.get(l.code)?.nb_stations ?? 0).toLocaleString("fr-FR"))}</small>}
               {l.source === "estime" && <small className="pl-note"> — {T.prixEstime}</small>}
             </span>
             <span className="lit">{l.cout == null ? "—" : `${euros(l.cout)} ${T.euro}`}</span>
           </li>
         ))}
       </ul>
+      {e.traversee_manche && <p className="note manche" data-el="manche-non-comptee">{T.mancheNonComptee}</p>}
       <h2 className="sec">{T.consommationTitre}</h2>
       <ul className="segs" data-el="troncons">
         {e.troncons.map((t, i) => {
@@ -281,7 +296,7 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
           );
         })}
       </ul>
-      <p className="note">{T.noteEstimation}</p>
+      <p className="note" data-el={d.enregistre ? "note-roule" : "note-estimation"}>{d.enregistre ? T.noteRoule : T.noteEstimation}</p>
     </div>
   );
 }

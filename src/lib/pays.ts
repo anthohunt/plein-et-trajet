@@ -11,6 +11,7 @@ export interface MoyennePays {
   prix_moyen: number;
   source: string; // flux | bulletin | estime
   jour: string;
+  nb_stations?: number; // jalon 4 : nombre de stations de la moyenne du jour (0 pour le Bulletin)
 }
 export interface LignePays extends PaysTraverse {
   prix: number | null;

@@ -28,8 +28,9 @@ export interface Estimation {
   troncons: Troncon[];
   pays: PaysTraverse[];
   peages: Peages;
-  itineraire: { fournisseur: string };
+  itineraire: { fournisseur: string; recalage?: boolean };
   avertissements: string[];
+  traversee_manche?: boolean; // US-3.9 : traversée de la Manche (tunnel ou ferry) non comptée
 }
 
 export type CodeErreur = "pas_itineraire" | "indisponible" | "annule" | "trop_long" | "hors_couverture";
@@ -80,11 +81,16 @@ export interface TrajetEnregistre {
   cout: number | null;
   troncons: Troncon[];
   cree_le: string;
+  enregistre?: boolean; // jalon 4 : trajet enregistré en roulant
+  vitesses?: number[] | null;
+  vitesse_moy?: number | null;
+  accelerations?: number | null;
+  estimation?: Estimation | null; // résultat du trajet roulé, réaffiché tel quel
 }
 
 function normaliser(t: Record<string, unknown>): TrajetEnregistre {
   const n = (x: unknown) => (x == null ? null : Number(x));
-  return { ...(t as unknown as TrajetEnregistre), km: Number(t.km), litres: Number(t.litres), prix_litre: n(t.prix_litre), cout: n(t.cout) };
+  return { ...(t as unknown as TrajetEnregistre), km: Number(t.km), litres: Number(t.litres), prix_litre: n(t.prix_litre), cout: n(t.cout), vitesse_moy: n(t.vitesse_moy) };
 }
 
 /** rest/v1/trajets : historique de l'utilisateur anonyme (RLS), le plus récent en tête. */
@@ -129,6 +135,7 @@ export async function enregistrerTrajet(e: EntreeTrajet): Promise<TrajetEnregist
     .eq("depart_label", ligne.depart_label)
     .eq("arrivee_label", ligne.arrivee_label)
     .eq("vehicule_id", ligne.vehicule_id)
+    .eq("enregistre", false) // un trajet roulé n'est jamais remplacé par un calcul
     .limit(1)
     .maybeSingle();
   if (errLecture) throw new Error(errLecture.message);

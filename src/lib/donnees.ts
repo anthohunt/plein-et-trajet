@@ -24,6 +24,8 @@ export interface LignePrix {
   prix: number | null;
   maj: string | null;
   rupture: boolean;
+  prix_origine?: number | null; // jalon 4 : prix publié dans la monnaie du pays (Royaume-Uni : pence/L)
+  unite_origine?: string | null;
 }
 
 /** rpc/stations_autour : stations dans le rayon, avec distance au point demandé. */
@@ -48,11 +50,24 @@ export async function prixCarburant(carburant: Carburant, ids: string[]): Promis
   return data.map((l) => ({ ...l, prix: l.prix == null ? null : Number(l.prix) })) as LignePrix[];
 }
 
-/** rest/v1/prix : tous les carburants d'une station (fiche). */
+/** rest/v1/prix : tous les carburants d'une station (fiche), avec le prix d'origine hors zone euro. */
 export async function prixStation(id: string): Promise<LignePrix[]> {
-  const { data, error } = await supabase.from("prix").select("station_id,carburant,prix,maj,rupture").eq("station_id", id);
+  const { data, error } = await supabase.from("prix").select("station_id,carburant,prix,maj,rupture,prix_origine,unite_origine").eq("station_id", id);
   if (error) throw new Error(error.message || "lecture des prix impossible");
-  return (data ?? []).map((l) => ({ ...l, prix: l.prix == null ? null : Number(l.prix) })) as LignePrix[];
+  return (data ?? []).map((l) => ({ ...l, prix: l.prix == null ? null : Number(l.prix), prix_origine: l.prix_origine == null ? null : Number(l.prix_origine) })) as LignePrix[];
+}
+
+export interface Cours {
+  monnaie: string;
+  taux: number; // unités de la monnaie pour 1 €
+  jour: string;
+  source: string;
+}
+/** rest/v1/cours_change : cours de référence BCE du jour, utilisé pour convertir les prix publiés hors zone euro. */
+export async function coursDuJour(monnaie: string): Promise<Cours | null> {
+  const { data, error } = await supabase.from("cours_change").select("monnaie,taux,jour,source").eq("monnaie", monnaie).maybeSingle();
+  if (error || !data) return null;
+  return { ...data, taux: Number(data.taux) } as Cours;
 }
 
 /** rest/v1/moyennes_nationales : dernière moyenne nationale connue du carburant. */

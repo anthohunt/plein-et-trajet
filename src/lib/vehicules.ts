@@ -11,8 +11,12 @@ export interface Vehicule {
   carburant: Carburant;
   masse_kg: number;
   puissance_kw: number;
+  conso_basse?: number; // L/100 km WLTP par phase (jalon 4 : calcul en direct de l'écran En route)
+  conso_moyenne?: number;
+  conso_haute?: number;
+  conso_tres_haute?: number;
 }
-const COLONNES = "id,marque,modele,motorisation,carburant,masse_kg,puissance_kw";
+const COLONNES = "id,marque,modele,motorisation,carburant,masse_kg,puissance_kw,conso_basse,conso_moyenne,conso_haute,conso_tres_haute";
 
 /** rpc/vehicules_marques */
 export async function marques(): Promise<string[]> {
@@ -42,7 +46,8 @@ export async function vehiculeParId(id: string): Promise<Vehicule | null> {
 }
 
 function normaliser(v: Record<string, unknown>): Vehicule {
-  return { ...(v as unknown as Vehicule), masse_kg: Number(v.masse_kg), puissance_kw: Number(v.puissance_kw) };
+  const n = (x: unknown) => (x == null ? undefined : Number(x));
+  return { ...(v as unknown as Vehicule), masse_kg: Number(v.masse_kg), puissance_kw: Number(v.puissance_kw), conso_basse: n(v.conso_basse), conso_moyenne: n(v.conso_moyenne), conso_haute: n(v.conso_haute), conso_tres_haute: n(v.conso_tres_haute) };
 }
 
 export interface Preference {

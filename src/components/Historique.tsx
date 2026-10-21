@@ -41,6 +41,7 @@ export function Historique({ etat, trajets, occupe, erreurSuppression, erreurRej
                   <br />
                   <span className="m">
                     {fmt(t.km, 0)} {T.km} · {dateCourte(t.cree_le)}
+                    {t.enregistre && <> · <span data-el="historique-enregistre">{T.histEnregistre}</span></>}
                   </span>
                 </button>
                 <span className="c">{coutHistorique(t.cout)}</span>

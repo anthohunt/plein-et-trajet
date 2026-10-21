@@ -9,13 +9,23 @@ import { distanceKm } from "../lib/format";
 import { moyennesParPays } from "../lib/donnees";
 import { sessionAnonyme } from "../lib/session";
 import { ErreurCalcul, enregistrerTrajet, estimerTrajet, listerTrajets, supprimerTrajet, type TrajetEnregistre } from "../lib/trajets";
+
 import { useVoiture } from "../lib/useVoiture";
 import { ChampLieu } from "../components/ChampLieu";
 import { ChoixVoiture } from "../components/ChoixVoiture";
 import { Historique, type EtatHistorique } from "../components/Historique";
 import { Resultat, type EtatResultat } from "../components/Resultat";
+import { EnRoute, dureeTexte } from "../components/EnRoute";
+import { ErreurRoule, calculerTrajetRoule, enregistrerTrajetRoule, garderEnCours, lireEnCours, oublierEnCours, paysDePosition, vehiculeRoule, type EnregistrementEnCours, type EstimationRoulee } from "../lib/enRoute";
+import { enDirect } from "../../supabase/functions/_shared/roule.ts";
+import { fmt } from "../lib/calcul";
+import type { Estimation } from "../lib/trajets";
 
-type Phase = "formulaire" | "calcul" | "resultat";
+/** Bloc « Ma vitesse enregistrée » d'un trajet roulé. */
+const resumeRoule = (e: EstimationRoulee) => ({ vitesses: e.enregistre.vitesses, vitesse_moy: e.enregistre.vitesse_moy, accelerations: e.enregistre.accelerations });
+
+type Phase = "formulaire" | "calcul" | "resultat" | "enroute" | "calcul-roule" | "trop-court" | "erreur-roule";
+type MessageEnregistrer = "refusee" | "indisponible" | "sans-voiture" | null;
 interface Demande {
   depart: Lieu;
   arrivee: Lieu;
@@ -51,6 +61,13 @@ export default function Trajets() {
   const controleur = useRef<AbortController | null>(null);
   const derniere = useRef<Demande | null>(null);
   const retourFocus = useRef<string | null>(null); // « calculer » ou « trajet:<id> » : l'élément qui a ouvert le résultat
+  // enregistrement en roulant (S6) : gardé sur le téléphone ; au chargement, un enregistrement trouvé est proposé à la reprise
+  const [enCours, setEnCours] = useState<EnregistrementEnCours | null>(() => lireEnCours());
+  const [reprise, setReprise] = useState(() => lireEnCours() != null);
+  const [demarrage, setDemarrage] = useState(false);
+  const [messageEnr, setMessageEnr] = useState<MessageEnregistrer>(null);
+  const [kmTropCourt, setKmTropCourt] = useState(0);
+  const [prixDirect, setPrixDirect] = useState<{ valeur: number; pays: string } | null>(null);
 
   useEffect(() => () => controleur.current?.abort(), []);
 
@@ -81,6 +98,24 @@ export default function Trajets() {
       .then(rafraichirHistorique)
       .catch(() => setEtatHist("erreur"));
   }, [rafraichirHistorique]);
+
+  // coût en direct : prix moyen du jour du pays du départ (repli : moyenne européenne)
+  const paysEnCours = enCours?.pays ?? null;
+  const carburantEnCours = enCours?.veh.carburant ?? null;
+  useEffect(() => {
+    if (!carburantEnCours) return;
+    let actif = true;
+    moyennesParPays(carburantEnCours)
+      .then((m) => {
+        const code = paysEnCours ?? "FR";
+        const p = m.get(code) ?? m.get("EU");
+        if (actif) setPrixDirect(p ? { valeur: p.prix_moyen, pays: m.get(code) ? code : "UE" } : null);
+      })
+      .catch(() => actif && setPrixDirect(null));
+    return () => {
+      actif = false;
+    };
+  }, [carburantEnCours, paysEnCours]);
 
   // retour au formulaire : le focus revient sur l'élément qui avait lancé le calcul
   useEffect(() => {
@@ -139,6 +174,123 @@ export default function Trajets() {
       setResultat(pasDeRoute ? { genre: "pas_itineraire", ...noms, memeLieu } : { genre: "erreur", ...noms });
       setPhase("resultat");
     }
+  };
+
+  // US-6.1 / 6.E1 : la localisation est demandée ; refusée → message, aucun trajet créé
+  const enregistrer = () => {
+    if (demarrage) return;
+    setMessageEnr(null);
+    const v = voiture.vehicule;
+    const veh = v ? vehiculeRoule(v) : null;
+    if (!v || !veh) {
+      setMessageEnr("sans-voiture");
+      setErreurs((er) => ({ ...er, voiture: T.choisisVoiture }));
+      return;
+    }
+    if (!("geolocation" in navigator)) {
+      setMessageEnr("indisponible");
+      return;
+    }
+    setDemarrage(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const t = pos.timestamp || Date.now();
+        const e: EnregistrementEnCours = {
+          version: 1,
+          vehiculeId: v.id,
+          vehiculeLibelle: `${v.marque} ${v.motorisation.toLowerCase().includes(v.modele.toLowerCase()) ? v.motorisation : `${v.modele} ${v.motorisation}`} · ${v.carburant}`,
+          veh,
+          debut: t,
+          points: [[t, pos.coords.latitude, pos.coords.longitude, 0]],
+          pauses: [],
+          enPause: false,
+          segment: 0,
+          pays: null,
+        };
+        garderEnCours(e);
+        setEnCours(e);
+        setReprise(false);
+        setDemarrage(false);
+        setPhase("enroute");
+        paysDePosition(pos.coords.latitude, pos.coords.longitude).then((code) => {
+          if (!code) return;
+          setEnCours((prec) => {
+            if (!prec || prec.pays) return prec;
+            const n = { ...prec, pays: code };
+            garderEnCours(n);
+            return n;
+          });
+        });
+      },
+      (err) => {
+        setDemarrage(false);
+        setMessageEnr(err.code === err.PERMISSION_DENIED ? "refusee" : "indisponible");
+        requestAnimationFrame(() => document.getElementById("message-enregistrer")?.focus());
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 },
+    );
+  };
+
+  const reprendreEnregistrement = () => {
+    setReprise(false);
+    setPhase("enroute");
+  };
+
+  // US-6.5 / 6.E2 : arrêt → moins de 1 km : « trop court », rien dans l'historique ; sinon calcul sur la vitesse réelle
+  const arreterEnregistrement = async () => {
+    const e = enCours ?? lireEnCours();
+    if (!e) return;
+    setReprise(false);
+    const km = enDirect(e.points, e.pauses, e.debut, Date.now(), e.veh, true).km;
+    if (km < 1) {
+      oublierEnCours();
+      setEnCours(null);
+      setKmTropCourt(km);
+      setPhase("trop-court");
+      return;
+    }
+    setPhase("calcul-roule");
+    try {
+      const est = await calculerTrajetRoule(e.points, e.vehiculeId);
+      const moyennes = await moyennesParPays(est.vehicule.carburant).catch(() => new Map());
+      const repartition = repartirCouts(est.pays, moyennes, null);
+      const cout = coutTotal(repartition.carburant, est.peages);
+      const moyenne = repartition.carburant == null || est.litres <= 0 ? null : Math.round((repartition.carburant / est.litres) * 1000) / 1000;
+      const dep = est.enregistre.depart.label ?? T.lieuDepartInconnu;
+      const arr = est.enregistre.arrivee.label ?? T.lieuArriveeInconnu;
+      let historiqueEchec = false;
+      try {
+        await enregistrerTrajetRoule(est, dep, arr, moyenne, cout);
+      } catch {
+        historiqueEchec = true;
+      }
+      oublierEnCours();
+      setEnCours(null);
+      await rafraichirHistorique();
+      retourFocus.current = "calculer";
+      setResultat({ genre: "ok", donnees: { departLabel: dep, arriveeLabel: arr, estimation: est, moyennes, historiqueEchec, rejoue: false, enregistre: resumeRoule(est) } });
+      setPhase("resultat");
+    } catch (err) {
+      if (err instanceof ErreurRoule && err.code === "trop_court") {
+        oublierEnCours();
+        setEnCours(null);
+        setKmTropCourt(km);
+        setPhase("trop-court");
+        return;
+      }
+      setPhase("erreur-roule"); // les points restent gardés sur le téléphone
+    }
+  };
+
+  // un trajet roulé de l'historique est réaffiché tel qu'enregistré, aux prix moyens du jour
+  const revoirRoule = async (t: TrajetEnregistre) => {
+    const est = t.estimation as EstimationRoulee | Estimation | null | undefined;
+    if (!est) return rejouer(t);
+    retourFocus.current = `trajet:${t.id}`;
+    const moyennes = await moyennesParPays(est.vehicule.carburant).catch(() => new Map());
+    const enr = "enregistre" in est && est.enregistre ? resumeRoule(est as EstimationRoulee) : { vitesses: t.vitesses ?? [], vitesse_moy: Number(t.vitesse_moy ?? 0), accelerations: t.accelerations ?? 0 };
+    setResultat({ genre: "ok", donnees: { departLabel: t.depart_label, arriveeLabel: t.arrivee_label, estimation: est, moyennes, historiqueEchec: false, rejoue: false, enregistre: enr } });
+    setPhase("resultat");
   };
 
   const annuler = () => {
@@ -236,6 +388,39 @@ export default function Trajets() {
       </section>
     );
   }
+  if (phase === "enroute" && enCours) {
+    return <EnRoute e={enCours} setE={setEnCours} prix={prixDirect} onArreter={arreterEnregistrement} />;
+  }
+  if (phase === "calcul-roule") {
+    return (
+      <section className="screen" data-screen="S4" data-etat="calcul" role="tabpanel" id="panneau-trajets" aria-labelledby="onglet-trajets">
+        <div className="scroll">
+          <div className="calcul" data-el="calcul-en-cours">
+            <p className="t" role="status">{T.calculRoule}</p>
+            <p className="d">{T.calculRouleDetail}</p>
+            <div className="chargeur" aria-hidden="true"><i /></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+  if (phase === "trop-court" || phase === "erreur-roule") {
+    const court = phase === "trop-court";
+    return (
+      <section className="screen" data-screen="S6" data-etat={phase} role="tabpanel" id="panneau-trajets" aria-labelledby="onglet-trajets">
+        <div className="scroll">
+          <div className="etat" data-el={court ? "trajet-trop-court" : "erreur-roule"}>
+            <p className="t" role="alert">{court ? T.tropCourt : T.rouleErreur}</p>
+            <p className="d">{court ? T.tropCourtDetail(fmt(kmTropCourt, 2)) : T.rouleErreurDetail}</p>
+            <div className="etat-actions">
+              {!court && <button className="btn small" type="button" data-el="reessayer-roule" onClick={arreterEnregistrement}>{T.reessayer}</button>}
+              <button className="btn small ghost" type="button" data-el="retour-trajets" onClick={() => setPhase("formulaire")}>{T.retourTrajetsSimple}</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
   if (phase === "resultat" && resultat) {
     return <Resultat etat={resultat} onRetour={retour} onReessayer={() => derniere.current && lancer(derniere.current)} />;
   }
@@ -243,6 +428,21 @@ export default function Trajets() {
   return (
     <section className="screen" data-screen="S3" role="tabpanel" id="panneau-trajets" aria-labelledby="onglet-trajets">
       <div className="scroll">
+        {reprise && enCours && (
+          <div className="reprise" role="region" aria-labelledby="reprise-titre" data-el="reprise-enregistrement">
+            <p className="t" id="reprise-titre">{T.repriseTitre}</p>
+            <p className="d" data-el="reprise-distance">
+              {(() => {
+                const d = enDirect(enCours.points, enCours.pauses, enCours.debut, enCours.points[enCours.points.length - 1]?.[0] ?? enCours.debut, enCours.veh, true);
+                return T.repriseDetail(fmt(d.km, 1), dureeTexte(d.dureeS));
+              })()}
+            </p>
+            <div className="etat-actions">
+              <button className="btn small" type="button" data-el="reprendre-enregistrement" onClick={reprendreEnregistrement}>{T.repriseReprendre}</button>
+              <button className="btn small ghost" type="button" data-el="arreter-enregistrement" onClick={arreterEnregistrement}>{T.arreter}</button>
+            </div>
+          </div>
+        )}
         <h2 className="sec">{T.nouveauTrajet}</h2>
         <form className="form" onSubmit={calculer} noValidate>
           <fieldset className="fieldset">
@@ -287,8 +487,24 @@ export default function Trajets() {
           <button id="bouton-calculer" className="btn" type="submit" data-el="bouton-calculer" aria-disabled={verif || undefined}>
             {verif ? T.verification : T.calculer}
           </button>
+          <button id="bouton-enregistrer" className="btn ghost recbtn" type="button" data-el="bouton-enregistrer" aria-disabled={demarrage || undefined} onClick={enregistrer}>
+            <i className="recdot" aria-hidden="true" />
+            {demarrage ? T.enregistrerAttente : T.enregistrerEnRoulant}
+          </button>
+          {messageEnr && (
+            <div className="etat-enr" id="message-enregistrer" tabIndex={-1} role="alert" data-el={messageEnr === "refusee" ? "localisation-refusee" : "message-enregistrer"}>
+              {messageEnr === "refusee" && (
+                <>
+                  <p className="t">{T.localisationRefusee}</p>
+                  <p className="d">{T.localisationRefuseeDetail}</p>
+                </>
+              )}
+              {messageEnr === "indisponible" && <p className="d">{T.localisationIndispo}</p>}
+              {messageEnr === "sans-voiture" && <p className="d">{T.enregistrerSansVoiture}</p>}
+            </div>
+          )}
         </form>
-        <Historique etat={etatHist} trajets={trajets} occupe={verif} erreurSuppression={erreurSuppression} erreurRejeu={erreurRejeu} onRejouer={rejouer} onSupprimer={supprimer} />
+        <Historique etat={etatHist} trajets={trajets} occupe={verif} erreurSuppression={erreurSuppression} erreurRejeu={erreurRejeu} onRejouer={(t) => (t.enregistre ? revoirRoule(t) : rejouer(t))} onSupprimer={supprimer} />
       </div>
     </section>
   );
