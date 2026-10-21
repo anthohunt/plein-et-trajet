@@ -2996,3 +2996,768 @@ Bâtisseur r2 (m5-batisseur-r2), 21/10, 13:00Z → 14:40Z. Mêmes outils qu'en r
 
 ### Captures — état final (r2final)
 140/140 dans `tests/e2e/delivery/` et `m5-captures-brutes/`, deux vraies prises de vue chacune (121 au même octet, 19 différentes), md5 du disque = md5 relevé par le passage pour les 140. Doublons d'octets (même écran, même état) : **25c9bd31 ×14** (accueil T1 avec la Clio : V-1.1-01, V-1.1-02, V-1.2-01, V-1.2-02, V-1.2-05, V-1.2-06, V-1.3-01, V-2.2-02, V-4.7-04, V-5.1-01, V-5.2-01, V-5.5-04, V-5.7-01, V1-retraits-01) ; **700668c5 ×3** (V-4.5-01, V-4.5-02, V-4.6-01) ; **7a9f62a0** (V-3.4-02, V-3.4-03) ; **ef8ee2f9** (V-4.3-01, V-4.3-02) ; **df457b0c** (V-5.1-02, V-5.4-01) ; **a03b9211** (V-5.2-02, V-5.2-03).
+
+---
+
+# Passage r3 voiture,trajet — début 2026-10-21T16:18:29.409Z
+
+Appli déployée https://plein-et-trajet.vercel.app, base Supabase réelle, Playwright (bibliothèque), Chromium headless 390 × 844, toucher, fr-FR, Europe/Paris.
+Réel : base EEA (fonction voiture-eea), moyennes du jour (FR SP95-E10 2,156 €/L, Gazole 2,368 €/L), stations et prix du jour, géocodage inverse (fonction lieux), refus de localisation (contexte sans permission), coupure réseau (context.setOffline).
+Rejoué : géolocalisation par context.setGeolocation depuis tests/e2e/fixtures/albi-toulouse.gpx (et ses dérivés immobile / tunnel, et barcelone.gpx : vrai itinéraire Valhalla fabriqué par creer-gpx.mjs barcelone), horloge de la page accélérée par page.clock (méthode r1a : avancer l'horloge, poser la position, attendre que T3 l'ait comptée), au rythme réel (1 point/s) pendant les passages par Stations.
+
+## V-2.E1 — Code inconnu
+
+### Happy Path
+- Step 1: champ D.2, je commence « ZZ999 » → champ « ZZ999 » ; aucune fiche → capture `V-2.E1-01-avant.png` ✓ (16:18:45Z, md5 805f1f7f)
+- Step 2: je tape « ZZ9999 » (absent de la base EEA) → « Code introuvable. Vérifie la case D.2, ou cherche par nom ci-dessous. » (data-code code_inconnu) ; « Enregistrer ma voiture » désactivé → capture `V-2.E1-02-apres.png` ✓ (16:18:48Z, md5 d16d5805)
+- Step 3: MOCKED (page.route : la base européenne ne tombe pas sur commande) — base injoignable, je commence « 5RBF0 » → champ « 5RBF0 » ; réponse de voiture-eea remplacée par un 502 base_injoignable côté navigateur → capture `V-2.E1-03-avant.png` ✓ (16:18:49Z, md5 45696a34)
+- Step 4: MOCKED — je tape « 5RBF0A » → « La base européenne des voitures ne répond pas. Réessayer » ; champ toujours « 5RBF0A » ; « Enregistrer ma voiture » désactivé : true → capture `V-2.E1-04-apres.png` ✓ (16:18:51Z, md5 7fbaf845)
+
+### Edge Case / constats
+- Step 4 — route retirée puis « Réessayer » touché : la vraie base répond, fiche « Renault Clio 1.5 · 75 ch · Gazole » (après la capture).
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-2.3 — Chercher sans la carte grise
+
+### Happy Path
+- Step 1: je touche le champ « Nom, année, puissance » → champ recherche vide et sélectionné (focus #q) → capture `V-2.3-01-avant.png` ✓ (16:18:53Z, md5 ee74b2c3)
+- Step 2: je tape « clio 2017 120 » → 6 suggestions, toutes Clio 2017 entre 115 et 125 ch, avec année, kW et carburant : Renault Clio 1.2 · 118 ch 2017 · 87 kW · 1 165 kg · SP95-E10 · D.2 5RBU0C | Renault Clio 1.2 · 118 ch 2017 · 87 kW · 1 165 kg · SP95-E10 · D.2 5RBU0D | Renault Clio 1.2 · 118 ch 2017 · 87 kW · 1 243 kg · SP95-E10 · D.2 7RBU0C | Renault Clio 1.2 · 118 ch 2017 · 87 kW · 1 270 kg · SP95-E10 · D.2 7RBU0D | Renault Clio 1.2 · 120 ch 2017 · 88 kW · 1 255 kg · SP95-E10 · D.2 2R401E | Renault Clio 1.2 · 120 ch 2017 · 88 kW · 1 165 kg · SP95-E10 · D.2 5R400E → capture `V-2.3-02-apres.png` ✓ (16:18:57Z, md5 6b0adbec)
+- Step 3: la première suggestion (sélectionnée au clavier) → « Renault Clio 1.2 · 118 ch 2017 · 87 kW · 1 165 kg · SP95-E10 · D.2 5RBU0C » → capture `V-2.3-03-avant.png` ✓ (16:18:58Z, md5 c6b9ae57)
+- Step 4: je la touche → fiche « Renault Clio 1.2 · 118 ch » 2017 · 87 kW · 118 ch · 1 165 kg · SP95-E10 (data-cle RENAULT·R·5RBU·5RBU0C·2017) ; « Enregistrer ma voiture » actif → capture `V-2.3-04-apres.png` ✓ (16:18:59Z, md5 c10af040)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-2.1 — Saisir le code D.2
+
+### Happy Path
+- Step 1: écran Ma voiture, je touche le champ D.2 → champ D.2 vide et sélectionné (focus d2) ; « Enregistrer ma voiture » désactivé → capture `V-2.1-01-avant.png` ✓ (16:18:33Z, md5 c5c80c14)
+- Step 2: je tape « 5RBU0C » (code déjà en cache versions_eea) → fiche « Renault Clio 1.2 · 118 ch » : année 2017 · 87 kW · 118 ch · 1 197 cm³ · 1 165 kg · SP95-E10 · 118 g/km (NEDC) · « Base européenne EEA » ; liste : Renault Clio 1.2 · 118 ch 2017 · 87 kW · 1 165 kg · SP95-E10 · 13 864 immatriculées Renault Clio 1.2 · 118 ch 2018 · 87 kW · 1 165 kg · SP95-E10 · 11 043 immatriculées → capture `V-2.1-02-apres.png` ✓ (16:18:36Z, md5 585389c2)
+- Step 3: code partagé par plusieurs versions, jamais demandé à l'appli : je tape « M61A11 » sauf le dernier caractère → champ « M61A1 » ; M61A11 absent de versions_eea (0 ligne, lu par l'API avant la saisie) → capture `V-2.1-03-avant.png` ✓ (16:18:36Z, md5 8f9b1d1e)
+- Step 4: je tape le dernier caractère (« M61A11 ») puis je choisis la 2e version → 33 versions, la plus immatriculée en tête (104437 ≥ 62458 ≥ 58180 ≥ 18042…) ; marques Hyundai, Kia ; années 2019, 2020, 2018, 2021, 2022, 2025, 2024, 2023 ; masses 1 298, 1 308, 1 312, 1 297, 1 526, 1 520, 1 340, 1 334, 1 335, 1 561, 1 321, 1 550, 1 553, 1 265, 1 281, 1 291 kg ; 1re : « Hyundai Kona 1.0 · 120 ch 2019 · 88 kW · 1 298 kg · SP95-E10 · 104 437 immatriculées » ; 2e touchée → fiche « Hyundai Kona 1.0 · 120 ch » → capture `V-2.1-04-apres.png` ✓ (16:18:41Z, md5 7b2e85e5)
+- Step 5: je commence à taper en minuscules avec espaces : « r 5rbu » → champ « R 5RBU » (saisie en minuscules mise en majuscules à la frappe) ; pas de recherche (5 caractères sans espaces) → capture `V-2.1-05-avant.png` ✓ (16:18:42Z, md5 154773df)
+- Step 6: je finis « r 5rbu 5rbu0c » → champ « R 5RBU 5RBU0C » ; requête envoyée « d2=R 5RBU 5RBU0C » ; fiche « Renault Clio 1.2 · 118 ch · 2017 » (data-cle RENAULT·R·5RBU·5RBU0C·2017) : reconnu comme 5RBU0C → capture `V-2.1-06-apres.png` ✓ (16:18:44Z, md5 c4ca2b26)
+
+### Edge Case / constats
+- Step 2 — écart de libellé face au plan : l'écran nomme « Renault Clio 1.2 · 118 ch » ; le plan dit « Renault Clio 1.2 TCe 120 ». La base EEA ne porte ni « TCe » ni « 120 » (Cn = CLIO) ; les chiffres sont ceux du plan.
+- Step 2 — cache : 5RBU0C présent dans versions_eea AVANT la saisie (2 lignes, années 2017/2018) : c'est le chemin « version déjà en cache ».
+- Step 4 — chemin « jamais demandée » : M61A11 absent du cache avant, 33 ligne(s) dans versions_eea après (écrites par la fonction).
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-1.2 — Voir ma voiture
+
+### Happy Path
+- Step 1: la Clio enregistrée (accueil, juste après « Enregistrer ma voiture ») → accueil « Renault Clio » « 1.2 · 118 ch · 2017 · SP95-E10 » ; onglet onglet-trajet ; localStorage pt-voiture-v1 = 5RBU0C → capture `V-1.2-01-avant.png` ✓ (16:19:03Z, md5 25c9bd31)
+- Step 2: l'accueil s'affiche (page rechargée) → ÉCART DE LIBELLÉ : l'écran montre « Renault Clio » et « 1.2 · 118 ch · 2017 · SP95-E10 », le plan attend « Renault Clio IV » et « 1.2 TCe 120 · 2017 · SP95-E10 » ; la base EEA (Cn = CLIO) ne porte ni « IV » ni « TCe 120 » → capture `V-1.2-02-apres.png` ✗ (16:19:03Z, md5 25c9bd31)
+- Step 3: l'accueil, « Changer » sélectionné au clavier → focus sur « Changer » → capture `V-1.2-03-avant.png` ✓ (16:19:04Z, md5 7ff02c6d)
+- Step 4: je touche « Changer » → écran Ma voiture, D.2 « » et recherche « » vides ; aucune fiche (0) → capture `V-1.2-04-apres.png` ✓ (16:19:04Z, md5 b708fc84)
+- Step 5: l'appli telle que je la laisse, juste avant de fermer le navigateur (puis relance sur le même profil) → URL https://plein-et-trajet.vercel.app/ ; accueil « Renault Clio » ; localStorage pt-voiture-v1 = 5RBU0C → capture `V-1.2-05-avant.png` ✓ (16:19:07Z, md5 25c9bd31)
+- Step 6: je rouvre l'appli → accueil : « Renault Clio » « 1.2 · 118 ch · 2017 · SP95-E10 », rien ressaisi → capture `V-1.2-06-apres.png` ✓ (16:19:09Z, md5 25c9bd31)
+
+### Edge Case / constats
+- Step 5 — navigateur fermé puis relancé sur le même profil : onglet about:blank avant d'ouvrir l'appli.
+
+### Issues Found
+- Step 2 (V-1.2-02-apres.png) : ÉCART DE LIBELLÉ : l'écran montre « Renault Clio » et « 1.2 · 118 ch · 2017 · SP95-E10 », le plan attend « Renault Clio IV » et « 1.2 TCe 120 · 2017 · SP95-E10 » ; la base EEA (Cn = CLIO) ne porte ni « IV » ni « TCe 120 »
+
+## V-2.2 — Vérifier et enregistrer
+
+### Happy Path
+- Step 1: la fiche de ma version (5RBU0C, 2017) affichée → fiche « Renault Clio 1.2 · 118 ch · 2017 » ; bouton « Enregistrer ma voiture » actif → capture `V-2.2-01-avant.png` ✓ (16:19:02Z, md5 87af51f7)
+- Step 2: je touche « Enregistrer ma voiture » → accueil : « Renault Clio » « 1.2 · 118 ch · 2017 · SP95-E10 » ; localStorage pt-voiture-v1 = Renault Clio 5RBU0C 2017 → capture `V-2.2-02-apres.png` ✓ (16:19:02Z, md5 25c9bd31)
+- Step 3: aucune version identifiée : D.2 vide, « zz » dans la recherche par nom → D.2 «  », recherche « zz » (moins de 3 caractères : pas de recherche) ; aucune fiche (0) → capture `V-2.2-03-avant.png` ✓ (16:18:52Z, md5 724e6330)
+- Step 4: je regarde « Enregistrer ma voiture » (D.2 incomplet « 5RB ») → aucune fiche ; « Enregistrer ma voiture » désactivé (disabled) → capture `V-2.2-04-apres.png` ✓ (16:18:53Z, md5 d8e8d148)
+
+### Edge Case / constats
+- Step 2 — après fermeture du navigateur et relance sur le même profil, l'accueil rappelle la même voiture (V-1.2-06).
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-5.3 — Rechercher dans cette zone
+
+### Happy Path
+- Step 1: la carte des stations (trajet en cours) → en-tête « Autour de moi » ; 8 stations ; centre 43.913, 2.142 zoom 10.0 → capture `V-5.3-01-avant.png` ✓ (16:19:39Z, md5 7c31d2a9)
+- Step 2: je fais glisser la carte vers Montauban (4 glissements au doigt-souris) → bouton « Rechercher dans cette zone » affiché ; liste inchangée (8 stations, mêmes id) ; en-tête « Autour de moi » ; centre 44.018, 1.415 → capture `V-5.3-02-apres.png` ✓ (16:19:45Z, md5 540d8a49)
+- Step 3: le bouton « Rechercher dans cette zone » (carte recentrée sur Montauban d'un dernier glissement) → centre 44.017, 1.355 ; liste toujours celle d'avant (8 stations) → capture `V-5.3-03-avant.png` ✓ (16:19:48Z, md5 b62f68dd)
+- Step 4: je touche « Rechercher dans cette zone » → bouton disparu ; en-tête « Autour de Montauban » ; 16 stations, toutes à moins de 11.6 km du centre affiché (44.017, 1.355), 16 pastilles ; 1re (Moins cher) « TotalEnergies Montauban 63,4 km · il y a 4 h · −16,6 c vs France 1,990 €/L » → capture `V-5.3-04-apres.png` ✓ (16:19:49Z, md5 e5b8848a)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-3.1 — Suivre en direct
+
+### Happy Path
+- Step 1: enregistrement en cours, 200 positions rejouées → 19 km/h · 0,8 km · 0,06 L · 0,13 € · 0:03 · 14 km/h moy. · 8,2 L/100 · 200 points → capture `V-3.1-01-avant.png` ✓ (16:19:21Z, md5 741571d5)
+- Step 2: je roule : 200 positions de plus (1 par seconde d'horloge) → vitesse lue après chaque position : 49 changements sur 200 s (la vitesse est redessinée à chaque position, soit chaque seconde ; plus longue valeur identique : 57 s, arrêts du GPX compris) ; courbe « Vitesse des 3 dernières minutes » ; 19 km/h · 0,8 km · 0,06 L · 0,13 € · 0:03 · 14 km/h moy. · 8,2 L/100 · 200 points → 29 km/h · 1,8 km · 0,15 L · 0,33 € · 0:06 · 17 km/h moy. · 8,4 L/100 · 400 points → capture `V-3.1-02-apres.png` ✓ (16:19:29Z, md5 39eed2c7)
+- Step 3: aucun prix choisi (aucune station touchée) → « Prix : moyenne France du jour · 2,156 €/L » → capture `V-3.1-03-avant.png` ✓ (16:19:30Z, md5 d9de4385)
+- Step 4: le coût en direct s'affiche → 0,20 L × 2,156 €/L (moyenne France du jour SP95-E10 lue par l'API : 2,156) = 0,431 → affiché 0,43 € ; « Prix : moyenne France du jour · 2,156 €/L » → capture `V-3.1-04-apres.png` ✓ (16:19:32Z, md5 6f0396e3)
+- Step 5: un prix pris sur une station (« Utiliser ce prix ») → « Prix : mon prix · 1,990 €/L » ; 0 km/h · 2,5 km · 0,21 L · 0,41 € · 0:08 · 18 km/h moy. · 8,3 L/100 · 504 points → capture `V-3.1-05-avant.png` ✓ (16:19:51Z, md5 89c35cea)
+- Step 6: le coût en direct s'affiche (60 positions plus loin) → 0,21 L × 1,990 = 0,418 → affiché 0,41 € ; « Prix : mon prix · 1,990 €/L » → capture `V-3.1-06-apres.png` ✓ (16:19:52Z, md5 ea447f32)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-3.4 — Mettre en pause
+
+### Happy Path
+- Step 1: un enregistrement en cours (A68) → 105 km/h · 30,3 km · 2,16 L · 4,30 € · 0:29 · 62 km/h moy. · 7,1 L/100 · 1747 points → capture `V-3.4-01-avant.png` ✓ (16:20:46Z, md5 46614fe7)
+- Step 2: je touche « Pause » puis 20 positions arrivent → « En pause », bouton « Reprendre » ; km 30,3 et litres 2,16 inchangés malgré 0,58 km parcourus sur le GPX → capture `V-3.4-02-apres.png` ✓ (16:20:47Z, md5 053d0f26)
+- Step 3: une pause pendant laquelle la voiture s'est déplacée → déplacement pendant la pause : 2,07 km (GPX, points 1750 → 1821) ; affiché toujours 30,3 km, 2,16 L → capture `V-3.4-03-avant.png` ✓ (16:20:50Z, md5 053d0f26)
+- Step 4: je touche « Reprendre » puis 60 positions → « Enregistrement » ; km 30,3 → 32,1 (+1,8) = distance roulée depuis la reprise (1,72 km) ; les 2,07 km de la pause ne sont ni comptés ni chiffrés → capture `V-3.4-04-apres.png` ✓ (16:20:52Z, md5 cff837c2)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-4.5 — Courbe de vitesse
+
+### Happy Path
+- Step 1: un trajet enregistré, rouvert depuis l'historique (écran Fin de trajet, haut) → onglet onglet-historique ; « Albi → Toulouse » ; « 21 oct. 2026 · 1 h 11 · Renault Clio » ; enregistré : true → capture `V-4.5-01-avant.png` ✓ (16:22:47Z, md5 cce19049)
+- Step 2: la fin de trajet s'affiche (rouverte) — courbe de vitesse → « 63 km/h moy. · 7 accélérations » ; 600 points de courbe (≤ 600) pour 4350 s de trajet ; vitesse moyenne affichée 63 km/h ; km ÷ durée roulée (4278 s, pause exclue) = 63.0 km/h ; km ÷ durée totale = 61.9 km/h ; 7 accélérations → capture `V-4.5-02-apres.png` ✓ (16:22:48Z, md5 5eed462f)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-4.6 — Courbe de consommation
+
+### Happy Path
+- Step 1: un trajet enregistré (fin rouverte, haut de l'écran) → onglet onglet-historique ; « ← Historique » ; « Albi → Toulouse » → capture `V-4.6-01-avant.png` ✓ (16:22:48Z, md5 5eed462f)
+- Step 2: la courbe de consommation → « moy. 6,9 · pointe 21,1 L/100 » ; litres ÷ km × 100 = 5.178 ÷ 74.82 × 100 = 6.92 ; 600 points (moyenne simple des points de la courbe : 6.92, non pondérée par la distance) → capture `V-4.6-02-apres.png` ✓ (16:22:48Z, md5 cbcf7b37)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-1.1 — Ouvrir l'appli
+
+### Happy Path
+- Step 1: une voiture enregistrée sur ce téléphone (écran Trajet) → onglet onglet-trajet ; carte « Renault Clio · 1.2 · 118 ch · 2017 · SP95-E10 » ; voiture 5RBU0C → capture `V-1.1-01-avant.png` ✓ (16:19:05Z, md5 25c9bd31)
+- Step 2: j'ouvre l'appli (nouvel onglet sur l'adresse de l'appli) → onglet Trajet sélectionné ; T1 « Renault Clio 1.2 · 118 ch · 2017 · SP95-E10 Changer Démarrer » ; ni prix ni nombre de personnes → capture `V-1.1-02-apres.png` ✓ (16:19:07Z, md5 25c9bd31)
+- Step 3: premier lancement (profil neuf, aucune voiture), j'ouvre l'appli → T1 « Enregistre d'abord ta voiture Le code D.2 de ta carte grise, une seule fois. Démarrer » ; onglet sélectionné : Trajet ; localStorage pt-voiture-v1 absent → capture `V-1.1-03-avant.png` ✓ (16:18:32Z, md5 c213538e)
+- Step 4: je touche « Démarrer » sans voiture → URL /voiture, écran Ma voiture (« Ma voiture ») ; aucun enregistrement en IndexedDB → capture `V-1.1-04-apres.png` ✓ (16:18:33Z, md5 e23f9358)
+- Step 5: un trajet en cours d'enregistrement ; je suis sur l'onglet Stations (bandeau « Trajet en cours ») → onglet onglet-stations ; bandeau « ● Trajet en cours · 0,44 € » ; IndexedDB enregistrement : 485 points → capture `V-1.1-05-avant.png` ✓ (16:19:35Z, md5 7c31d2a9)
+- Step 6: je touche l'onglet Trajet → URL /en-route, écran En route « Enregistrement » (pas l'accueil) → capture `V-1.1-06-apres.png` ✓ (16:19:36Z, md5 d781a51a)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-1.3 — Démarrer
+
+### Happy Path
+- Step 1: la Clio enregistrée, localisation autorisée, position = 1er point du GPX (Albi, place du Vigan) → accueil « Renault Clio » ; permission géolocalisation accordée au contexte → capture `V-1.3-01-avant.png` ✓ (16:19:16Z, md5 25c9bd31)
+- Step 2: je touche « Démarrer » → écran En route, « Enregistrement » (pastille animée : clignote infinite) ; 1re position enregistrée en 198 ms (data-points 1) ; IndexedDB enregistrement : présent → capture `V-1.3-02-apres.png` ✓ (16:19:17Z, md5 4b079d85)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-5.6 — Trajet en cours
+
+### Happy Path
+- Step 1: un trajet en cours ; je touche l'onglet Stations (positions envoyées au rythme réel, 1 par seconde) → écran Stations ouvert ; bandeau « ● Trajet en cours · 0,93 € » → capture `V-5.6-01-avant.png` ✓ (16:19:59Z, md5 e5a9efed)
+- Step 2: l'onglet Stations est ouvert → bandeau en haut « ● Trajet en cours · 0,99 € » (coût en direct ; 0,93 € sur En route juste avant) ; 8 stations listées → capture `V-5.6-02-apres.png` ✓ (16:20:04Z, md5 b5cd7c1d)
+- Step 3: ce bandeau, 6 s plus tard (la voiture roule) → « ● Trajet en cours · 1,02 € » (« ● Trajet en cours · 0,99 € » 6 s plus tôt : le coût du bandeau suit le trajet) ; positions rejouées jusqu'au point 912 → capture `V-5.6-03-avant.png` ✓ (16:20:10Z, md5 406dca20)
+- Step 4: je touche l'onglet Trajet → écran En route revenu ; 911 points (911 au moment du toucher) ; 83 km/h · 6,8 km · 0,51 L · 1,02 € · 0:15 · 27 km/h moy. · 7,5 L/100 · 911 points → capture `V-5.6-04-apres.png` ✓ (16:20:11Z, md5 ccc91f44)
+
+### Edge Case / constats
+- Step 2 — sans trajet en cours (même téléphone, avant Démarrer) : bandeau « retour-trajet » présent 0 fois (attendu 0).
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-5.5 — Utiliser ce prix
+
+### Happy Path
+- Step 1: trajet en cours ; la fiche de la 1re station « Moins cher » de Montauban → fiche « TotalEnergies Montauban » ; bouton « Utiliser 1,990 €/L pour mon trajet » ; prix SP95-E10 en base pour 82000018 : 1,990 €/L. (Le plan cite 2,103 €/L à titre d'exemple : le prix réel du jour est celui lu ici.) → capture `V-5.5-01-avant.png` ✓ (16:19:49Z, md5 574395e4)
+- Step 2: je touche « Utiliser 1,990 €/L pour mon trajet » → fiche fermée, écran En route ; « Prix : mon prix · 1,990 €/L » ; 0,21 L × 1,990 = 0,418 → 0,41 € (la fin de trajet est relue plus bas) → capture `V-5.5-02-apres.png` ✓ (16:19:50Z, md5 05db9460)
+
+### Edge Case / constats
+- Step 2 — la fin de ce même trajet, au prix de la station, est la capture V-4.7-01-avant.png (libellé « Mon prix », 3 personnes) ; fin de trajet : libellé « Mon prix », prix data-prix 1.99 (station : 1,990), coût 10,31 € essence.
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-5.1 — Stations autour de moi
+
+### Happy Path
+- Step 3: un trajet en cours (A68, 1 450 positions) ; j'ouvre l'onglet Stations → écran Stations autour de la voiture (43.8843, 1.9259, 21,6 km après Albi) : 5 stations toutes à moins de 10 km d'elle ; 1re « TotalEnergies Marssac-sur-Tarn 9,2 km · il y a 7 h · −16,6 c vs France 1,990 €/L » ; bandeau « ● Trajet en cours · 3,11 € » ; sur En route juste avant : 105 km/h · 21,6 km · 1,49 L · 2,96 € · 0:24 · 54 km/h moy. · 6,9 L/100 · 1448 points → capture `V-5.1-03-avant.png` ✓ (16:20:26Z, md5 bb65379b)
+- Step 4: je reviens au trajet (onglet Trajet) après 12 s dans Stations → distance 21,6 → 22,0 km, points 1448 → 1462 : l'enregistrement a continué pendant Stations → capture `V-5.1-04-apres.png` ✓ (16:20:39Z, md5 3415a4ee)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-3.5 — Arrêter
+
+### Happy Path
+- Step 1: un enregistrement de plus de 1 km (arrivée au Capitole, Toulouse) → 10 km/h · 74,8 km · 5,18 L · 10,31 € · 1:11 · 63 km/h moy. · 6,9 L/100 · 4275 points → capture `V-3.5-01-avant.png` ✓ (16:22:43Z, md5 dfe5b521)
+- Step 2: je touche « Arrêter » → « Albi → Toulouse » ; « 21 oct. 2026 · 1 h 11 · Renault Clio » ; 5,18 L (5.178), 74,8 km (74.82), 6,9 L/100 km moy. → capture `V-3.5-02-apres.png` ✓ (16:22:45Z, md5 42b3633e)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-4.7 — Enregistrer ou supprimer
+
+### Happy Path
+- Step 1: un trajet qui vient d'être arrêté (3 personnes choisies) → prix « Mon prix » 1,990 €/L ; coût 10,31 € ; « 3,44 € chacun » ; boutons « Supprimer Enregistrer » → capture `V-4.7-01-avant.png` ✓ (16:22:46Z, md5 5e9738ac)
+- Step 2: je touche « Enregistrer » → onglet Historique, en tête : « Albi → Toulouse 21 oct. · 74,8 km · SP95-E10 à 1,990 €/L · 3,44 € chacun 10,31 € » ; IndexedDB : prix 1.99 (station), carburant SP95-E10, 3 personnes, enregistré ; totaux « 1 trajet 74,8 km 10,31 € essence » → capture `V-4.7-02-apres.png` ✓ (16:22:47Z, md5 35d7b94c)
+
+### Edge Case / constats
+- Démonstration : coût 10,31 € au prix de la station 1,990 €/L, partagé à 3.
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## Régression (passage voiture,trajet)
+- (rejouée par la spec m5-regression)
+
+## Erreurs de page relevées
+- aucune
+
+---
+
+# Passage r3 cas — début 2026-10-21T16:22:54.535Z
+
+Appli déployée https://plein-et-trajet.vercel.app, base Supabase réelle, Playwright (bibliothèque), Chromium headless 390 × 844, toucher, fr-FR, Europe/Paris.
+Réel : base EEA (fonction voiture-eea), moyennes du jour (FR SP95-E10 2,156 €/L, Gazole 2,368 €/L), stations et prix du jour, géocodage inverse (fonction lieux), refus de localisation (contexte sans permission), coupure réseau (context.setOffline).
+Rejoué : géolocalisation par context.setGeolocation depuis tests/e2e/fixtures/albi-toulouse.gpx (et ses dérivés immobile / tunnel, et barcelone.gpx : vrai itinéraire Valhalla fabriqué par creer-gpx.mjs barcelone), horloge de la page accélérée par page.clock (méthode r1a : avancer l'horloge, poser la position, attendre que T3 l'ait comptée), au rythme réel (1 point/s) pendant les passages par Stations.
+
+## V-1.3 — Démarrer (localisation refusée)
+
+### Happy Path
+- Step 3: la localisation refusée (contexte sans permission geolocation) → accueil « Renault Clio » ; permission géolocalisation : denied → capture `V-1.3-03-avant.png` ✓ (16:22:55Z, md5 1f66d5d0)
+- Step 4: je touche « Démarrer » → « L'enregistrement a besoin de ta localisation Cadenas de la barre d'adresse → Position → Autoriser » ; URL / ; IndexedDB : enregistrement absent, 0 trajet → capture `V-1.3-04-apres.png` ✓ (16:22:55Z, md5 4cfb9d3a)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-3.5 — Arrêter (cas limites)
+
+### Happy Path
+- Step 3: un enregistrement de moins de 1 km (150 positions) → 19 km/h · 0,5 km · 0,04 L · 0,09 € · 0:02 · 12 km/h moy. · — L/100 · 150 points → capture `V-3.5-03-avant.png` ✓ (16:23:00Z, md5 7b1bfbbb)
+- Step 4: je touche « Arrêter » → « Trajet trop court : 0,5 km sur 1 minimum. Rien n'est ajouté à l'historique. Retour à l'accueil » ; IndexedDB : 0 trajet, pas de trajet arrêté, pas d'enregistrement → capture `V-3.5-04-apres.png` ✓ (16:23:00Z, md5 b9ab7181)
+- Step 5: aucun réseau (context.setOffline(true)) juste avant l'arrêt — 420 positions → navigator.onLine = false ; « Hors ligne : le trajet continue, tout est calculé sur le téléphone. » ; 28 km/h · 2,0 km · 0,17 L · 0,36 € · 0:06 · 17 km/h moy. · 8,4 L/100 · 420 points ; « Prix : moyenne France du jour · 2,156 €/L » → capture `V-3.5-05-avant.png` ✓ (16:23:11Z, md5 427a50d2)
+- Step 6: la fin de trajet s'ouvre sans réseau → hors ligne (capture prise pendant la coupure) : titre « 43,928 · 2,146 → 43,917 · 2,144 » (coordonnées, noms pas encore connus) ; « Hors ligne : litres et coût calculés sur le téléphone ; les noms des lieux viendront au retour du réseau. » ; 0,166 L × 2,156 €/L (moyenne gardée au départ) = 0,36 € calculés sur le téléphone → capture `V-3.5-06-apres.png` ✓ (16:23:11Z, md5 b89b64f4)
+
+### Edge Case / constats
+- Step 6 — après la capture, retour du réseau (setOffline(false) → événement online) : le titre passe de « 43,928 · 2,146 → 43,917 · 2,144 » à « Albi → Albi » sans rien toucher ✓ ; « Hors ligne » affiché : 0 ; requêtes tentées pendant la coupure : 4 (refusées par le navigateur hors ligne).
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-3.E1 — Oubli d'arrêter
+
+### Happy Path
+- Step 1: un enregistrement en cours (700 positions, 4 km dans Albi) → 30 km/h · 2,7 km · 0,23 L · 0,50 € · 0:11 · 14 km/h moy. · 8,5 L/100 · 700 points → capture `V-3.E1-01-avant.png` ✓ (16:23:30Z, md5 54e8d736)
+- Step 2: vitesse < 3 km/h et position dans 50 m pendant 10 min (points 774 → 1375 du tracé dérivé) → « Trajet arrêté : immobile depuis 10 min. Reprendre C'est fini » au point 1375 (601 s après le début de l'immobilité) ; début daté 16:36:08 (point 774 reçu à 16:36:07, écart 1 s) ; 5 positions de plus : km 4,0 et litres 0,33 figés ; état « Immobile depuis 10 min » → capture `V-3.E1-02-apres.png` ✓ (16:23:46Z, md5 c2d7a3e6)
+- Step 3: cette alerte (« C'est fini » sélectionné) → focus « C'est fini » → capture `V-3.E1-03-avant.png` ✓ (16:23:47Z, md5 7504e258)
+- Step 4: je touche « C'est fini » → « Albi → Le Sequestre » « 21 oct. 2026 · 12 min · Renault Clio » ; arrivée datée 16:36:08 = début de l'immobilité (point 774, écart 1.0 s) ; durée 774 s : les 10 min d'arrêt ne comptent pas ; 4,01 km → capture `V-3.E1-04-apres.png` ✓ (16:23:48Z, md5 d1ae71ce)
+- Step 5: cette alerte (2e trajet rejoué ; « Reprendre » sélectionné) → « Trajet arrêté : immobile depuis 10 min. Reprendre C'est fini » ; 775 points gardés → capture `V-3.E1-05-avant.png` ✓ (16:24:22Z, md5 6bf8ebdb)
+- Step 6: je touche « Reprendre » → « Enregistrement » ; 775 points gardés (autant qu'à l'alerte), 4,0 km conservés → capture `V-3.E1-06-apres.png` ✓ (16:24:23Z, md5 fcb7dca5)
+
+### Edge Case / constats
+- Garé (points 774 → 1365, bruit ±2 m, juste avant l'alerte) : km 4,0 → 4,0, litres 0,33 → 0,33, vitesse affichée relevée tous les 37 points : 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 km/h ✗ (r1 : 4,0 → 5,1 km et 5 à 10 km/h).
+- Step 6 — après « Reprendre », 10 positions de plus (toujours garé) : 775 → 785 points (l'enregistrement repart) ; 0 km/h, 4,0 km, 0,33 L (inchangés).
+
+### Issues Found
+- bruit du GPS à l'arrêt encore compté
+
+## V-3.E2 — GPS perdu
+
+### Happy Path
+- Step 1: un enregistrement en cours (A68, 121 positions, dernière avant le tunnel) → 105 km/h · 3,5 km · 0,23 L · 0,50 € · 0:02 · 105 km/h moy. · 6,7 L/100 · 121 points → capture `V-3.E2-01-avant.png` ✓ (16:24:29Z, md5 9f86ab0d)
+- Step 2: aucune position pendant 16 s → « GPS perdu (tunnel) · la distance est complétée à la sortie. » ; data-etat gps-perdu ; vitesse 0 km/h → capture `V-3.E2-02-apres.png` ✓ (16:24:30Z, md5 cacdb9a9)
+- Step 3: le signal revient après 90 s sans position (tunnel de 3,00 km) → toujours « GPS perdu (tunnel) · la distance est complétée à la sortie. » ; 3,5 km figés → capture `V-3.E2-03-avant.png` ✓ (16:24:30Z, md5 828a12a0)
+- Step 4: la position suivante arrive → km 3,5 → 6,5 (+3,0 km ; ligne droite entre les 2 positions 3.001 km, chemin réel 3,0007 km, à 120 km/h de moyenne) ; message disparu → capture `V-3.E2-04-apres.png` ✓ (16:24:31Z, md5 17757a7e)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-4.2 — Mettre mon prix
+
+### Happy Path
+- Step 1: la fin de trajet (SP95-E10, moyenne du jour) → « Moyenne France du jour » 2.156 €/L ; coût 1,18 € → capture `V-4.2-01-avant.png` ✓ (16:24:35Z, md5 4b83f647)
+- Step 2: je touche le compteur, tape 1,989 et valide (Entrée) → « Mon prix » 1,989 €/L ; coût 0,546 × 1,989 = 1,09 € ; « Revenir à la moyenne » affiché → capture `V-4.2-02-apres.png` ✓ (16:24:35Z, md5 da094e2f)
+- Step 3: mon prix saisi (« Revenir à la moyenne » sélectionné) → focus « Revenir à la moyenne » → capture `V-4.2-03-avant.png` ✓ (16:24:36Z, md5 280d449d)
+- Step 4: je touche « Revenir à la moyenne » → « Moyenne France du jour » 2,156 €/L ; coût 1,18 € (comme avant la saisie) → capture `V-4.2-04-apres.png` ✓ (16:24:36Z, md5 b6955c56)
+- Step 5: le champ du prix ouvert (« 1,5 » tapé, pas validé) → champ « 1,5 » ouvert → capture `V-4.2-05-avant.png` ✓ (16:24:37Z, md5 51afff5a)
+- Step 6: j'appuie sur Échap → champ fermé ; prix toujours 2,156 €/L « Moyenne France du jour » ; focus revenu sur « Modifier le prix, 2,156 euros par litre » → capture `V-4.2-06-apres.png` ✓ (16:24:37Z, md5 ec23a82d)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-4.1 — Prix de l'essence
+
+### Happy Path
+- Step 1: la fin d'un trajet en Clio SP95-E10 parti de France (écran Fin de trajet, haut de l'écran) → En route juste avant « Arrêter » : « Prix : moyenne France du jour · 2,156 €/L » ; 105 km/h · 8,2 km · 0,55 L · 1,18 € · 0:04 · 110 km/h moy. · 6,6 L/100 · 182 points ; fin : « Brens → Parisot » · « 21 oct. 2026 · 4 min · Renault Clio » ; 0,55 L → capture `V-4.1-01-avant.png` ✓ (16:24:33Z, md5 14e22fbb)
+- Step 2: l'écran Fin de trajet s'ouvre (sélecteur et prix) → sélecteur Gazole · SP95-E10 · SP95 · SP98 · E85 · GPLc, SP95-E10 choisi ; « Moyenne France du jour » ; compteur « Modifier le prix, 2,156 euros par litre » (3 décimales) = moyenne France SP95-E10 lue par l'API 2,156 ; coût 1,18 € essence → capture `V-4.1-02-apres.png` ✓ (16:24:33Z, md5 abe4d049)
+- Step 3: ce sélecteur (Gazole sélectionné au clavier) → focus « Gazole » → capture `V-4.1-03-avant.png` ✓ (16:24:34Z, md5 a0673c83)
+- Step 4: je touche Gazole → « Moyenne France du jour » 2,368 €/L (moyenne France Gazole de l'API 2,368) ; coût 0,546 × 2,368 = 1,29 € → capture `V-4.1-04-apres.png` ✓ (16:24:34Z, md5 78257af7)
+- Step 5: un départ hors de France : vrai itinéraire dans Barcelone (plaça de Catalunya → Sagrada Família, 3,2 km rejoués) → « Prix : moyenne Espagne du jour · 1,790 €/L » ; 18 km/h · 3,2 km · 0,26 L · 0,46 € · 0:11 · 17 km/h moy. · 8,0 L/100 · 674 points → capture `V-4.1-05-avant.png` ✓ (16:24:57Z, md5 81b37ae2)
+- Step 6: l'écran Fin de trajet s'ouvre → « Barcelone → Barcelone » ; « Moyenne Espagne du jour » 1,790 €/L (moyenne Espagne SP95-E10 de l'API : 1,790) ; pays de départ enregistré ES → capture `V-4.1-06-apres.png` ✓ (16:24:59Z, md5 c1d7dfcf)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-4.7 — Enregistrer ou supprimer (supprimer, appli fermée)
+
+### Happy Path
+- Step 3: un trajet qui vient d'être arrêté (celui de la coupure réseau, noms complétés) → « Albi → Albi » ; boutons « Supprimer Enregistrer » → capture `V-4.7-03-avant.png` ✓ (16:23:12Z, md5 87cc2689)
+- Step 4: je touche « Supprimer » → accueil (URL /) ; IndexedDB : 0 trajet, aucun trajet arrêté ni point gardé ; Historique : « Aucun trajet enregistré. » → capture `V-4.7-04-apres.png` ✓ (16:23:13Z, md5 25c9bd31)
+- Step 5: un trajet arrêté (Barcelone), pas encore tranché ; je ferme l'appli → trajet a360ae0f-7158-418d-b050-f6e7276b41fa ; boutons « Supprimer Enregistrer » → capture `V-4.7-05-avant.png` ✓ (16:24:59Z, md5 4b07c885)
+- Step 6: je rouvre l'appli (navigateur relancé, même profil) → URL /fin ; même trajet a360ae0f-7158-418d-b050-f6e7276b41fa « Barcelone → Barcelone » ; « Supprimer Enregistrer » → capture `V-4.7-06-apres.png` ✓ (16:25:03Z, md5 45d571b5)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## Régression (passage cas)
+- US-4.E2 (T4) : « 7 » validé → « Entre un prix entre 0,50 et 4,00 €/L », prix gardé 2.156 ✓
+
+## Erreurs de page relevées
+- aucune
+
+---
+
+# Passage r3 stations — début 2026-10-21T16:25:15.206Z
+
+Appli déployée https://plein-et-trajet.vercel.app, base Supabase réelle, Playwright (bibliothèque), Chromium headless 390 × 844, toucher, fr-FR, Europe/Paris.
+Réel : base EEA (fonction voiture-eea), moyennes du jour (FR SP95-E10 2,156 €/L, Gazole 2,368 €/L), stations et prix du jour, géocodage inverse (fonction lieux), refus de localisation (contexte sans permission), coupure réseau (context.setOffline).
+Rejoué : géolocalisation par context.setGeolocation depuis tests/e2e/fixtures/albi-toulouse.gpx (et ses dérivés immobile / tunnel, et barcelone.gpx : vrai itinéraire Valhalla fabriqué par creer-gpx.mjs barcelone), horloge de la page accélérée par page.clock (méthode r1a : avancer l'horloge, poser la position, attendre que T3 l'ait comptée), au rythme réel (1 point/s) pendant les passages par Stations.
+
+## V-5.1 — Stations autour de moi
+
+### Happy Path
+- Step 1: la position autorisée (Albi) : accueil, en-tête « Autour de moi » → en-tête « Autour de moi » (position GPS reçue) ; position du contexte 43.92833, 2.145916 ; permission granted → capture `V-5.1-01-avant.png` ✓ (16:25:16Z, md5 25c9bd31)
+- Step 2: je touche l'onglet Stations → en-tête « Autour de moi » ; ma position dans le cadre de la carte ; 8 stations à moins de 10 km, 8 pastilles ; 8 prix SP95-E10 identiques à la base (table prix) ; 1re « TotalEnergies Albi · Relais des Fontanelles 2,2 km · hier · −16,6 c vs France 1,990 €/L » → capture `V-5.1-02-apres.png` ✓ (16:25:19Z, md5 d65b0ed3)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-5.2 — Choisir le carburant
+
+### Happy Path
+- Step 1: une Clio SP95-E10 enregistrée (accueil) ; dernier carburant regardé dans Stations : Gazole → accueil « Renault Clio · 1.2 · 118 ch · 2017 · SP95-E10 » ; localStorage pt-carburant = « Gazole » ; position Prayssac 44.5041, 1.1885 → capture `V-5.2-01-avant.png` ✓ (16:25:20Z, md5 25c9bd31)
+- Step 2: j'ouvre l'onglet Stations → SP95-E10 choisi d'office (aria-pressed), malgré le dernier choix Gazole ; titre « Stations · SP95-E10 » → capture `V-5.2-02-apres.png` ✓ (16:25:24Z, md5 d8926428)
+- Step 3: la liste en SP95-E10 autour de Prayssac → 5 stations SP95-E10 : 46220005 TotalEnergies Prayssac 510 m | 46700001 Intermarché Puy-l'Évêque 3,6 km | 46220003 Intermarché Prayssac 310 m | 46220002 Carrefour Market Prayssac 1,1 km | 46140003 Système U Parnac 9,7 km ; 46220005 en base : E85 0.934, SP95-E10 1.99 (aucune ligne Gazole) → capture `V-5.2-03-avant.png` ✓ (16:25:24Z, md5 d8926428)
+- Step 4: je touche Gazole → titre « Stations · Gazole » ; 4 lignes et 4 pastilles au prix gazole de la base (contre 5 lignes et 5 pastilles en SP95-E10) ; stations SP95-E10 sans gazole en base : 46220005 → absentes de la liste et de la carte (pastille 46220005 : 0) ; lignes : 46700001 2,347 | 46220003 2,349 | 46220002 2,359 | 46140003 2,369 → capture `V-5.2-04-apres.png` ✓ (16:25:28Z, md5 7965bb04)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-5.4 — Trier
+
+### Happy Path
+- Step 1: la liste des stations (SP95-E10, tri « Moins cher ») → tri prix ; 8 stations → capture `V-5.4-01-avant.png` ✓ (16:25:30Z, md5 d65b0ed3)
+- Step 2: je touche « Plus proche » → « Plus proche » : distances croissantes 1,8 ≤ 1,9 ≤ 2,2 ≤ 2,3 ≤ 3,1 ≤ 3,3 ≤ 6,8 ≤ 9,4… (8) ; « Moins cher » : prix croissants 1,990 ≤ 1,990 ≤ 2,149 ≤ 2,178 ≤ 2,178 ≤ 2,178… ; capture sur « Plus proche » → capture `V-5.4-02-apres.png` ✓ (16:25:33Z, md5 6e208d04)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-5.5 — Utiliser ce prix
+
+### Happy Path
+- Step 3: aucun trajet en cours ; fiche de la station la moins chère → fiche « TotalEnergies Albi · Relais des Fontanelles » ; bouton « Utiliser 1,990 €/L pour mon trajet » ; pas de bandeau (0) → capture `V-5.5-03-avant.png` ✓ (16:25:34Z, md5 74cb548d)
+- Step 4: je touche ce bouton → accueil ouvert (URL /) ; prix gardé : pt-prix-choisi = {"prix":1.99,"carburant":"SP95-E10","station":"TotalEnergies Albi · Relais des Fontanelles"} (la capture montre l'accueil après l'essai de démarrage, revenu par « trop court ») → capture `V-5.5-04-apres.png` ✓ (16:25:35Z, md5 25c9bd31)
+- Step 5: une station qui ne vend pas le SP95-E10 de ma voiture (liste Gazole) → « Carrefour Market Puygouzon 4,3 km · il y a 8 h · −1,3 c vs France 2,355 €/L » (81990003) : aucun prix SP95-E10 vendu en base (absent ou rupture) → capture `V-5.5-05-avant.png` ✓ (16:25:39Z, md5 e94ad10b)
+- Step 6: sa fiche s'ouvre → fiche « Carrefour Market Puygouzon » ; SP95-E10 « SP95-E10 non vendu » ; pas de bouton « Utiliser … pour mon trajet » → capture `V-5.5-06-apres.png` ✓ (16:25:40Z, md5 cdc24f56)
+
+### Edge Case / constats
+- Step 4 — trajet démarré ensuite : « Prix : mon prix · 1,990 €/L » ; pt-prix-choisi vidé au départ (null).
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-5.7 — Europe et Royaume-Uni
+
+### Happy Path
+- Step 1: une position à Barcelone (41,3874, 2,1686) : accueil, en-tête « Autour de moi » → en-tête « Autour de moi » ; position du contexte 41.3874, 2.1686 (Barcelone) ; la V1 ne montre la position que dans l'onglet Stations → capture `V-5.7-01-avant.png` ✓ (16:25:42Z, md5 25c9bd31)
+- Step 2: l'onglet Stations s'ouvre → 153 stations espagnoles (pays ES en base), 153 pastilles, prix SP95-E10 = base ; 1re « Tamoil Hospitalet de llobregat (l') · Tamoil 6,0 km · il y a 18 min · −29,1 c vs Espagne 1,499 €/L » → capture `V-5.7-02-apres.png` ✓ (16:25:49Z, md5 17704d99)
+- Step 3: une position à Dartford (Royaume-Uni) → 18 stations, pays GB ; 1re « Morrisons · MFG Morrisons Grays, London Road, GRAYS 7,9 km · il y a 17 h · −4,8 c vs Royaume-Uni 2,022 €/L » → capture `V-5.7-03-avant.png` ✓ (16:25:53Z, md5 c647b527)
+- Step 4: je lis une station (fiche) → fiche « Morrisons · MFG Morrisons Grays, London Road, GRAYS » ; Gazole 2,343 €/L ← 196,9 p/L ; SP95 2,022 €/L ← 169,9 p/L ; SP95-E10 2,022 €/L ← 169,9 p/L ; SP98 2,260 €/L ← 189,9 p/L ; « 1 € = 0,8403 £ · BCE 20/10 » (taux BCE en base 0.84028) → capture `V-5.7-04-apres.png` ✓ (16:25:54Z, md5 010bf118)
+- Step 5: un pays qui ne publie pas ses prix station par station : Belgique (position Bruxelles), carte glissée → statut du pays en base : « aucun » ; bouton « Rechercher dans cette zone » → capture `V-5.7-05-avant.png` ✓ (16:26:06Z, md5 e1ec15d3)
+- Step 6: j'y cherche dans cette zone → « Ce pays ne publie pas les prix station par station Moyenne nationale · Belgique · SP95-E10 : 1,977 €/L » ; en-tête « Autour de moi » ; 0 ligne, pastilles null → capture `V-5.7-06-apres.png` ✓ (16:26:07Z, md5 d783b715)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## Régression (passage stations)
+- (rejouée par la spec m5-regression)
+
+## Erreurs de page relevées
+- aucune
+
+---
+
+# Passage r3 historique,retraits — début 2026-10-21T16:26:18.182Z
+
+Appli déployée https://plein-et-trajet.vercel.app, base Supabase réelle, Playwright (bibliothèque), Chromium headless 390 × 844, toucher, fr-FR, Europe/Paris.
+Réel : base EEA (fonction voiture-eea), moyennes du jour (FR SP95-E10 2,156 €/L, Gazole 2,368 €/L), stations et prix du jour, géocodage inverse (fonction lieux), refus de localisation (contexte sans permission), coupure réseau (context.setOffline).
+Rejoué : géolocalisation par context.setGeolocation depuis tests/e2e/fixtures/albi-toulouse.gpx (et ses dérivés immobile / tunnel, et barcelone.gpx : vrai itinéraire Valhalla fabriqué par creer-gpx.mjs barcelone), horloge de la page accélérée par page.clock (méthode r1a : avancer l'horloge, poser la position, attendre que T3 l'ait comptée), au rythme réel (1 point/s) pendant les passages par Stations.
+
+## V-6.1 — Ouvrir l'historique
+
+### Happy Path
+- Step 1: des trajets enregistrés en septembre et en octobre 2026 (deux trajets réellement rejoués, horloge de la page posée au 14/09 08:00 et au 05/10 17:30) : la fin du trajet d'octobre juste avant « Enregistrer » → IndexedDB : 2026-09-14 2.5 km (septembre, enregistré) ; écran : « Albi → Albi » · « 5 oct. 2026 · 14 min · Renault Clio » (octobre, pas encore enregistré) → capture `V-6.1-01-avant.png` ✓ (16:26:51Z, md5 0a53a98f)
+- Step 2: je touche l'onglet Historique → groupes Octobre 2026 puis Septembre 2026 ; lignes : Albi → Albi 5 oct. · 6,6 km · SP95-E10 à 2,156 €/L 1,01 € | Albi → Albi 14 sept. · 2,5 km · SP95-E10 à 2,156 €/L 0,44 € → capture `V-6.1-02-apres.png` ✓ (16:26:52Z, md5 6d2d5629)
+- Step 3: aucun trajet enregistré (téléphone neuf, voiture enregistrée) : l'accueil, onglet Historique pas encore ouvert → IndexedDB : 0 trajet ; onglet actif « onglet-trajet » → capture `V-6.1-03-avant.png` ✓ (16:26:53Z, md5 25c9bd31)
+- Step 4: j'ouvre l'onglet Historique → « Aucun trajet enregistré. » ; totaux « 0 trajets 0,0 km 0,00 € essence » → capture `V-6.1-04-apres.png` ✓ (16:26:53Z, md5 489260c4)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-6.2 — Totaux
+
+### Happy Path
+- Step 1: ÉTAT PRÉPARÉ : 4 trajets de 77, 152, 245 et 243 km écrits en IndexedDB (format TrajetV1 de l'appli) — leurs lignes dans l'historique → trajets 77 km 4,93 L, 152 km 10,03 L, 245 km 16,91 L, 243 km 16,28 L au prix moyen France SP95-E10 du jour 2,156 → coûts 10,63 + 21,62 + 36,46 + 35,10 ; lignes « Albi → Montpellier 16 oct. · 243 km · SP95-E10 à 2,156 €/L 35,10 € | Toulouse → Bordeaux 12 oct. · 245 km · SP95-E10 à 2,156 €/L 36,46 € | Albi → Cahors 8 oct. · 152 km · SP95-E10 à 2,156 €/L 21,62 € | Albi → Toulouse 3 oct. · 77,0 km · SP95-E10 à 2,156 €/L 10,63 € » → capture `V-6.2-01-avant.png` ✓ (16:26:54Z, md5 71e1827a)
+- Step 2: l'historique s'affiche → totaux « 4 trajets 717 km 103,81 € essence » = 4 trajets, 717 km, 103,81 € (somme des coûts des lignes 35,10 + 36,46 + 21,62 + 10,63) → capture `V-6.2-02-apres.png` ✓ (16:26:55Z, md5 acc52b1b)
+- Step 3: un trajet corrigé : celui de 152 km rouvert, prix passé à 1,899 €/L → « Mon prix » ; coût 19,05 € essence → capture `V-6.2-03-avant.png` ✓ (16:26:55Z, md5 dec67d4e)
+- Step 4: je reviens à l'historique → totaux recalculés « 4 trajets 717 km 101,24 € essence » (= 101,24 €) ; ligne 152 km : Albi → Cahors 8 oct. · 152 km · SP95-E10 à 1,899 €/L 19,05 € → capture `V-6.2-04-apres.png` ✓ (16:26:56Z, md5 968aa8a5)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-6.3 — Lire un trajet
+
+### Happy Path
+- Step 1: ÉTAT PRÉPARÉ : un trajet enregistré à 3 personnes (Albi → Rodez) et un trajet seul, écrits en IndexedDB → prep-3p 92.4 km 3 pers. ; prep-seul 76.8 km 1 pers. → capture `V-6.3-01-avant.png` ✓ (16:26:57Z, md5 591d58cc)
+- Step 2: je lis sa ligne (sélectionnée au clavier) → ligne « Albi → Rodez 18 oct. · 92,4 km · SP95-E10 à 2,156 €/L · 4,32 € chacun 12,96 € » (date, départ → arrivée, km, coût, 4,32 € chacun) ; trajet seul : « Toulouse → Albi 19 oct. · 76,8 km · SP95-E10 à 2,156 €/L 10,44 € » sans part → capture `V-6.3-02-apres.png` ✓ (16:26:57Z, md5 5b176cea)
+- Step 3: une ligne (le trajet seul, sélectionné au clavier) → « Toulouse → Albi 19 oct. · 76,8 km · SP95-E10 à 2,156 €/L 10,44 € » → capture `V-6.3-03-avant.png` ✓ (16:26:57Z, md5 da46a748)
+- Step 4: je la touche → fin de ce trajet « Toulouse → Albi » ; onglet Historique sélectionné ; « ← Historique » ; bouton « Supprimer ce trajet » → capture `V-6.3-04-apres.png` ✓ (16:26:58Z, md5 4be22b18)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-6.4 — Revoir, corriger, supprimer
+
+### Happy Path
+- Step 1: un trajet rouvert depuis l'historique (le trajet seul), réglages de prix et de personnes → prix « Moyenne France du jour » 2.156 ; 1 personne → capture `V-6.4-01-avant.png` ✓ (16:26:58Z, md5 620bbdfc)
+- Step 2: je change son carburant (Gazole) et son nombre de personnes (2), puis je reviens à l'historique → IndexedDB : Gazole, 2 personnes, 2.368 €/L ; ligne « Toulouse → Albi 19 oct. · 76,8 km · Gazole à 2,368 €/L · 5,73 € chacun 11,46 € » → capture `V-6.4-02-apres.png` ✓ (16:26:59Z, md5 c26d471a)
+- Step 3: un trajet rouvert (Albi → Rodez, 3 personnes) → bouton « Supprimer ce trajet » → capture `V-6.4-03-avant.png` ✓ (16:26:59Z, md5 94a8a784)
+- Step 4: je touche « Supprimer ce trajet » → disparu de la liste ; totaux « 1 trajet 76,8 km 11,46 € essence » (1 trajet, 76,8 km) ; IndexedDB 1 trajet → capture `V-6.4-04-apres.png` ✓ (16:27:00Z, md5 06947c50)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-4.3 — Coût de l'essence
+
+### Happy Path
+- Step 1: ÉTAT PRÉPARÉ : un trajet arrêté de 41,2 L, prix 2,161 €/L (« Mon prix »), écrit en IndexedDB (en_cours/arrete) — sa fin de trajet, haut de l'écran → trajet arrêté en attente : 588 km ; écran « 41,20 litres », prix data-prix 2.161 (« Mon prix ») → capture `V-4.3-01-avant.png` ✓ (16:27:02Z, md5 2a08b036)
+- Step 2: la fin de trajet s'affiche (appli ouverte : le trajet arrêté revient) — le coût → « 89,03 € essence » (41,2 × 2,161 = 89.0332 → 89,03) ; libellé « Mon prix » → capture `V-4.3-02-apres.png` ✓ (16:27:03Z, md5 28848602)
+- Step 3: le prix changé (réseau coupé : context.setOffline(true)) — « 2,050 » tapé → navigator.onLine = false ; champ « 2,050 » → capture `V-4.3-03-avant.png` ✓ (16:27:03Z, md5 fe3b9b0c)
+- Step 4: je valide (Entrée), toujours sans réseau → « 84,46 € essence » = 41,2 × 2,050 recalculé aussitôt, hors ligne (navigator.onLine false) → capture `V-4.3-04-apres.png` ✓ (16:27:04Z, md5 80168f3a)
+
+### Edge Case / constats
+- Step 4 — toujours hors ligne : « Revenir à la moyenne » → 88,83 € (41,2 × 2,156), puis Gazole → 97,56 € (41,2 × 2,368) ✓, sur les moyennes gardées dans le trajet ; requêtes émises pendant ces changements : 0 (aucune).
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-4.4 — Partager
+
+### Happy Path
+- Step 1: un coût de 89,03 € (SP95-E10, mon prix 2,161 €/L), 1 personne → « 89,03 € essence » ; « Seul : tout pour toi. » → capture `V-4.4-01-avant.png` ✓ (16:27:04Z, md5 1a289b29)
+- Step 2: je passe le nombre de personnes à 3 avec « + » → 3 personnes → « 29,68 € chacun » (89,03 ÷ 3 = 29,677) → capture `V-4.4-02-apres.png` ✓ (16:27:05Z, md5 4a51319f)
+- Step 3: 1 personne → 1 personne ; « Seul : tout pour toi. » → capture `V-4.4-03-avant.png` ✓ (16:27:05Z, md5 edebce3f)
+- Step 4: l'écran s'affiche ; j'essaie de descendre sous 1 et de monter au-delà de 9 → « Seul : tout pour toi. » ; « − » désactivé à 1 (toucher : reste 1) ; 10 touchers sur « + » → 9, « + » désactivé ; revenu à 1 : « Seul : tout pour toi. » → capture `V-4.4-04-apres.png` ✓ (16:27:07Z, md5 05ea7711)
+
+### Edge Case / constats
+- Step 4 — une seule image ne peut pas montrer les deux bornes : la capture est à 1 personne (« Seul : tout pour toi. », « − » désactivé) ; la borne 9 (« + » désactivé après 10 touchers) est relevée dans le constat de l'étape, puis le compteur est ramené à 1.
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V1-retraits — Contrôle négatif : ce qui sort de la V1
+
+### Happy Path
+- Step 1: l'appli déployée, journal réseau Playwright ouvert sur TOUS les contextes du passage (écoute context.on('request'), y compris les processus précédents du même passage, relus dans exploration/m5-resultats-<passage>-*.json) → 105 requêtes de ce processus → capture `V1-retraits-01-avant.png` ✓ (16:27:07Z, md5 25c9bd31)
+- Step 2: parcours T1 → T6 (+ tous les flux du passage, dont 5 trajets complets rejoués) → 634 requêtes journalisées sur 16 contextes : 0 vers api.myptv.com, 0 vers estimer-trajet / trajet-roule / péages ; fonctions appelées {"lieux":31,"voiture-eea":9} ; hôtes {"plein-et-trajet.vercel.app":121,"fonts.googleapis.com":35,"fonts.gstatic.com":166,"rglrwtkqwihdztgqlbsy.supabase.co":174,"":8,"tiles.openfreemap.org":126,"data.geopf.fr":3,"photon.komoot.io":1} ; 137 captures (contextes cas-refus, cas, barcelone, stations, stations-prayssac, barcelone-stations, dartford, bruxelles, voiture, trajet, historique-reel, historique-vide, historique-prepare, historique-prepare-2, cout-prepare, retraits) + 6 routes passées au crible : aucun « péage » ni « itinéraire » ; aucun champ départ / arrivée ; aucun lien Moteurs ; onglets Trajet · Stations · Historique → capture `V1-retraits-02-apres.png` ✓ (16:27:28Z, md5 b365577c)
+- Step 3: la table public.moteurs lue par l'API Supabase (rôle service), rendue en page texte → prix:true, moyennes:true, itineraire:true, peages:false, voitures:true, lieux:true, vehicules:true → capture `V1-retraits-03-avant.png` ✓ (16:27:29Z, md5 eff32280)
+- Step 4: je lis la ligne du service péages, et le nombre de lignes des clés → peages : en_service = false (fournisseur ptv gardé) ; cles_fournisseurs 2 lignes (2 avant) ; Vault 3 secrets (cle_ptv, cle_stadia, sync_prix_secret ; 3 avant) ; limite d'inscriptions anonymes 30 → capture `V1-retraits-04-apres.png` ✓ (16:27:30Z, md5 20039950)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## Régression (passage historique,retraits)
+- US-3.E3 (T6) : historique vide → « Aucun trajet enregistré. », totaux 0 trajets 0,0 km 0,00 € essence ✓
+
+## Erreurs de page relevées
+- aucune
+
+---
+
+# Passage r3 voiture,trajet — début 2026-10-21T16:34:06.610Z
+
+Appli déployée https://plein-et-trajet.vercel.app, base Supabase réelle, Playwright (bibliothèque), Chromium headless 390 × 844, toucher, fr-FR, Europe/Paris.
+Réel : base EEA (fonction voiture-eea), moyennes du jour (FR SP95-E10 2,156 €/L, Gazole 2,368 €/L), stations et prix du jour, géocodage inverse (fonction lieux), refus de localisation (contexte sans permission), coupure réseau (context.setOffline).
+Rejoué : géolocalisation par context.setGeolocation depuis tests/e2e/fixtures/albi-toulouse.gpx (et ses dérivés immobile / tunnel, et barcelone.gpx : vrai itinéraire Valhalla fabriqué par creer-gpx.mjs barcelone), horloge de la page accélérée par page.clock (méthode r1a : avancer l'horloge, poser la position, attendre que T3 l'ait comptée), au rythme réel (1 point/s) pendant les passages par Stations.
+
+## V-2.E1 — Code inconnu
+
+### Happy Path
+- Step 1: champ D.2, je commence « ZZ999 » → champ « ZZ999 » ; aucune fiche → capture `V-2.E1-01-avant.png` ✓ (16:34:29Z, md5 30061b50)
+- Step 2: je tape « ZZ9999 » (absent de la base EEA) → « Code introuvable. Vérifie la case D.2, ou cherche par nom ci-dessous. » (data-code code_inconnu) ; « Enregistrer ma voiture » désactivé → capture `V-2.E1-02-apres.png` ✓ (16:34:36Z, md5 97b42982)
+- Step 3: MOCKED (page.route : la base européenne ne tombe pas sur commande) — base injoignable, je commence « 5RBF0 » → champ « 5RBF0 » ; réponse de voiture-eea remplacée par un 502 base_injoignable côté navigateur → capture `V-2.E1-03-avant.png` ✓ (16:34:37Z, md5 a61a559c)
+- Step 4: MOCKED — je tape « 5RBF0A » → « La base européenne des voitures ne répond pas. Réessayer » ; champ toujours « 5RBF0A » ; « Enregistrer ma voiture » désactivé : true → capture `V-2.E1-04-apres.png` ✓ (16:34:38Z, md5 5c941515)
+
+### Edge Case / constats
+- Step 4 — route retirée puis « Réessayer » touché : la vraie base répond, fiche « Renault Clio 1.5 · 75 ch · Gazole » (après la capture).
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-2.3 — Chercher sans la carte grise
+
+### Happy Path
+- Step 1: je touche le champ « Nom, année, puissance » → champ recherche vide et sélectionné (focus #q) → capture `V-2.3-01-avant.png` ✓ (16:34:41Z, md5 b544eff0)
+- Step 2: je tape « clio 2017 120 » → 6 suggestions, toutes Clio 2017 entre 115 et 125 ch, avec année, kW et carburant : Renault Clio 1.2 · 118 ch 2017 · 87 kW · 1 165 kg · SP95-E10 · D.2 5RBU0C | Renault Clio 1.2 · 118 ch 2017 · 87 kW · 1 165 kg · SP95-E10 · D.2 5RBU0D | Renault Clio 1.2 · 118 ch 2017 · 87 kW · 1 243 kg · SP95-E10 · D.2 7RBU0C | Renault Clio 1.2 · 118 ch 2017 · 87 kW · 1 270 kg · SP95-E10 · D.2 7RBU0D | Renault Clio 1.2 · 120 ch 2017 · 88 kW · 1 255 kg · SP95-E10 · D.2 2R401E | Renault Clio 1.2 · 120 ch 2017 · 88 kW · 1 165 kg · SP95-E10 · D.2 5R400E → capture `V-2.3-02-apres.png` ✓ (16:34:44Z, md5 94fc3744)
+- Step 3: la première suggestion (sélectionnée au clavier) → « Renault Clio 1.2 · 118 ch 2017 · 87 kW · 1 165 kg · SP95-E10 · D.2 5RBU0C » → capture `V-2.3-03-avant.png` ✓ (16:34:45Z, md5 2a0e53b8)
+- Step 4: je la touche → fiche « Renault Clio 1.2 · 118 ch » 2017 · 87 kW · 118 ch · 1 165 kg · SP95-E10 (data-cle RENAULT·R·5RBU·5RBU0C·2017) ; « Enregistrer ma voiture » actif → capture `V-2.3-04-apres.png` ✓ (16:34:45Z, md5 666b2a39)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-2.1 — Saisir le code D.2
+
+### Happy Path
+- Step 1: écran Ma voiture, je touche le champ D.2 → champ D.2 vide et sélectionné (focus d2) ; « Enregistrer ma voiture » désactivé → capture `V-2.1-01-avant.png` ✓ (16:34:11Z, md5 7ef84a1a)
+- Step 2: je tape « 5RBU0C » (code déjà en cache versions_eea) → fiche « Renault Clio 1.2 · 118 ch » : année 2017 · 87 kW · 118 ch · 1 197 cm³ · 1 165 kg · SP95-E10 · 118 g/km (NEDC) · « Base européenne EEA » ; liste : Renault Clio 1.2 · 118 ch 2017 · 87 kW · 1 165 kg · SP95-E10 · 13 864 immatriculées Renault Clio 1.2 · 118 ch 2018 · 87 kW · 1 165 kg · SP95-E10 · 11 043 immatriculées → capture `V-2.1-02-apres.png` ✓ (16:34:13Z, md5 751a56a9)
+- Step 3: code partagé par plusieurs versions, jamais demandé à l'appli : je tape « AD6DB000M000 » sauf le dernier caractère → champ « AD6DB000M00 » ; AD6DB000M000 absent de versions_eea (0 ligne, lu par l'API avant la saisie) → capture `V-2.1-03-avant.png` ✓ (16:34:14Z, md5 df9f2425)
+- Step 4: je tape le dernier caractère (« AD6DB000M000 ») puis je choisis la 2e version → 2 versions, la plus immatriculée en tête (41724 ≥ 8559…) ; marques Dacia ; années 2019, 2018 ; masses 1 480 kg ; 1re : « Dacia Duster 1.5 · 116 ch 2019 · 85 kW · 1 480 kg · Gazole · 41 724 immatriculées » ; 2e touchée → fiche « Dacia Duster 1.5 · 116 ch » → capture `V-2.1-04-apres.png` ✓ (16:34:26Z, md5 d127ebe4)
+- Step 5: je commence à taper en minuscules avec espaces : « r 5rbu » → champ « R 5RBU » (saisie en minuscules mise en majuscules à la frappe) ; pas de recherche (5 caractères sans espaces) → capture `V-2.1-05-avant.png` ✓ (16:34:27Z, md5 eae4cab5)
+- Step 6: je finis « r 5rbu 5rbu0c » → champ « R 5RBU 5RBU0C » ; requête envoyée « d2=R 5RBU 5RBU0C » ; fiche « Renault Clio 1.2 · 118 ch · 2017 » (data-cle RENAULT·R·5RBU·5RBU0C·2017) : reconnu comme 5RBU0C → capture `V-2.1-06-apres.png` ✓ (16:34:28Z, md5 40fcd897)
+
+### Edge Case / constats
+- Step 2 — écart de libellé face au plan : l'écran nomme « Renault Clio 1.2 · 118 ch » ; le plan dit « Renault Clio 1.2 TCe 120 ». La base EEA ne porte ni « TCe » ni « 120 » (Cn = CLIO) ; les chiffres sont ceux du plan.
+- Step 2 — cache : 5RBU0C présent dans versions_eea AVANT la saisie (2 lignes, années 2017/2018) : c'est le chemin « version déjà en cache ».
+- Step 4 — chemin « jamais demandée » : AD6DB000M000 absent du cache avant, 2 ligne(s) dans versions_eea après (écrites par la fonction).
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-1.2 — Voir ma voiture
+
+### Happy Path
+- Step 1: la Clio enregistrée (accueil, juste après « Enregistrer ma voiture ») → accueil « Renault Clio » « 1.2 · 118 ch · 2017 · SP95-E10 » ; onglet onglet-trajet ; localStorage pt-voiture-v1 = 5RBU0C → capture `V-1.2-01-avant.png` ✓ (16:34:48Z, md5 25c9bd31)
+- Step 2: l'accueil s'affiche (page rechargée) → ÉCART DE LIBELLÉ : l'écran montre « Renault Clio » et « 1.2 · 118 ch · 2017 · SP95-E10 », le plan attend « Renault Clio IV » et « 1.2 TCe 120 · 2017 · SP95-E10 » ; la base EEA (Cn = CLIO) ne porte ni « IV » ni « TCe 120 » → capture `V-1.2-02-apres.png` ✗ (16:34:49Z, md5 25c9bd31)
+- Step 3: l'accueil, « Changer » sélectionné au clavier → focus sur « Changer » → capture `V-1.2-03-avant.png` ✓ (16:34:49Z, md5 7ff02c6d)
+- Step 4: je touche « Changer » → écran Ma voiture, D.2 « » et recherche « » vides ; aucune fiche (0) → capture `V-1.2-04-apres.png` ✓ (16:34:49Z, md5 1ee8c79b)
+- Step 5: l'appli telle que je la laisse, juste avant de fermer le navigateur (puis relance sur le même profil) → URL https://plein-et-trajet.vercel.app/ ; accueil « Renault Clio » ; localStorage pt-voiture-v1 = 5RBU0C → capture `V-1.2-05-avant.png` ✓ (16:34:51Z, md5 25c9bd31)
+- Step 6: je rouvre l'appli → accueil : « Renault Clio » « 1.2 · 118 ch · 2017 · SP95-E10 », rien ressaisi → capture `V-1.2-06-apres.png` ✓ (16:34:52Z, md5 25c9bd31)
+
+### Edge Case / constats
+- Step 5 — navigateur fermé puis relancé sur le même profil : onglet about:blank avant d'ouvrir l'appli.
+
+### Issues Found
+- Step 2 (V-1.2-02-apres.png) : ÉCART DE LIBELLÉ : l'écran montre « Renault Clio » et « 1.2 · 118 ch · 2017 · SP95-E10 », le plan attend « Renault Clio IV » et « 1.2 TCe 120 · 2017 · SP95-E10 » ; la base EEA (Cn = CLIO) ne porte ni « IV » ni « TCe 120 »
+
+## V-2.2 — Vérifier et enregistrer
+
+### Happy Path
+- Step 1: la fiche de ma version (5RBU0C, 2017) affichée → fiche « Renault Clio 1.2 · 118 ch · 2017 » ; bouton « Enregistrer ma voiture » actif → capture `V-2.2-01-avant.png` ✓ (16:34:47Z, md5 62682fff)
+- Step 2: je touche « Enregistrer ma voiture » → accueil : « Renault Clio » « 1.2 · 118 ch · 2017 · SP95-E10 » ; localStorage pt-voiture-v1 = Renault Clio 5RBU0C 2017 → capture `V-2.2-02-apres.png` ✓ (16:34:48Z, md5 25c9bd31)
+- Step 3: aucune version identifiée : D.2 vide, « zz » dans la recherche par nom → D.2 «  », recherche « zz » (moins de 3 caractères : pas de recherche) ; aucune fiche (0) → capture `V-2.2-03-avant.png` ✓ (16:34:40Z, md5 1ab1da9e)
+- Step 4: je regarde « Enregistrer ma voiture » (D.2 incomplet « 5RB ») → aucune fiche ; « Enregistrer ma voiture » désactivé (disabled) → capture `V-2.2-04-apres.png` ✓ (16:34:41Z, md5 8d8f6635)
+
+### Edge Case / constats
+- Step 2 — après fermeture du navigateur et relance sur le même profil, l'accueil rappelle la même voiture (V-1.2-06).
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-5.3 — Rechercher dans cette zone
+
+### Happy Path
+- Step 1: la carte des stations (trajet en cours) → en-tête « Autour de moi » ; 8 stations ; centre 43.913, 2.142 zoom 10.0 → capture `V-5.3-01-avant.png` ✓ (16:35:15Z, md5 f30b2e19)
+- Step 2: je fais glisser la carte vers Montauban (4 glissements au doigt-souris) → bouton « Rechercher dans cette zone » affiché ; liste inchangée (8 stations, mêmes id) ; en-tête « Autour de moi » ; centre 44.018, 1.415 → capture `V-5.3-02-apres.png` ✓ (16:35:23Z, md5 19d43b8f)
+- Step 3: le bouton « Rechercher dans cette zone » (carte recentrée sur Montauban d'un dernier glissement) → centre 44.017, 1.355 ; liste toujours celle d'avant (8 stations) → capture `V-5.3-03-avant.png` ✓ (16:35:27Z, md5 4285232c)
+- Step 4: je touche « Rechercher dans cette zone » → bouton disparu ; en-tête « Autour de Montauban » ; 16 stations, toutes à moins de 11.6 km du centre affiché (44.017, 1.355), 16 pastilles ; 1re (Moins cher) « TotalEnergies Montauban 63,4 km · il y a 5 h · −16,6 c vs France 1,990 €/L » → capture `V-5.3-04-apres.png` ✓ (16:35:28Z, md5 b4bef9d6)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-3.1 — Suivre en direct
+
+### Happy Path
+- Step 1: enregistrement en cours, 200 positions rejouées → 19 km/h · 0,8 km · 0,06 L · 0,13 € · 0:03 · 14 km/h moy. · 8,2 L/100 · 200 points → capture `V-3.1-01-avant.png` ✓ (16:35:01Z, md5 27699522)
+- Step 2: je roule : 200 positions de plus (1 par seconde d'horloge) → vitesse lue après chaque position : 49 changements sur 200 s (la vitesse est redessinée à chaque position, soit chaque seconde ; plus longue valeur identique : 57 s, arrêts du GPX compris) ; courbe « Vitesse des 3 dernières minutes » ; 19 km/h · 0,8 km · 0,06 L · 0,13 € · 0:03 · 14 km/h moy. · 8,2 L/100 · 200 points → 29 km/h · 1,8 km · 0,15 L · 0,33 € · 0:06 · 17 km/h moy. · 8,4 L/100 · 400 points → capture `V-3.1-02-apres.png` ✓ (16:35:07Z, md5 39eed2c7)
+- Step 3: aucun prix choisi (aucune station touchée) → « Prix : moyenne France du jour · 2,156 €/L » → capture `V-3.1-03-avant.png` ✓ (16:35:08Z, md5 f6a6bbc1)
+- Step 4: le coût en direct s'affiche → 0,20 L × 2,156 €/L (moyenne France du jour SP95-E10 lue par l'API : 2,156) = 0,431 → affiché 0,43 € ; « Prix : moyenne France du jour · 2,156 €/L » → capture `V-3.1-04-apres.png` ✓ (16:35:09Z, md5 ef6abb97)
+- Step 5: un prix pris sur une station (« Utiliser ce prix ») → « Prix : mon prix · 1,990 €/L » ; 0 km/h · 2,5 km · 0,21 L · 0,41 € · 0:08 · 18 km/h moy. · 8,3 L/100 · 507 points → capture `V-3.1-05-avant.png` ✓ (16:35:31Z, md5 4bb8e694)
+- Step 6: le coût en direct s'affiche (60 positions plus loin) → 0,21 L × 1,990 = 0,418 → affiché 0,41 € ; « Prix : mon prix · 1,990 €/L » → capture `V-3.1-06-apres.png` ✓ (16:35:33Z, md5 f66106e5)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-3.4 — Mettre en pause
+
+### Happy Path
+- Step 1: un enregistrement en cours (A68) → 105 km/h · 30,3 km · 2,16 L · 4,29 € · 0:29 · 62 km/h moy. · 7,1 L/100 · 1747 points → capture `V-3.4-01-avant.png` ✓ (16:36:31Z, md5 727eb1cf)
+- Step 2: je touche « Pause » puis 20 positions arrivent → « En pause », bouton « Reprendre » ; km 30,3 et litres 2,16 inchangés malgré 0,58 km parcourus sur le GPX → capture `V-3.4-02-apres.png` ✓ (16:36:32Z, md5 6e724a7a)
+- Step 3: une pause pendant laquelle la voiture s'est déplacée → déplacement pendant la pause : 2,07 km (GPX, points 1750 → 1821) ; affiché toujours 30,3 km, 2,16 L → capture `V-3.4-03-avant.png` ✓ (16:36:35Z, md5 6e724a7a)
+- Step 4: je touche « Reprendre » puis 60 positions → « Enregistrement » ; km 30,3 → 32,1 (+1,8) = distance roulée depuis la reprise (1,72 km) ; les 2,07 km de la pause ne sont ni comptés ni chiffrés → capture `V-3.4-04-apres.png` ✓ (16:36:39Z, md5 c5a2e1ed)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-4.5 — Courbe de vitesse
+
+### Happy Path
+- Step 1: un trajet enregistré, rouvert depuis l'historique (écran Fin de trajet, haut) → onglet onglet-historique ; « Albi → Toulouse » ; « 21 oct. 2026 · 1 h 11 · Renault Clio » ; enregistré : true → capture `V-4.5-01-avant.png` ✓ (16:38:41Z, md5 ecbdbc91)
+- Step 2: la fin de trajet s'affiche (rouverte) — courbe de vitesse → « 63 km/h moy. · 7 accélérations » ; 600 points de courbe (≤ 600) pour 4350 s de trajet ; vitesse moyenne affichée 63 km/h ; km ÷ durée roulée (4278 s, pause exclue) = 63.0 km/h ; km ÷ durée totale = 61.9 km/h ; 7 accélérations → capture `V-4.5-02-apres.png` ✓ (16:38:42Z, md5 ecbdbc91)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-4.6 — Courbe de consommation
+
+### Happy Path
+- Step 1: un trajet enregistré (fin rouverte, haut de l'écran) → onglet onglet-historique ; « ← Historique » ; « Albi → Toulouse » → capture `V-4.6-01-avant.png` ✓ (16:38:42Z, md5 ecbdbc91)
+- Step 2: la courbe de consommation → « moy. 6,9 · pointe 20,1 L/100 » ; litres ÷ km × 100 = 5.174 ÷ 74.82 × 100 = 6.92 ; 600 points (moyenne simple des points de la courbe : 6.92, non pondérée par la distance) → capture `V-4.6-02-apres.png` ✓ (16:38:42Z, md5 e67da10a)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-1.1 — Ouvrir l'appli
+
+### Happy Path
+- Step 1: une voiture enregistrée sur ce téléphone (écran Trajet) → onglet onglet-trajet ; carte « Renault Clio · 1.2 · 118 ch · 2017 · SP95-E10 » ; voiture 5RBU0C → capture `V-1.1-01-avant.png` ✓ (16:34:50Z, md5 25c9bd31)
+- Step 2: j'ouvre l'appli (nouvel onglet sur l'adresse de l'appli) → onglet Trajet sélectionné ; T1 « Renault Clio 1.2 · 118 ch · 2017 · SP95-E10 Changer Démarrer » ; ni prix ni nombre de personnes → capture `V-1.1-02-apres.png` ✓ (16:34:51Z, md5 25c9bd31)
+- Step 3: premier lancement (profil neuf, aucune voiture), j'ouvre l'appli → T1 « Enregistre d'abord ta voiture Le code D.2 de ta carte grise, une seule fois. Démarrer » ; onglet sélectionné : Trajet ; localStorage pt-voiture-v1 absent → capture `V-1.1-03-avant.png` ✓ (16:34:09Z, md5 c213538e)
+- Step 4: je touche « Démarrer » sans voiture → URL /voiture, écran Ma voiture (« Ma voiture ») ; aucun enregistrement en IndexedDB → capture `V-1.1-04-apres.png` ✓ (16:34:10Z, md5 c30f373e)
+- Step 5: un trajet en cours d'enregistrement ; je suis sur l'onglet Stations (bandeau « Trajet en cours ») → onglet onglet-stations ; bandeau « ● Trajet en cours · 0,44 € » ; IndexedDB enregistrement : 485 points → capture `V-1.1-05-avant.png` ✓ (16:35:12Z, md5 f30b2e19)
+- Step 6: je touche l'onglet Trajet → URL /en-route, écran En route « Enregistrement » (pas l'accueil) → capture `V-1.1-06-apres.png` ✓ (16:35:12Z, md5 e8230957)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-1.3 — Démarrer
+
+### Happy Path
+- Step 1: la Clio enregistrée, localisation autorisée, position = 1er point du GPX (Albi, place du Vigan) → accueil « Renault Clio » ; permission géolocalisation accordée au contexte → capture `V-1.3-01-avant.png` ✓ (16:34:56Z, md5 25c9bd31)
+- Step 2: je touche « Démarrer » → écran En route, « Enregistrement » (pastille animée : clignote infinite) ; 1re position enregistrée en 77 ms (data-points 1) ; IndexedDB enregistrement : présent → capture `V-1.3-02-apres.png` ✓ (16:34:56Z, md5 4b079d85)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-5.6 — Trajet en cours
+
+### Happy Path
+- Step 1: un trajet en cours ; je touche l'onglet Stations (positions envoyées au rythme réel, 1 par seconde) → écran Stations ouvert ; bandeau « ● Trajet en cours · 0,93 € » → capture `V-5.6-01-avant.png` ✓ (16:35:41Z, md5 50f1af88)
+- Step 2: l'onglet Stations est ouvert → bandeau en haut « ● Trajet en cours · 0,99 € » (coût en direct ; 0,93 € sur En route juste avant) ; 8 stations listées → capture `V-5.6-02-apres.png` ✓ (16:35:46Z, md5 238ce017)
+- Step 3: ce bandeau, 6 s plus tard (la voiture roule) → « ● Trajet en cours · 1,02 € » (« ● Trajet en cours · 0,99 € » 6 s plus tôt : le coût du bandeau suit le trajet) ; positions rejouées jusqu'au point 912 → capture `V-5.6-03-avant.png` ✓ (16:35:52Z, md5 a591c4d0)
+- Step 4: je touche l'onglet Trajet → écran En route revenu ; 911 points (911 au moment du toucher) ; 82 km/h · 6,8 km · 0,52 L · 1,03 € · 0:15 · 27 km/h moy. · 7,6 L/100 · 911 points → capture `V-5.6-04-apres.png` ✓ (16:35:53Z, md5 61239b43)
+
+### Edge Case / constats
+- Step 2 — sans trajet en cours (même téléphone, avant Démarrer) : bandeau « retour-trajet » présent 0 fois (attendu 0).
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-5.5 — Utiliser ce prix
+
+### Happy Path
+- Step 1: trajet en cours ; la fiche de la 1re station « Moins cher » de Montauban → fiche « TotalEnergies Montauban » ; bouton « Utiliser 1,990 €/L pour mon trajet » ; prix SP95-E10 en base pour 82000018 : 1,990 €/L. (Le plan cite 2,103 €/L à titre d'exemple : le prix réel du jour est celui lu ici.) → capture `V-5.5-01-avant.png` ✓ (16:35:29Z, md5 680c3d00)
+- Step 2: je touche « Utiliser 1,990 €/L pour mon trajet » → fiche fermée, écran En route ; « Prix : mon prix · 1,990 €/L » ; 0,21 L × 1,990 = 0,418 → 0,41 € (la fin de trajet est relue plus bas) → capture `V-5.5-02-apres.png` ✓ (16:35:30Z, md5 a2196c2e)
+
+### Edge Case / constats
+- Step 2 — la fin de ce même trajet, au prix de la station, est la capture V-4.7-01-avant.png (libellé « Mon prix », 3 personnes) ; fin de trajet : libellé « Mon prix », prix data-prix 1.99 (station : 1,990), coût 10,30 € essence.
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-5.1 — Stations autour de moi
+
+### Happy Path
+- Step 3: un trajet en cours (A68, 1 450 positions) ; j'ouvre l'onglet Stations → écran Stations autour de la voiture (43.8843, 1.9259, 21,6 km après Albi) : 5 stations toutes à moins de 10 km d'elle ; 1re « TotalEnergies Marssac-sur-Tarn 9,2 km · il y a 7 h · −16,6 c vs France 1,990 €/L » ; bandeau « ● Trajet en cours · 3,08 € » ; sur En route juste avant : 105 km/h · 21,6 km · 1,49 L · 2,97 € · 0:24 · 54 km/h moy. · 6,9 L/100 · 1448 points → capture `V-5.1-03-avant.png` ✓ (16:36:11Z, md5 005b328f)
+- Step 4: je reviens au trajet (onglet Trajet) après 12 s dans Stations → distance 21,6 → 22,1 km, points 1448 → 1463 : l'enregistrement a continué pendant Stations → capture `V-5.1-04-apres.png` ✓ (16:36:25Z, md5 c41e9262)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-3.5 — Arrêter
+
+### Happy Path
+- Step 1: un enregistrement de plus de 1 km (arrivée au Capitole, Toulouse) → 10 km/h · 74,8 km · 5,17 L · 10,30 € · 1:11 · 63 km/h moy. · 6,9 L/100 · 4275 points → capture `V-3.5-01-avant.png` ✓ (16:38:36Z, md5 0df2df95)
+- Step 2: je touche « Arrêter » → « Albi → Toulouse » ; « 21 oct. 2026 · 1 h 11 · Renault Clio » ; 5,17 L (5.174), 74,8 km (74.82), 6,9 L/100 km moy. → capture `V-3.5-02-apres.png` ✓ (16:38:38Z, md5 bdb448a1)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## V-4.7 — Enregistrer ou supprimer
+
+### Happy Path
+- Step 1: un trajet qui vient d'être arrêté (3 personnes choisies) → prix « Mon prix » 1,990 €/L ; coût 10,30 € ; « 3,43 € chacun » ; boutons « Supprimer Enregistrer » → capture `V-4.7-01-avant.png` ✓ (16:38:39Z, md5 bd7e87b4)
+- Step 2: je touche « Enregistrer » → onglet Historique, en tête : « Albi → Toulouse 21 oct. · 74,8 km · SP95-E10 à 1,990 €/L · 3,43 € chacun 10,30 € » ; IndexedDB : prix 1.99 (station), carburant SP95-E10, 3 personnes, enregistré ; totaux « 1 trajet 74,8 km 10,30 € essence » → capture `V-4.7-02-apres.png` ✓ (16:38:40Z, md5 89ed7de2)
+
+### Edge Case / constats
+- Démonstration : coût 10,30 € au prix de la station 1,990 €/L, partagé à 3.
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## Régression (passage voiture,trajet)
+- (rejouée par la spec m5-regression)
+
+## Erreurs de page relevées
+- aucune
+
+---
+
+# Passage r3 retraits — début 2026-10-21T16:38:50.716Z
+
+Appli déployée https://plein-et-trajet.vercel.app, base Supabase réelle, Playwright (bibliothèque), Chromium headless 390 × 844, toucher, fr-FR, Europe/Paris.
+Réel : base EEA (fonction voiture-eea), moyennes du jour (FR SP95-E10 2,156 €/L, Gazole 2,368 €/L), stations et prix du jour, géocodage inverse (fonction lieux), refus de localisation (contexte sans permission), coupure réseau (context.setOffline).
+Rejoué : géolocalisation par context.setGeolocation depuis tests/e2e/fixtures/albi-toulouse.gpx (et ses dérivés immobile / tunnel, et barcelone.gpx : vrai itinéraire Valhalla fabriqué par creer-gpx.mjs barcelone), horloge de la page accélérée par page.clock (méthode r1a : avancer l'horloge, poser la position, attendre que T3 l'ait comptée), au rythme réel (1 point/s) pendant les passages par Stations.
+
+## V1-retraits — Contrôle négatif : ce qui sort de la V1
+
+### Happy Path
+- Step 1: l'appli déployée, journal réseau Playwright ouvert sur TOUS les contextes du passage (écoute context.on('request'), y compris les processus précédents du même passage, relus dans exploration/m5-resultats-<passage>-*.json) → 7 requêtes de ce processus → capture `V1-retraits-01-avant.png` ✓ (16:38:53Z, md5 25c9bd31)
+- Step 2: parcours T1 → T6 (+ tous les flux du passage, dont 5 trajets complets rejoués) → 742 requêtes journalisées sur 16 contextes : 0 vers api.myptv.com, 0 vers estimer-trajet / trajet-roule / péages ; fonctions appelées {"lieux":31,"voiture-eea":10} ; hôtes {"plein-et-trajet.vercel.app":149,"fonts.googleapis.com":43,"fonts.gstatic.com":206,"rglrwtkqwihdztgqlbsy.supabase.co":184,"":10,"tiles.openfreemap.org":146,"data.geopf.fr":3,"photon.komoot.io":1} ; 141 captures (contextes cas-refus, cas, barcelone, historique-reel, historique-vide, historique-prepare, historique-prepare-2, cout-prepare, retraits, stations, stations-prayssac, barcelone-stations, dartford, bruxelles, voiture, trajet) + 6 routes passées au crible : aucun « péage » ni « itinéraire » ; aucun champ départ / arrivée ; aucun lien Moteurs ; onglets Trajet · Stations · Historique → capture `V1-retraits-02-apres.png` ✓ (16:39:12Z, md5 c1d4f1b6)
+- Step 3: la table public.moteurs lue par l'API Supabase (rôle service), rendue en page texte → prix:true, moyennes:true, itineraire:true, peages:false, voitures:true, lieux:true, vehicules:true → capture `V1-retraits-03-avant.png` ✓ (16:39:15Z, md5 8e3051dc)
+- Step 4: je lis la ligne du service péages, et le nombre de lignes des clés → peages : en_service = false (fournisseur ptv gardé) ; cles_fournisseurs 2 lignes (2 avant) ; Vault 3 secrets (cle_ptv, cle_stadia, sync_prix_secret ; 3 avant) ; limite d'inscriptions anonymes 30 → capture `V1-retraits-04-apres.png` ✓ (16:39:15Z, md5 1a773113)
+
+### Issues Found
+- aucune sur la version déployée à cette passe.
+
+## Régression (passage retraits)
+- (rejouée par la spec m5-regression)
+
+## Erreurs de page relevées
+- aucune
+
+## Round 3
+
+Bâtisseur r3 (m5-batisseur-r3), 21/10, 15:58Z → 17:05Z. Mêmes outils (`run-m5.mjs` + `m5-explore-outils.mjs`, bibliothèque Playwright, Chromium 390 × 844, toucher, fr-FR), sous `lourd`. Passage de référence : **r3** (blocs « # Passage r3 … » ci-dessus) : cas, stations et historique,retraits joués sur la prod **3bf6066** (16:22Z → 16:28Z) ; voiture,trajet rejoué à 16:34Z sur la prod **9d303d2** (exemple de carte grise en JetBrains Mono, seul écran touché : Ma voiture), puis retraits seul à 16:38Z pour que le contrôle négatif compte toutes les requêtes du passage. Le premier bloc « voiture,trajet » (16:18Z, prod 3bf6066) est un essai gardé : ses captures ont été remplacées par celles de 16:34Z.
+
+**Résultat r3 : 140/140 captures, 139 ✓, 1 ✗** (V-1.2-02 : « Renault Clio » / « 1.2 · 118 ch » contre « Clio IV » / « 1.2 TCe 120 » du plan, décision d'Anthony, inchangé). Contrôle négatif : 742 requêtes sur 16 contextes, 0 vers api.myptv.com, estimer-trajet, trajet-roule ou péages ; fonctions appelées lieux (31) et voiture-eea (10). md5 : les 140 du disque = ceux relevés par le passage ; livrée = brute pour 120, deux prises différentes pour 20.
+
+### V-1.1, V-2.1, V-2.2, V-2.3, V-2.E1 — Ma voiture (audit r2 lot 1, LOW 5)
+- Le champ D.2 et l'exemple de carte grise sont en JetBrains Mono, dont le zéro est pointé : « 5RBU0C » ne se lit plus « 5RBUOC » (V-1.1-04, V-2.1-01 à -06, V-2.2-0x, V-2.3-0x, V-2.E1-0x reprises). Chivo Mono n'a pas de variante « zéro barré » : essai Chromium, rendu identique avec `font-variant-numeric: slashed-zero` et `font-feature-settings: 'zero'`.
+
+### V-2.1 — code partagé (audit r2 lot 1, LOW 6)
+- V-2.1-03/04 : **AD6DB000M000** (Dacia Duster 1.5, 2019 et 2018, 85 kW · 116 ch, 1 480 kg, Gazole), absent du cache avant la saisie, 2 versions listées ; l'étape refuse désormais « — kW ». HNSJC1B000 (round 2) n'a aucune puissance dans la base EEA. Le code DAW400L0 proposé par l'audit est déjà en cache depuis le round 1 : il ne prouve plus le chemin « jamais demandé ». M61A11 (Hyundai Kona / Kia Ceed, 88 kW) a été consommé par le bloc d'essai de 16:18Z.
+
+### V-3.E1 — arrêt automatique (audit r2 lot 1, MEDIUM 2)
+- Captures inchangées en contenu : le tracé du projet bruite de ±2 m, sans précision rapportée (accuracy 5 de Playwright, seuil de 15 m comme avant). Alerte au point 1375 (601 s), arrivée datée du point 774, 4,0 km et 0,33 L figés. Le cas ±10 m / précision 20 m est couvert par les tests unitaires `tests/unit/m5-round3.test.ts` (5 graines sur 5 ; avant : 0 sur 5).
+
+### V-4.1 — carburant (audit r2 lot 2, LOW 4)
+- V-4.1-01 : l'écran Fin de trajet tel qu'il s'ouvre, haut de l'écran (« BRENS → PARISOT », « 21 oct. 2026 · 4 min · Renault Clio », 0,55 L) ; le journal garde la ligne En route juste avant « Arrêter ». V-4.1-02 : sélecteur remonté en haut, SP95-E10 choisi, « Moyenne France du jour » 2,156.
+
+### V-4.3 — hors ligne (audit r2 lot 2, LOW 6)
+- V-4.3-03/04 : « Hors ligne : litres et coût calculés sur le téléphone. » — les noms « ALBI → PARIS » sont connus, le message n'en parle plus. V-3.5-06 (noms manquants) garde la phrase complète.
+
+### V-6.1 — historique (audit r2 lot 2, LOW 4)
+- V-6.1-01 : la fin du trajet d'octobre juste AVANT « Enregistrer » (« ALBI → ALBI · 5 oct. 2026 · 14 min »), celui de septembre déjà enregistré (IndexedDB : 2026-09-14, 2,5 km) ; l'historique trié n'apparaît qu'en V-6.1-02.
+- V-6.1-03 : « aucun trajet » ne s'affiche que dans l'Historique, qui est le résultat de V-6.1-04 ; l'état de départ montré est l'appli neuve, onglet Trajet (IndexedDB lue : 0 trajet). Image identique à l'accueil des autres histoires (md5 25c9bd31), déclarée.
+
+### V-6.4 — supprimer (audit r2 lot 2, MEDIUM 1)
+- Captures inchangées en contenu. Nouvel extrait `V-6.4 — noms des lieux arrivés après « Supprimer ce trajet »` : trajet sans noms, géocodage retardé de 3 s (page.route, simulation déclarée), suppression, 7 s d'attente : absent de la liste, de l'IndexedDB et des totaux. Vert sur la prod 3bf6066.
+
+### Captures « avant » laissées telles quelles, et pourquoi
+- V-4.4-04 : une image montre un seul compteur ; elle est à 1 personne (« Seul : tout pour toi. », « − » désactivé) ; la borne 9 (« + » désactivé après 10 touchers) est relevée dans le constat de l'étape.
+- V-5.5-02 : l'écran qui suit « Utiliser … pour mon trajet » est En route (« Prix : mon prix ») ; la fin de trajet à ce prix est V-4.7-01, une autre étape du plan.
+
+### Doublons à l'octet (même écran, même état)
+- 25c9bd31 ×15 (accueil avec la Clio : V-1.1-01/02, V-1.2-01/02/05/06, V-1.3-01, V-2.2-02, V-4.7-04, V-5.1-01, V-5.2-01, V-5.5-04, V-5.7-01, V-6.1-03, V1-retraits-01) ; f30b2e19 (V-1.1-05, V-5.3-01 : Stations avec le bandeau « Trajet en cours ») ; 6e724a7a (V-3.4-02/-03 : km figé en pause) ; ecbdbc91 (V-4.5-01/-02, V-4.6-01) ; d65b0ed3 (V-5.1-02, V-5.4-01) ; d8926428 (V-5.2-02/-03).

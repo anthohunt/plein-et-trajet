@@ -1,0 +1,954 @@
+{
+ "passage": "r3",
+ "flux": [
+  "stations"
+ ],
+ "resultats": [
+  {
+   "nom": "V-5.1-01-avant.png",
+   "ok": true,
+   "liv": "25c9bd31cfaf83489cd75f703d56931f",
+   "brute": "25c9bd31cfaf83489cd75f703d56931f",
+   "url": "https://plein-et-trajet.vercel.app/"
+  },
+  {
+   "nom": "V-5.1-02-apres.png",
+   "ok": true,
+   "liv": "d65b0ed3b3544eab357f317561e2b0d7",
+   "brute": "d65b0ed3b3544eab357f317561e2b0d7",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.2-01-avant.png",
+   "ok": true,
+   "liv": "25c9bd31cfaf83489cd75f703d56931f",
+   "brute": "25c9bd31cfaf83489cd75f703d56931f",
+   "url": "https://plein-et-trajet.vercel.app/"
+  },
+  {
+   "nom": "V-5.2-02-apres.png",
+   "ok": true,
+   "liv": "d892642829654b0919ecc62f88427a30",
+   "brute": "d892642829654b0919ecc62f88427a30",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.2-03-avant.png",
+   "ok": true,
+   "liv": "d892642829654b0919ecc62f88427a30",
+   "brute": "d892642829654b0919ecc62f88427a30",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.2-04-apres.png",
+   "ok": true,
+   "liv": "7965bb043f250e7b8f1b809845361c18",
+   "brute": "7965bb043f250e7b8f1b809845361c18",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.4-01-avant.png",
+   "ok": true,
+   "liv": "d65b0ed3b3544eab357f317561e2b0d7",
+   "brute": "d65b0ed3b3544eab357f317561e2b0d7",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.4-02-apres.png",
+   "ok": true,
+   "liv": "6e208d043a101ba38119b807cb473959",
+   "brute": "6e208d043a101ba38119b807cb473959",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.5-03-avant.png",
+   "ok": true,
+   "liv": "74cb548d2e511055fa7cbe5b30ca7546",
+   "brute": "74cb548d2e511055fa7cbe5b30ca7546",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.5-04-apres.png",
+   "ok": true,
+   "liv": "25c9bd31cfaf83489cd75f703d56931f",
+   "brute": "25c9bd31cfaf83489cd75f703d56931f",
+   "url": "https://plein-et-trajet.vercel.app/"
+  },
+  {
+   "nom": "V-5.5-05-avant.png",
+   "ok": true,
+   "liv": "e94ad10b87e57fe65a6aacc938fd2bf4",
+   "brute": "e94ad10b87e57fe65a6aacc938fd2bf4",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.5-06-apres.png",
+   "ok": true,
+   "liv": "cdc24f5637497bcf08d7c822047b034f",
+   "brute": "cdc24f5637497bcf08d7c822047b034f",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.7-01-avant.png",
+   "ok": true,
+   "liv": "25c9bd31cfaf83489cd75f703d56931f",
+   "brute": "25c9bd31cfaf83489cd75f703d56931f",
+   "url": "https://plein-et-trajet.vercel.app/"
+  },
+  {
+   "nom": "V-5.7-02-apres.png",
+   "ok": true,
+   "liv": "17704d99337f763938bd9f5ccbfa35de",
+   "brute": "17704d99337f763938bd9f5ccbfa35de",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.7-03-avant.png",
+   "ok": true,
+   "liv": "c647b527bd53e0704a5a35f6f54ad0be",
+   "brute": "c647b527bd53e0704a5a35f6f54ad0be",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.7-04-apres.png",
+   "ok": true,
+   "liv": "010bf11812afc04a289259e90ae5d2a3",
+   "brute": "010bf11812afc04a289259e90ae5d2a3",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.7-05-avant.png",
+   "ok": true,
+   "liv": "e1ec15d3f5a4194fefb035e2586c1723",
+   "brute": "e1ec15d3f5a4194fefb035e2586c1723",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.7-06-apres.png",
+   "ok": true,
+   "liv": "d783b71503ff3f6717a14ea154421c57",
+   "brute": "d783b71503ff3f6717a14ea154421c57",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  }
+ ],
+ "reseau": [
+  {
+   "flux": "stations",
+   "url": "https://plein-et-trajet.vercel.app/",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&family=JetBrains+Mono:wght@600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-nGZQU8OR.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CfxK7V0r.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-CsDg_isz.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-CuCRB34y.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations",
+   "url": "blob:https://plein-et-trajet.vercel.app/93bcf8bb-713f-4fdf-8651-c9bcf96ef216",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/styles/positron",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/planet",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.png",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture&carburant=eq.SP95-E10&rupture=eq.false&prix=not.is.null&station_id=in.%2881000004%2C81000005%2C81000001%2C81000002%2C81990002%2C81000011%2C81990001%2C81000010%2C81380001%2C81000003%2C81000009%2C81990003%2C81160001%2C81130001%2C81150003%29",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1036/745.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1035/745.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Italic/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/10/518/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/10/517/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://plein-et-trajet.vercel.app/",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&family=JetBrains+Mono:wght@600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-nGZQU8OR.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CfxK7V0r.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-CsDg_isz.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-CuCRB34y.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "blob:https://plein-et-trajet.vercel.app/b12eb35d-eaa7-46b0-bcbd-0fb954f51d2e",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://tiles.openfreemap.org/styles/positron",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://tiles.openfreemap.org/planet",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.png",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture&carburant=eq.SP95-E10&rupture=eq.false&prix=not.is.null&station_id=in.%2846220003%2C46220005%2C46220002%2C46700001%2C46140002%2C46140003%29",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1030/740.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1031/740.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Italic/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations-prayssac",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture&carburant=eq.Gazole&rupture=eq.false&prix=not.is.null&station_id=in.%2846220003%2C46220005%2C46220002%2C46700001%2C46140002%2C46140003%29",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture%2Cprix_origine%2Cunite_origine&station_id=eq.81000002",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/styles/positron",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/planet",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.png",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture&carburant=eq.SP95-E10&rupture=eq.false&prix=not.is.null&station_id=in.%2881000004%2C81000005%2C81000001%2C81000002%2C81990002%2C81000011%2C81990001%2C81000010%2C81380001%2C81000003%2C81000009%2C81990003%2C81160001%2C81130001%2C81150003%29",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1036/745.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1035/745.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Italic/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/10/518/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/10/517/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture&carburant=eq.Gazole&rupture=eq.false&prix=not.is.null&station_id=in.%2881000004%2C81000005%2C81000001%2C81000002%2C81990002%2C81000011%2C81990001%2C81000010%2C81380001%2C81000003%2C81000009%2C81990003%2C81160001%2C81130001%2C81150003%29",
+   "methode": "GET"
+  },
+  {
+   "flux": "stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture%2Cprix_origine%2Cunite_origine&station_id=eq.81990003",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://plein-et-trajet.vercel.app/",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&family=JetBrains+Mono:wght@600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-nGZQU8OR.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CfxK7V0r.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-CsDg_isz.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-CuCRB34y.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "blob:https://plein-et-trajet.vercel.app/82c58b6a-554d-423c-95e1-e4241485d6e7",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://tiles.openfreemap.org/styles/positron",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture&carburant=eq.SP95-E10&rupture=eq.false&prix=not.is.null&station_id=in.%28ES-9020%2CES-2878%2CES-2540%2CES-1840%2CES-2995%2CES-11973%2CES-2876%2CES-2558%2CES-2006%2CES-1633%2CES-2422%2CES-9599%2CES-13960%2CES-13775%2CES-2455%2CES-1631%2CES-1817%2CES-9921%2CES-2081%2CES-2508%2CES-2485%2CES-2214%2CES-8135%2CES-2306%2CES-3027%2CES-1783%2CES-2877%2CES-2470%2CES-2005%2CES-2881%2CES-1863%2CES-1634%2CES-3003%2CES-3006%2CES-2339%2CES-13728%2CES-2083%2CES-2805%2CES-2986%2CES-2779%2CES-2216%2CES-3031%2CES-10843%2CES-2527%2CES-8393%2CES-2031%2CES-2554%2CES-13490%2CES-1779%2CES-11215%2CES-11514%2CES-2804%2CES-2999%2CES-1654%2CES-1835%2CES-12765%2CES-2872%2CES-2535%2CES-13029%2CES-15236%2CES-16003%2CES-10238%2CES-2227%2CES-1782%2CES-16152%2CES-1579%2CES-12007%2CES-2215%2CES-11724%2CES-2305%2CES-3037%2CES-11425%2CES-2322%2CES-2252%2CES-3005%2CES-3026%2CES-2308%2CES-10679%2CES-13013%2CES-2045%2CES-2333%2CES-2255%2CES-2488%2CES-12173%2CES-3028%2CES-2480%2CES-14762%2CES-14199%2CES-15029%2CES-12921%2CES-3008%2CES-1993%2CES-10663%2CES-1715%2CES-3009%2CES-1653%2CES-2093%2CES-12128%2CES-12530%2CES-13321%2CES-13405%2CES-10664%2CES-13016%2CES-12192%2CES-1786%2CES-2091%2CES-1819%2CES-2868%2CES-2423%2CES-2867%2CES-2043%2CES-2238%2CES-3035%2CES-8351%2CES-2848%2CES-2065%2CES-8402%2CES-2997%2CES-2977%2CES-2846%2CES-1827%2CES-2074%2CES-2059%2CES-2241%2CES-2873%2CES-1538%2CES-12224%2CES-2343%2CES-3007%2CES-12942%2CES-11586%2CES-2414%2CES-2780%2CES-2297%2CES-1744%2CES-1581%2CES-2479%2CES-13127%2CES-1684%2CES-2875%2CES-2290%2CES-1693%2CES-2335%2CES-2347%2CES-2824%2CES-11037%2CES-8042%2CES-2870%2CES-2295%2CES-2792%2CES-12557%2CES-1651%2CES-2329%2CES-15097%29",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://tiles.openfreemap.org/planet",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.png",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1036/764.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1036/765.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1035/764.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1035/765.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Italic/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/10/518/382.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone-stations",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/10/517/382.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://plein-et-trajet.vercel.app/stations",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&family=JetBrains+Mono:wght@600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-nGZQU8OR.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CfxK7V0r.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-CsDg_isz.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-CuCRB34y.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "dartford",
+   "url": "blob:https://plein-et-trajet.vercel.app/69f3ccb2-5f81-412f-95cd-c5938dd9ed7f",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://tiles.openfreemap.org/styles/positron",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture&carburant=eq.SP95-E10&rupture=eq.false&prix=not.is.null&station_id=in.%28GB-u10hst9sdu5y%2CGB-u10htk48yw9q%2CGB-u10hwqfb5qfz%2CGB-u10hu5t1jcnm%2CGB-u10hvsf0090w%2CGB-u10hg350ug4y%2CGB-u10hepek0kqz%2CGB-u10hkh5d4gv4%2CGB-u10hyjtxtrmc%2CGB-u10hvxpjwpgz%2CGB-u10hz721xx9g%2CGB-u10hz7b3mhz5%2CGB-u10hfvbrxpxh%2CGB-u10h6t4xmr0h%2CGB-u10h6qhj56rc%2CGB-u10hzcu9pu4t%2CGB-u10j5u1961jq%2CGB-u10hfhuhy73q%29",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://tiles.openfreemap.org/planet",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.png",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/10/512/340.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Italic/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Bold/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture%2Cprix_origine%2Cunite_origine&station_id=eq.GB-u10hz721xx9g",
+   "methode": "GET"
+  },
+  {
+   "flux": "dartford",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/cours_change?select=monnaie%2Ctaux%2Cjour%2Csource&monnaie=eq.GBP",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://plein-et-trajet.vercel.app/stations",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&family=JetBrains+Mono:wght@600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-nGZQU8OR.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CfxK7V0r.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-CsDg_isz.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-CuCRB34y.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "blob:https://plein-et-trajet.vercel.app/b1f9585b-6fb5-41fa-9d3e-196a26520108",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://tiles.openfreemap.org/styles/positron",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://tiles.openfreemap.org/planet",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.png",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1048/687.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1048/686.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1049/687.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1049/686.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Italic/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Bold/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://data.geopf.fr/geocodage/reverse?lon=4.383399047853345&lat=50.85537011878844&index=address&limit=1",
+   "methode": "GET"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "bruxelles",
+   "url": "https://photon.komoot.io/reverse?lat=50.85537011878844&lon=4.383399047853345&lang=fr&limit=1",
+   "methode": "GET"
+  }
+ ],
+ "textesInterdits": [],
+ "erreursPage": [],
+ "regression": []
+}

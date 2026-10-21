@@ -1,0 +1,584 @@
+{
+ "passage": "r3",
+ "flux": [
+  "retraits"
+ ],
+ "resultats": [
+  {
+   "nom": "V1-retraits-01-avant.png",
+   "ok": true,
+   "liv": "25c9bd31cfaf83489cd75f703d56931f",
+   "brute": "25c9bd31cfaf83489cd75f703d56931f",
+   "url": "https://plein-et-trajet.vercel.app/"
+  },
+  {
+   "nom": "V1-retraits-02-apres.png",
+   "ok": true,
+   "liv": "c1d4f1b60c0324a97c4f45e8de063229",
+   "brute": "c1d4f1b60c0324a97c4f45e8de063229",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V1-retraits-03-avant.png",
+   "ok": true,
+   "liv": "8e3051dc1e4d8e414a750e09f34a7f00",
+   "brute": "8e3051dc1e4d8e414a750e09f34a7f00",
+   "url": "about:blank"
+  },
+  {
+   "nom": "V1-retraits-04-apres.png",
+   "ok": true,
+   "liv": "1a77311351ea80bf6d8f77aab649321f",
+   "brute": "1a77311351ea80bf6d8f77aab649321f",
+   "url": "about:blank"
+  }
+ ],
+ "reseau": [
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-MxuUs9kq.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-8XT4Fq7g.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-MxuUs9kq.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-8XT4Fq7g.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/voiture",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-MxuUs9kq.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-8XT4Fq7g.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/stations",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-MxuUs9kq.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-8XT4Fq7g.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-45CpBSYK.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-CuCRB34y.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "retraits",
+   "url": "blob:https://plein-et-trajet.vercel.app/f6fa7d24-9213-46b8-ab15-2b7ff1143ebb",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/styles/positron",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture&carburant=eq.SP95-E10&rupture=eq.false&prix=not.is.null&station_id=in.%2881000004%2C81000005%2C81000001%2C81000002%2C81990002%2C81000011%2C81990001%2C81000010%2C81380001%2C81000003%2C81000009%2C81990003%2C81160001%2C81130001%2C81150003%29",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/planet",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.png",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1036/745.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1035/745.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Italic/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/10/518/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/10/517/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/historique",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-MxuUs9kq.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-8XT4Fq7g.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/en-route",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-MxuUs9kq.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-8XT4Fq7g.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/fin",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-MxuUs9kq.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-8XT4Fq7g.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/stations",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-MxuUs9kq.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-8XT4Fq7g.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-45CpBSYK.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-CuCRB34y.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "retraits",
+   "url": "blob:https://plein-et-trajet.vercel.app/34d0446d-3bf0-4584-9c12-60fb4aeadee5",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/styles/positron",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture&carburant=eq.SP95-E10&rupture=eq.false&prix=not.is.null&station_id=in.%2881000004%2C81000005%2C81000001%2C81000002%2C81990002%2C81000011%2C81990001%2C81000010%2C81380001%2C81000003%2C81000009%2C81990003%2C81160001%2C81130001%2C81150003%29",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/planet",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/sprites/ofm_f384/ofm.png",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1036/745.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/11/1035/745.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/10/518/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/planet/20261018_080001_pt/10/517/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Italic/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "retraits",
+   "url": "https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/0-255.pbf",
+   "methode": "GET"
+  }
+ ],
+ "textesInterdits": [
+  "V1-retraits-03-avant.png : « itineraire »",
+  "V1-retraits-04-apres.png : « péage »"
+ ],
+ "erreursPage": [],
+ "regression": []
+}
