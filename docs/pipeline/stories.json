@@ -13,6 +13,11 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ l'appli ouverte sur l'onglet Trajets, QUAND je touche l'onglet Prix, ALORS la carte et la liste des stations autour de ma position s'affichent",
    "ÉTANT DONNÉ la position refusée, QUAND l'onglet Prix s'ouvre, ALORS la carte est centrée sur la dernière ville saisie ou sur Albi par défaut, avec un message pour activer la localisation"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "l'onglet Prix devient l'onglet Stations (T5)",
+  "remplacee_par": [
+   "V-5.1"
   ]
  },
  {
@@ -29,6 +34,11 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ la liste en SP95-E10, QUAND je touche Gazole dans le sélecteur de carburant, ALORS chaque pastille et chaque ligne affichent le prix gazole et le titre devient « Stations · Gazole »",
    "ÉTANT DONNÉ une station qui ne vend pas le carburant choisi, QUAND je change de carburant, ALORS elle disparaît de la carte et de la liste"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "sélecteur repris sur T5, carburant de la voiture d'office",
+  "remplacee_par": [
+   "V-5.2"
   ]
  },
  {
@@ -45,6 +55,12 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ des stations synchronisées dans un rayon de 10 km, QUAND la carte des stations s'affiche, ALORS chaque station est une pastille à sa position réelle avec son prix",
    "ÉTANT DONNÉ je déplace la carte, QUAND je relâche, ALORS les stations de la nouvelle zone se chargent"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "la carte ne se recharge plus seule au déplacement : « Rechercher dans cette zone » (décision 3 d'Anthony)",
+  "remplacee_par": [
+   "V-5.1",
+   "V-5.3"
   ]
  },
  {
@@ -61,7 +77,9 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ la carte affichée, QUAND je touche une pastille de station, ALORS la fiche de cette station s'ouvre",
    "ÉTANT DONNÉ des prix différents autour de moi, QUAND la carte s'affiche, ALORS les pastilles de la moitié la moins chère sont marquées vert, les autres orange"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "pastilles vert/orange et ouverture de la fiche gardées telles quelles sur T5"
  },
  {
   "id": "US-1.5",
@@ -77,6 +95,11 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ la liste triée par prix, QUAND je touche « Plus proche » dans le tri de la liste, ALORS la liste se trie par distance croissante",
    "ÉTANT DONNÉ le tri par distance, QUAND je touche « Moins cher », ALORS la liste se retrie par prix croissant"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "tri repris sur T5",
+  "remplacee_par": [
+   "V-5.4"
   ]
  },
  {
@@ -93,7 +116,9 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ la liste affichée, QUAND je lis une ligne de station, ALORS je vois enseigne, distance, ancienneté du prix, écart à la moyenne France et le prix à trois décimales",
    "ÉTANT DONNÉ une ligne de station, QUAND je la touche, ALORS sa fiche s'ouvre"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "lignes de station gardées telles quelles sur T5"
  },
  {
   "id": "US-2.1",
@@ -108,7 +133,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ une fiche station ouverte, QUAND je touche le bouton fermer la fiche ou la touche Échap, ALORS la fiche se ferme et le carburant choisi n'a pas changé"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "fiche station gardée sur T5 (feuille montante)"
  },
  {
   "id": "US-2.2",
@@ -123,7 +150,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ la fiche d'une station, QUAND je touche « Coût d'un trajet jusqu'ici » (bouton trajet station), ALORS l'onglet Trajets s'ouvre avec l'arrivée pré-remplie à l'adresse de la station"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "l'estimation d'un trajet avant de partir sort de la V1 (décision 2 d'Anthony, 21/10 : « on va rester à ça pour une version 1 ») ; la fiche porte désormais « Utiliser ce prix » (V-5.5)"
  },
  {
   "id": "US-3.1",
@@ -138,6 +167,11 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ l'onglet Prix, QUAND je touche l'onglet Trajets, ALORS le formulaire et l'historique s'affichent"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "l'onglet Trajets devient l'accueil Trajet (T1)",
+  "remplacee_par": [
+   "V-1.1"
   ]
  },
  {
@@ -153,7 +187,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ le champ départ vide, QUAND je tape « Alb », ALORS des propositions de lieux apparaissent et je peux en choisir une"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "l'estimation d'un trajet avant de partir sort de la V1 (décision 2 d'Anthony, 21/10 : « on va rester à ça pour une version 1 »)"
  },
  {
   "id": "US-3.3",
@@ -168,7 +204,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ le champ arrivée vide, QUAND je tape « Bord », ALORS des propositions de lieux apparaissent et je peux en choisir une"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "l'estimation d'un trajet avant de partir sort de la V1 (décision 2 d'Anthony, 21/10 : « on va rester à ça pour une version 1 »)"
  },
  {
   "id": "US-3.4",
@@ -184,6 +222,12 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ aucune voiture mémorisée, QUAND je choisis Peugeot, puis 208, puis une motorisation, ALORS la voiture est enregistrée et son carburant est affiché",
    "ÉTANT DONNÉ une voiture mémorisée, QUAND je rouvre l'appli, ALORS le choix de voiture est pré-rempli"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "la voiture se saisit une fois par le code D.2 ou la recherche (décision 6 d'Anthony)",
+  "remplacee_par": [
+   "V-2.1",
+   "V-2.3"
   ]
  },
  {
@@ -199,7 +243,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ départ, arrivée et voiture renseignés, QUAND je touche le bouton calculer, ALORS le résultat s'affiche avec coût, litres, km et L/100 km"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "l'estimation d'un trajet avant de partir sort de la V1 (décision 2 d'Anthony, 21/10 : « on va rester à ça pour une version 1 »)"
  },
  {
   "id": "US-3.6",
@@ -214,7 +260,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ un trajet dans l'historique, QUAND je touche sa ligne historique, ALORS le trajet est recalculé au prix moyen du jour et le résultat s'affiche"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "l'estimation d'un trajet avant de partir sort de la V1 (décision 2 d'Anthony, 21/10 : « on va rester à ça pour une version 1 ») ; l'historique V1 rouvre un trajet roulé, il ne recalcule pas d'itinéraire"
  },
  {
   "id": "US-3.7",
@@ -229,6 +277,11 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ un trajet dans l'historique, QUAND je touche sa croix supprimer trajet, ALORS la ligne disparaît et ne revient pas au rechargement"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "suppression reprise sur la fin de trajet rouverte",
+  "remplacee_par": [
+   "V-6.4"
   ]
  },
  {
@@ -245,7 +298,9 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ un résultat affiché, QUAND je touche un tronçon du trajet, ALORS il se déplie et montre vitesse typique, arrêts ou dénivelé, et L/100 km sur ce tronçon",
    "ÉTANT DONNÉ un tronçon déplié, QUAND je le touche à nouveau, ALORS il se replie"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "l'estimation d'un trajet avant de partir sort de la V1 (décision 2 d'Anthony, 21/10 : « on va rester à ça pour une version 1 ») (tronçons d'un itinéraire calculé)"
  },
  {
   "id": "US-4.2",
@@ -261,6 +316,11 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ un résultat au prix moyen France, QUAND je touche « Mettre mon prix » (prix perso) et je saisis 1,699, ALORS le coût est recalculé avec 1,699 €/L et le libellé devient « Mon prix »",
    "ÉTANT DONNÉ un prix perso saisi, QUAND je touche « moyenne » (bouton « Revenir à la moyenne »), ALORS le coût revient à la moyenne nationale"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "prix perso repris sur la fin de trajet, en touchant le compteur",
+  "remplacee_par": [
+   "V-4.2"
   ]
  },
  {
@@ -276,7 +336,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ un résultat affiché, QUAND je touche le bouton retour trajets, ALORS le formulaire s'affiche et ce trajet est en tête de l'historique"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "l'écran Résultat d'une estimation disparaît ; la fin de trajet revient à l'historique par « ← Historique » (V-6.3)"
  },
  {
   "id": "US-1.E1",
@@ -290,7 +352,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ la lecture des prix en erreur réseau, QUAND l'écran Prix s'ouvre, ALORS un message « Prix indisponibles pour l'instant » et un bouton Réessayer s'affichent à la place de la liste"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "gardée sur T5 : message et Réessayer si la lecture des prix échoue"
  },
  {
   "id": "US-1.E2",
@@ -304,7 +368,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ aucune station du rayon ne vend E85, QUAND je choisis E85 dans le sélecteur de carburant, ALORS la liste affiche « Aucune station ne vend ce carburant autour de vous » et la carte n'a aucune pastille"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "gardée sur T5"
  },
  {
   "id": "US-1.E3",
@@ -318,7 +384,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ une station dont le prix date de plus de 48 h, QUAND la liste s'affiche, ALORS sa ligne de station porte la mention « prix du JJ/MM » en couleur atténuée"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "gardée sur T5"
  },
  {
   "id": "US-1.E4",
@@ -332,7 +400,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ une station en rupture temporaire de gazole, QUAND je choisis Gazole, ALORS elle n'apparaît pas dans la liste triée par prix"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "gardée sur T5"
  },
  {
   "id": "US-2.E1",
@@ -346,7 +416,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ une station sans GPLc, QUAND j'ouvre sa fiche, ALORS la ligne GPLc affiche « non vendu » au lieu d'un prix"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "gardée sur la fiche station de T5"
  },
  {
   "id": "US-3.E1",
@@ -360,7 +432,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ une arrivée « zzzz » sans résultat, QUAND je touche le bouton calculer, ALORS le champ arrivée est signalé « Lieu introuvable » et aucun calcul n'est lancé"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "l'estimation d'un trajet avant de partir sort de la V1 (décision 2 d'Anthony, 21/10 : « on va rester à ça pour une version 1 »)"
  },
  {
   "id": "US-3.E2",
@@ -374,7 +448,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ aucune voiture choisie, QUAND je touche le bouton calculer, ALORS le choix de voiture est signalé « Choisis ta voiture » et aucun calcul n'est lancé"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "l'estimation d'un trajet avant de partir sort de la V1 (décision 2 d'Anthony, 21/10 : « on va rester à ça pour une version 1 »)"
  },
  {
   "id": "US-3.E3",
@@ -388,7 +464,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ aucun trajet calculé, QUAND j'ouvre l'onglet Trajets, ALORS l'historique affiche « Aucun trajet pour l'instant » avec une invitation à calculer le premier"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "gardée sur T6 : « Aucun trajet enregistré. »"
  },
  {
   "id": "US-3.E4",
@@ -402,6 +480,11 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ un modèle choisi, QUAND j'ouvre la liste des motorisations, ALORS elles sont classées par puissance avec leur carburant, et la plus proche de la puissance moyenne est proposée en premier"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "voiture absente → code D.2 inconnu",
+  "remplacee_par": [
+   "V-2.E1"
   ]
  },
  {
@@ -416,7 +499,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ une arrivée en Corse depuis Albi, QUAND je lance le calcul, ALORS le résultat affiche « Pas d'itinéraire routier entre ces deux lieux » sans coût"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "l'estimation d'un trajet avant de partir sort de la V1 (décision 2 d'Anthony, 21/10 : « on va rester à ça pour une version 1 »)"
  },
  {
   "id": "US-4.E2",
@@ -430,7 +515,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ le champ prix perso ouvert, QUAND je saisis 12 ou une lettre, ALORS le champ est signalé « Entre un prix entre 0,50 et 4,00 €/L » et le coût reste celui d'avant"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "gardée sur la fin de trajet T4 : prix perso hors 0,50-4,00 €/L refusé"
  },
  {
   "id": "US-4.E3",
@@ -444,7 +531,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ un calcul qui dure plus d'une seconde, QUAND j'attends, ALORS un état « Calcul de l'itinéraire… » s'affiche avec un bouton Annuler qui ramène au formulaire"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "l'estimation d'un trajet avant de partir sort de la V1 (décision 2 d'Anthony, 21/10 : « on va rester à ça pour une version 1 »)"
  },
  {
   "id": "US-1.P1",
@@ -458,7 +547,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ la carte déplacée, QUAND je touche le bouton de recentrage de la carte des stations, ALORS la carte revient sur ma position et la liste se recharge"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "gardée sur T5 : recentrer sur ma position"
  },
  {
   "id": "US-3.P1",
@@ -472,7 +563,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ départ Albi et arrivée Bordeaux, QUAND je touche le bouton d'inversion entre champ départ et champ arrivée, ALORS le départ devient Bordeaux et l'arrivée Albi"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "l'estimation d'un trajet avant de partir sort de la V1 (décision 2 d'Anthony, 21/10 : « on va rester à ça pour une version 1 »)"
  },
  {
   "id": "US-3.P2",
@@ -486,6 +579,11 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ une voiture mémorisée, QUAND je choisis une autre marque dans le choix de voiture, ALORS modèle et motorisation se réinitialisent et la nouvelle voiture est mémorisée"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "« Changer » sur l'accueil",
+  "remplacee_par": [
+   "V-1.2"
   ]
  },
  {
@@ -500,7 +598,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ n'importe quel écran, QUAND j'utilise Tab et Maj+Tab, ALORS chaque contrôle reçoit le focus dans l'ordre de lecture avec un contour visible"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "transverse, vaut pour T1-T6"
  },
  {
   "id": "US-A11Y-002",
@@ -514,7 +614,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ une fiche station ouverte au clavier, QUAND elle s'ouvre, ALORS le focus va sur son titre ; à la fermeture il revient sur l'élément qui l'a ouverte"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "transverse, vaut pour la fiche station de T5"
  },
  {
   "id": "US-A11Y-003",
@@ -528,7 +630,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ la fiche station ou un tronçon déplié, QUAND j'appuie sur Échap, ALORS la fiche se ferme"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "transverse"
  },
  {
   "id": "US-A11Y-004",
@@ -542,7 +646,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ un lecteur d'écran actif, QUAND je parcours les pastilles et les prix, ALORS chaque pastille annonce station et prix en euros, chaque bouton icône a un libellé"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "transverse"
  },
  {
   "id": "US-PERF-001",
@@ -556,7 +662,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ une connexion 4G, QUAND j'ouvre l'appli, ALORS la liste des stations est affichée en moins de 2,5 s"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "transverse"
  },
  {
   "id": "US-3.8",
@@ -570,7 +678,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ le champ arrivée, QUAND je tape « Barce » et choisis Barcelone, Espagne, ALORS le calcul aboutit avec un itinéraire qui traverse la France puis l'Espagne"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "l'estimation d'un trajet avant de partir sort de la V1 (décision 2 d'Anthony, 21/10 : « on va rester à ça pour une version 1 ») (destination à l'étranger)"
  },
  {
   "id": "US-4.4",
@@ -585,7 +695,9 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ un trajet Albi → Barcelone calculé, QUAND je lis le détail des péages, ALORS chaque section payante affiche son montant TTC en euros (« gratuit » si 0), le total des péages est affiché et ajouté au coût total",
    "ÉTANT DONNÉ un trajet sans autoroute payante, QUAND le résultat s'affiche, ALORS le détail des péages indique « Aucun péage sur cet itinéraire » et 0,00 €"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "les péages sortent de la V1 (décision 2 d'Anthony, 21/10) : moteur péages désactivé, aucun appel PTV"
  },
  {
   "id": "US-4.5",
@@ -600,7 +712,9 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ un trajet Albi → Milan calculé, QUAND je lis les pays traversés, ALORS chaque pays affiche km, litres, prix moyen du jour de son carburant et coût, et la somme des coûts pays égale le coût carburant",
    "ÉTANT DONNÉ un trajet dans un seul pays, QUAND le résultat s'affiche, ALORS la section « Pays traversés » est masquée (km, litres, prix et coût sont déjà en haut)"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "l'estimation d'un trajet avant de partir sort de la V1 (décision 2 d'Anthony, 21/10 : « on va rester à ça pour une version 1 ») (pays traversés d'un itinéraire)"
  },
  {
   "id": "US-4.E4",
@@ -614,7 +728,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ le service de péages en erreur, QUAND je lance un calcul, ALORS le coût carburant s'affiche et le détail des péages indique « Péages non disponibles pour l'instant » sans les ajouter au total"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "les péages sortent de la V1 (décision 2 d'Anthony, 21/10) : moteur péages désactivé, aucun appel PTV"
  },
  {
   "id": "US-4.E5",
@@ -628,7 +744,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ un trajet qui traverse la Suisse, QUAND le résultat s'affiche, ALORS le détail des péages porte la ligne « Vignette suisse obligatoire (non comptée) »"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "les péages sortent de la V1 (décision 2 d'Anthony, 21/10) : moteur péages désactivé, aucun appel PTV (vignettes)"
  },
  {
   "id": "US-4.E6",
@@ -642,7 +760,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ un pays traversé absent des moyennes (ex. Serbie), QUAND le résultat s'affiche, ALORS sa ligne dans les pays traversés porte « prix non publié — moyenne européenne appliquée » et le prix utilisé"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "l'estimation d'un trajet avant de partir sort de la V1 (décision 2 d'Anthony, 21/10 : « on va rester à ça pour une version 1 ») (pays traversés d'un itinéraire)"
  },
  {
   "id": "US-1.8",
@@ -657,6 +777,11 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ ma position à Barcelone, QUAND j'ouvre l'onglet Prix, ALORS la carte des stations et la liste affichent les stations espagnoles avec leurs prix officiels",
    "ÉTANT DONNÉ ma position dans un pays qui ne publie pas ses prix, QUAND j'ouvre l'onglet Prix, ALORS un message indique « Ce pays ne publie pas les prix station par station » et affiche le prix moyen national"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "stations hors de France reprises sur T5",
+  "remplacee_par": [
+   "V-5.7"
   ]
  },
  {
@@ -672,7 +797,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ je suis connecté comme administrateur, QUAND je touche le bouton moteurs ⚙, ALORS l'écran Moteurs liste les 6 services avec leur fournisseur et leur état"
-  ]
+  ],
+  "statut": "conservee_hors_navigation",
+  "raison_v1": "l'écran Moteurs n'est pas dans la maquette V1 et n'a plus aucun lien dans l'appli ; il reste à l'adresse /admin, réservé à Anthony, parce que les stations du Royaume-Uni (Fuel Finder) et d'autres pays lisent leur fournisseur et leur clé dans le registre des moteurs et Vault ; le moteur péages y est désactivé"
  },
  {
   "id": "US-5.2",
@@ -687,7 +814,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ l'écran Moteurs, QUAND je choisis HERE au lieu de PTV pour les péages dans le choix du fournisseur, ALORS l'état passe à « Clé à coller » si HERE demande une clé, sinon « Prêt · sans clé »"
-  ]
+  ],
+  "statut": "conservee_hors_navigation",
+  "raison_v1": "l'écran Moteurs n'est pas dans la maquette V1 et n'a plus aucun lien dans l'appli ; il reste à l'adresse /admin, réservé à Anthony, parce que les stations du Royaume-Uni (Fuel Finder) et d'autres pays lisent leur fournisseur et leur clé dans le registre des moteurs et Vault ; le moteur péages y est désactivé"
  },
  {
   "id": "US-5.3",
@@ -703,7 +832,9 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ le champ clé des péages, QUAND je colle une clé et j'enregistre, ALORS la clé est stockée chiffrée côté serveur et le champ n'affiche plus que ses 4 derniers caractères",
    "ÉTANT DONNÉ une clé enregistrée, QUAND je recharge l'écran, ALORS la clé complète n'apparaît nulle part, ni dans la page ni dans les réponses réseau"
-  ]
+  ],
+  "statut": "conservee_hors_navigation",
+  "raison_v1": "l'écran Moteurs n'est pas dans la maquette V1 et n'a plus aucun lien dans l'appli ; il reste à l'adresse /admin, réservé à Anthony, parce que les stations du Royaume-Uni (Fuel Finder) et d'autres pays lisent leur fournisseur et leur clé dans le registre des moteurs et Vault ; le moteur péages y est désactivé"
  },
  {
   "id": "US-5.4",
@@ -718,7 +849,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ une clé PTV valide collée, QUAND je touche Tester la connexion, ALORS un vrai calcul de test est envoyé à PTV et l'état affiche « Connecté »"
-  ]
+  ],
+  "statut": "conservee_hors_navigation",
+  "raison_v1": "l'écran Moteurs n'est pas dans la maquette V1 et n'a plus aucun lien dans l'appli ; il reste à l'adresse /admin, réservé à Anthony, parce que les stations du Royaume-Uni (Fuel Finder) et d'autres pays lisent leur fournisseur et leur clé dans le registre des moteurs et Vault ; le moteur péages y est désactivé"
  },
  {
   "id": "US-5.5",
@@ -733,7 +866,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ le moteur péages basculé sur HERE et enregistré, QUAND je calcule Albi → Barcelone, ALORS les péages viennent de HERE sans redéploiement de l'appli"
-  ]
+  ],
+  "statut": "conservee_hors_navigation",
+  "raison_v1": "l'écran Moteurs n'est pas dans la maquette V1 et n'a plus aucun lien dans l'appli ; il reste à l'adresse /admin, réservé à Anthony, parce que les stations du Royaume-Uni (Fuel Finder) et d'autres pays lisent leur fournisseur et leur clé dans le registre des moteurs et Vault ; le moteur péages y est désactivé"
  },
  {
   "id": "US-5.E1",
@@ -747,7 +882,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ un appareil non administrateur, QUAND l'appli s'ouvre, ALORS le bouton moteurs n'est pas affiché et toute lecture ou écriture de la table des moteurs est refusée par le serveur"
-  ]
+  ],
+  "statut": "conservee_hors_navigation",
+  "raison_v1": "l'écran Moteurs n'est pas dans la maquette V1 et n'a plus aucun lien dans l'appli ; il reste à l'adresse /admin, réservé à Anthony, parce que les stations du Royaume-Uni (Fuel Finder) et d'autres pays lisent leur fournisseur et leur clé dans le registre des moteurs et Vault ; le moteur péages y est désactivé"
  },
  {
   "id": "US-5.E2",
@@ -761,7 +898,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ une clé invalide collée, QUAND je touche Tester la connexion, ALORS l'état affiche « Clé refusée par PTV (401) » et Enregistrer garde l'ancien fournisseur actif"
-  ]
+  ],
+  "statut": "conservee_hors_navigation",
+  "raison_v1": "l'écran Moteurs n'est pas dans la maquette V1 et n'a plus aucun lien dans l'appli ; il reste à l'adresse /admin, réservé à Anthony, parce que les stations du Royaume-Uni (Fuel Finder) et d'autres pays lisent leur fournisseur et leur clé dans le registre des moteurs et Vault ; le moteur péages y est désactivé"
  },
  {
   "id": "US-5.E3",
@@ -775,7 +914,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ PTV en panne et HERE enregistré en secours, QUAND je calcule un trajet, ALORS les péages viennent de HERE et l'écran Moteurs note la bascule avec l'heure"
-  ]
+  ],
+  "statut": "conservee_hors_navigation",
+  "raison_v1": "l'écran Moteurs n'est pas dans la maquette V1 et n'a plus aucun lien dans l'appli ; il reste à l'adresse /admin, réservé à Anthony, parce que les stations du Royaume-Uni (Fuel Finder) et d'autres pays lisent leur fournisseur et leur clé dans le registre des moteurs et Vault ; le moteur péages y est désactivé"
  },
  {
   "id": "US-5.6",
@@ -790,7 +931,9 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ l'écran Moteurs et un fournisseur qui demande une clé, QUAND je regarde le champ clé, ALORS un lien « Où trouver ma clé » ouvre dans un nouvel onglet la page du fournisseur (PTV : https://developer.myptv.com/en → API Keys ; Stadia : https://client.stadiamaps.com/dashboard/ ; HERE : https://platform.here.com/access/apps ; Tankerkönig : https://creativecommons.tankerkoenig.de/), avec une phrase sur le menu à ouvrir",
    "ÉTANT DONNÉ un fournisseur sans clé, QUAND je regarde sa fiche, ALORS aucun lien de clé n'est affiché"
-  ]
+  ],
+  "statut": "conservee_hors_navigation",
+  "raison_v1": "l'écran Moteurs n'est pas dans la maquette V1 et n'a plus aucun lien dans l'appli ; il reste à l'adresse /admin, réservé à Anthony, parce que les stations du Royaume-Uni (Fuel Finder) et d'autres pays lisent leur fournisseur et leur clé dans le registre des moteurs et Vault ; le moteur péages y est désactivé"
  },
  {
   "id": "US-6.1",
@@ -804,6 +947,11 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ l'écran Trajets avec une voiture choisie, QUAND j'appuie sur « Enregistrer en roulant » et que j'autorise la localisation, ALORS l'écran En route s'ouvre, l'enregistrement démarre et la voiture choisie est rappelée en haut"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "« Enregistrer en roulant » devient le bouton Démarrer de l'accueil",
+  "remplacee_par": [
+   "V-1.3"
   ]
  },
  {
@@ -818,6 +966,11 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ un enregistrement en cours, QUAND je roule, ALORS la vitesse (km/h) et sa courbe des dernières minutes se mettent à jour au moins toutes les 2 secondes, et la distance, la durée, les arrêts, les litres, les L/100 km et le coût carburant (prix moyen du jour du pays) augmentent en conséquence"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "suivi en direct repris sur T3",
+  "remplacee_par": [
+   "V-3.1"
   ]
  },
  {
@@ -833,6 +986,11 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ un enregistrement en cours, QUAND le téléphone reste posé sans toucher l'écran, ALORS l'écran ne se met pas en veille (verrou d'écran du navigateur)",
    "ÉTANT DONNÉ un enregistrement en cours, QUAND le GPS ne donne plus de position pendant plus de 15 s, ALORS un message « GPS perdu » s'affiche et la distance n'augmente pas jusqu'au retour du signal"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "l'appli Android enregistre écran éteint ; la version web garde le verrou d'écran",
+  "remplacee_par": [
+   "V-3.2"
   ]
  },
  {
@@ -847,6 +1005,12 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ un enregistrement en cours, QUAND j'appuie sur « Pause », ALORS l'indicateur passe à « En pause », la distance et les litres cessent d'augmenter, et « Reprendre » relance l'enregistrement"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "pause reprise sur T3 et dans la notification",
+  "remplacee_par": [
+   "V-3.4",
+   "V-3.3"
   ]
  },
  {
@@ -862,6 +1026,11 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ un enregistrement de plus de 1 km, QUAND j'appuie sur « Arrêter et voir le coût », ALORS l'écran Résultat s'ouvre avec le titre « Départ → Arrivée · enregistré » (lieux retrouvés par géocodage inverse), le coût, les litres, les km, les péages réellement franchis, les pays traversés et les tronçons Autoroute / Route / Ville issus du tracé recalé sur la carte",
    "ÉTANT DONNÉ ce résultat, QUAND je reviens aux Trajets, ALORS le trajet enregistré est en tête de l'historique"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "Arrêter ouvre la fin de trajet T4",
+  "remplacee_par": [
+   "V-3.5"
   ]
  },
  {
@@ -877,6 +1046,12 @@
   "acceptance_criteria": [
    "ÉTANT DONNÉ le résultat d'un trajet enregistré, QUAND je le regarde, ALORS le bloc « Ma vitesse enregistrée » montre la courbe de tout le trajet, la vitesse moyenne et le nombre d'accélérations, et la note explique le calcul sur la vitesse réelle",
    "ÉTANT DONNÉ le résultat d'un trajet calculé (non enregistré), QUAND je le regarde, ALORS ce bloc n'apparaît pas"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "courbe de vitesse reprise sur T4, avec la courbe de consommation",
+  "remplacee_par": [
+   "V-4.5",
+   "V-4.6"
   ]
  },
  {
@@ -891,7 +1066,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ l'écran Trajets, QUAND j'appuie sur « Enregistrer en roulant » et que la localisation est refusée, ALORS un message dit que l'enregistrement a besoin de la localisation et comment l'autoriser, et aucun trajet n'est créé"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "gardée : localisation refusée au Démarrer de T1"
  },
  {
   "id": "US-6.E2",
@@ -905,7 +1082,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ un enregistrement de moins de 1 km, QUAND j'appuie sur « Arrêter et voir le coût », ALORS un message indique que le trajet est trop court pour être calculé, et rien n'est ajouté à l'historique"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "gardée : trajet trop court à l'Arrêter de T3"
  },
  {
   "id": "US-6.E3",
@@ -919,7 +1098,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ un enregistrement en cours, QUAND la page est rechargée ou rouverte, ALORS l'appli propose de reprendre l'enregistrement en cours ou de l'arrêter, avec la distance déjà parcourue conservée (points gardés sur le téléphone)"
-  ]
+  ],
+  "statut": "maintenue_v1",
+  "raison_v1": "gardée : reprise d'un trajet en cours après fermeture (T3)"
  },
  {
   "id": "US-3.9",
@@ -933,7 +1114,9 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ le champ arrivée, QUAND je choisis Londres, Royaume-Uni et calcule, ALORS le résultat liste le Royaume-Uni parmi les pays traversés avec son prix moyen du jour (Fuel Finder) en euros, ajoute le péage du pont de Dartford s'il est franchi, et indique que la traversée de la Manche (tunnel ou ferry) n'est pas comptée"
-  ]
+  ],
+  "statut": "retiree_v1",
+  "raison_v1": "l'estimation d'un trajet avant de partir sort de la V1 (décision 2 d'Anthony, 21/10 : « on va rester à ça pour une version 1 ») (destination au Royaume-Uni)"
  },
  {
   "id": "US-1.9",
@@ -947,6 +1130,597 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ une position à Londres, QUAND j'ouvre l'onglet Prix, ALORS la carte et la liste montrent les stations britanniques autour (Fuel Finder) avec leur prix converti en €/L et le prix d'origine en pence/L dans la fiche"
+  ],
+  "statut": "remplacee_v1",
+  "raison_v1": "stations du Royaume-Uni reprises sur T5",
+  "remplacee_par": [
+   "V-5.7"
+  ]
+ },
+ {
+  "id": "V-1.1",
+  "title": "Ouvrir l'appli",
+  "story": "En tant que conducteur, j'ouvre l'appli et je tombe sur l'onglet Trajet : ma voiture et le bouton Démarrer.",
+  "detail": "L'appli s'ouvre sur Trajet : ma voiture et Démarrer.",
+  "screen": "T1",
+  "target": "onglet-trajet",
+  "module": "v1-trajet",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ une voiture déjà enregistrée sur ce téléphone, QUAND j'ouvre l'appli, ALORS l'onglet Trajet est sélectionné et montre au centre ma voiture (marque, modèle, version, année, carburant) et le bouton rond « Démarrer », sans prix ni nombre de personnes",
+   "ÉTANT DONNÉ aucune voiture enregistrée (premier lancement), QUAND j'ouvre l'appli, ALORS l'onglet Trajet invite à enregistrer ma voiture et « Démarrer » ouvre Ma voiture au lieu de lancer un trajet",
+   "ÉTANT DONNÉ un trajet en cours d'enregistrement, QUAND je touche l'onglet Trajet, ALORS l'écran En route s'affiche, pas l'accueil"
+  ]
+ },
+ {
+  "id": "V-1.2",
+  "title": "Voir ma voiture",
+  "story": "En tant que conducteur, je vois la voiture que j'ai enregistrée une fois pour toutes, et je peux la changer.",
+  "detail": "La voiture enregistrée une fois, avec son carburant ; « Changer » ouvre Ma voiture.",
+  "screen": "T1",
+  "target": "ma-voiture",
+  "module": "v1-trajet",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ la Renault Clio IV 1.2 TCe 120 de 2017 enregistrée, QUAND l'accueil s'affiche, ALORS je lis « Renault Clio IV » et « 1.2 TCe 120 · 2017 · SP95-E10 »",
+   "ÉTANT DONNÉ l'accueil, QUAND je touche « Changer » (changer-voiture), ALORS l'écran Ma voiture s'ouvre avec ses champs vides",
+   "ÉTANT DONNÉ l'appli fermée puis rouverte, QUAND l'accueil s'affiche, ALORS la même voiture est rappelée sans rien ressaisir (gardée sur le téléphone, sans compte)"
+  ]
+ },
+ {
+  "id": "V-1.3",
+  "title": "Démarrer",
+  "story": "En tant que conducteur, je touche Démarrer en partant pour que tout le trajet soit mesuré.",
+  "detail": "Lance l'enregistrement du trajet.",
+  "screen": "T1",
+  "target": "bouton-demarrer",
+  "module": "v1-trajet",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ une voiture enregistrée et la localisation autorisée, QUAND je touche « Démarrer », ALORS l'écran En route s'ouvre, l'indicateur « Enregistrement » clignote et la première position GPS est enregistrée en moins de 10 s",
+   "ÉTANT DONNÉ la localisation refusée, QUAND je touche « Démarrer », ALORS un message dit que l'enregistrement a besoin de la localisation et comment l'autoriser, et aucun trajet n'est créé"
+  ]
+ },
+ {
+  "id": "V-2.1",
+  "title": "Saisir le code D.2",
+  "story": "En tant que conducteur, je recopie le code D.2 de ma carte grise pour que l'appli connaisse exactement ma version de moteur.",
+  "detail": "Le code type-variante-version de la carte grise identifie exactement la version de moteur (base européenne EEA).",
+  "screen": "T2",
+  "target": "champ-d2",
+  "module": "v1-voiture",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ l'écran Ma voiture, QUAND je tape « 5RBU0C » ou « R 5RBU 5RBU0C » dans le champ D.2, ALORS la fiche Renault Clio 1.2 TCe 120 s'affiche avec les données de la base européenne EEA : 2017, 87 kW (118 ch), 1 197 cm³, 1 165 kg, SP95-E10, 118 g/km",
+   "ÉTANT DONNÉ un code partagé par plusieurs versions (marques, années ou masses différentes), QUAND je le tape, ALORS l'appli liste les versions correspondantes (marque, modèle, année, puissance, masse), la plus immatriculée en tête, et je choisis la mienne",
+   "ÉTANT DONNÉ un code tapé en minuscules ou avec des espaces, QUAND il est cherché, ALORS il est reconnu comme écrit en majuscules sans espaces"
+  ]
+ },
+ {
+  "id": "V-2.2",
+  "title": "Vérifier et enregistrer",
+  "story": "En tant que conducteur, je vérifie la fiche de ma voiture puis je l'enregistre une fois pour toutes.",
+  "detail": "Je vois marque, modèle, année, puissance, cylindrée, masse, carburant, puis j'enregistre une fois pour toutes.",
+  "screen": "T2",
+  "target": "enregistrer-voiture",
+  "module": "v1-voiture",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ la fiche de ma version affichée, QUAND je touche « Enregistrer ma voiture », ALORS l'accueil s'ouvre avec cette voiture, et elle reste mémorisée sur le téléphone après fermeture de l'appli",
+   "ÉTANT DONNÉ aucune version identifiée, QUAND je regarde « Enregistrer ma voiture », ALORS le bouton est désactivé"
+  ]
+ },
+ {
+  "id": "V-2.3",
+  "title": "Chercher sans la carte grise",
+  "story": "En tant que conducteur sans ma carte grise sous la main, je cherche ma voiture par son nom, son année et sa puissance.",
+  "detail": "« clio 2017 120 » propose les versions correspondantes.",
+  "screen": "T2",
+  "target": "recherche-voiture",
+  "module": "v1-voiture",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ le champ « Nom, année, puissance », QUAND je tape « clio 2017 120 », ALORS la liste propose les versions de Clio immatriculées en 2017 autour de 120 ch (± 5 ch), la plus immatriculée en tête, chacune avec année, kW et carburant",
+   "ÉTANT DONNÉ une suggestion, QUAND je la touche, ALORS sa fiche s'affiche comme avec le code D.2 et « Enregistrer ma voiture » s'active"
+  ]
+ },
+ {
+  "id": "V-2.E1",
+  "title": "Code inconnu",
+  "story": "En tant que conducteur, si mon code D.2 n'est pas reconnu, je sais quoi faire.",
+  "detail": "Code introuvable : je vérifie la case D.2 ou j'utilise la recherche.",
+  "screen": "T2",
+  "target": "champ-d2",
+  "module": "v1-voiture",
+  "type": "edge",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ le champ D.2, QUAND je tape un code de 6 caractères ou plus absent de la base EEA (ex. « ZZ9999 »), ALORS « Code introuvable. Vérifie la case D.2, ou cherche par nom ci-dessous. » s'affiche et « Enregistrer ma voiture » reste désactivé",
+   "ÉTANT DONNÉ la base européenne injoignable, QUAND je tape un code, ALORS un message dit que la base ne répond pas, avec « Réessayer », sans effacer ma saisie"
+  ]
+ },
+ {
+  "id": "V-3.1",
+  "title": "Suivre en direct",
+  "story": "En tant que conducteur, je suis en direct ma vitesse, les km, les litres et les euros d'essence depuis le départ.",
+  "detail": "Vitesse, km, litres, € d'essence (moyenne du jour), durée, vitesse moyenne.",
+  "screen": "T3",
+  "target": "vitesse-direct",
+  "module": "v1-en-route",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un enregistrement en cours, QUAND je roule, ALORS la vitesse (km/h) et sa courbe des dernières minutes se mettent à jour au moins toutes les 2 s, et km, litres, € essence, durée, km/h moyens et L/100 km augmentent en conséquence",
+   "ÉTANT DONNÉ aucun prix choisi, QUAND le coût en direct s'affiche, ALORS il est calculé au prix moyen du jour du pays de départ pour le carburant de ma voiture",
+   "ÉTANT DONNÉ un prix pris sur une station (« Utiliser ce prix »), QUAND le coût en direct s'affiche, ALORS il utilise ce prix"
+  ]
+ },
+ {
+  "id": "V-3.2",
+  "title": "Écran éteint, Waze devant",
+  "story": "En tant que conducteur guidé par Waze ou Google Maps, je laisse l'appli enregistrer en arrière-plan, écran éteint.",
+  "detail": "L'appli Android enregistre en arrière-plan.",
+  "screen": "T3",
+  "target": "ecran-eteint",
+  "module": "v1-en-route",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 6,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ l'appli Android avec un trajet démarré, QUAND j'éteins l'écran ou passe sur Waze ou Google Maps pendant 30 min, ALORS en revenant dans l'appli la distance couvre tout ce temps : aucun trou de plus de 15 s dans les points enregistrés hors perte de signal",
+   "ÉTANT DONNÉ l'appli Android tuée par le système pendant un trajet, QUAND je la rouvre, ALORS le trajet en cours reprend avec tous ses points (enregistrés par le service Android, pas par la page)",
+   "ÉTANT DONNÉ la version web dans un navigateur, QUAND un trajet est démarré, ALORS le texte dit que l'écran doit rester allumé et l'écran est gardé allumé par le verrou d'écran"
+  ]
+ },
+ {
+  "id": "V-3.3",
+  "title": "Piloter depuis la barre du téléphone",
+  "story": "En tant que conducteur, je pilote l'enregistrement depuis la barre du téléphone sans ouvrir l'appli.",
+  "detail": "Une notification permanente montre vitesse, km et € ; Pause, Reprendre et Arrêter sans ouvrir l'appli.",
+  "screen": "T3",
+  "target": "notification",
+  "module": "v1-en-route",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 6,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un trajet en cours sur Android, QUAND je descends la barre du téléphone, ALORS une notification permanente « Plein & Trajet » montre vitesse, km et € essence, mis à jour au moins toutes les 5 s, avec les boutons « Pause » et « Arrêter »",
+   "ÉTANT DONNÉ cette notification, QUAND je touche « Pause », ALORS l'enregistrement passe en pause sans ouvrir l'appli et le bouton devient « Reprendre » ; « Reprendre » le relance",
+   "ÉTANT DONNÉ cette notification, QUAND je touche « Arrêter », ALORS l'enregistrement s'arrête et l'appli s'ouvre sur la fin de trajet"
+  ]
+ },
+ {
+  "id": "V-3.4",
+  "title": "Mettre en pause",
+  "story": "En tant que conducteur, je mets en pause pendant un arrêt (station, repas) sans compter de distance ni d'essence.",
+  "detail": "Une pause (station, repas) ne compte ni distance ni essence.",
+  "screen": "T3",
+  "target": "bouton-pause",
+  "module": "v1-en-route",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un enregistrement en cours, QUAND je touche « Pause », ALORS l'indicateur passe à « En pause », la distance et les litres cessent d'augmenter et le bouton devient « Reprendre »",
+   "ÉTANT DONNÉ une pause pendant laquelle la voiture s'est déplacée de 2 km, QUAND je touche « Reprendre », ALORS ces 2 km ne sont ni comptés ni chiffrés"
+  ]
+ },
+ {
+  "id": "V-3.5",
+  "title": "Arrêter",
+  "story": "En tant que conducteur, j'arrête l'enregistrement à l'arrivée et j'obtiens la fin de trajet.",
+  "detail": "Ouvre la fin de trajet.",
+  "screen": "T3",
+  "target": "bouton-arreter",
+  "module": "v1-en-route",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un enregistrement de plus de 1 km, QUAND je touche « Arrêter », ALORS la fin de trajet s'ouvre avec « Départ → Arrivée » (lieux retrouvés par géocodage inverse), la date, la durée, les litres, les km et les L/100 km moyens",
+   "ÉTANT DONNÉ un enregistrement de moins de 1 km, QUAND je touche « Arrêter », ALORS un message dit que le trajet est trop court et rien n'est ajouté à l'historique",
+   "ÉTANT DONNÉ aucun réseau à l'arrêt, QUAND la fin de trajet s'ouvre, ALORS litres et coût sont calculés sur le téléphone, et les noms des lieux se complètent au retour du réseau"
+  ]
+ },
+ {
+  "id": "V-3.E1",
+  "title": "Oubli d'arrêter",
+  "story": "En tant que conducteur qui a oublié d'arrêter, je ne compte pas des heures de stationnement dans mon trajet.",
+  "detail": "Immobile 10 min : l'appli arrête le trajet et me demande de confirmer.",
+  "screen": "T3",
+  "target": "bouton-arreter",
+  "module": "v1-en-route",
+  "type": "edge",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un enregistrement en cours, QUAND la vitesse reste sous 3 km/h et la position à moins de 50 m pendant 10 min, ALORS le trajet cesse de compter et l'écran affiche « Trajet arrêté : immobile depuis 10 min » avec « Reprendre » et « C'est fini »",
+   "ÉTANT DONNÉ cette alerte, QUAND je touche « C'est fini », ALORS la fin de trajet s'ouvre avec une arrivée datée du début de l'immobilité : les 10 min ne comptent pas dans la durée",
+   "ÉTANT DONNÉ cette alerte, QUAND je touche « Reprendre », ALORS l'enregistrement repart sans perdre les points d'avant"
+  ]
+ },
+ {
+  "id": "V-3.E2",
+  "title": "GPS perdu",
+  "story": "En tant que conducteur qui passe un tunnel, je ne perds pas les kilomètres sans GPS.",
+  "detail": "Tunnel : la distance manquante est complétée à la sortie.",
+  "screen": "T3",
+  "target": "gps-perdu",
+  "module": "v1-en-route",
+  "type": "edge",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un enregistrement en cours, QUAND aucune position n'arrive pendant plus de 15 s, ALORS « GPS perdu (tunnel) · la distance est complétée à la sortie » s'affiche",
+   "ÉTANT DONNÉ le signal revenu après un tunnel de 3 km, QUAND la position suivante arrive, ALORS la distance entre la dernière position d'avant et la première d'après est ajoutée, à la vitesse moyenne du passage, et le message disparaît"
+  ]
+ },
+ {
+  "id": "V-4.1",
+  "title": "Prix de l'essence",
+  "story": "En tant que conducteur à l'arrivée, je vois le prix de l'essence utilisé : la moyenne du jour pour le carburant de ma voiture.",
+  "detail": "Moyenne France du jour de chaque carburant courant ; celui de ma voiture est choisi d'office.",
+  "screen": "T4",
+  "target": "prix-apres",
+  "module": "v1-fin-de-trajet",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ la fin d'un trajet en Clio (SP95-E10) parti de France, QUAND l'écran s'ouvre, ALORS le sélecteur de carburant (carburant-apres : Gazole, SP95-E10, SP95, SP98, E85, GPLc) a SP95-E10 choisi et le prix affiché est la « Moyenne France du jour » de ce carburant, à 3 décimales",
+   "ÉTANT DONNÉ ce sélecteur, QUAND je touche Gazole, ALORS le prix devient la moyenne du jour du gazole et le coût est recalculé",
+   "ÉTANT DONNÉ un départ hors de France, QUAND l'écran s'ouvre, ALORS le prix est la moyenne du jour du pays de départ et le libellé nomme ce pays"
+  ]
+ },
+ {
+  "id": "V-4.2",
+  "title": "Mettre mon prix",
+  "story": "En tant que conducteur qui connaît le prix payé, je remplace la moyenne par mon prix en touchant le compteur.",
+  "detail": "Je touche le prix et je tape le mien ; « Revenir à la moyenne » l'annule.",
+  "screen": "T4",
+  "target": "prix-apres",
+  "module": "v1-fin-de-trajet",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ la fin de trajet, QUAND je touche le compteur du prix, tape 1,989 et valide, ALORS le libellé devient « Mon prix », le coût est recalculé à 1,989 €/L et « Revenir à la moyenne » apparaît",
+   "ÉTANT DONNÉ mon prix saisi, QUAND je touche « Revenir à la moyenne », ALORS la moyenne du jour revient, et le coût avec",
+   "ÉTANT DONNÉ le champ du prix ouvert, QUAND j'appuie sur Échap, ALORS le prix d'avant reste"
+  ]
+ },
+ {
+  "id": "V-4.3",
+  "title": "Coût de l'essence",
+  "story": "En tant que conducteur, je lis le coût exact de l'essence dépensée sur le trajet.",
+  "detail": "Litres consommés × prix.",
+  "screen": "T4",
+  "target": "cout-trajet",
+  "module": "v1-fin-de-trajet",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ 41,2 L consommés et un prix de 2,161 €/L, QUAND la fin de trajet s'affiche, ALORS le coût affiché est « 89,03 € essence » (litres × prix, arrondi au centime)",
+   "ÉTANT DONNÉ le prix ou le carburant changé, QUAND le changement est fait, ALORS le coût est recalculé aussitôt, sans réseau"
+  ]
+ },
+ {
+  "id": "V-4.4",
+  "title": "Partager",
+  "story": "En tant que conducteur qui partage les frais, j'indique le nombre de personnes et je lis la part de chacun (part-personne).",
+  "detail": "Je choisis le nombre de personnes ; la part de chacun s'affiche.",
+  "screen": "T4",
+  "target": "personnes-apres",
+  "module": "v1-fin-de-trajet",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un coût de 89,03 €, QUAND je passe le nombre de personnes à 3 avec « + », ALORS la part affichée est « 29,68 € chacun »",
+   "ÉTANT DONNÉ 1 personne, QUAND l'écran s'affiche, ALORS le texte dit « Seul : tout pour toi. », « − » ne descend pas sous 1 et « + » ne dépasse pas 9"
+  ]
+ },
+ {
+  "id": "V-4.5",
+  "title": "Courbe de vitesse",
+  "story": "En tant que conducteur, je revois ma vitesse au fil du trajet.",
+  "detail": "Vitesse au fil du trajet, vitesse moyenne, accélérations.",
+  "screen": "T4",
+  "target": "courbe-vitesse",
+  "module": "v1-fin-de-trajet",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un trajet enregistré, QUAND la fin de trajet s'affiche, ALORS la courbe de vitesse couvre tout le trajet (600 points au plus), avec la vitesse moyenne sur le temps roulé (pauses exclues) et le nombre d'accélérations"
+  ]
+ },
+ {
+  "id": "V-4.6",
+  "title": "Courbe de consommation",
+  "story": "En tant que conducteur, je vois où j'ai le plus consommé, en litres aux 100 km.",
+  "detail": "Litres aux 100 km au fil du trajet.",
+  "screen": "T4",
+  "target": "courbe-conso",
+  "module": "v1-fin-de-trajet",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un trajet enregistré, QUAND la fin de trajet s'affiche, ALORS la courbe de consommation en L/100 km couvre tout le trajet avec sa moyenne et sa pointe, et la moyenne affichée égale litres totaux ÷ km × 100 (à 0,1 près)"
+  ]
+ },
+ {
+  "id": "V-4.7",
+  "title": "Enregistrer ou supprimer",
+  "story": "En tant que conducteur, je décide de garder ce trajet dans l'historique ou de l'oublier.",
+  "detail": "« Enregistrer ce trajet » l'ajoute à Mes trajets ; « Supprimer » l'oublie.",
+  "screen": "T4",
+  "target": "enregistrer-ou-supprimer",
+  "module": "v1-fin-de-trajet",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un trajet qui vient d'être arrêté, QUAND je touche « Enregistrer », ALORS l'onglet Historique s'ouvre avec ce trajet en tête, avec le prix, le carburant et le nombre de personnes choisis",
+   "ÉTANT DONNÉ un trajet qui vient d'être arrêté, QUAND je touche « Supprimer », ALORS il est oublié (ses points effacés du téléphone), l'accueil s'ouvre et il n'apparaît pas dans l'historique",
+   "ÉTANT DONNÉ un trajet arrêté puis l'appli fermée avant de choisir, QUAND je la rouvre, ALORS la fin de ce trajet revient avec les deux boutons"
+  ]
+ },
+ {
+  "id": "V-6.1",
+  "title": "Ouvrir l'historique",
+  "story": "En tant que conducteur, j'ouvre l'historique des trajets que j'ai faits.",
+  "detail": "Tous les trajets enregistrés, du plus récent au plus ancien, groupés par mois.",
+  "screen": "T6",
+  "target": "onglet-historique",
+  "module": "v1-historique",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ des trajets enregistrés en septembre et en octobre 2026, QUAND je touche l'onglet Historique, ALORS ils sont listés du plus récent au plus ancien, sous « Octobre 2026 » puis « Septembre 2026 »",
+   "ÉTANT DONNÉ aucun trajet enregistré, QUAND j'ouvre l'onglet, ALORS « Aucun trajet enregistré. » s'affiche et les totaux sont à 0"
+  ]
+ },
+ {
+  "id": "V-6.2",
+  "title": "Totaux",
+  "story": "En tant que conducteur, je vois combien de trajets, de km et d'euros d'essence j'ai cumulés.",
+  "detail": "Nombre de trajets, km et € d'essence cumulés.",
+  "screen": "T6",
+  "target": "totaux-historique",
+  "module": "v1-historique",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ 4 trajets de 77, 152, 245 et 243 km, QUAND l'historique s'affiche, ALORS les totaux montrent 4 trajets, 717 km et la somme de leurs coûts en € essence",
+   "ÉTANT DONNÉ un trajet corrigé ou supprimé, QUAND je reviens à l'historique, ALORS les totaux sont recalculés"
+  ]
+ },
+ {
+  "id": "V-6.3",
+  "title": "Lire un trajet",
+  "story": "En tant que conducteur, je lis chaque trajet de l'historique en une ligne.",
+  "detail": "Date, trajet, km, coût et part de chacun.",
+  "screen": "T6",
+  "target": "historique",
+  "module": "v1-historique",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un trajet enregistré à 3 personnes, QUAND je lis sa ligne, ALORS elle donne la date, « Départ → Arrivée », les km, le coût total et « X € chacun » ; pour un trajet seul, la part n'est pas affichée",
+   "ÉTANT DONNÉ une ligne, QUAND je la touche, ALORS la fin de ce trajet se rouvre, onglet Historique sélectionné, avec « ← Historique »"
+  ]
+ },
+ {
+  "id": "V-6.4",
+  "title": "Revoir, corriger, supprimer",
+  "story": "En tant que conducteur, je corrige après coup le prix ou le nombre de personnes d'un trajet, ou je le supprime.",
+  "detail": "Un trajet se rouvre, se corrige (prix, personnes) et se supprime.",
+  "screen": "T4",
+  "target": "supprimer-trajet",
+  "module": "v1-fin-de-trajet",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un trajet rouvert depuis l'historique, QUAND je change son prix, son carburant ou son nombre de personnes, ALORS la correction est gardée et l'historique la montre au retour",
+   "ÉTANT DONNÉ un trajet rouvert, QUAND je touche « Supprimer ce trajet », ALORS il disparaît de l'historique et des totaux"
+  ]
+ },
+ {
+  "id": "V-5.1",
+  "title": "Stations autour de moi",
+  "story": "En tant que conducteur en route, j'ouvre les stations autour de moi pour trouver de l'essence pas trop chère.",
+  "detail": "Carte et liste des prix autour de ma position ; l'enregistrement continue.",
+  "screen": "T5",
+  "target": "onglet-stations",
+  "module": "v1-stations",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ la position autorisée, QUAND je touche l'onglet Stations, ALORS la carte centrée sur ma position et la liste des stations autour s'affichent avec leurs prix officiels du jour",
+   "ÉTANT DONNÉ un trajet en cours, QUAND j'ouvre l'onglet Stations puis reviens au trajet, ALORS l'enregistrement n'a pas été interrompu (la distance a continué de croître)"
+  ]
+ },
+ {
+  "id": "V-5.2",
+  "title": "Choisir le carburant",
+  "story": "En tant que conducteur, je vois d'office les prix du carburant de ma voiture, et je peux en changer.",
+  "detail": "Par défaut celui de ma voiture.",
+  "screen": "T5",
+  "target": "selecteur-carburant",
+  "module": "v1-stations",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ une Clio SP95-E10 enregistrée, QUAND j'ouvre l'onglet Stations, ALORS SP95-E10 est choisi d'office",
+   "ÉTANT DONNÉ la liste en SP95-E10, QUAND je touche Gazole, ALORS pastilles et lignes passent au prix du gazole et les stations sans gazole disparaissent"
+  ]
+ },
+ {
+  "id": "V-5.3",
+  "title": "Rechercher dans cette zone",
+  "story": "En tant que conducteur, je déplace la carte vers un endroit de mon chemin et je cherche les stations de cette zone, comme sur Google Maps.",
+  "detail": "Je fais glisser la carte, puis « Rechercher dans cette zone » charge les stations de la zone affichée.",
+  "screen": "T5",
+  "target": "rechercher-zone",
+  "module": "v1-stations",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ la carte, QUAND je la fais glisser vers une autre zone, ALORS le bouton « Rechercher dans cette zone » apparaît et les stations ne se rechargent pas d'elles-mêmes",
+   "ÉTANT DONNÉ ce bouton, QUAND je le touche, ALORS les stations de la zone affichée se chargent sur la carte et dans la liste, et le bouton disparaît"
+  ]
+ },
+ {
+  "id": "V-5.4",
+  "title": "Trier",
+  "story": "En tant que conducteur, je trie la liste des stations par prix ou par distance.",
+  "detail": "Moins cher ou plus proche.",
+  "screen": "T5",
+  "target": "tri-liste",
+  "module": "v1-stations",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ la liste des stations, QUAND je touche « Plus proche », ALORS elle se trie par distance croissante ; « Moins cher » la trie par prix croissant"
+  ]
+ },
+ {
+  "id": "V-5.5",
+  "title": "Utiliser ce prix",
+  "story": "En tant que conducteur qui fait le plein à une station, je prends son prix pour mon trajet.",
+  "detail": "Depuis la fiche d'une station, son prix devient celui de mon trajet.",
+  "screen": "T5",
+  "target": "utiliser-ce-prix",
+  "module": "v1-stations",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un trajet en cours et la fiche d'une station à 2,103 €/L pour mon carburant, QUAND je touche « Utiliser 2,103 €/L pour mon trajet », ALORS la fiche se ferme, l'écran En route revient, et le coût en direct puis la fin de trajet utilisent 2,103 €/L (« Mon prix »)",
+   "ÉTANT DONNÉ aucun trajet en cours, QUAND je touche ce bouton, ALORS le prix est gardé pour le prochain trajet démarré et l'accueil s'ouvre",
+   "ÉTANT DONNÉ une station qui ne vend pas le carburant de ma voiture, QUAND sa fiche s'ouvre, ALORS le bouton n'apparaît pas"
+  ]
+ },
+ {
+  "id": "V-5.6",
+  "title": "Trajet en cours",
+  "story": "En tant que conducteur qui regarde les stations en route, je vois que mon trajet continue d'être enregistré.",
+  "detail": "Pendant un trajet, un bandeau rappelle qu'il tourne ; l'onglet Trajet y ramène.",
+  "screen": "T5",
+  "target": "retour-trajet",
+  "module": "v1-stations",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ un trajet en cours, QUAND l'onglet Stations est ouvert, ALORS un bandeau « ● Trajet en cours · X € » s'affiche en haut avec le coût en direct ; sans trajet en cours, il n'apparaît pas",
+   "ÉTANT DONNÉ ce bandeau, QUAND je touche l'onglet Trajet, ALORS l'écran En route revient"
+  ]
+ },
+ {
+  "id": "V-5.7",
+  "title": "Europe et Royaume-Uni",
+  "story": "En tant que conducteur à l'étranger, je vois aussi les stations d'Europe et du Royaume-Uni avec leurs prix.",
+  "detail": "Les stations d'Europe et du Royaume-Uni ; prix en €/L, prix d'origine en £ au Royaume-Uni.",
+  "screen": "T5",
+  "target": "carte-stations",
+  "module": "v1-stations",
+  "type": "main",
+  "source": "maquette V1 validée par Anthony 2026-10-21 (« parfait ! on est bons »)",
+  "validated": true,
+  "statut": "v1",
+  "jalon": 5,
+  "acceptance_criteria": [
+   "ÉTANT DONNÉ une position à Barcelone, QUAND l'onglet Stations s'ouvre, ALORS les stations espagnoles s'affichent sur la carte avec leurs prix du jour",
+   "ÉTANT DONNÉ une position à Dartford (Royaume-Uni), QUAND je lis une station, ALORS son prix est en €/L (taux BCE du jour) et son prix d'origine en p/L est affiché",
+   "ÉTANT DONNÉ un pays qui ne publie pas ses prix station par station, QUAND j'y cherche dans cette zone, ALORS un message le dit au lieu d'une carte vide"
   ]
  }
 ]

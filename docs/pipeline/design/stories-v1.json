@@ -262,5 +262,261 @@
   "title": "Aller au Royaume-Uni",
   "detail": "Aller au Royaume-Uni : le résultat liste le Royaume-Uni parmi les pays traversés avec son prix moyen du jour (Fuel Finder) en euros, ajoute le péage du pont de Dartford s'il est franchi, et indique que la traversée de la Manche (tunnel ou ferry) n'est pas comptée",
   "story": "En tant que conducteur, je calcule un trajet jusqu'au Royaume-Uni."
+ },
+ {
+  "id": "V-1.1",
+  "screen": "T1",
+  "target": "onglet-trajet",
+  "title": "Ouvrir l'appli",
+  "detail": "L'appli s'ouvre sur Trajet : ma voiture et Démarrer.",
+  "story": "En tant que conducteur, j'ouvre l'appli et je tombe sur l'onglet Trajet : ma voiture et le bouton Démarrer."
+ },
+ {
+  "id": "V-1.2",
+  "screen": "T1",
+  "target": "ma-voiture",
+  "title": "Voir ma voiture",
+  "detail": "La voiture enregistrée une fois, avec son carburant ; « Changer » ouvre Ma voiture.",
+  "story": "En tant que conducteur, je vois la voiture que j'ai enregistrée une fois pour toutes, et je peux la changer."
+ },
+ {
+  "id": "V-1.3",
+  "screen": "T1",
+  "target": "bouton-demarrer",
+  "title": "Démarrer",
+  "detail": "Lance l'enregistrement du trajet.",
+  "story": "En tant que conducteur, je touche Démarrer en partant pour que tout le trajet soit mesuré."
+ },
+ {
+  "id": "V-2.1",
+  "screen": "T2",
+  "target": "champ-d2",
+  "title": "Saisir le code D.2",
+  "detail": "Le code type-variante-version de la carte grise identifie exactement la version de moteur (base européenne EEA).",
+  "story": "En tant que conducteur, je recopie le code D.2 de ma carte grise pour que l'appli connaisse exactement ma version de moteur."
+ },
+ {
+  "id": "V-2.2",
+  "screen": "T2",
+  "target": "enregistrer-voiture",
+  "title": "Vérifier et enregistrer",
+  "detail": "Je vois marque, modèle, année, puissance, cylindrée, masse, carburant, puis j'enregistre une fois pour toutes.",
+  "story": "En tant que conducteur, je vérifie la fiche de ma voiture puis je l'enregistre une fois pour toutes."
+ },
+ {
+  "id": "V-2.3",
+  "screen": "T2",
+  "target": "recherche-voiture",
+  "title": "Chercher sans la carte grise",
+  "detail": "« clio 2017 120 » propose les versions correspondantes.",
+  "story": "En tant que conducteur sans ma carte grise sous la main, je cherche ma voiture par son nom, son année et sa puissance."
+ },
+ {
+  "id": "V-2.E1",
+  "screen": "T2",
+  "target": "champ-d2",
+  "title": "Code inconnu",
+  "detail": "Code introuvable : je vérifie la case D.2 ou j'utilise la recherche.",
+  "story": "En tant que conducteur, si mon code D.2 n'est pas reconnu, je sais quoi faire."
+ },
+ {
+  "id": "V-3.1",
+  "screen": "T3",
+  "target": "vitesse-direct",
+  "title": "Suivre en direct",
+  "detail": "Vitesse, km, litres, € d'essence (moyenne du jour), durée, vitesse moyenne.",
+  "story": "En tant que conducteur, je suis en direct ma vitesse, les km, les litres et les euros d'essence depuis le départ."
+ },
+ {
+  "id": "V-3.2",
+  "screen": "T3",
+  "target": "ecran-eteint",
+  "title": "Écran éteint, Waze devant",
+  "detail": "L'appli Android enregistre en arrière-plan.",
+  "story": "En tant que conducteur guidé par Waze ou Google Maps, je laisse l'appli enregistrer en arrière-plan, écran éteint."
+ },
+ {
+  "id": "V-3.3",
+  "screen": "T3",
+  "target": "notification",
+  "title": "Piloter depuis la barre du téléphone",
+  "detail": "Une notification permanente montre vitesse, km et € ; Pause, Reprendre et Arrêter sans ouvrir l'appli.",
+  "story": "En tant que conducteur, je pilote l'enregistrement depuis la barre du téléphone sans ouvrir l'appli."
+ },
+ {
+  "id": "V-3.4",
+  "screen": "T3",
+  "target": "bouton-pause",
+  "title": "Mettre en pause",
+  "detail": "Une pause (station, repas) ne compte ni distance ni essence.",
+  "story": "En tant que conducteur, je mets en pause pendant un arrêt (station, repas) sans compter de distance ni d'essence."
+ },
+ {
+  "id": "V-3.5",
+  "screen": "T3",
+  "target": "bouton-arreter",
+  "title": "Arrêter",
+  "detail": "Ouvre la fin de trajet.",
+  "story": "En tant que conducteur, j'arrête l'enregistrement à l'arrivée et j'obtiens la fin de trajet."
+ },
+ {
+  "id": "V-3.E1",
+  "screen": "T3",
+  "target": "bouton-arreter",
+  "title": "Oubli d'arrêter",
+  "detail": "Immobile 10 min : l'appli arrête le trajet et me demande de confirmer.",
+  "story": "En tant que conducteur qui a oublié d'arrêter, je ne compte pas des heures de stationnement dans mon trajet."
+ },
+ {
+  "id": "V-3.E2",
+  "screen": "T3",
+  "target": "gps-perdu",
+  "title": "GPS perdu",
+  "detail": "Tunnel : la distance manquante est complétée à la sortie.",
+  "story": "En tant que conducteur qui passe un tunnel, je ne perds pas les kilomètres sans GPS."
+ },
+ {
+  "id": "V-4.1",
+  "screen": "T4",
+  "target": "prix-apres",
+  "title": "Prix de l'essence",
+  "detail": "Moyenne France du jour de chaque carburant courant ; celui de ma voiture est choisi d'office.",
+  "story": "En tant que conducteur à l'arrivée, je vois le prix de l'essence utilisé : la moyenne du jour pour le carburant de ma voiture."
+ },
+ {
+  "id": "V-4.2",
+  "screen": "T4",
+  "target": "prix-apres",
+  "title": "Mettre mon prix",
+  "detail": "Je touche le prix et je tape le mien ; « Revenir à la moyenne » l'annule.",
+  "story": "En tant que conducteur qui connaît le prix payé, je remplace la moyenne par mon prix en touchant le compteur."
+ },
+ {
+  "id": "V-4.3",
+  "screen": "T4",
+  "target": "cout-trajet",
+  "title": "Coût de l'essence",
+  "detail": "Litres consommés × prix.",
+  "story": "En tant que conducteur, je lis le coût exact de l'essence dépensée sur le trajet."
+ },
+ {
+  "id": "V-4.4",
+  "screen": "T4",
+  "target": "personnes-apres",
+  "title": "Partager",
+  "detail": "Je choisis le nombre de personnes ; la part de chacun s'affiche.",
+  "story": "En tant que conducteur qui partage les frais, j'indique le nombre de personnes et je lis la part de chacun (part-personne)."
+ },
+ {
+  "id": "V-4.5",
+  "screen": "T4",
+  "target": "courbe-vitesse",
+  "title": "Courbe de vitesse",
+  "detail": "Vitesse au fil du trajet, vitesse moyenne, accélérations.",
+  "story": "En tant que conducteur, je revois ma vitesse au fil du trajet."
+ },
+ {
+  "id": "V-4.6",
+  "screen": "T4",
+  "target": "courbe-conso",
+  "title": "Courbe de consommation",
+  "detail": "Litres aux 100 km au fil du trajet.",
+  "story": "En tant que conducteur, je vois où j'ai le plus consommé, en litres aux 100 km."
+ },
+ {
+  "id": "V-4.7",
+  "screen": "T4",
+  "target": "enregistrer-ou-supprimer",
+  "title": "Enregistrer ou supprimer",
+  "detail": "« Enregistrer ce trajet » l'ajoute à Mes trajets ; « Supprimer » l'oublie.",
+  "story": "En tant que conducteur, je décide de garder ce trajet dans l'historique ou de l'oublier."
+ },
+ {
+  "id": "V-6.1",
+  "screen": "T6",
+  "target": "onglet-historique",
+  "title": "Ouvrir l'historique",
+  "detail": "Tous les trajets enregistrés, du plus récent au plus ancien, groupés par mois.",
+  "story": "En tant que conducteur, j'ouvre l'historique des trajets que j'ai faits."
+ },
+ {
+  "id": "V-6.2",
+  "screen": "T6",
+  "target": "totaux-historique",
+  "title": "Totaux",
+  "detail": "Nombre de trajets, km et € d'essence cumulés.",
+  "story": "En tant que conducteur, je vois combien de trajets, de km et d'euros d'essence j'ai cumulés."
+ },
+ {
+  "id": "V-6.3",
+  "screen": "T6",
+  "target": "historique",
+  "title": "Lire un trajet",
+  "detail": "Date, trajet, km, coût et part de chacun.",
+  "story": "En tant que conducteur, je lis chaque trajet de l'historique en une ligne."
+ },
+ {
+  "id": "V-6.4",
+  "screen": "T4",
+  "target": "supprimer-trajet",
+  "title": "Revoir, corriger, supprimer",
+  "detail": "Un trajet se rouvre, se corrige (prix, personnes) et se supprime.",
+  "story": "En tant que conducteur, je corrige après coup le prix ou le nombre de personnes d'un trajet, ou je le supprime."
+ },
+ {
+  "id": "V-5.1",
+  "screen": "T5",
+  "target": "onglet-stations",
+  "title": "Stations autour de moi",
+  "detail": "Carte et liste des prix autour de ma position ; l'enregistrement continue.",
+  "story": "En tant que conducteur en route, j'ouvre les stations autour de moi pour trouver de l'essence pas trop chère."
+ },
+ {
+  "id": "V-5.2",
+  "screen": "T5",
+  "target": "selecteur-carburant",
+  "title": "Choisir le carburant",
+  "detail": "Par défaut celui de ma voiture.",
+  "story": "En tant que conducteur, je vois d'office les prix du carburant de ma voiture, et je peux en changer."
+ },
+ {
+  "id": "V-5.3",
+  "screen": "T5",
+  "target": "rechercher-zone",
+  "title": "Rechercher dans cette zone",
+  "detail": "Je fais glisser la carte, puis « Rechercher dans cette zone » charge les stations de la zone affichée.",
+  "story": "En tant que conducteur, je déplace la carte vers un endroit de mon chemin et je cherche les stations de cette zone, comme sur Google Maps."
+ },
+ {
+  "id": "V-5.4",
+  "screen": "T5",
+  "target": "tri-liste",
+  "title": "Trier",
+  "detail": "Moins cher ou plus proche.",
+  "story": "En tant que conducteur, je trie la liste des stations par prix ou par distance."
+ },
+ {
+  "id": "V-5.5",
+  "screen": "T5",
+  "target": "utiliser-ce-prix",
+  "title": "Utiliser ce prix",
+  "detail": "Depuis la fiche d'une station, son prix devient celui de mon trajet.",
+  "story": "En tant que conducteur qui fait le plein à une station, je prends son prix pour mon trajet."
+ },
+ {
+  "id": "V-5.6",
+  "screen": "T5",
+  "target": "retour-trajet",
+  "title": "Trajet en cours",
+  "detail": "Pendant un trajet, un bandeau rappelle qu'il tourne ; l'onglet Trajet y ramène.",
+  "story": "En tant que conducteur qui regarde les stations en route, je vois que mon trajet continue d'être enregistré."
+ },
+ {
+  "id": "V-5.7",
+  "screen": "T5",
+  "target": "carte-stations",
+  "title": "Europe et Royaume-Uni",
+  "detail": "Les stations d'Europe et du Royaume-Uni ; prix en €/L, prix d'origine en £ au Royaume-Uni.",
+  "story": "En tant que conducteur à l'étranger, je vois aussi les stations d'Europe et du Royaume-Uni avec leurs prix."
  }
 ]
