@@ -1,4 +1,6 @@
-// Carte des stations : MapLibre GL sur fond Plan IGN (tuiles vectorielles de la Géoplateforme).
+// Carte des stations : MapLibre GL sur le fond « Positron » d'OpenFreeMap (tuiles vectorielles OpenMapTiles, données
+// OpenStreetMap ; sans clé ni limite de requêtes, attribution demandée). Jalon 5 round 2 : le Plan IGN n'a de fond qu'en France,
+// or la V1 montre aussi les stations d'Europe et du Royaume-Uni (V-5.7) ; ce fond couvre toute l'Europe.
 // - cadrage automatique sur les stations (fitBounds) tant que l'utilisateur n'a pas déplacé la carte ;
 // - pastilles qui se chevauchent : empilées vers le haut, une tige les relie à leur station ;
 // - pastilles hors du cadre : retirées du parcours clavier et de l'arbre d'accessibilité.
@@ -9,7 +11,7 @@ import { prix3 } from "../lib/format";
 import { T } from "../lib/textes";
 import type { StationAffichee } from "./LigneStation";
 
-const STYLE_IGN = "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/standard.json";
+const STYLE_FOND = "https://tiles.openfreemap.org/styles/positron";
 const TIGE = 7; // px entre la pastille et la station
 const MARGE = { top: 62, bottom: 36, left: 34, right: 34 };
 
@@ -99,7 +101,7 @@ export default function CarteStations({ position, moi: estIci, stations, selecti
     if (!conteneur.current) return;
     const map = new maplibregl.Map({
       container: conteneur.current,
-      style: STYLE_IGN,
+      style: STYLE_FOND,
       center: [position.lon, position.lat],
       zoom: 11,
       attributionControl: false,
