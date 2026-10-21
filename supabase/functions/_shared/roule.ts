@@ -3,9 +3,10 @@
 //
 // Calcul sur la vitesse réelle, seconde par seconde : à chaque pas entre deux positions GPS, la vitesse mesurée choisit la phase
 // WLTP de la voiture (même courbe que le calcul d'itinéraire : basse < 40 km/h, moyenne 40-65, haute 65-100, très haute > 100) qui
-// donne les litres de base du pas ; chaque gain de vitesse ajoute l'énergie ½·m·(v₂² − v₁²) et, sur le tracé recalé, chaque montée
-// m·g·Δh (pente des routes reconnues) ; énergies converties en litres comme au jalon 2 (pouvoir calorifique, rendement du moteur).
-import { arrondi, distanceM, kwhEnLitres, masseTotaleKg, phaseDepuisVitesse, type Carburant, type ConsoWltp, type Troncon } from "./modele.ts";
+// donne les litres de base du pas ; chaque gain de vitesse ajoute l'énergie ½·m·(v₂² − v₁²) et, au calcul final, chaque montée
+// m·g·Δh (dénivelé positif tiré de l'altitude, échantillons tous les 500 m comme au jalon 2) ; énergies converties en litres comme
+// au jalon 2 (pouvoir calorifique, rendement du moteur). Le direct ne connaît pas l'altitude : ses litres sont sans les montées.
+import { arrondi, deniveleParEtape, distanceM, echantillonner, kwhEnLitres, masseTotaleKg, phaseDepuisVitesse, type Carburant, type ConsoWltp, type Echantillon, type Troncon } from "./modele.ts";
 
 /** Une position enregistrée : [instant (ms), latitude, longitude, segment]. Le segment change à chaque reprise après une pause. */
 export type PointRoule = [number, number, number, number];
@@ -245,8 +246,19 @@ function numero(names: string[] | undefined): string {
 export interface PasAttribue extends Pas {
   pays: string;
   genre: GenreRoute;
-  pente: number; // %
+  pente: number; // Valhalla weighted_grade (facteur d'évitement des côtes, pas une pente) : repli des tests seulement
   voie: string;
+  montee?: number; // m, dénivelé positif du pas tiré de l'altitude (monteesParPas) ; 0 si l'altimétrie n'a pas répondu
+}
+
+/** Échantillons tous les 500 m le long des pas (même méthode que l'estimation du jalon 2) ; `etape` = index du pas. */
+export function echantillonsDesPas(points: PointRoule[], pas: Pas[], pasM = 500): Echantillon[] {
+  return echantillonner(pas.map((p) => [points[p.i - 1], points[p.i]].map(([, lat, lon]) => ({ lat, lon }))), pasM);
+}
+
+/** Dénivelé positif de chaque pas : hausse d'altitude d'un échantillon au suivant, comptée sur le pas qui porte l'échantillon. */
+export function monteesParPas(echantillons: Echantillon[], altitudes: (number | null)[], nbPas: number): number[] {
+  return deniveleParEtape(echantillons, altitudes, nbPas);
 }
 
 /** Attribue chaque pas à l'arête recalée de son point (matched_points[k].edge_index) ; un point non recalé reprend l'arête précédente. */
@@ -290,7 +302,7 @@ export function calculRoule(pas: PasAttribue[], veh: VehiculeRoule): ResultatRou
     parPays.set(p.pays, pays);
     const a = pays.get(p.genre) ?? { m: 0, s: 0, l: 0, dz: 0, vitesses: [], voies: new Map() };
     pays.set(p.genre, a);
-    const montee = Math.max(0, (p.pente / 100) * p.d);
+    const montee = p.montee ?? Math.max(0, (p.pente / 100) * p.d);
     a.m += p.d;
     a.s += p.dt;
     a.dz += montee;

@@ -13,6 +13,8 @@ import {
   compterAccelerations,
   compterArrets,
   dureeEnregistree,
+  echantillonsDesPas,
+  monteesParPas,
   enDirect,
   estTraverseeManche,
   appliquerPeagesRoyaumeUni,
@@ -207,6 +209,31 @@ describe("recalage et tronçons Autoroute / Route / Ville", () => {
     expect(r.traversee).toBe(true);
     expect(r.km).toBeCloseTo(0.6, 1);
     expect(r.troncons.every((t) => t.pays === "FR")).toBe(true);
+  });
+});
+
+describe("montées tirées de l'altitude (audit M2 : weighted_grade n'est pas une pente)", () => {
+  it("échantillons tous les 500 m le long des pas, dénivelé positif = somme des hausses, comme l'estimation du jalon 2", () => {
+    const pts = ligne(181, 72); // 3,6 km en 3 min
+    const pas = pasDe(pts);
+    const ech = echantillonsDesPas(pts, pas);
+    expect(ech.length).toBe(9); // départ, 7 échantillons à 500 m, arrivée
+    // profil : 100 → 140 m (montée de 40 m), redescente à 110 m, remontée à 130 m : D+ = 40 + 20 = 60 m
+    const alt = [100, 110, 125, 140, 130, 110, null, 120, 130];
+    const montees = monteesParPas(ech, alt, pas.length);
+    expect(montees.length).toBe(pas.length);
+    expect(montees.reduce((s, x) => s + x, 0)).toBeCloseTo(60, 6);
+    expect(montees.filter((x) => x > 0).length).toBe(5); // seuls les pas qui portent un échantillon en hausse
+  });
+  it("la montée mesurée remplace weighted_grade : les litres ajoutés valent m·g·Δh, une pente Valhalla seule n'ajoute plus rien", () => {
+    const pas = pasDe(ligne(61, 72));
+    const plat = pas.map((p) => ({ ...p, pays: "FR", genre: "route" as const, pente: 8, voie: "", montee: 0 }));
+    const montee = plat.map((p, k) => ({ ...p, montee: k === 10 ? 25 : 0 }));
+    const r0 = calculRoule(plat, P208);
+    const r1 = calculRoule(montee, P208);
+    expect(r0.troncons[0].denivele_m).toBe(0); // pente 8 « Valhalla » ignorée dès que la montée mesurée est connue
+    expect(r1.troncons[0].denivele_m).toBe(25);
+    expect(r1.troncons[0].litres - r0.troncons[0].litres).toBeCloseTo(kwhEnLitres((masseTotaleKg(P208.masse_kg) * 9.81 * 25) / 3.6e6, P208.carburant), 2);
   });
 });
 

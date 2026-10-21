@@ -19,6 +19,7 @@ import { etapesDepuisAretes, pointEnFrance, vignettesTraversees } from "../_shar
 import { executerChaine, lireCle, lireMoteur, noterIncident, noterIssue, type Essai } from "../_shared/moteurs.ts";
 import { ErreurItineraire, connexionDepuisFournisseur, routeValhalla, type RouteValhalla } from "../_shared/itineraire-europe.ts";
 import { ajusterPeagesRoyaumeUni, calculerPeages, identiteDuJeton, type ResPeages } from "../_shared/calcul-peages.ts";
+import { altitudesIgn } from "../_shared/altimetrie.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -26,7 +27,6 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const URL_ITINERAIRE = "https://data.geopf.fr/navigation/itineraire";
-const URL_ALTI = "https://data.geopf.fr/altimetrie/1.0/calcul/alti/rest/elevation.json";
 const UA = { "User-Agent": "plein-et-trajet/1.0 (+https://plein-et-trajet.vercel.app)" };
 
 function reponse(statut: number, corps: unknown): Response {
@@ -73,31 +73,6 @@ interface EtapeIgn {
   instruction?: { type?: string };
 }
 
-/** Altitudes IGN (RGE ALTI) des échantillons, par lots ; null quand la donnée manque. */
-async function altitudes(pts: PointGeo[]): Promise<(number | null)[]> {
-  const LOT = 100;
-  const out: (number | null)[] = new Array(pts.length).fill(null);
-  const lots: number[] = [];
-  for (let i = 0; i < pts.length; i += LOT) lots.push(i);
-  let suivant = 0;
-  const worker = async () => {
-    while (suivant < lots.length) {
-      const debut = lots[suivant++];
-      const part = pts.slice(debut, debut + LOT);
-      const url = `${URL_ALTI}?lon=${part.map((p) => p.lon.toFixed(6)).join("|")}&lat=${part.map((p) => p.lat.toFixed(6)).join("|")}&resource=ign_rge_alti_wld&zonly=true`;
-      const r = await avecReprises(url, 20000);
-      if (!r.ok) throw new Error(`altimetrie HTTP ${r.status}`);
-      const d = (await r.json()) as { elevations?: number[] };
-      if (!Array.isArray(d.elevations) || d.elevations.length !== part.length) throw new Error("altimetrie: réponse mal formée");
-      d.elevations.forEach((z, k) => {
-        out[debut + k] = nombre(z) && z > -1000 ? z : null; // -99999 = pas de donnée
-      });
-    }
-  };
-  await Promise.all([worker(), worker(), worker()]);
-  return out;
-}
-
 /** Itinéraire IGN (trajet 100 % France) : étapes avec dénivelé de l'altimétrie IGN. */
 async function itineraireIgn(depart: PointGeo, arrivee: PointGeo, avertissements: string[]): Promise<{ etapes: Etape[]; duree_s: number; trace: PointGeo[] }> {
   const urlIt =
@@ -120,7 +95,7 @@ async function itineraireIgn(depart: PointGeo, arrivee: PointGeo, avertissements
   const ech = echantillonner(geom, 500);
   let denivs = new Array<number>(steps.length).fill(0);
   try {
-    const alt = await altitudes(ech);
+    const alt = await altitudesIgn(ech);
     denivs = deniveleParEtape(ech, alt, steps.length);
   } catch {
     avertissements.push("altimetrie_indisponible");

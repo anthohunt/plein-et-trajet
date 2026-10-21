@@ -5,8 +5,9 @@
 //                 points, points_envoyes, points_recales } }
 //           400 requete_invalide · 404 vehicule_inconnu · 422 trop_court | pas_itineraire · 502 recalage_indisponible
 // Chaîne : 1) pas et vitesses mesurées (roule.ts) ; 2) recalage du tracé sur la carte — Valhalla /trace_attributes en map_snap, moteur
-// « itineraire » (Stadia puis secours) ; 3) chaque seconde rattachée à sa route : pays, Autoroute / Route / Ville, pente ; litres sur la
-// vitesse réelle avec la courbe WLTP de la voiture ; 4) départ et arrivée par géocodage inverse (IGN en France, Photon ailleurs) ;
+// « itineraire » (Stadia puis secours) ; 3) chaque seconde rattachée à sa route : pays, Autoroute / Route / Ville ; montées tirées de
+// l'altitude (IGN, Open-Meteo hors de France, échantillons tous les 500 m comme au jalon 2) ; litres sur la vitesse réelle avec la
+// courbe WLTP de la voiture ; 4) départ et arrivée par géocodage inverse (IGN en France, Photon ailleurs) ;
 // 5) péages réellement franchis : tarifés sur le tracé recalé (PTV, cache 7 j) ; Royaume-Uni : Manche retirée, Dartford ajouté.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { CORS, fetchTimeout, json } from "../_shared/http.ts";
@@ -15,7 +16,8 @@ import { vignettesTraversees } from "../_shared/europe.ts";
 import { executerChaine, lireCle, lireMoteur, noterIncident, noterIssue, type Essai } from "../_shared/moteurs.ts";
 import { ErreurItineraire, connexionDepuisFournisseur, recalerTrace, type Recalage } from "../_shared/itineraire-europe.ts";
 import { ajusterPeagesRoyaumeUni, calculerPeages, identiteDuJeton, type ResPeages } from "../_shared/calcul-peages.ts";
-import { SEUIL_KM, attribuerPas, calculRoule, pasDe, pointsPourRecalage, reduireSerie, type PointRoule } from "../_shared/roule.ts";
+import { SEUIL_KM, attribuerPas, calculRoule, echantillonsDesPas, monteesParPas, pasDe, pointsPourRecalage, reduireSerie, type PointRoule } from "../_shared/roule.ts";
+import { altitudesCompletees } from "../_shared/altimetrie.ts";
 
 const MAX_POINTS = 43_200; // 12 h à un point par seconde
 
@@ -126,8 +128,16 @@ Deno.serve(async (req) => {
     return json(502, { erreur: "recalage_indisponible" });
   }
 
-  // 3) calcul sur la vitesse réelle, par route reconnue
-  const attribues = attribuerPas(pas, versEnvoye, rec.r.matched, rec.r.aretes, rec.r.admins);
+  // 3) calcul sur la vitesse réelle, par route reconnue ; montées tirées de l'altitude (sans réponse : aucune montée, signalé)
+  const avertissements: string[] = [];
+  const ech = echantillonsDesPas(points, pas);
+  let montees: number[] = new Array(pas.length).fill(0);
+  try {
+    montees = monteesParPas(ech, await altitudesCompletees(ech), pas.length);
+  } catch {
+    avertissements.push("altimetrie_indisponible");
+  }
+  const attribues = attribuerPas(pas, versEnvoye, rec.r.matched, rec.r.aretes, rec.r.admins).map((p, k) => ({ ...p, montee: montees[k] ?? 0 }));
   const r = calculRoule(attribues, modeleVeh);
   if (r.km < SEUIL_KM || r.troncons.length === 0) return json(422, { erreur: "trop_court" });
   const { data: tablePays } = await db.from("pays").select("code,nom,tva");
@@ -180,7 +190,7 @@ Deno.serve(async (req) => {
     itineraire: { fournisseur: rec.fournisseur, recalage: true },
     peages: { ...peages, vignettes },
     traversee_manche: r.traversee || (pays.some((p) => p.code === "GB") && pays.some((p) => p.code !== "GB" && p.code !== "IE")),
-    avertissements: [],
+    avertissements,
     enregistre: {
       depart: { ...depart, label: labelDepart },
       arrivee: { ...arrivee, label: labelArrivee },
