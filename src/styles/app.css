@@ -295,7 +295,8 @@ h2.route:focus-visible { outline: none; text-decoration: underline 3px; text-und
 .home .alert { width: 100%; max-width: 340px; margin: 0; }
 .d2 { margin: 8px 16px 0; display: grid; gap: 8px; }
 .d2 label { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-.d2 input { border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: var(--surface); font: 600 20px var(--f-digits); letter-spacing: .08em; text-transform: uppercase; min-width: 0; width: 100%; }
+/* code D.2 : JetBrains Mono, dont le zéro est pointé (Chivo Mono dessine 0 comme O : « 5RBU0C » lu « 5RBUOC », audit m5 r2) */
+.d2 input { border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: var(--surface); font: 600 20px 'JetBrains Mono', var(--f-digits); letter-spacing: .08em; text-transform: uppercase; min-width: 0; width: 100%; }
 .d2 input.q { font: 500 17px var(--f-body); letter-spacing: 0; text-transform: none; }
 .d2 input[aria-invalid="true"] { border-color: var(--dear); }
 .cg { margin: 6px 16px 0; border: 1px dashed var(--line); border-radius: 10px; padding: 10px 12px; font: 13px/1.5 var(--f-digits); color: var(--muted); }
