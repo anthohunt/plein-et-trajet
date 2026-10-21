@@ -32,7 +32,7 @@ Empreinte SHA-256 du certificat du magasin de clés (calculée au VPS, python cr
    litres 1,280 (2,76 € ÷ 2,157 €/L) vs 1,278 = **0,12 %**. Runs précédents : 0,31 % / 0,05 %, 0,44 % / 0,04 %, 0,5 % / 0,02 %.
 4. **Captures** — requises 12 (V-3.2-01..06, V-3.3-01..06) : 12 produites (01-04 et V-3.3 : screencap CI du run 39675522721 ;
    V-3.2-05/06 : Playwright sur la prod, sentinelle `wakeLock` tenue, `data-verrou=actif`). Rejeu : 27 (liste exacte en fin de
-   m6-use-case.md). Toutes regardées ; `V-3.2-A12-reveil.png` écarté (noir). Brutes tests/e2e/screenshots/m6/, livrées tests/e2e/delivery/.
+   m6-use-case.md). Toutes regardées ; `V-3.2-A12-reveil.png` écarté (noir). Brutes tests/e2e/screenshots/m6/ (ignoré par git, sur le VPS), livrées tests/e2e/delivery/.
 5. **Distribution** — https://projets.ingevision.cloud/plein-et-trajet/plein-et-trajet.apk : curl `200 4433473`, sha256
    `6646959d16b73b14001506488a1062adc78bac6fd838f412623470da758100bb` = APK de l'artefact 12382441943 ; page d'accueil « commit fe0f9e7 ».
    Pas de release GitHub (dépôt privé, lien public suffisant).
