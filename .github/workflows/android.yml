@@ -115,7 +115,7 @@ jobs:
             if [ "${{ matrix.scenario }}" = principal ]; then adb install -r -g release/app-release.apk && adb shell monkey -p cloud.ingevision.pleinettrajet -c android.intent.category.LAUNCHER 1 && sleep 20 && adb exec-out screencap -p > sortie-m6/V-1.3-A01-apk-release.png && adb uninstall cloud.ingevision.pleinettrajet; fi
             if [ "${{ matrix.scenario }}" = principal ]; then adb install -r release/app-release.apk; else adb install -r -g release/app-release.apk; fi
             sleep 90
-            node tests/android/m6-emulateur.mjs ${{ matrix.scenario }} sortie-m6
+            node --experimental-strip-types --no-warnings tests/android/m6-emulateur.mjs ${{ matrix.scenario }} sortie-m6
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
@@ -143,7 +143,7 @@ jobs:
             if [ "${{ matrix.scenario }}" = principal ]; then adb install -r -g release/app-release.apk && adb shell monkey -p cloud.ingevision.pleinettrajet -c android.intent.category.LAUNCHER 1 && sleep 20 && adb exec-out screencap -p > sortie-m6/V-1.3-A01-apk-release.png && adb uninstall cloud.ingevision.pleinettrajet; fi
             if [ "${{ matrix.scenario }}" = principal ]; then adb install -r release/app-release.apk; else adb install -r -g release/app-release.apk; fi
             sleep 90
-            node tests/android/m6-emulateur.mjs ${{ matrix.scenario }} sortie-m6
+            node --experimental-strip-types --no-warnings tests/android/m6-emulateur.mjs ${{ matrix.scenario }} sortie-m6
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}

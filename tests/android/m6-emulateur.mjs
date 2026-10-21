@@ -18,6 +18,8 @@ import os from "node:os";
 import { promisify } from "node:util";
 import { _android } from "@playwright/test";
 import { lireGpx, voitureEea } from "../e2e/exploration/m5-aides.mjs";
+// node --experimental-strip-types : le module de calcul de l'appli, tel quel, pour la consommation de référence
+const { calculLocal } = await import("../../supabase/functions/_shared/roule.ts");
 
 const SCENARIO = process.argv[2] ?? "principal";
 const OUT = process.argv[3] ?? "sortie-m6";
@@ -128,8 +130,14 @@ function fournisseurTest() {
   prefixeTest = commeShell("");
   shellTest = spawn("adb", ["shell"], { stdio: ["pipe", "ignore", "ignore"] });
 }
-function fixTest(lon, lat) {
-  shellTest.stdin.write(`${prefixeTest}cmd location providers set-test-provider-location gps --location ${lat},${lon} --accuracy 5\n`);
+// round 2 : chaque position porte son heure (--time), à cadence fixe, comme une puce GNSS qui date ses relevés. Sans elle,
+// l'heure était celle où le shell exécutait la commande : au lancement de Maps l'émulateur les retardait de plusieurs secondes
+// puis les enchaînait (run 39687638983 : trou de 8,1 s puis pas de 625 km/h), et le service datait mal ces relevés.
+let decalageAppareil = null; // horloge de l'émulateur − horloge du runner (ms)
+function fixTest(lon, lat, t) {
+  if (decalageAppareil == null) decalageAppareil = Number(shOk("date +%s%3N")) - Date.now() || 0;
+  const heure = Math.round(t + decalageAppareil);
+  shellTest.stdin.write(`${prefixeTest}cmd location providers set-test-provider-location gps --location ${lat},${lon} --accuracy 5 --time ${heure}\n`);
 }
 let consoleEmu = null;
 async function envoyerFix(lon, lat, kn) {
@@ -190,7 +198,7 @@ class Lecteur {
       }
       if (p) {
         try {
-          if (this.source === "test") fixTest(p.lon.toFixed(6), p.lat.toFixed(6));
+          if (this.source === "test") fixTest(p.lon.toFixed(6), p.lat.toFixed(6), t0 + tic * 1000);
           else await envoyerFix(p.lon.toFixed(6), p.lat.toFixed(6), (v * KNOTS).toFixed(2));
           this.envois++;
         } catch {
@@ -394,8 +402,17 @@ function kmPoints(points, a, b) {
   return m / 1000;
 }
 
+let voitureTest = null;
+/** Consommation de référence : roule.ts sur le tronçon du GPX rejoué [i0, i1], aux heures du GPX (un enregistreur parfait). */
+function reference(lect, i0, i1) {
+  const pts = lect.pts.slice(i0, i1 + 1).map((x) => [x.t, x.lat, x.lon, 0]);
+  const veh = { masse_kg: voitureTest.masse_kg, carburant: voitureTest.carburant, conso: voitureTest.conso_phases };
+  const r = calculLocal(pts, [], veh, pts[0][0], pts[pts.length - 1][0]);
+  return { km: +r.km.toFixed(3), litres: +r.litres.toFixed(4), l100: +((r.litres / r.km) * 100).toFixed(2), points: [i0, i1] };
+}
 async function preparer(gpx, depuis, source = "puce") {
   const voiture = await voitureEea("5RBU0C");
+  voitureTest = voiture;
   const lect = new Lecteur(lireGpx(gpx), depuis, source);
   lancer();
   let p = await page();
@@ -461,6 +478,7 @@ async function principal() {
   constat("V-1.3 dialogue d'autorisation des notifications natif", !!vus.notif, vus.notif ?? "non vu");
   await p.waitForURL(/\/en-route$/, { timeout: 60000 });
   lect.roule = true;
+  const iDebut1 = lect.i;
   constat("V-1.3 Démarrer ouvre En route", true, p.url());
 
   // V-3.1 — direct dans l'appli
@@ -582,6 +600,7 @@ async function principal() {
   ns = await volet();
   capture("V-3.3-05-avant");
 
+  const iFin1 = lect.i;
   // écart direct / fin : la notification (direct de la PAGE, enDirect de roule.ts) contre la fin de trajet (calculLocal du même
   // module), au même instant figé — deux calculs JS. Le direct NATIF (service sans la page) se mesure plus bas, appli tuée.
   lect.gele = true;
@@ -612,7 +631,7 @@ async function principal() {
     ecartLitresPct: litresNotif ? +((100 * Math.abs(litresNotif - finL)) / finL).toFixed(2) : null,
     ecartLitresDirectPct: litresDirect ? +((100 * Math.abs(litresDirect - finL)) / finL).toFixed(2) : null,
   };
-  mesures.conso = { trajet1: { km: finKm, litres: finL, l100: +((finL / finKm) * 100).toFixed(2) } };
+  mesures.conso = { trajet1: { km: finKm, litres: finL, l100: +((finL / finKm) * 100).toFixed(2), reference: reference(lect, iDebut1, iFin1) } };
   constat("écart km notification (direct de la page) / fin de trajet < 3 %", mesures.ecart.ecartKmPct != null && mesures.ecart.ecartKmPct < 3, `${nF?.km} km vs ${finKm.toFixed(3)} km → ${mesures.ecart.ecartKmPct} %`);
   constat("écart litres notification (direct de la page) / fin de trajet < 5 %", mesures.ecart.ecartLitresPct != null && mesures.ecart.ecartLitresPct < 5, `${litresNotif?.toFixed(3)} L (${nF?.euros} € / ${prix} €/L) vs ${finL.toFixed(3)} L → ${mesures.ecart.ecartLitresPct} % (direct à l'écran : ${litresDirect} L, ${mesures.ecart.ecartLitresDirectPct} %)`);
   constat("notification effacée après Arrêter", lireNotif() === null);
@@ -639,6 +658,7 @@ async function principal() {
   await p.locator('[data-el="onglet-trajet"]').click();
   await p.locator('[data-el="bouton-demarrer"]').waitFor({ timeout: 15000 });
   await demarrer(p, lect);
+  const iDebut2 = lect.i;
   await pause(40000);
   capture("V-3.2-03-avant");
   const avantKill = await lireEnCours(p);
@@ -670,6 +690,7 @@ async function principal() {
   while (Date.now() - tKill < 70000) await pause(1000);
   // direct NATIF figé : le service seul, page absente (audit r1, MEDIUM 5)
   lect.gele = true;
+  const tGele = Date.now();
   await pause(4000);
   const nNat = noterNotif("direct natif figé (page absente)");
   const jK = journalNatif();
@@ -681,6 +702,9 @@ async function principal() {
   const nPage = noterNotif("direct de la page figé (rouverte)");
   const apres = await lireEnCours(p);
   capture("V-3.2-04-apres");
+  // GPS figé au moins 17 s : au-delà de 15 s c'est un « trou » (ligne droite) ; plus court, le tracé reprendrait comme après
+  // un arrêt, et l'accélération fictive qui suit compterait des litres (test, pas route)
+  while (Date.now() - tGele < 17000) await pause(250);
   lect.gele = false;
   const pj = jK.filter((x) => x.type === "P");
   const dernierAvant = pj.filter((x) => x.t < tKill).at(-1)?.t ?? null;
@@ -717,6 +741,7 @@ async function principal() {
   constat("écart € direct natif / direct de la page < 5 %", mesures.ecartNatif.ecartEurosPct != null && mesures.ecartNatif.ecartEurosPct < 5, `${nNat?.euros} € vs ${nPage?.euros} € → ${mesures.ecartNatif.ecartEurosPct} %`);
 
   // V-3.5 — Arrêter dans l'appli : fin de trajet
+  const iFin2 = lect.i;
   await p.locator('[data-el="bouton-arreter"]').click();
   await p.waitForURL(/\/fin$/, { timeout: 20000 });
   await p.locator('[data-el="titre-trajet"][data-noms="oui"]').waitFor({ timeout: 20000 }).catch(() => undefined);
@@ -725,9 +750,13 @@ async function principal() {
   // HIGH 1 de l'audit r1 : le trajet 1 (bascules d'appli, écran éteint, volet) et le trajet 2 (appli tuée) consomment pareil
   const km2 = Number(await p.locator('[data-el="fin-km"]').getAttribute("data-km"));
   const l2 = Number(await p.locator('[data-el="fin-litres"]').getAttribute("data-litres"));
-  mesures.conso.trajet2 = { km: km2, litres: l2, l100: +((l2 / km2) * 100).toFixed(2) };
-  mesures.conso.ecartPct = +((100 * Math.abs(mesures.conso.trajet1.l100 - mesures.conso.trajet2.l100)) / mesures.conso.trajet2.l100).toFixed(1);
-  constat("consommation du trajet 1 = celle du trajet 2 à ±10 %", mesures.conso.ecartPct <= 10, `${mesures.conso.trajet1.l100} L/100 (${mesures.conso.trajet1.km.toFixed(2)} km) vs ${mesures.conso.trajet2.l100} L/100 (${km2.toFixed(2)} km) → ${mesures.conso.ecartPct} %`);
+  const c = mesures.conso;
+  c.trajet2 = { km: km2, litres: l2, l100: +((l2 / km2) * 100).toFixed(2), reference: reference(lect, iDebut2, iFin2) };
+  for (const k of ["trajet1", "trajet2"]) c[k].ecartReferencePct = +((100 * (c[k].l100 - c[k].reference.l100)) / c[k].reference.l100).toFixed(1);
+  c.ecartPct = +((100 * Math.abs(c.trajet1.l100 - c.trajet2.l100)) / c.trajet2.l100).toFixed(1);
+  // les deux trajets ne roulent pas sur le même tronçon : on compare aussi chacun à roule.ts sur son tronçon du GPX
+  constat("consommation du trajet 1 = celle du trajet 2 à ±10 %", c.ecartPct <= 10, `${c.trajet1.l100} L/100 (${c.trajet1.km.toFixed(2)} km) vs ${c.trajet2.l100} L/100 (${km2.toFixed(2)} km) → ${c.ecartPct} %`);
+  constat("chaque trajet = roule.ts sur son tronçon du GPX (heures du GPX) à ±10 %", Math.abs(c.trajet1.ecartReferencePct) <= 10 && Math.abs(c.trajet2.ecartReferencePct) <= 10, `trajet 1 : ${c.trajet1.l100} vs ${c.trajet1.reference.l100} L/100 (${c.trajet1.ecartReferencePct} %) ; trajet 2 : ${c.trajet2.l100} vs ${c.trajet2.reference.l100} L/100 (${c.trajet2.ecartReferencePct} %)`);
   await p.locator('[data-el="supprimer-neuf"]').click();
   await lect.arreter();
 }
