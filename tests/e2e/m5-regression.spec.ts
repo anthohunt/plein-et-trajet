@@ -144,7 +144,7 @@ test.describe("Régression V1 — histoires maintenue_v1 (T1, T3, T4, T6)", () =
       expect(sansNom, `${route} : boutons icônes sans libellé`).toBe(0);
       return vus;
     };
-    expect(await parcourir("/")).toEqual(expect.arrayContaining(["Changer", "Démarrer", "Trajet"]));
+    expect(await parcourir("/")).toEqual(expect.arrayContaining(["Changer de voiture", "Démarrer", "Trajet"])); // round 2 : « Changer » porte « Changer de voiture » (LOW 10 lot 1)
     await parcourir("/voiture");
     expect(await parcourir("/historique", 1)).toEqual(["Historique"]); // historique vide : seul l'onglet sélectionné reçoit le focus
     await finPreparee(page);
