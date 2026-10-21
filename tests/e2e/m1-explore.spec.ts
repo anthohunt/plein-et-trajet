@@ -9,7 +9,9 @@ import { ALBI, autour, centre, choisir, croissant, glisser, km, lignes, lireLign
 /** Écran Stations (ex-écran Prix), mêmes attentes qu'au jalon 1. */
 async function ouvrirPrix(p: Page) {
   await p.goto("/stations");
-  await expect(lignes(p).first()).toBeVisible();
+  // 40 s : sous `lourd` (un demi-cœur pour tout le navigateur), le rendu des tuiles du fond retarde parfois la liste au-delà de
+  // 15 s ; hors plafond elle s'affiche en 1 à 2 s (US-PERF-001 la mesure à part, en 4G simulée)
+  await expect(lignes(p).first()).toBeVisible({ timeout: 40_000 });
   await expect(p.locator('[data-el="carte-stations"]')).toHaveAttribute("data-pastilles", /\d+/);
   await expect(p.locator('[data-el="ecart"]').first()).toBeVisible(); // moyenne nationale chargée
 }
