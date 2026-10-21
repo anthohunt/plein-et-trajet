@@ -35,7 +35,9 @@ export async function session(page) {
   return s ? { jeton: s.access_token, userId: s.user?.id } : null;
 }
 export async function moyenneDuJour(carburant) {
-  const r = await rest(`moyennes_nationales?select=prix_moyen&carburant=eq.${encodeURIComponent(carburant)}&order=jour.desc&limit=1`);
+  // moyenne FRANÇAISE du jour : depuis le jalon 3 la table porte une ligne par pays, et depuis le jalon 4 le Royaume-Uni a aussi
+  // une ligne du jour (même date que la France) : sans filtre de pays, « la dernière » pouvait être celle du Royaume-Uni
+  const r = await rest(`moyennes_nationales?select=prix_moyen&pays=eq.FR&carburant=eq.${encodeURIComponent(carburant)}&order=jour.desc&limit=1`);
   return Number(r[0].prix_moyen);
 }
 export const virgule = (n, d = 2) => n.toFixed(d).replace(".", ",");

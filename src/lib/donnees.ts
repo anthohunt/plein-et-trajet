@@ -70,12 +70,13 @@ export async function coursDuJour(monnaie: string): Promise<Cours | null> {
   return { ...data, taux: Number(data.taux) } as Cours;
 }
 
-/** rest/v1/moyennes_nationales : dernière moyenne nationale connue du carburant. */
+/** rest/v1/moyennes_nationales : dernière moyenne nationale FRANÇAISE connue du carburant (la table porte aussi GB, EU, bulletin UE). */
 export async function moyenneNationale(carburant: Carburant): Promise<number | null> {
   const { data, error } = await supabase
     .from("moyennes_nationales")
     .select("jour,carburant,prix_moyen,nb_stations")
     .eq("carburant", carburant)
+    .eq("pays", "FR")
     .order("jour", { ascending: false })
     .limit(1);
   if (error || !data || data.length === 0) return null;
