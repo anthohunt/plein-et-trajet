@@ -49,8 +49,9 @@ describe("itinéraire Europe : arêtes → étapes par pays", () => {
     expect(carrefourPrioritaire({ length: 1 })).toBe(false);
   });
   it("liste d'attributs de trace_attributes : acceptée par Stadia ET FOSSGIS (pas d'edge.traffic_signal ni d'edge.end_node.admin_index)", () => {
-    // variantes permises relevées dans le message d'erreur 400 réel de Stadia Maps (2026-10-21)
-    const PERMISES = new Set(["edge.names", "edge.length", "edge.speed", "edge.road_class", "edge.toll", "edge.roundabout", "edge.weighted_grade", "edge.mean_elevation", "edge.density", "edge.speed_limit", "node.intersecting_edge.road_class", "node.admin_index", "admin.country_code", "admin.country_text"]);
+    // variantes permises relevées dans le message d'erreur 400 réel de Stadia Maps (2026-10-21) ;
+    // jalon 4 : « edge.use » (ferry de la Manche) accepté et renvoyé par Stadia ET FOSSGIS (vraies requêtes du 21/10/2026, réponse 200, champ « use » présent)
+    const PERMISES = new Set(["edge.use", "edge.names", "edge.length", "edge.speed", "edge.road_class", "edge.toll", "edge.roundabout", "edge.weighted_grade", "edge.mean_elevation", "edge.density", "edge.speed_limit", "node.intersecting_edge.road_class", "node.admin_index", "admin.country_code", "admin.country_text"]);
     for (const a of ATTRIBUTS_TRACE) expect(PERMISES.has(a), a).toBe(true);
     expect(ATTRIBUTS_TRACE).not.toContain("edge.traffic_signal");
     expect(ATTRIBUTS_TRACE).not.toContain("edge.end_node.admin_index");
