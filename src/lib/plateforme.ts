@@ -1,5 +1,5 @@
 // Plateforme d'enregistrement (jalon 5, T5.4) : l'appli web enregistre par les API du navigateur (Geolocation, IndexedDB) ;
-// l'appli Android (jalon 6) branchera ici son service natif, derrière la même interface.
+// l'appli Android (jalon 6) garde le même enregistreur, dont le GPS passe alors par un service natif de premier plan.
 import type { Pause, PointRoule } from "../../supabase/functions/_shared/roule.ts";
 import type { Carburant } from "./format";
 import type { PrixMoyen, TrajetV1 } from "./historique";

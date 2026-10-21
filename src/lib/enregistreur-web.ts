@@ -11,6 +11,13 @@ import { detailVoiture, nomVoiture, vehiculeDe, type VoitureV1 } from "./voiture
 import { paysDePosition } from "./donnees";
 import { moyennesDuPays } from "./prixDuJour";
 import { garderPrixChoisi, lirePrixChoisi } from "./prixChoisi";
+import { Capacitor } from "@capacitor/core";
+import { BackgroundGeolocation } from "@capgo/background-geolocation";
+
+// Appli Android (jalon 6) : le GPS passe par un service de premier plan (notification permanente), qui continue écran
+// éteint et quand Waze ou Maps est devant ; dans le navigateur, watchPosition comme avant.
+const natif = Capacitor.isNativePlatform();
+let ecouteNative = false;
 
 let etat: EnCours | null = null;
 let instant = { etat: null as EnCours | null, maintenant: Date.now() };
@@ -62,8 +69,31 @@ function surPosition(pos: GeolocationPosition) {
   publier();
 }
 
+function ecouterNatif() {
+  if (ecouteNative) return;
+  ecouteNative = true;
+  BackgroundGeolocation.requestPermissions({ permissions: ["location", "notification"] })
+    .catch(() => undefined)
+    .then(() =>
+      BackgroundGeolocation.start(
+        { backgroundTitle: "Plein & Trajet", backgroundMessage: "Trajet en cours d'enregistrement", requestPermissions: true, stale: false, distanceFilter: 0 },
+        (l) => {
+          if (!l) return;
+          surPosition({
+            timestamp: l.time ?? Date.now(),
+            coords: { latitude: l.latitude, longitude: l.longitude, altitude: l.altitude, speed: l.speed, accuracy: l.accuracy },
+          } as unknown as GeolocationPosition);
+        },
+      ),
+    )
+    .catch(() => {
+      ecouteNative = false;
+    });
+}
+
 function ecouter() {
-  if (ecoute == null && "geolocation" in navigator) {
+  if (natif) ecouterNatif();
+  else if (ecoute == null && "geolocation" in navigator) {
     ecoute = navigator.geolocation.watchPosition(surPosition, () => undefined, { enableHighAccuracy: true, maximumAge: 0, timeout: 60000 });
   }
   if (horloge == null) {
@@ -74,6 +104,8 @@ function ecouter() {
   }
 }
 function taire() {
+  if (ecouteNative) BackgroundGeolocation.stop().catch(() => undefined);
+  ecouteNative = false;
   if (ecoute != null) navigator.geolocation.clearWatch(ecoute);
   if (horloge != null) window.clearInterval(horloge);
   ecoute = null;
@@ -90,7 +122,7 @@ function premierePosition(): Promise<GeolocationPosition> {
 const id = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `t${Date.now()}${Math.random().toString(16).slice(2)}`);
 
 export const enregistreurWeb: Enregistreur = {
-  plateforme: "web",
+  plateforme: natif ? "android" : "web",
 
   async demarrer(voiture: VoitureV1) {
     let pos: GeolocationPosition;
