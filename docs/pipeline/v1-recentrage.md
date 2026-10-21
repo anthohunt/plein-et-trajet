@@ -23,3 +23,4 @@ Trajet Toulouse → Paris à plusieurs, frais partagés. Les péages se lisent s
 8. Enregistrement en fond : **B** — l'appli doit enregistrer pendant que Waze/Maps guide, écran éteint → vraie appli Android installable. Piste technique (à trancher en spécification) : envelopper l'appli React existante avec Capacitor + plugin de géolocalisation en arrière-plan (service de premier plan Android), pour réutiliser le code et garder la version web.
    - Capteurs : GPS indispensable (vitesse Doppler + distance) ; accéléromètre seulement en complément (tunnels). Questions d'Anthony traitées le 21/10.
 9. Démarrage / arrêt : **A** — à la main (Démarrer / Arrêter) ; oubli d'arrêter → arrêt seul après 10 min immobile, avec demande de confirmation.
+10. Compte : **A** — pas de compte ; voiture et historique liés au téléphone (perdus en cas de changement de téléphone).
