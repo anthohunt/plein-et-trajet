@@ -21,3 +21,5 @@ Trajet Toulouse → Paris à plusieurs, frais partagés. Les péages se lisent s
    - Décision : **A** — saisie par le code D.2 de la carte grise (type-variante-version), identification exacte dans la base EEA ; secours : recherche « clio 2017 120 » (nom + année + puissance). Une seule fois, mémorisée.
 7. Prix par défaut : **A** — moyenne du jour du pays de départ, pour le carburant de la voiture ; remplaçable à la main avant ou après.
 8. Enregistrement en fond : **B** — l'appli doit enregistrer pendant que Waze/Maps guide, écran éteint → vraie appli Android installable. Piste technique (à trancher en spécification) : envelopper l'appli React existante avec Capacitor + plugin de géolocalisation en arrière-plan (service de premier plan Android), pour réutiliser le code et garder la version web.
+   - Capteurs : GPS indispensable (vitesse Doppler + distance) ; accéléromètre seulement en complément (tunnels). Questions d'Anthony traitées le 21/10.
+9. Démarrage / arrêt : **A** — à la main (Démarrer / Arrêter) ; oubli d'arrêter → arrêt seul après 10 min immobile, avec demande de confirmation.
