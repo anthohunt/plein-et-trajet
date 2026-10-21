@@ -107,6 +107,8 @@ test.describe("M2 — Le coût d'un trajet", () => {
         await expect(page.locator("#voiture-marque .dd-txt")).toHaveText("Marque");
         expect(await dbPreference(page)).toBeNull();
         await choisirVoiture(page, "Peugeot", "208", "208 (101ch) · mécanique");
+        // l'écriture de la préférence suit le choix de la motorisation : on attend la ligne complète au lieu de la lire une seule fois
+        await expect.poll(async () => (await dbPreference(page))?.carburant, { timeout: 15000 }).toBe("SP95-E10");
         const p = await dbPreference(page);
         expect(p).toMatchObject({ marque: "Peugeot", modele: "208", carburant: "SP95-E10" });
         const v = (await rest(`vehicules?select=masse_kg,carburant,motorisation&id=eq.${p.vehicule_id}`))[0];
