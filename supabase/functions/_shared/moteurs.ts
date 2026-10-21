@@ -82,3 +82,29 @@ export async function noterQuotaFournisseur(db: any, fournisseur: string, ancien
   await db.from("fournisseurs").update({ quota_epuise_jusqua: jusqua.toISOString() }).eq("id", fournisseur);
   return jusqua.toISOString();
 }
+
+/** Codes d'incident (`fournisseur : code …`) qui disent l'état du fournisseur ; « aucun itinéraire » ou « trajet trop long » n'en disent rien. */
+const CODE_INCIDENT: Record<string, string> = { cle_refusee: "cle_refusee", cle_manquante: "cle_manquante", quota: "quota", indisponible: "injoignable", reponse_invalide: "reponse_illisible" };
+export interface EtatAffiche {
+  etat: string;
+  code: string;
+  params: Record<string, string | number>;
+}
+/** État montré sur l'écran Moteurs : le plus récent du dernier test et du dernier incident (P8, streamline R2).
+ *  Un incident du fournisseur actif, non résolu et postérieur au dernier test, l'emporte sur un « Connecté » plus ancien. */
+export function etatAffiche(
+  m: { actif: string; dernier_test?: string | null; incident_le?: string | null; incident_message?: string | null; retabli_le?: string | null },
+  base: EtatAffiche,
+): EtatAffiche {
+  if (!m.incident_le || !m.incident_message) return base;
+  const incident = new Date(m.incident_le).getTime();
+  if (m.retabli_le && new Date(m.retabli_le).getTime() > incident) return base; // résolu depuis
+  if (m.dernier_test && new Date(m.dernier_test).getTime() >= incident) return base; // un test plus récent fait foi
+  const [fournisseur, ...reste] = m.incident_message.split(" : ");
+  if (fournisseur.trim() !== m.actif) return base;
+  const detail = reste.join(" : ").trim();
+  const code = CODE_INCIDENT[detail.split(/[\s(]/)[0]];
+  if (!code) return base;
+  const http = detail.match(/\b(\d{3})\b/)?.[1];
+  return { etat: "ko", code, params: { fournisseur: m.actif, ...(http ? { http: Number(http) } : {}) } };
+}

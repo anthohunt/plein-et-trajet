@@ -5,7 +5,7 @@
 // Sortie : 200 { moteurs:[…] } | { etat:"ok"|"ko"|"wait", code, params } | { enregistre, etat, code, params, notes:[{code, params?}], moteurs }  ·  401/403 { erreur }
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { CORS, fetchTimeout, json } from "../_shared/http.ts";
-import { lireCle, noterQuotaFournisseur } from "../_shared/moteurs.ts";
+import { etatAffiche, lireCle, noterQuotaFournisseur } from "../_shared/moteurs.ts";
 import { ErreurPeages, peagesHere, peagesPtv } from "../_shared/peages.ts";
 import { routeValhalla, connexionDepuisFournisseur, ErreurItineraire } from "../_shared/itineraire-europe.ts";
 
@@ -147,6 +147,9 @@ async function lister(db: Db) {
       etat = "wait";
       code = "quota_fournisseur";
       params = { fournisseur: actif.id, jusqua: new Date(actif.quota_epuise_jusqua).toISOString() };
+    } else {
+      // le plus récent du dernier test et du dernier incident : jamais « Connecté » sous un incident plus récent (streamline R2, P8)
+      ({ etat, code, params } = etatAffiche(m as Parameters<typeof etatAffiche>[0], { etat, code, params }) as { etat: Etat; code: Code; params: Params });
     }
     // un incident ou une bascule suivis d'une réponse du fournisseur actif sont « résolus » (audit round 3, LOW 9)
     const retabli = m.retabli_le ? new Date(m.retabli_le as string).getTime() : 0;
