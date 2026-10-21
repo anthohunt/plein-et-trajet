@@ -4,7 +4,8 @@
 1. Signature : `apksigner verify --print-certs` ; l'empreinte SHA-256 du certificat doit être celle du magasin de clés
    (calculée sur le VPS depuis le .p12, notée dans docs/pipeline/m6-journal.md, passée ici par EMPREINTE_SHA256).
 2. Manifeste fusionné (`aapt2 dump xmltree`) : FOREGROUND_SERVICE, FOREGROUND_SERVICE_LOCATION, ACCESS_FINE_LOCATION,
-   POST_NOTIFICATIONS, un service avec foregroundServiceType « location » (0x8), et PAS d'ACCESS_BACKGROUND_LOCATION.
+   POST_NOTIFICATIONS, REQUEST_IGNORE_BATTERY_OPTIMIZATIONS (round 2), le service .TrajetService avec foregroundServiceType
+   « location » (0x8), et PAS d'ACCESS_BACKGROUND_LOCATION.
 Usage : controle-apk.py <apk> <rapport>   (sortie 1 si un contrôle échoue)
 """
 import glob
@@ -49,7 +50,7 @@ for l in xml.splitlines():
 
 permissions = sorted({re.sub(r'^"|".*$', "", at.get("name", "")) for n, at in elements if n == "uses-permission"})
 lignes += ["permissions : " + ", ".join(permissions), ""]
-for p in ["FOREGROUND_SERVICE", "FOREGROUND_SERVICE_LOCATION", "ACCESS_FINE_LOCATION", "POST_NOTIFICATIONS"]:
+for p in ["FOREGROUND_SERVICE", "FOREGROUND_SERVICE_LOCATION", "ACCESS_FINE_LOCATION", "POST_NOTIFICATIONS", "REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"]:
     constat(f"permission {p}", f"android.permission.{p}" in permissions)
 constat("PAS de ACCESS_BACKGROUND_LOCATION", "android.permission.ACCESS_BACKGROUND_LOCATION" not in permissions)
 
@@ -58,8 +59,7 @@ lignes += ["services : " + "; ".join(f"{s} foregroundServiceType={t or '—'}" f
 # foregroundServiceType est un drapeau : « location » vaut 0x8
 loc = [s for s, t in services if re.search(r"0x0*8\b|location", t)]
 constat("service de premier plan foregroundServiceType=location", bool(loc), ", ".join(loc) or "aucun")
-if not any(s.endswith(".TrajetService") for s in loc):
-    lignes.append("ÉCART service nommé TrajetService dans le plan — c'est le service du plugin @capgo/background-geolocation (pas renommé : même rôle)")
+constat("le service de localisation est TrajetService (seul)", loc == ["cloud.ingevision.pleinettrajet.TrajetService"], ", ".join(loc) or "aucun")
 
 with open(rapport, "w") as f:
     f.write("\n".join(lignes) + "\n")

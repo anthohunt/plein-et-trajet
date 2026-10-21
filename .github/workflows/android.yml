@@ -7,7 +7,7 @@ on:
     inputs:
       scenarios:
         description: "Scénarios joués sur l'émulateur (liste JSON)"
-        default: '["principal","immobile"]'
+        default: '["principal","immobile","fini"]'
 # un push plus récent remplace la vérification en cours (chaque run émulateur dure ~30 min)
 concurrency:
   group: android-${{ github.ref }}
@@ -67,7 +67,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scenario: ${{ fromJSON(github.event.inputs.scenarios || '["principal","immobile"]') }}
+        scenario: ${{ fromJSON(github.event.inputs.scenarios || '["principal","immobile","fini"]') }}
     steps:
       # l'émulateur API 34 réserve 7,2 Go de données ; certains runners n'en laissent que 7,1 (run 39659349314 :
       # « FATAL Not enough space to create userdata partition ») : outils inutiles ici retirés, partition ramenée à 4 Go
@@ -106,12 +106,14 @@ jobs:
           # 90 s de calme avant le scénario : juste après le démarrage, les services Google (gms.persistent) tombent en ANR et le
           # système tue l'appli qui dépend de leur fournisseur de polices (run 39664532821, job immobile, logcat :
           # « Killing …pleinettrajet (adj 0): depends on provider …FontsProvider in dying proc com.google.android.gms.persistent »).
-          # l'APK de release est installé et ouvert (contrôle de l'APK livré) ; l'instrumentation tourne sur l'APK de débogage,
-          # même code, dont la WebView est inspectable. Le scénario principal installe sans -g : le dialogue d'autorisation est testé.
+          # round 2 (audit r1, MEDIUM 4) : tout le scénario tourne sur l'APK de RELEASE signé, celui qu'on publie ; sa WebView est
+          # rendue inspectable par `am start … --ez pt_inspecter true`. `adb root` (image google_apis) lit le journal du service
+          # et tue le processus. Le scénario principal installe sans -g : les dialogues d'autorisation sont testés.
           script: |
+            adb root; sleep 5; adb wait-for-device; adb shell id
             mkdir -p sortie-m6 && touch sortie-m6/demarre
             if [ "${{ matrix.scenario }}" = principal ]; then adb install -r -g release/app-release.apk && adb shell monkey -p cloud.ingevision.pleinettrajet -c android.intent.category.LAUNCHER 1 && sleep 20 && adb exec-out screencap -p > sortie-m6/V-1.3-A01-apk-release.png && adb uninstall cloud.ingevision.pleinettrajet; fi
-            if [ "${{ matrix.scenario }}" = principal ]; then adb install -r debug/app-debug.apk; else adb install -r -g debug/app-debug.apk; fi
+            if [ "${{ matrix.scenario }}" = principal ]; then adb install -r release/app-release.apk; else adb install -r -g release/app-release.apk; fi
             sleep 90
             node tests/android/m6-emulateur.mjs ${{ matrix.scenario }} sortie-m6
         env:
@@ -132,12 +134,14 @@ jobs:
           # 90 s de calme avant le scénario : juste après le démarrage, les services Google (gms.persistent) tombent en ANR et le
           # système tue l'appli qui dépend de leur fournisseur de polices (run 39664532821, job immobile, logcat :
           # « Killing …pleinettrajet (adj 0): depends on provider …FontsProvider in dying proc com.google.android.gms.persistent »).
-          # l'APK de release est installé et ouvert (contrôle de l'APK livré) ; l'instrumentation tourne sur l'APK de débogage,
-          # même code, dont la WebView est inspectable. Le scénario principal installe sans -g : le dialogue d'autorisation est testé.
+          # round 2 (audit r1, MEDIUM 4) : tout le scénario tourne sur l'APK de RELEASE signé, celui qu'on publie ; sa WebView est
+          # rendue inspectable par `am start … --ez pt_inspecter true`. `adb root` (image google_apis) lit le journal du service
+          # et tue le processus. Le scénario principal installe sans -g : les dialogues d'autorisation sont testés.
           script: |
+            adb root; sleep 5; adb wait-for-device; adb shell id
             mkdir -p sortie-m6 && touch sortie-m6/demarre
             if [ "${{ matrix.scenario }}" = principal ]; then adb install -r -g release/app-release.apk && adb shell monkey -p cloud.ingevision.pleinettrajet -c android.intent.category.LAUNCHER 1 && sleep 20 && adb exec-out screencap -p > sortie-m6/V-1.3-A01-apk-release.png && adb uninstall cloud.ingevision.pleinettrajet; fi
-            if [ "${{ matrix.scenario }}" = principal ]; then adb install -r debug/app-debug.apk; else adb install -r -g debug/app-debug.apk; fi
+            if [ "${{ matrix.scenario }}" = principal ]; then adb install -r release/app-release.apk; else adb install -r -g release/app-release.apk; fi
             sleep 90
             node tests/android/m6-emulateur.mjs ${{ matrix.scenario }} sortie-m6
         env:

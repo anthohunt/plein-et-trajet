@@ -1,12 +1,16 @@
 // Jalon 6 — instrumentation de l'appli Android sur l'émulateur (GitHub Actions, API 34 google_apis x86_64).
-// Deux scénarios, un par job : « principal » (dialogue d'autorisation natif, écran éteint avec Maps devant pendant 5 min,
-// notification lue et pilotée, Pause / Reprendre / Arrêter, historique, processus tué puis rouvert) et « immobile » (trou de
-// 90 s, immobile 10 min écran éteint).
+// Trois scénarios, un par job : « principal » (dialogues d'autorisation natifs, proposition de batterie, écran éteint avec Maps
+// devant pendant 5 min, notification lue et pilotée, Pause / Reprendre / Arrêter, historique, processus tué et laissé mort 70 s
+// sans rouvrir l'appli), « immobile » (trou de 90 s, immobile 10 min écran éteint, Reprendre) et « fini » (immobile 10 min puis
+// « C'est fini » depuis la notification). Round 2 : tout tourne sur l'APK de RELEASE signé (celui qu'on publie) ; sa WebView
+// est rendue inspectable par `am start … --ez pt_inspecter true` (MainActivity), et `adb root` (image google_apis) lit le journal
+// des relevés que le service natif écrit (files/trajet-en-cours.txt) et tue le processus.
 // Pilotage : la position est rejouée par le fournisseur de test « gps » (`cmd location providers`, 1 point par seconde) — la
 // classe Lecteur sait aussi alimenter la puce GPS simulée (console de l'émulateur), écartée pour les raisons notées plus bas ; l'interface
-// native (dialogues, volet des notifications) par `uiautomator dump` + `input tap` ; la WebView de l'APK de débogage par
-// Playwright (_android, CDP), qui lit aussi les points là où l'appli les écrit (IndexedDB « plein-et-trajet », magasin en_cours).
-// Usage : node tests/android/m6-emulateur.mjs principal|immobile [dossier-sortie]
+// native (dialogues, volet des notifications) par `uiautomator dump` + `input tap` ; la WebView par Playwright (_android, CDP),
+// qui lit l'état de la page (IndexedDB « plein-et-trajet », magasin en_cours). Les points se lisent là où le service les écrit :
+// son journal (journalNatif).
+// Usage : node tests/android/m6-emulateur.mjs principal|immobile|fini [dossier-sortie]
 import { execFile, execFileSync, spawn } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
 import net from "node:net";
@@ -299,7 +303,57 @@ async function page() {
   }
   throw new Error("WebView de l'appli introuvable");
 }
-const lancer = () => shOk(`monkey -p ${PKG} -c android.intent.category.LAUNCHER 1`);
+const lancer = () => shOk(`am start -n ${PKG}/.MainActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER --ez pt_inspecter true`);
+const racine = shOk("id -u") === "0"; // adb root (job emulateur) : journal du service lisible, processus tuable
+/** Journal écrit par le service natif TrajetService : relevés P (instant du relevé), boutons A, relances R. */
+function journalNatif() {
+  const txt = racine ? shOk(`cat /data/data/${PKG}/files/trajet-en-cours.txt`) : shOk(`run-as ${PKG} cat files/trajet-en-cours.txt`);
+  return txt
+    .split("\n")
+    .map((l) => l.trim().split(";"))
+    .filter((c) => ["P", "A", "R"].includes(c[0]) && Number.isFinite(+c[1]))
+    .map((c) => ({ type: c[0], t: +c[1], lat: +c[2], lon: +c[3], quoi: c[2] }));
+}
+const pidof = () => {
+  const r = shOk(`pidof ${PKG}`);
+  return /^\d+$/.test(r) ? r : "";
+};
+function tuer(pid) {
+  // le système tue l'appli quand la mémoire manque : SIGKILL, sans prévenir — c'est ce qu'on rejoue ici
+  return racine ? shOk(`kill -9 ${pid}`) : shOk(`run-as ${PKG} kill -9 ${pid}`);
+}
+async function mapsDevant() {
+  shOk(`monkey -p ${MAPS} -c android.intent.category.LAUNCHER 1`);
+  // premier lancement : Maps propose de se connecter ; on passe, pour voir la carte (LOW 10 de l'audit r1)
+  const passer = await trouver((n) => n.pkg === MAPS && /^(Skip|Ignorer|Not now|Plus tard|No thanks|Non merci|Later|Passer)$/i.test(n.text || n.desc), 8);
+  if (passer) {
+    sh(`input tap ${passer.x} ${passer.y}`);
+    journal(`Maps : « ${passer.text || passer.desc} » touché`);
+  }
+  await pause(5000);
+}
+/** Proposition de batterie au premier Démarrer : explication dans l'appli, puis dialogue système accepté. */
+async function repondreBatterie(p, nomAppli, nomSysteme) {
+  const vu = {};
+  const dlg = p.locator('[data-el="proposer-batterie"]');
+  if (!(await dlg.waitFor({ timeout: 8000 }).then(() => true, () => false))) return vu;
+  vu.appli = (await dlg.innerText()).replace(/\s+/g, " ");
+  if (nomAppli) capture(nomAppli);
+  await p.locator('[data-el="batterie-autoriser"]').click();
+  const oui = await trouver((n) => n.pkg === "com.android.settings" && (n.id === "android:id/button1" || /^(Allow|Autoriser)$/i.test(n.text)), 15);
+  if (oui) {
+    vu.systeme = noeuds()
+      .filter((n) => n.pkg === "com.android.settings" && n.text)
+      .map((n) => n.text)
+      .join(" | ");
+    if (nomSysteme) capture(nomSysteme);
+    sh(`input tap ${oui.x} ${oui.y}`);
+    journal(`dialogue système de batterie : « ${vu.systeme} » → « ${oui.text} »`);
+  }
+  await pause(1500);
+  vu.horsOptimisation = shOk("dumpsys deviceidle whitelist").includes(PKG);
+  return vu;
+}
 const lireEnCours = (p) =>
   p.evaluate(
     () =>
@@ -315,8 +369,11 @@ const lireEnCours = (p) =>
   );
 const nombre = (s) => Number(String(s).replace(",", ".").replace(/[^\d.-]/g, ""));
 const kmApp = async (p) => nombre(await p.locator('[data-el="direct-km"]').innerText());
+/** Plus grand écart entre points de [a, b], le dernier point d'avant `a` compris (audit r1, LOW 6 : le trou à cheval sur `a`). */
 function plusGrandTrou(points, a, b) {
-  const ts = points.map((x) => x[0]).filter((t) => t >= a && t <= b);
+  const tous = points.map((x) => x[0]);
+  const avant = tous.filter((t) => t < a).at(-1);
+  const ts = [...(avant != null ? [avant] : []), ...tous.filter((t) => t >= a && t <= b)];
   let max = 0;
   let ou = null;
   for (let k = 1; k < ts.length; k++)
@@ -324,7 +381,7 @@ function plusGrandTrou(points, a, b) {
       max = ts[k] - ts[k - 1];
       ou = ts[k - 1];
     }
-  return { n: ts.length, maxS: max / 1000, ou };
+  return { n: ts.length - (avant != null ? 1 : 0), maxS: max / 1000, ou, depuisAvantS: avant != null ? (a - avant) / 1000 : null };
 }
 function kmPoints(points, a, b) {
   const ps = points.filter((x) => x[0] >= a && x[0] <= b);
@@ -346,6 +403,8 @@ async function preparer(gpx, depuis, source = "puce") {
 }
 async function demarrer(p, lect) {
   await p.locator('[data-el="bouton-demarrer"]').click();
+  const b = await repondreBatterie(p); // premier Démarrer du job seulement
+  if (b.appli) journal(`batterie proposée : ${b.appli} | système ${b.systeme ?? "—"} | hors optimisation ${b.horsOptimisation}`);
   await p.waitForURL(/\/en-route$/, { timeout: 60000 });
   lect.roule = true;
 }
@@ -361,13 +420,16 @@ async function principal() {
   // demandée dès l'ouverture (position de « Autour de moi »), les notifications au premier Démarrer.
   const vus = {};
   let clic = null;
-  const limite = Date.now() + 75000;
+  const limite = Date.now() + 90000;
   while (Date.now() < limite && !(vus.loc && vus.notif)) {
-    if (!clic && (vus.loc || Date.now() > limite - 55000)) {
+    if (!clic && (vus.loc || Date.now() > limite - 70000)) {
       await pause(1500);
       capture("V-1.3-A03-accueil");
-      clic = p.locator('[data-el="bouton-demarrer"]').click();
+      await p.locator('[data-el="bouton-demarrer"]').click();
       journal("Démarrer touché");
+      // HIGH 3 de l'audit r1 : au premier Démarrer, sortir l'appli de l'optimisation de batterie (une fois)
+      vus.batterie = await repondreBatterie(p, "V-3.2-A31-batterie-appli", "V-3.2-A32-batterie-systeme");
+      clic = Promise.resolve();
     }
     const ns = noeuds();
     if (sansAnr(ns)) continue;
@@ -389,6 +451,9 @@ async function principal() {
   }
   await clic?.catch(() => undefined);
   constat("V-1.3 dialogue d'autorisation de localisation natif (une fois)", !!vus.loc, vus.loc ?? "");
+  mesures.batterie = vus.batterie;
+  constat("V-3.2 premier Démarrer : l'appli explique et propose de sortir de l'optimisation de batterie", !!vus.batterie?.appli, vus.batterie?.appli ?? "non vue");
+  constat("V-3.2 dialogue système « optimisation de batterie » accepté : appli hors optimisation (deviceidle whitelist)", !!vus.batterie?.systeme && vus.batterie.horsOptimisation, `${vus.batterie?.systeme ?? "non vu"} | whitelist ${vus.batterie?.horsOptimisation}`);
   constat("V-1.3 dialogue d'autorisation des notifications natif", !!vus.notif, vus.notif ?? "non vu");
   await p.waitForURL(/\/en-route$/, { timeout: 60000 });
   lect.roule = true;
@@ -437,7 +502,7 @@ async function principal() {
   const tOff = Date.now();
   const iOff = lect.i;
   shOk("input keyevent 3");
-  if (aMaps) shOk(`monkey -p ${MAPS} -c android.intent.category.LAUNCHER 1`);
+  if (aMaps) await mapsDevant();
   else shOk("am start -a android.settings.SETTINGS");
   // capture quand l'appli devant a dessiné son écran (Maps met plusieurs secondes à son premier affichage)
   const dessine = await trouver((n) => n.pkg === (aMaps ? MAPS : "com.android.settings") && (n.text || n.desc), 20);
@@ -463,12 +528,15 @@ async function principal() {
   const iOn = lect.i;
   capture("V-3.2-A12-reveil");
   const e1 = await lireEnCours(p);
-  const trou = plusGrandTrou(e1.points, tOff, tOn);
+  // les points là où le service les écrit (son journal), et ce que la page en a gardé (IndexedDB)
+  const jOff = journalNatif().filter((x) => x.type === "P");
+  const trou = plusGrandTrou(jOff.map((x) => [x.t]), tOff, tOn);
+  const trouPage = plusGrandTrou(e1.points, tOff, tOn);
   const kmOffPts = kmPoints(e1.points, tOff, tOn);
   const kmOffGpx = lect.kmJusqua(iOn) - lect.kmJusqua(iOff);
-  mesures.ecranEteint = { dureeS: (tOn - tOff) / 1000, points: trou.n, plusGrandTrouS: trou.maxS, kmPoints: +kmOffPts.toFixed(3), kmGpx: +kmOffGpx.toFixed(3) };
-  writeFileSync(`${OUT}/points-ecran-eteint.json`, JSON.stringify(e1.points.filter((x) => x[0] >= tOff - 5000 && x[0] <= tOn + 5000)));
-  constat("V-3.2 aucun trou > 15 s dans les points (IndexedDB en_cours) écran éteint + Maps", trou.n >= 0.6 * ((tOn - tOff) / 1000) && trou.maxS <= 15, `${trou.n} points en ${Math.round((tOn - tOff) / 1000)} s, plus grand trou ${trou.maxS} s`);
+  mesures.ecranEteint = { dureeS: (tOn - tOff) / 1000, pointsJournal: trou.n, plusGrandTrouJournalS: trou.maxS, ou: trou.ou, pointsPage: trouPage.n, plusGrandTrouPageS: trouPage.maxS, kmPoints: +kmOffPts.toFixed(3), kmGpx: +kmOffGpx.toFixed(3) };
+  writeFileSync(`${OUT}/points-ecran-eteint.json`, JSON.stringify({ journal: jOff.filter((x) => x.t >= tOff - 5000 && x.t <= tOn + 5000), page: e1.points.filter((x) => x[0] >= tOff - 5000 && x[0] <= tOn + 5000) }));
+  constat("V-3.2 aucun trou > 15 s dans les points écrits par le service (journal), écran éteint + Maps, depuis le dernier point d'avant", trou.n >= 0.6 * ((tOn - tOff) / 1000) && trou.maxS <= 15, `${trou.n} points en ${Math.round((tOn - tOff) / 1000)} s, plus grand trou ${trou.maxS} s (page : ${trouPage.n} points, ${trouPage.maxS} s)`);
   constat("V-3.2 la distance couvre tout le temps écran éteint", kmOffPts / kmOffGpx > 0.97, `${kmOffPts.toFixed(2)} km comptés / ${kmOffGpx.toFixed(2)} km rejoués`);
   lancer();
   await pause(4000);
@@ -477,9 +545,8 @@ async function principal() {
   capture("V-3.3-01-avant");
 
   // V-3.3 — la notification, Maps devant : lue deux fois à 10 s, Pause / Reprendre / Arrêter sans ouvrir l'appli
-  if (aMaps) shOk(`monkey -p ${MAPS} -c android.intent.category.LAUNCHER 1`);
+  if (aMaps) await mapsDevant();
   else shOk("am start -a android.settings.SETTINGS");
-  await pause(3000);
   let ns = await volet();
   const n1 = noterNotif("lecture 1");
   capture("V-3.3-02-apres");
@@ -511,7 +578,8 @@ async function principal() {
   ns = await volet();
   capture("V-3.3-05-avant");
 
-  // écart natif / web : la notification (direct) contre la fin de trajet (calculLocal de roule.ts), au même instant figé
+  // écart direct / fin : la notification (direct de la PAGE, enDirect de roule.ts) contre la fin de trajet (calculLocal du même
+  // module), au même instant figé — deux calculs JS. Le direct NATIF (service sans la page) se mesure plus bas, appli tuée.
   lect.gele = true;
   await pause(4000);
   const nF = noterNotif("figée avant Arrêter");
@@ -540,8 +608,9 @@ async function principal() {
     ecartLitresPct: litresNotif ? +((100 * Math.abs(litresNotif - finL)) / finL).toFixed(2) : null,
     ecartLitresDirectPct: litresDirect ? +((100 * Math.abs(litresDirect - finL)) / finL).toFixed(2) : null,
   };
-  constat("écart km notification / fin de trajet < 3 %", mesures.ecart.ecartKmPct != null && mesures.ecart.ecartKmPct < 3, `${nF?.km} km vs ${finKm.toFixed(3)} km → ${mesures.ecart.ecartKmPct} %`);
-  constat("écart litres notification / fin de trajet < 5 %", mesures.ecart.ecartLitresPct != null && mesures.ecart.ecartLitresPct < 5, `${litresNotif?.toFixed(3)} L (${nF?.euros} € / ${prix} €/L) vs ${finL.toFixed(3)} L → ${mesures.ecart.ecartLitresPct} % (direct à l'écran : ${litresDirect} L, ${mesures.ecart.ecartLitresDirectPct} %)`);
+  mesures.conso = { trajet1: { km: finKm, litres: finL, l100: +((finL / finKm) * 100).toFixed(2) } };
+  constat("écart km notification (direct de la page) / fin de trajet < 3 %", mesures.ecart.ecartKmPct != null && mesures.ecart.ecartKmPct < 3, `${nF?.km} km vs ${finKm.toFixed(3)} km → ${mesures.ecart.ecartKmPct} %`);
+  constat("écart litres notification (direct de la page) / fin de trajet < 5 %", mesures.ecart.ecartLitresPct != null && mesures.ecart.ecartLitresPct < 5, `${litresNotif?.toFixed(3)} L (${nF?.euros} € / ${prix} €/L) vs ${finL.toFixed(3)} L → ${mesures.ecart.ecartLitresPct} % (direct à l'écran : ${litresDirect} L, ${mesures.ecart.ecartLitresDirectPct} %)`);
   constat("notification effacée après Arrêter", lireNotif() === null);
 
   // V-4.7 — Enregistrer, puis rouvrir l'appli : le trajet est dans l'historique
@@ -561,42 +630,87 @@ async function principal() {
   capture("V-4.7-A16-historique-rouvert");
   constat("V-4.7 trajet enregistré présent dans l'historique après réouverture de l'appli", garde, idTrajet);
 
-  // V-3.2 pas 3-4 — l'appli tuée pendant un trajet, puis rouverte : le trajet reprend avec tous ses points
+  // V-3.2 pas 3-4 — l'appli tuée en route (Maps devant), LAISSÉE MORTE 70 s : le service relancé par le système continue
+  // d'écrire les relevés sans la page ; à la réouverture, la page les relit (audit r1, HIGH 2)
   await p.locator('[data-el="onglet-trajet"]').click();
   await p.locator('[data-el="bouton-demarrer"]').waitFor({ timeout: 15000 });
   await demarrer(p, lect);
   await pause(40000);
   capture("V-3.2-03-avant");
   const avantKill = await lireEnCours(p);
-  const pidof = () => (/^\d+$/.test(shOk(`pidof ${PKG}`)) ? shOk(`pidof ${PKG}`) : "");
+  if (aMaps) await mapsDevant();
   const pid1 = pidof();
   shOk(`am kill ${PKG}`);
   await pause(3000);
   const apresAmKill = pidof();
-  mesures.arret = { pidAvant: pid1, pidApresAmKill: apresAmKill };
-  journal(`am kill : processus ${pid1} → ${apresAmKill || "aucun"}`);
-  if (apresAmKill) {
-    // `am kill` n'arrête que les processus « sûrs à tuer » ; un processus avec un service de premier plan ne l'est pas.
-    // Le système, lui, le tue quand la mémoire manque : SIGKILL, sans prévenir — c'est ce qu'on rejoue ici.
-    const r = shOk(`run-as ${PKG} kill -9 ${apresAmKill}`);
-    journal(`am kill sans effet (service de premier plan) : SIGKILL par run-as → ${r || "ok"}`);
+  mesures.arret = { racine, pidAvant: pid1, pidApresAmKill: apresAmKill };
+  journal(`am kill : processus ${pid1} → ${apresAmKill || "aucun"} (un processus avec un service de premier plan n'est pas « sûr à tuer »)`);
+  const tKill = Date.now();
+  journal(`SIGKILL du processus ${apresAmKill || pid1} → ${tuer(apresAmKill || pid1) || "ok"}`);
+  let pid2 = "";
+  while (Date.now() - tKill < 30000) {
+    pid2 = pidof();
+    if (pid2 && pid2 !== pid1) break;
+    await pause(250);
   }
-  await pause(3000);
-  const pid2 = pidof();
-  mesures.arret.pidApresSigkill = pid2;
+  mesures.arret.pidRelance = pid2;
+  mesures.arret.processusRelanceApresS = pid2 ? (Date.now() - tKill) / 1000 : null;
+  journal(`services : ${shOk(`dumpsys activity services ${PKG} | grep -E 'ServiceRecord|isForeground|startRequested|restartCount' | head -6`).replace(/\s+/g, " ")}`);
+  constat("V-3.2 processus tué (SIGKILL) puis relancé par le système sans ouvrir l'appli", !!pid2 && pid2 !== pid1 && !premierPlan().includes(PKG), `${pid1} → ${pid2 || "aucun"} en ${mesures.arret.processusRelanceApresS} s | devant : ${premierPlan()}`);
+  await pause(25000);
   capture("V-3.2-A17-appli-tuee");
-  constat("V-3.2 processus de l'appli arrêté", pid2 !== pid1, `${pid1} → ${pid2 || "aucun"}`);
-  await pause(10000);
+  await volet();
+  const nT = noterNotif("appli tuée +30 s (service seul)");
+  capture("V-3.2-A33-tuee-notif");
+  fermerVolet();
+  while (Date.now() - tKill < 70000) await pause(1000);
+  // direct NATIF figé : le service seul, page absente (audit r1, MEDIUM 5)
+  lect.gele = true;
+  await pause(4000);
+  const nNat = noterNotif("direct natif figé (page absente)");
+  const jK = journalNatif();
+  const tRouvre = Date.now();
   lancer();
   p = await page();
   await p.waitForURL(/\/en-route$/, { timeout: 30000 }).catch(() => undefined);
-  await pause(8000);
+  await pause(6000);
+  const nPage = noterNotif("direct de la page figé (rouverte)");
   const apres = await lireEnCours(p);
   capture("V-3.2-04-apres");
+  lect.gele = false;
+  const pj = jK.filter((x) => x.type === "P");
+  const dernierAvant = pj.filter((x) => x.t < tKill).at(-1)?.t ?? null;
+  const premierApres = pj.find((x) => x.t > tKill)?.t ?? null;
+  const relance = jK.find((x) => x.type === "R" && x.t > tKill)?.t ?? null;
+  const fenetre = pj.filter((x) => x.t > tKill && x.t < tRouvre);
+  const fenetrePage = (apres?.points ?? []).filter((x) => x[0] > tKill && x[0] < tRouvre);
   const memes = apres && apres.id === avantKill.id && avantKill.points.every((x, k) => apres.points[k]?.[0] === x[0]);
+  mesures.arret.journal = {
+    dernierPointAvantKill: dernierAvant,
+    premierPointApres: premierApres,
+    trouS: dernierAvant && premierApres ? (premierApres - dernierAvant) / 1000 : null,
+    relanceServiceApresKillS: relance ? (relance - tKill) / 1000 : null,
+    fenetreS: (tRouvre - tKill) / 1000,
+    pointsJournalFenetre: fenetre.length,
+    pointsPageFenetre: fenetrePage.length,
+  };
   mesures.arret.points = { avant: avantKill.points.length, apres: apres?.points.length, memeTrajet: apres?.id === avantKill.id };
-  constat("V-3.2 réouverture : le trajet en cours reprend avec tous ses points", /\/en-route$/.test(p.url()) && memes && apres.points.length > avantKill.points.length, `${avantKill.points.length} points avant → ${apres?.points.length} après, même trajet ${apres?.id === avantKill.id}`);
+  writeFileSync(`${OUT}/journal-apres-kill.txt`, jK.map((x) => `${x.type};${x.t};${x.lat};${x.lon}`).join("\n"));
+  constat("V-3.2 appli laissée morte ≥ 60 s sans être rouverte", tRouvre - tKill >= 60000, `${((tRouvre - tKill) / 1000).toFixed(1)} s`);
+  constat("V-3.2 le service a écrit les relevés pendant que l'appli était morte (≥ 0,6 par seconde)", fenetre.length >= 0.6 * ((tRouvre - tKill) / 1000 - 15), `${fenetre.length} relevés dans le journal entre l'arrêt et la réouverture (${((tRouvre - tKill) / 1000).toFixed(1)} s, GPS figé les 4 dernières s)`);
+  constat("V-3.2 trou dans les relevés dû à la mort du processus < 15 s", mesures.arret.journal.trouS != null && mesures.arret.journal.trouS < 15, `dernier relevé avant l'arrêt → premier après : ${mesures.arret.journal.trouS} s (service relancé ${mesures.arret.journal.relanceServiceApresKillS} s après le SIGKILL)`);
+  constat("V-3.2 réouverture : le trajet reprend avec tous ses points, ceux écrits sans la page compris", /\/en-route$/.test(p.url()) && memes && fenetrePage.length >= fenetre.length, `${avantKill.points.length} points avant → ${apres?.points.length} après ; fenêtre : ${fenetrePage.length} dans la page / ${fenetre.length} dans le journal ; même trajet ${apres?.id === avantKill.id}`);
   constat("V-3.2 réouverture : la notification du trajet revient", (lireNotif()?.titre ?? "").startsWith("Trajet en cours"), lireNotif()?.texte ?? "absente");
+  mesures.ecartNatif = {
+    natif: { km: nNat?.km, euros: nNat?.euros, texte: nNat?.texte },
+    page: { km: nPage?.km, euros: nPage?.euros, texte: nPage?.texte },
+    pendantMort: { km: nT?.km, euros: nT?.euros, texte: nT?.texte },
+    ecartKmPct: nNat?.km && nPage?.km ? +((100 * Math.abs(nNat.km - nPage.km)) / nPage.km).toFixed(2) : null,
+    ecartEurosPct: nNat?.euros && nPage?.euros ? +((100 * Math.abs(nNat.euros - nPage.euros)) / nPage.euros).toFixed(2) : null,
+  };
+  constat("V-3.3 appli morte : la notification continue, calculée par le service (km qui montent)", nT?.km != null && nNat?.km != null && nNat.km > nT.km, `${nT?.texte} → ${nNat?.texte}`);
+  constat("écart km direct natif (service, page absente) / direct de la page (rouverte) < 3 %", mesures.ecartNatif.ecartKmPct != null && mesures.ecartNatif.ecartKmPct < 3, `${nNat?.km} km vs ${nPage?.km} km → ${mesures.ecartNatif.ecartKmPct} %`);
+  constat("écart € direct natif / direct de la page < 5 %", mesures.ecartNatif.ecartEurosPct != null && mesures.ecartNatif.ecartEurosPct < 5, `${nNat?.euros} € vs ${nPage?.euros} € → ${mesures.ecartNatif.ecartEurosPct} %`);
 
   // V-3.5 — Arrêter dans l'appli : fin de trajet
   await p.locator('[data-el="bouton-arreter"]').click();
@@ -604,6 +718,12 @@ async function principal() {
   await p.locator('[data-el="titre-trajet"][data-noms="oui"]').waitFor({ timeout: 20000 }).catch(() => undefined);
   capture("V-3.5-A18-fin-appli");
   constat("V-3.5 Arrêter dans l'appli ouvre la fin de trajet", /\/fin$/.test(p.url()), await p.locator('[data-el="titre-trajet"]').innerText());
+  // HIGH 1 de l'audit r1 : le trajet 1 (bascules d'appli, écran éteint, volet) et le trajet 2 (appli tuée) consomment pareil
+  const km2 = Number(await p.locator('[data-el="fin-km"]').getAttribute("data-km"));
+  const l2 = Number(await p.locator('[data-el="fin-litres"]').getAttribute("data-litres"));
+  mesures.conso.trajet2 = { km: km2, litres: l2, l100: +((l2 / km2) * 100).toFixed(2) };
+  mesures.conso.ecartPct = +((100 * Math.abs(mesures.conso.trajet1.l100 - mesures.conso.trajet2.l100)) / mesures.conso.trajet2.l100).toFixed(1);
+  constat("consommation du trajet 1 = celle du trajet 2 à ±10 %", mesures.conso.ecartPct <= 10, `${mesures.conso.trajet1.l100} L/100 (${mesures.conso.trajet1.km.toFixed(2)} km) vs ${mesures.conso.trajet2.l100} L/100 (${km2.toFixed(2)} km) → ${mesures.conso.ecartPct} %`);
   await p.locator('[data-el="supprimer-neuf"]').click();
   await lect.arreter();
 }
@@ -684,9 +804,58 @@ async function immobile() {
   await lect.arreter();
 }
 
+// =====================================================================================================================
+async function fini() {
+  // V-3.E1 c2 — garé 10 min, écran éteint, puis « C'est fini » depuis la notification : la fin est datée du début de l'immobilité
+  const { lect, p } = await preparer("albi-toulouse-immobile-11min.gpx", 700, "test");
+  await demarrer(p, lect);
+  await pause(20000);
+  shOk("input keyevent 3");
+  shOk("input keyevent 223");
+  const debutAttente = Date.now();
+  let nI = null;
+  while (Date.now() - debutAttente < 14 * 60000) {
+    await pause(10000);
+    nI = lireNotif();
+    if (nI?.titre?.startsWith("Immobile")) break;
+  }
+  const eI = await lireEnCours(p);
+  journal(`immobile : seconde du rejeu ${lect.s}, immobile depuis ${eI?.immobile}`);
+  shOk("input keyevent 224");
+  shOk("wm dismiss-keyguard");
+  await pause(2000);
+  await volet();
+  noterNotif("immobile (avant C'est fini)");
+  capture("V-3.E1-A34-cest-fini-notif");
+  const t = await toucher(texteEst(/^C'est fini$/i), "C'est fini de la notification");
+  await p.waitForURL(/\/fin$/, { timeout: 30000 }).catch(() => undefined);
+  await p.locator('[data-el="titre-trajet"][data-noms="oui"]').waitFor({ timeout: 20000 }).catch(() => undefined);
+  await pause(1500);
+  capture("V-3.E1-A35-fin-cest-fini");
+  const arrete = await p.evaluate(
+    () =>
+      new Promise((ok) => {
+        const q = indexedDB.open("plein-et-trajet");
+        q.onerror = () => ok(null);
+        q.onsuccess = () => {
+          const r = q.result.transaction("en_cours").objectStore("en_cours").get("arrete");
+          r.onsuccess = () => ok(r.result ?? null);
+          r.onerror = () => ok(null);
+        };
+      }),
+  );
+  mesures.cestFini = { immobileDepuis: eI?.immobile, debut: eI?.debut, fin: arrete?.fin, dureeS: arrete?.duree_s, attenduS: eI ? (eI.immobile - eI.debut) / 1000 : null, sousTitre: await p.locator('[data-el="sous-titre-trajet"]').innerText().catch(() => null) };
+  constat("V-3.E1 « C'est fini » depuis la notification : l'appli s'ouvre sur la fin de trajet", !!t && /\/fin$/.test(p.url()) && premierPlan().includes(PKG), `${p.url()} | ${premierPlan()}`);
+  constat("V-3.E1 fin datée du début de l'immobilité (pas de l'instant du toucher)", eI?.immobile != null && arrete?.fin === eI.immobile && Math.abs(arrete.duree_s - (eI.immobile - eI.debut) / 1000) <= 1, `fin ${arrete?.fin} = immobile depuis ${eI?.immobile} ; durée ${arrete?.duree_s} s (attendu ${mesures.cestFini.attenduS} s) ; ${mesures.cestFini.sousTitre}`);
+  await p.locator('[data-el="supprimer-neuf"]').click();
+  await lect.arreter();
+}
+
 try {
   journal(`scénario ${SCENARIO} — écran ${ecranEtat()} — Maps ${shOk(`pm path ${MAPS}`) || "absent"}`);
+  journal(`adb root : ${racine ? "oui" : "non"} ; APK installé : ${shOk(`dumpsys package ${PKG} | grep -E 'versionName|pkgFlags' | head -2`).replace(/\s+/g, " ")}`);
   if (SCENARIO === "principal") await principal();
+  else if (SCENARIO === "fini") await fini();
   else await immobile();
 } catch (e) {
   constat("scénario sans exception", false, String(e?.stack ?? e).slice(0, 600));
