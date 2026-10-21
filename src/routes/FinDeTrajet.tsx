@@ -199,7 +199,7 @@ export default function FinDeTrajet() {
         </h2>
         <p className="rsub" data-el="sous-titre-trajet">{T.sousTitreTrajet(dateLongue(t.debut), dureeTexte(t.duree_s), t.voiture.nom)}</p>
         {!enLigne && (
-          <p className="hint" role="status" data-el="hors-ligne" style={{ margin: "6px 16px 0" }}>{T.horsLigneFin}</p>
+          <p className="hint" role="status" data-el="hors-ligne" style={{ margin: "6px 16px 0" }}>{T.horsLigneFin(!t.depart.nom || !t.arrivee.nom)}</p>
         )}
         <div className="kpis">
           <div className="kpi"><b data-el="fin-litres" data-litres={t.litres}>{fmt(t.litres, 2)}</b><span>{T.litres}</span></div>
