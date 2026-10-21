@@ -20,6 +20,7 @@ export interface EnCours {
   prixChoisi: number | null; // « Utiliser ce prix »
   immobile: number | null; // début de l'immobilité constatée : alerte « Reprendre / C'est fini »
   ignorerAvant: number; // reprise après une alerte d'immobilité : on ne rejuge que les points suivants
+  lu?: number; // appli Android : instant de la dernière ligne du journal du service appliquée (chaque ligne ne compte qu'une fois)
 }
 
 export type IssueArret = { trajet: TrajetV1 } | { tropCourt: number };

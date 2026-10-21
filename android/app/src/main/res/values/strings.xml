@@ -4,5 +4,5 @@
     <string name="title_activity_main">Plein &amp; Trajet</string>
     <string name="package_name">cloud.ingevision.pleinettrajet</string>
     <string name="custom_url_scheme">cloud.ingevision.pleinettrajet</string>
-    <string name="capacitor_background_geolocation_notification_channel_name">Trajet en cours</string>
+    <string name="canal_trajet">Trajet en cours</string>
 </resources>

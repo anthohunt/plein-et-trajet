@@ -1,8 +1,10 @@
 // Enregistreur web (jalon 5, T5.4 ; reprend src/lib/enRoute.ts du jalon 4) : watchPosition haute précision, points gardés
 // en IndexedDB à chaque position, arrêt automatique après 10 min d'immobilité, calcul de fin de trajet sur le téléphone.
-// L'instant d'un point est l'horloge de la page (Date.now()) à sa réception : les vitesses restent justes quand un test
-// accélère l'horloge (Playwright page.clock), et l'écart avec l'horodatage du GPS est de l'ordre de la milliseconde.
-import { ajouterPosition, basculerPause, calculLocal, immobileDepuis, SEUIL_KM, type PointRoule } from "../../supabase/functions/_shared/roule.ts";
+// Navigateur : l'instant d'un point est l'horloge de la page (Date.now()) à sa réception — les vitesses restent justes quand un
+// test accélère l'horloge (Playwright page.clock), et la page au premier plan reçoit chaque position sans délai.
+// Appli Android (jalon 6, round 2) : l'instant est l'heure du RELEVÉ, écrite par le service natif dans son journal. Datés à la
+// réception, des relevés remis en rafale au passage en arrière-plan gonflaient les litres (audit r1, problème 1).
+import { ajouterPosition, basculerPause, calculLocal, immobileDepuis, SEUIL_KM, type EtatPoints, type PointRoule } from "../../supabase/functions/_shared/roule.ts";
 import type { EnCours, Enregistreur, IssueArret } from "./plateforme";
 import type { TrajetV1 } from "./historique";
 import { garderArrete } from "./historique";
@@ -11,14 +13,16 @@ import { detailVoiture, nomVoiture, vehiculeDe, type VoitureV1 } from "./voiture
 import { paysDePosition } from "./donnees";
 import { moyennesDuPays } from "./prixDuJour";
 import { garderPrixChoisi, lirePrixChoisi } from "./prixChoisi";
-import { Capacitor } from "@capacitor/core";
-import { BackgroundGeolocation } from "@capgo/background-geolocation";
+import { Capacitor, type PluginListenerHandle } from "@capacitor/core";
 import { T } from "./textes";
+import { TrajetEnRoute, type ContenuNotification } from "./trajetEnRoute";
 
-// Appli Android (jalon 6) : le GPS passe par un service de premier plan (notification permanente), qui continue écran
-// éteint et quand Waze ou Maps est devant ; dans le navigateur, watchPosition comme avant.
+// Appli Android (jalon 6) : le GPS passe par le service de premier plan TrajetService (notification permanente), qui continue
+// écran éteint, quand Waze ou Maps est devant, et même quand Android a tué l'appli (relancé par le système, il écrit ses relevés
+// sans la page) ; dans le navigateur, watchPosition comme avant.
 const natif = Capacitor.isNativePlatform();
 let ecouteNative = false;
+let ecouteReleves: Promise<PluginListenerHandle> | null = null;
 
 let etat: EnCours | null = null;
 let instant = { etat: null as EnCours | null, maintenant: Date.now() };
@@ -71,30 +75,107 @@ function surPosition(pos: GeolocationPosition) {
   publier();
 }
 
-function ecouterNatif() {
-  if (ecouteNative) return;
+/** Une ligne du journal du service natif : relevé GPS (P) ou bouton de la notification (A). */
+export type Entree =
+  | { type: "P"; t: number; lat: number; lon: number; altitude: number | null; kmh: number | null; precision: number | null }
+  | { type: "A"; t: number; action: string };
+
+const nombreOuNull = (s: string | undefined) => (s == null || s === "" || !Number.isFinite(Number(s)) ? null : Number(s));
+/** Lit le journal écrit par TrajetService.java (une ligne par événement, champs séparés par « ; »). */
+export function lireJournal(texte: string): Entree[] {
+  const out: Entree[] = [];
+  for (const l of texte.split("\n")) {
+    const c = l.split(";");
+    const t = Number(c[1]);
+    if (!Number.isFinite(t)) continue;
+    if (c[0] === "P" && c.length >= 4) {
+      const lat = Number(c[2]);
+      const lon = Number(c[3]);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+      out.push({ type: "P", t, lat, lon, altitude: nombreOuNull(c[4]), kmh: nombreOuNull(c[5]), precision: nombreOuNull(c[6]) });
+    } else if (c[0] === "A" && c[2]) out.push({ type: "A", t, action: c[2] });
+  }
+  return out;
+}
+
+function avecReleve<E extends EtatPoints>(e: E, x: Extract<Entree, { type: "P" }>): E {
+  return ajouterPosition(e, x.t, x.lat, x.lon, x.altitude, x.kmh, x.precision != null && x.precision > 0 ? x.precision : null);
+}
+/** Points d'une suite de relevés, chacun à l'instant du relevé (un relevé déjà vu ou plus ancien est ignoré). */
+export function entreesEnPoints(entrees: Entree[]): PointRoule[] {
+  let e: EtatPoints = { points: [], pauses: [], enPause: false, segment: 0 };
+  for (const x of entrees) if (x.type === "P") e = avecReleve(e, x);
+  return e.points;
+}
+
+/** Applique une ligne du journal, une seule fois (curseur `lu`) : position, ou bouton de la notification à son instant. */
+function appliquer(x: Entree) {
+  if (!etat || x.t <= (etat.lu ?? -Infinity)) return;
+  if (x.type === "P") {
+    etat = avecReleve(etat, x);
+    verifierImmobile(x.t);
+  } else if (x.action === "pause" && !etat.enPause) etat = basculerPause(etat, x.t);
+  else if (x.action === "reprendre" && etat.enPause && etat.immobile == null) etat = basculerPause(etat, x.t);
+  else if (x.action === "reprendre-immobile" && etat.immobile != null) etat = { ...basculerPause({ ...etat, immobile: null }, x.t), ignorerAvant: x.t };
+  if (etat) etat = { ...etat, lu: x.t };
+}
+
+/** Contenu de la notification avant la première mise à jour par notifTrajet.ts. */
+const contenuDeBase = (): ContenuNotification => ({
+  titre: T.notifEnCours,
+  texte: T.notificationTexte,
+  enPause: false,
+  immobile: false,
+  reprendre: T.reprendre,
+  cestFini: T.cestFini,
+  pause: T.pause,
+  arreter: T.arreterV1,
+  titreEnCours: T.notifEnCours,
+  titrePause: T.notifEnPause,
+  gabarit: "",
+  km: 0,
+  euros: null,
+  prix: null,
+  litresParKm: 0,
+  tPoint: null,
+});
+
+// relecture du journal en cours (réouverture de l'appli) : « Arrêter » l'attend, sinon la fin de trajet perdrait des points
+let rattrapage: Promise<void> | null = null;
+async function ecouterNatif() {
+  if (ecouteNative || !etat) return;
   ecouteNative = true;
-  BackgroundGeolocation.requestPermissions({ permissions: ["location", "notification"] })
-    .catch(() => undefined)
-    .then(() =>
-      BackgroundGeolocation.start(
-        { backgroundTitle: T.notificationTitre, backgroundMessage: T.notificationTexte, requestPermissions: true, stale: false, distanceFilter: 0 },
-        (l) => {
-          if (!l) return;
-          surPosition({
-            timestamp: l.time ?? Date.now(),
-            coords: { latitude: l.latitude, longitude: l.longitude, altitude: l.altitude, speed: l.speed, accuracy: l.accuracy },
-          } as unknown as GeolocationPosition);
-        },
-      ),
-    )
-    .catch(() => {
-      ecouteNative = false;
-    });
+  const id = etat.id;
+  // les lignes reçues en direct attendent que le journal soit relu : appliquées avant lui, elles feraient sauter les plus anciennes
+  let tampon: Entree[] | null = [];
+  ecouteReleves = TrajetEnRoute.addListener("releve", ({ ligne }) => {
+    const x = lireJournal(ligne);
+    if (tampon) tampon.push(...x);
+    else if (x.length > 0) {
+      x.forEach(appliquer);
+      garder();
+      publier();
+    }
+  });
+  await ecouteReleves.catch(() => undefined);
+  await TrajetEnRoute.demanderPermissions().catch(() => undefined);
+  try {
+    await TrajetEnRoute.demarrer({ id, contenu: contenuDeBase() });
+  } catch {
+    ecouteNative = false;
+  }
+  const j = await TrajetEnRoute.lire().catch(() => null);
+  if (etat && etat.id === id) {
+    if (j && j.id === id) lireJournal(j.texte).forEach(appliquer);
+    tampon.forEach(appliquer);
+    garder();
+    publier();
+  }
+  tampon = null;
 }
 
 function ecouter() {
-  if (natif) ecouterNatif();
+  if (natif && !ecouteNative) rattrapage = ecouterNatif();
   else if (ecoute == null && "geolocation" in navigator) {
     ecoute = navigator.geolocation.watchPosition(surPosition, () => undefined, { enableHighAccuracy: true, maximumAge: 0, timeout: 60000 });
   }
@@ -106,7 +187,9 @@ function ecouter() {
   }
 }
 function taire() {
-  if (ecouteNative) BackgroundGeolocation.stop().catch(() => undefined);
+  if (natif) TrajetEnRoute.arreter().catch(() => undefined);
+  ecouteReleves?.then((h) => h.remove()).catch(() => undefined);
+  ecouteReleves = null;
   ecouteNative = false;
   if (ecoute != null) navigator.geolocation.clearWatch(ecoute);
   if (horloge != null) window.clearInterval(horloge);
@@ -191,6 +274,7 @@ export const enregistreurWeb: Enregistreur = {
   },
 
   async arreter(): Promise<IssueArret> {
+    await rattrapage?.catch(() => undefined);
     const e = etat;
     if (!e) return { tropCourt: 0 };
     taire();
@@ -253,6 +337,7 @@ export const enregistreurWeb: Enregistreur = {
     etat = e;
     ecouter();
     publier();
+    await rattrapage?.catch(() => undefined);
     return etat;
   },
   abonner(f: () => void) {

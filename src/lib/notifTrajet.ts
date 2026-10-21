@@ -1,31 +1,16 @@
 // Notification du trajet en cours dans l'appli Android (jalon 6) : vitesse, km et coût mis à jour toutes les 2 s, boutons
-// Pause / Reprendre et Arrêter (« Reprendre » / « C'est fini » après 10 min immobile). Sans effet dans le navigateur.
-import { Capacitor, registerPlugin, type PluginListenerHandle } from "@capacitor/core";
+// Pause / Reprendre et Arrêter (« Reprendre » / « C'est fini » après 10 min immobile). Le service natif (TrajetService.java) la
+// tient et traite Pause / Reprendre lui-même ; la page lui envoie le contenu. Sans effet dans le navigateur.
+import { Capacitor } from "@capacitor/core";
 import { enDirect } from "../../supabase/functions/_shared/roule.ts";
 import { fmt } from "./calcul";
 import { T } from "./textes";
 import { enregistreur, type EnCours } from "./plateforme";
 import { vehiculeDe } from "./voiture";
+import { TrajetEnRoute, type ContenuNotification } from "./trajetEnRoute";
 
-interface NotifTrajetPlugin {
-  maj(o: ContenuNotification): Promise<void>;
-  effacer(): Promise<void>;
-  addListener(evt: "action", f: (e: { action: string }) => void): Promise<PluginListenerHandle>;
-}
-const NotifTrajet = registerPlugin<NotifTrajetPlugin>("NotifTrajet");
+export type { ContenuNotification };
 const PERIODE_MS = 2000;
-
-/** Ce que montre la notification : tous les textes viennent de textes.ts, libellés des boutons compris (le Java n'a qu'un repli). */
-export interface ContenuNotification {
-  titre: string;
-  texte: string;
-  enPause: boolean;
-  immobile: boolean;
-  reprendre: string;
-  cestFini: string;
-  pause: string;
-  arreter: string;
-}
 
 export function contenuNotification(e: EnCours, maintenant: number): ContenuNotification {
   const d = enDirect(e.points, e.pauses, e.debut, maintenant, vehiculeDe(e.voiture), e.enPause);
@@ -42,6 +27,15 @@ export function contenuNotification(e: EnCours, maintenant: number): ContenuNoti
     cestFini: T.cestFini,
     pause: T.pause,
     arreter: T.arreterV1,
+    titreEnCours: T.notifEnCours,
+    titrePause: T.notifEnPause,
+    gabarit: T.notifTexte("{v}", "{km}", T.euros(prix == null ? T.vide : "{eur}")),
+    km: d.km,
+    euros: prix == null ? null : d.litres * prix,
+    prix,
+    // litres par km du trajet jusqu'ici (consommation officielle de la voiture avant 0,5 km)
+    litresParKm: d.km >= 0.5 ? d.litres / d.km : vehiculeDe(e.voiture).conso.moyenne / 100,
+    tPoint: d.dernierPointMs,
   };
 }
 
@@ -50,13 +44,11 @@ export function brancherNotification(arreter: () => void): () => void {
   if (!Capacitor.isNativePlatform()) return () => undefined;
   const rec = enregistreur();
   let dernier = 0;
-  let affichee = false;
   let cle = "";
   const maj = () => {
     const { etat, maintenant } = rec.instantane();
     if (!etat) {
-      if (affichee) NotifTrajet.effacer().catch(() => undefined);
-      affichee = false;
+      cle = "";
       return;
     }
     const c = contenuNotification(etat, maintenant);
@@ -65,15 +57,11 @@ export function brancherNotification(arreter: () => void): () => void {
     if (nouvelleCle === cle && maintenant - dernier < PERIODE_MS) return;
     cle = nouvelleCle;
     dernier = maintenant;
-    affichee = true;
-    NotifTrajet.maj(c).catch(() => undefined);
+    TrajetEnRoute.maj(c).catch(() => undefined);
   };
   const desabonner = rec.abonner(maj);
-  const ecoute = NotifTrajet.addListener("action", ({ action }) => {
-    if (action === "pause") rec.pause();
-    else if (action === "reprendre") rec.reprendre();
-    else if (action === "reprendre-immobile") rec.reprendreApresImmobile();
-    else if (action === "arreter") arreter();
+  const ecoute = TrajetEnRoute.addListener("action", ({ action }) => {
+    if (action === "arreter") arreter();
   });
   return () => {
     desabonner();

@@ -427,5 +427,10 @@ export const T = {
   notifEnPause: "Trajet en pause",
   notifGpsPerdu: "Trajet en cours · GPS perdu",
   notifEnCours: "Trajet en cours",
-  notifTexte: (kmh: number, km: string, euros: string) => `${kmh} km/h · ${km} km · ${euros}`,
+  notifTexte: (kmh: number | string, km: string, euros: string) => `${kmh} km/h · ${km} km · ${euros}`,
+  // --- jalon 6, round 2 : au premier Démarrer sur Android, proposition de sortir l'appli de l'optimisation de batterie
+  batterieTitre: "Garder le trajet compté écran éteint",
+  batterieTexte: "Pour économiser la batterie, Android peut arrêter l'appli en route : le trajet ne serait plus compté. Autorise Plein & Trajet à rester active en arrière-plan ; elle n'y tourne que pendant un trajet.",
+  batterieAutoriser: "Autoriser",
+  batteriePlusTard: "Plus tard",
 };
