@@ -234,8 +234,11 @@ export const enregistreurWeb: Enregistreur = {
       immobile: null,
       ignorerAvant: -Infinity,
     };
+    // appli Android : tous les points viennent du service, à l'heure de leur relevé — la position de départ de la WebView (son
+    // propre fournisseur, datée à sa réception) pouvait être en retard sur celles du service (run 39693288066 : trajet 2 à
+    // +8,3 % de roule.ts sur le GPX, contre 6,64 L/100 = la référence avec les seuls relevés du service)
     const acc = pos.coords.accuracy;
-    etat = ajouterPosition(etat, t, pos.coords.latitude, pos.coords.longitude, pos.coords.altitude, pos.coords.speed == null ? null : pos.coords.speed * 3.6, acc > 0 && Number.isFinite(acc) ? acc : null);
+    if (!natif) etat = ajouterPosition(etat, t, pos.coords.latitude, pos.coords.longitude, pos.coords.altitude, pos.coords.speed == null ? null : pos.coords.speed * 3.6, acc > 0 && Number.isFinite(acc) ? acc : null);
     garder();
     ecouter();
     publier();
