@@ -49,3 +49,7 @@
 - Silvertown Tunnel non tarifé ; TVA ajoutée aux autres péages britanniques tarifés par PTV non vérifiée (seul Dartford corrigé).
 - Test du jalon 3 modifié : `m3-europe.test.ts` (« edge.use » ajouté à la liste des attributs permis) ; aide de test M2 `moyenneDuJour` (filtre FR) — assertions inchangées.
 - Pas de m4-admin-eph : la consigne en prévoyait un, aucune histoire du jalon 4 ne passe par l'écran Moteurs.
+
+## Note de reprise (pilote, 21/10 ~04:00Z)
+- Bâtisseur r1 terminé (rendu : /home/claude/surveillance/agents-codex/m4-batisseur-r1.rendu.md). Reprendre à l'évaluateur R1 / descripteur / auditeur, ne pas relancer le bâtisseur.
+- Attendre chaque agent EN PREMIER PLAN (`timeout 590 bash -c 'until [ -f …fin ]; do sleep 30; done'` en boucle), jamais en terminant le tour sur un shell d'arrière-plan : sinon la passe est coupée après 300 s d'écran figé.
