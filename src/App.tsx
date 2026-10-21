@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { BarreOnglets } from "./components/BarreOnglets";
 import Stations from "./routes/Stations";
@@ -10,10 +10,10 @@ import Historique from "./routes/Historique";
 import Moteurs from "./routes/Moteurs";
 import Admin from "./routes/Admin";
 import { CARBURANTS, type Carburant, type Tri } from "./lib/format";
-import { localiser, type Position } from "./lib/position";
+import { localiser, positionCourante, type Position } from "./lib/position";
 import { enregistreur } from "./lib/plateforme";
 import { lireArrete } from "./lib/historique";
-import { useVoitureV1 } from "./lib/useEnregistrement";
+import { useEnregistrement, useVoitureV1 } from "./lib/useEnregistrement";
 import { T } from "./lib/textes";
 
 const CLE_CARBURANT = "pt-carburant";
@@ -36,6 +36,10 @@ export default function App() {
   const [zone, setZone] = useState<string | null>(null); // carte déplacée : « Autour de <commune> »
   const nav = useNavigate();
   const { pathname } = useLocation();
+  // pendant un trajet, Stations part de la dernière position enregistrée, pas de celle du lancement (la voiture a roulé)
+  const { etat } = useEnregistrement();
+  const dernier = etat?.points[etat.points.length - 1];
+  const positionStations = useMemo(() => positionCourante(dernier ? [dernier] : undefined, position), [dernier?.[1], dernier?.[2], position]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     localiser().then(setPosition);
@@ -90,7 +94,7 @@ export default function App() {
         <Route path="/en-route" element={<EnRoutePage />} />
         <Route path="/fin" element={<FinDeTrajet />} />
         <Route path="/historique" element={<Historique />} />
-        <Route path="/stations" element={<Stations position={position} onZone={setZone} carburant={carburant} setCarburant={setCarburant} tri={tri} setTri={setTri} />} />
+        <Route path="/stations" element={<Stations position={positionStations} onZone={setZone} carburant={carburant} setCarburant={setCarburant} tri={tri} setTri={setTri} />} />
         <Route path="/moteurs" element={<Moteurs />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -47,3 +47,14 @@ export function localiser(timeoutMs = 8000): Promise<Position> {
     );
   });
 }
+
+/**
+ * Position pour l'onglet Stations (jalon 5) : pendant un enregistrement, la dernière position reçue du GPS (la voiture a
+ * roulé depuis l'ouverture de l'appli) ; sinon celle lue au lancement.
+ */
+export function positionCourante(points: readonly (readonly (number | null | undefined)[])[] | undefined, lancement: Position | null): Position | null {
+  const dernier = points && points.length > 0 ? points[points.length - 1] : null;
+  if (!dernier) return lancement;
+  if (dernier[1] == null || dernier[2] == null) return lancement;
+  return { lat: dernier[1], lon: dernier[2], label: T.maPosition, source: "gps" };
+}
