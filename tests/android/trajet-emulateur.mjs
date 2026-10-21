@@ -19,7 +19,7 @@ const constat = (nom, ok, detail = "") => {
 let lat = 43.92833, lon = 2.145916;
 const avancer = () => {
   lon -= 25 / (111320 * Math.cos((lat * Math.PI) / 180));
-  sh(`adb emu geo fix ${lon.toFixed(6)} ${lat.toFixed(6)} 170`);
+  sh(`adb emu geo fix ${lon.toFixed(6)} ${lat.toFixed(6)} 170 8 48.6`); // vitesse en nœuds (90 km/h) : sans elle, l'émulateur annonce 0 km/h
 };
 const rouler = async (s) => { for (let i = 0; i < s; i++) { avancer(); await pause(1000); } };
 
@@ -74,4 +74,5 @@ const kmFin = km ? Number(km[1].replace(",", ".")) : 0;
 constat("km écran éteint gardés (≈ 2,5 km attendus)", kmFin > 1.8, `${kmFin} km`);
 for (const f of ["1-accueil", "2-en-route", "3-notification", "4-fin"]) sh(`adb pull /sdcard/${f}.png ${f}.png`);
 writeFileSync("verdicts.txt", verdicts.join("\n") + "\n");
+writeFileSync("logcat.txt", sh("adb logcat -d -t 3000"));
 process.exit(verdicts.some((v) => v.startsWith("KO")) ? 1 : 0);
