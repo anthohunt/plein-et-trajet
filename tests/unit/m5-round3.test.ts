@@ -77,6 +77,41 @@ describe("bruit à l'arrêt jugé sur le centre des relevés (audit r2 lot 1, LO
   });
 });
 
+describe("V-3.E1 c1 : bouchon lent avec un GPS imprécis, pas de fausse alerte (audit r3 lot 1, LOW 4)", () => {
+  /** Bouchon de `dureeS` s : `kmh` km/h vers le nord, ou à-coups (30 s arrêté, 30 s à 2 × `kmh`) ; ±`bruitM` m, précision rapportée. */
+  function bouchon(graine: number, kmh: number, bruitM: number, precision: number, periodeS: number, dureeS: number, acoups = false): PointRoule[] {
+    const r = hasard(graine);
+    const pts: PointRoule[] = [];
+    let x = 0;
+    for (let s = 0; s <= dureeS; s += periodeS) {
+      const [a, b] = decaler(LA, LO, x + (r() * 2 - 1) * bruitM, (r() * 2 - 1) * bruitM);
+      pts.push([s * 1000, a, b, 0, null, null, precision]);
+      x += ((acoups ? (Math.floor(s / 30) % 2 ? 2 * kmh : 0) : kmh) / 3.6) * periodeS;
+    }
+    return pts;
+  }
+  it("12 min à 3, 5 et 8 km/h, ±8 m / précision 20 m et ±15 m / précision 30 m, à 1 Hz et toutes les 5 s : jamais d'alerte (5 graines)", () => {
+    let essais = 0;
+    for (const kmh of [3, 5, 8])
+      for (const [b, prec] of [[8, 20], [15, 30]])
+        for (const periode of [1, 5])
+          for (let g = 1; g <= 5; g++) {
+            const p = bouchon(g, kmh, b, prec, periode, 720);
+            for (let i = Math.ceil(600 / periode); i < p.length; i += Math.ceil(30 / periode)) {
+              expect(immobileDepuis(p.slice(0, i + 1), p[i][0]), `${kmh} km/h ±${b}/p${prec} 1/${periode} s graine ${g} à ${p[i][0] / 1000} s`).toBeNull();
+              essais++;
+            }
+          }
+    expect(essais).toBe(300); // 3 vitesses × 2 bruits × 2 rythmes × 5 graines × 5 instants (600 à 720 s)
+  });
+  it("à-coups (30 s arrêté, 30 s à 10 km/h) pendant 12 min, ±10 m / précision 20 m : jamais d'alerte", () => {
+    for (let g = 1; g <= 5; g++) {
+      const p = bouchon(g, 5, 10, 20, 1, 720, true);
+      for (let i = 600; i < p.length; i += 15) expect(immobileDepuis(p.slice(0, i + 1), p[i][0])).toBeNull();
+    }
+  });
+});
+
 describe("V-6.4 c2 : une suppression l'emporte sur toute correction en vol (audit r2 lot 2, MEDIUM 1)", () => {
   const trajet = (id: string, enregistre: boolean) =>
     ({
