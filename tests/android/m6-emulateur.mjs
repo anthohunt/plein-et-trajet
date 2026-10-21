@@ -7,7 +7,9 @@
 // Playwright (_android, CDP), qui lit aussi les points là où l'appli les écrit (IndexedDB « plein-et-trajet », magasin en_cours).
 // Usage : node tests/android/m6-emulateur.mjs principal|immobile [dossier-sortie]
 import { execFile, execFileSync, spawn } from "node:child_process";
-import { appendFileSync, mkdirSync, openSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
+import net from "node:net";
+import os from "node:os";
 import { promisify } from "node:util";
 import { _android } from "@playwright/test";
 import { lireGpx, voitureEea } from "../e2e/exploration/m5-aides.mjs";
@@ -46,6 +48,10 @@ function finir(code) {
   writeFileSync(`${OUT}/verdicts-${SCENARIO}.txt`, verdicts.join("\n") + "\n");
   writeFileSync(`${OUT}/mesures-${SCENARIO}.json`, JSON.stringify(mesures, null, 1));
   try {
+    if (shellTest) {
+      shellTest.kill();
+      journal(`remove-test-provider gps → ${shOk("cmd location providers remove-test-provider gps 2>&1") || "ok"}`);
+    }
     logcat.kill();
   } catch {}
   process.exit(code ?? (verdicts.some((v) => v.startsWith("KO")) ? 1 : 0));
@@ -74,8 +80,68 @@ function distM(a, b) {
   const x = Math.sin(((b.lat - a.lat) * r) / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(((b.lon - a.lon) * r) / 2) ** 2;
   return 2 * 6371000 * Math.asin(Math.sqrt(x));
 }
+// console de l'émulateur gardée ouverte : une position part en quelques ms, à cadence fixe. Avec `adb emu geo fix` (un processus
+// par position, 0,5 à 2 s de latence variable — run 39664532821 : écarts de réception 0,47 à 2,07 s pour 1 s de tracé), les
+// vitesses déduites (distance ÷ temps) oscillaient et gonflaient la consommation (20,8 L/100 au lieu de 6,1 avec la vitesse Doppler).
+class Console {
+  constructor(port = 5554) {
+    this.port = port;
+    this.pret = this.ouvrir();
+  }
+  ouvrir() {
+    return new Promise((ok, ko) => {
+      const jeton = `${os.homedir()}/.emulator_console_auth_token`;
+      const s = net.connect(this.port, "127.0.0.1");
+      s.setNoDelay(true);
+      s.on("error", ko);
+      s.once("connect", () => {
+        if (existsSync(jeton)) s.write(`auth ${readFileSync(jeton, "utf8").trim()}\r\n`);
+        s.on("data", () => undefined); // réponses « OK » ignorées
+        this.s = s;
+        ok(true);
+      });
+    });
+  }
+  async fix(lon, lat, kn) {
+    await this.pret;
+    this.s.write(`geo fix ${lon} ${lat} 170 8 ${kn}\r\n`);
+  }
+}
+// fournisseur de test « gps » (cmd location providers) par un `adb shell` gardé ouvert : sert au scénario immobile, car la puce
+// simulée RÉPÈTE la dernière position chaque seconde (run 39667270054 : pendant les 90 s du tunnel, l'appli recevait toujours la
+// position d'entrée, « GPS perdu » n'apparaissait jamais) ; un fournisseur de test, lui, se tait quand on ne lui envoie rien.
+let shellTest = null;
+function fournisseurTest() {
+  if (shellTest) return;
+  for (const c of ["appops set com.android.shell android:mock_location allow", "appops set 2000 android:mock_location allow"]) journal(`${c} → ${shOk(c) || "ok"}`);
+  journal(`aide : ${shOk("cmd location help 2>&1 | grep -iE 'test-provider' | head -8").replace(/\s+/g, " ")}`);
+  journal(`add-test-provider gps → ${shOk("cmd location providers add-test-provider gps 2>&1") || "ok"}`);
+  journal(`set-test-provider-enabled gps → ${shOk("cmd location providers set-test-provider-enabled gps true 2>&1") || "ok"}`);
+  shellTest = spawn("adb", ["shell"], { stdio: ["pipe", "ignore", "ignore"] });
+}
+function fixTest(lon, lat) {
+  shellTest.stdin.write(`cmd location providers set-test-provider-location gps --location ${lat},${lon} --accuracy 5\n`);
+}
+let consoleEmu = null;
+async function envoyerFix(lon, lat, kn) {
+  if (consoleEmu === null) {
+    consoleEmu = new Console();
+    await consoleEmu.pret.then(
+      () => journal("console de l'émulateur ouverte (positions à cadence fixe)"),
+      (e) => {
+        journal(`console de l'émulateur indisponible (${e.message}) : repli sur adb emu`);
+        consoleEmu = false;
+      },
+    );
+  }
+  if (consoleEmu) return consoleEmu.fix(lon, lat, kn);
+  return adbAsync("adb", ["emu", "geo", "fix", lon, lat, "170", "8", kn]);
+}
+
 class Lecteur {
-  constructor(pts, depuis = 0) {
+  constructor(pts, depuis = 0, source = "puce") {
+    this.source = source; // « puce » : puce GPS simulée (console) ; « test » : fournisseur de test gps
+    if (source === "test") fournisseurTest();
     this.pts = pts.slice(depuis);
     this.parS = new Map(this.pts.map((p, i) => [Math.round((p.t - this.pts[0].t) / 1000), i]));
     this.sMax = Math.round((this.pts.at(-1).t - this.pts[0].t) / 1000);
@@ -94,8 +160,10 @@ class Lecteur {
     return m / 1000;
   }
   async tourner() {
+    const t0 = Date.now();
+    let tic = 0;
     while (this.actif) {
-      const debut = Date.now();
+      tic++;
       let p = null;
       let v = 0;
       if (!this.gele) {
@@ -105,19 +173,22 @@ class Lecteur {
           if (i != null) {
             p = this.pts[i];
             v = i > 0 ? distM(this.pts[i - 1], p) / Math.max(1, (p.t - this.pts[i - 1].t) / 1000) : 0;
+            // garé : le tracé tremble de ±2 m sur place, une vraie puce (Doppler) dit 0 km/h
+            if (i >= 5 && distM(this.pts[i - 5], p) < 10) v = 0;
             this.i = i;
           } // pas de point à cette seconde : trou du tracé (tunnel), la puce se tait
         } else p = this.pts[this.i];
       }
       if (p) {
         try {
-          await adbAsync("adb", ["emu", "geo", "fix", p.lon.toFixed(6), p.lat.toFixed(6), "170", "8", (v * KNOTS).toFixed(2)]);
+          if (this.source === "test") fixTest(p.lon.toFixed(6), p.lat.toFixed(6));
+          else await envoyerFix(p.lon.toFixed(6), p.lat.toFixed(6), (v * KNOTS).toFixed(2));
           this.envois++;
         } catch {
           this.erreurs++;
         }
       }
-      await pause(Math.max(0, 1000 - (Date.now() - debut)));
+      await pause(Math.max(0, t0 + tic * 1000 - Date.now())); // cadence calée sur l'horloge, sans dérive
     }
   }
   async arreter() {
@@ -261,9 +332,9 @@ function kmPoints(points, a, b) {
   return m / 1000;
 }
 
-async function preparer(gpx, depuis) {
+async function preparer(gpx, depuis, source = "puce") {
   const voiture = await voitureEea("5RBU0C");
-  const lect = new Lecteur(lireGpx(gpx), depuis);
+  const lect = new Lecteur(lireGpx(gpx), depuis, source);
   lancer();
   let p = await page();
   await p.waitForLoadState();
@@ -364,7 +435,10 @@ async function principal() {
   shOk("input keyevent 3");
   if (aMaps) shOk(`monkey -p ${MAPS} -c android.intent.category.LAUNCHER 1`);
   else shOk("am start -a android.settings.SETTINGS");
-  await pause(6000);
+  // capture quand l'appli devant a dessiné son écran (Maps met plusieurs secondes à son premier affichage)
+  const dessine = await trouver((n) => n.pkg === (aMaps ? MAPS : "com.android.settings") && (n.text || n.desc), 20);
+  journal(`appli devant dessinée : ${dessine ? `${dessine.pkg} « ${dessine.text || dessine.desc} »` : "rien de lisible"}`);
+  await pause(1500);
   const devant = premierPlan();
   capture("V-3.2-A10-maps-devant");
   constat("V-3.2 autre appli au premier plan", !devant.includes(PKG), `${mesures.appliDevant} — ${devant}`);
@@ -490,10 +564,11 @@ async function principal() {
   await pause(40000);
   capture("V-3.2-03-avant");
   const avantKill = await lireEnCours(p);
-  const pid1 = shOk(`pidof ${PKG}`);
+  const pidof = () => (/^\d+$/.test(shOk(`pidof ${PKG}`)) ? shOk(`pidof ${PKG}`) : "");
+  const pid1 = pidof();
   shOk(`am kill ${PKG}`);
   await pause(3000);
-  const apresAmKill = shOk(`pidof ${PKG}`);
+  const apresAmKill = pidof();
   mesures.arret = { pidAvant: pid1, pidApresAmKill: apresAmKill };
   journal(`am kill : processus ${pid1} → ${apresAmKill || "aucun"}`);
   if (apresAmKill) {
@@ -503,7 +578,7 @@ async function principal() {
     journal(`am kill sans effet (service de premier plan) : SIGKILL par run-as → ${r || "ok"}`);
   }
   await pause(3000);
-  const pid2 = shOk(`pidof ${PKG}`);
+  const pid2 = pidof();
   mesures.arret.pidApresSigkill = pid2;
   capture("V-3.2-A17-appli-tuee");
   constat("V-3.2 processus de l'appli arrêté", pid2 !== pid1, `${pid1} → ${pid2 || "aucun"}`);
@@ -532,7 +607,7 @@ async function principal() {
 // =====================================================================================================================
 async function immobile() {
   // V-3.E2 — trou de 90 s (tunnel) : « GPS perdu » puis distance complétée
-  let { lect, p } = await preparer("albi-toulouse-tunnel-90s.gpx", 0);
+  let { lect, p } = await preparer("albi-toulouse-tunnel-90s.gpx", 0, "test");
   await demarrer(p, lect);
   await pause(15000);
   capture("V-3.E2-A21-en-route");
@@ -563,7 +638,7 @@ async function immobile() {
   await lect.arreter();
 
   // V-3.E1 — garé 10 min, écran éteint : la notification passe à « Immobile depuis 10 min » avec « C'est fini » / « Reprendre »
-  lect = new Lecteur(lireGpx("albi-toulouse-immobile-11min.gpx"), 700); // immobile à partir de la seconde 74 du rejeu
+  lect = new Lecteur(lireGpx("albi-toulouse-immobile-11min.gpx"), 700, "test"); // immobile à partir de la seconde 74 du rejeu
   await demarrer(p, lect);
   await pause(20000);
   capture("V-3.E1-A26-en-route");
