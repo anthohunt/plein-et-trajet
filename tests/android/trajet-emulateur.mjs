@@ -38,8 +38,11 @@ await p.evaluate((v) => localStorage.setItem("pt-voiture-v1", JSON.stringify(v))
 await p.reload();
 await p.locator('[data-el="bouton-demarrer"]').waitFor({ timeout: 30000 });
 sh("adb shell screencap -p /sdcard/1-accueil.png");
+// le GPS de l'émulateur ne parle que quand on lui envoie une position : on l'alimente pendant la recherche de position du départ
+const alimente = setInterval(() => sh(`adb emu geo fix ${lon.toFixed(6)} ${lat.toFixed(6)} 170 8 0`), 1000);
 await p.locator('[data-el="bouton-demarrer"]').click();
-await p.waitForURL(/\/en-route$/, { timeout: 20000 });
+await p.waitForURL(/\/en-route$/, { timeout: 30000 });
+clearInterval(alimente);
 constat("Démarrer ouvre En route", true);
 await rouler(40);
 const km1 = Number((await p.locator('[data-el="direct-km"]').innerText()).replace(",", "."));
