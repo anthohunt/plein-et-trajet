@@ -3,13 +3,22 @@
 // densifié à 1 point par seconde. Les vitesses suivent la vitesse estimée de chaque arête (OSM / Valhalla), avec accélérations et
 // freinages bornés, un arrêt de 40 s à un feu dans Albi et un arrêt de 120 s (pause carburant) sur la route.
 // Ce n'est PAS un trajet roulé : c'est la seule simulation du jalon 4 (géolocalisation rejouée dans le navigateur), déclarée comme telle.
-// usage : node tests/e2e/fixtures/creer-gpx.mjs
+// usage : node tests/e2e/fixtures/creer-gpx.mjs [barcelone]
+// (jalon 5, V-4.1 départ hors de France) « barcelone » : même fabrication sur un vrai itinéraire routier dans Barcelone
+// (plaça de Catalunya → Sagrada Família), un seul arrêt (feu, 30 s), écrit dans barcelone.gpx.
 import { writeFileSync } from "node:fs";
 
 const BASE = "https://valhalla1.openstreetmap.de";
 const UA = { "User-Agent": "plein-et-trajet/1.0 (+https://plein-et-trajet.vercel.app)", "Content-Type": "application/json" };
-const DEPART = { lat: 43.92836, lon: 2.14587 }; // Albi, place du Vigan
-const ARRIVEE = { lat: 43.60445, lon: 1.44406 }; // Toulouse, Capitole
+const PRESETS = {
+  "albi-toulouse": { depart: { lat: 43.92836, lon: 2.14587 }, arrivee: { lat: 43.60445, lon: 1.44406 }, libelle: "Albi (place du Vigan) → Toulouse (Capitole)", nom: "Albi → Toulouse (rejoué)" },
+  barcelone: { depart: { lat: 41.38706, lon: 2.17008 }, arrivee: { lat: 41.40363, lon: 2.17436 }, libelle: "Barcelone (plaça de Catalunya) → Barcelone (Sagrada Família)", nom: "Barcelone (rejoué)" },
+};
+const PRESET = process.argv[2] ?? "albi-toulouse";
+const P = PRESETS[PRESET];
+if (!P) throw new Error(`préréglage inconnu : ${PRESET}`);
+const DEPART = P.depart;
+const ARRIVEE = P.arrivee;
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function decoder6(s) {
@@ -42,7 +51,7 @@ const position = (x) => { let k = 0; while (k < s.length - 2 && s[k + 1] < x) k+
 
 // arrêts : un feu à 1,2 km du départ (40 s), un arrêt de 180 s (station-service) au premier point hors voie rapide après 2,5 km
 const kStation = s.findIndex((x, k) => x > 2500 && classe[k] !== "motorway" && classe[k] !== "trunk");
-const ARRETS = [{ x: 1200, s: 40, nom: "feu rouge, Albi" }, { x: Math.round(s[kStation]), s: 180, nom: `station-service, route ${classe[kStation]}` }];
+const ARRETS = PRESET === "barcelone" ? [{ x: Math.round(total / 2), s: 30, nom: "feu rouge, Barcelone" }] : [{ x: 1200, s: 40, nom: "feu rouge, Albi" }, { x: Math.round(s[kStation]), s: 180, nom: `station-service, route ${classe[kStation]}` }];
 const ACC = 1.6, FREIN = 2.5; // m/s²
 const sortie = [];
 let x = 0, v = 0, t = 0;
@@ -83,17 +92,17 @@ sortie.push({ t, lat: fin[0], lon: fin[1], v: 0 });
 const iso = (t) => new Date(t0 + t * 1000).toISOString().replace(".000", "");
 const entete = `<!--
   Trajet REJOUÉ (pas roulé) — fabriqué le ${new Date().toISOString()} par tests/e2e/fixtures/creer-gpx.mjs.
-  Géométrie : vrai itinéraire routier Albi (place du Vigan) → Toulouse (Capitole), moteur Valhalla, instance publique FOSSGIS
+  Géométrie : vrai itinéraire routier ${P.libelle}, moteur Valhalla, instance publique FOSSGIS
   (${BASE}/route, ${route.trip.summary.length.toFixed(1)} km, ${Math.round(route.trip.summary.time / 60)} min estimées), vitesse et classe de chaque arête
   par /trace_attributes (edge_walk). Densifié à 1 point par seconde ; vitesse = vitesse estimée de l'arête × 0,92, accélération ≤ ${ACC} m/s²,
   freinage ≤ ${FREIN} m/s² ; arrêts : ${ARRETS.map((a) => `${a.s} s à ${(a.x / 1000).toFixed(1)} km (${a.nom})`).join(" ; ")}.
   ${sortie.length} points, durée ${Math.floor(t / 60)} min ${t % 60} s, longueur ${(total / 1000).toFixed(1)} km. Seule simulation du jalon 4 :
   la géolocalisation du navigateur est rejouée point par point (context.setGeolocation, 1 par seconde) ; tout le reste passe par les vrais services.
 -->`;
-const gpx = `<?xml version="1.0" encoding="UTF-8"?>\n${entete}\n<gpx version="1.1" creator="plein-et-trajet creer-gpx.mjs" xmlns="http://www.topografix.com/GPX/1/1">\n<trk><name>Albi → Toulouse (rejoué)</name><trkseg>\n` +
+const gpx = `<?xml version="1.0" encoding="UTF-8"?>\n${entete}\n<gpx version="1.1" creator="plein-et-trajet creer-gpx.mjs" xmlns="http://www.topografix.com/GPX/1/1">\n<trk><name>${P.nom}</name><trkseg>\n` +
   sortie.map((p) => `<trkpt lat="${p.lat.toFixed(6)}" lon="${p.lon.toFixed(6)}"><time>${iso(p.t)}</time><extensions><speed>${p.v.toFixed(2)}</speed></extensions></trkpt>`).join("\n") +
   `\n</trkseg></trk>\n</gpx>\n`;
-writeFileSync(new URL("./albi-toulouse.gpx", import.meta.url), gpx);
+writeFileSync(new URL(`./${PRESET}.gpx`, import.meta.url), gpx);
 const classes = {};
 ta.edges.forEach((e) => (classes[e.road_class] = (classes[e.road_class] ?? 0) + e.length));
 console.log(JSON.stringify({ km: +(total / 1000).toFixed(1), points: sortie.length, duree_min: +(t / 60).toFixed(1), classes_km: Object.fromEntries(Object.entries(classes).map(([k, v]) => [k, +v.toFixed(1)])), vmax_kmh: Math.round(Math.max(...sortie.map((p) => p.v)) * 3.6) }));
