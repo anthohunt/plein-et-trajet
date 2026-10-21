@@ -3281,8 +3281,8 @@ Rejoué : géolocalisation par context.setGeolocation depuis tests/e2e/fixtures/
 - Step 2: je touche le compteur, tape 1,989 et valide (Entrée) → « Mon prix » 1,989 €/L ; coût 0,546 × 1,989 = 1,09 € ; « Revenir à la moyenne » affiché → capture `V-4.2-02-apres.png` ✓ (16:24:35Z, md5 da094e2f)
 - Step 3: mon prix saisi (« Revenir à la moyenne » sélectionné) → focus « Revenir à la moyenne » → capture `V-4.2-03-avant.png` ✓ (16:24:36Z, md5 280d449d)
 - Step 4: je touche « Revenir à la moyenne » → « Moyenne France du jour » 2,156 €/L ; coût 1,18 € (comme avant la saisie) → capture `V-4.2-04-apres.png` ✓ (16:24:36Z, md5 b6955c56)
-- Step 5: le champ du prix ouvert (« 1,5 » tapé, pas validé) → champ « 1,5 » ouvert → capture `V-4.2-05-avant.png` ✓ (16:24:37Z, md5 51afff5a)
-- Step 6: j'appuie sur Échap → champ fermé ; prix toujours 2,156 €/L « Moyenne France du jour » ; focus revenu sur « Modifier le prix, 2,156 euros par litre » → capture `V-4.2-06-apres.png` ✓ (16:24:37Z, md5 ec23a82d)
+- Step 5: le champ du prix ouvert (« 1,5 » tapé, pas validé) → « Brens → Parisot » ; champ « 1,5 » ouvert ; coût 1,18 € (moyenne : 1,18 €) ; titre visible → capture `V-4.2-05-avant.png` ✓ (17:49:43Z, md5 e2806f30, brute 0430c94f) — reprise post-audit (m5-reprises-post-audit.mjs) ; prise r3 remplacée : 51afff5a
+- Step 6: j'appuie sur Échap → champ fermé ; prix toujours 2,156 €/L « Moyenne France du jour » ; coût 1,18 € ; focus revenu sur « Modifier le prix, 2,156 euros par litre » ; titre visible → capture `V-4.2-06-apres.png` ✓ (17:49:44Z, md5 4c32e43c, brute 9db4fe2f) — reprise post-audit (m5-reprises-post-audit.mjs) ; prise r3 remplacée : ec23a82d
 
 ### Issues Found
 - aucune sur la version déployée à cette passe.
@@ -3294,7 +3294,7 @@ Rejoué : géolocalisation par context.setGeolocation depuis tests/e2e/fixtures/
 - Step 2: l'écran Fin de trajet s'ouvre (sélecteur et prix) → sélecteur Gazole · SP95-E10 · SP95 · SP98 · E85 · GPLc, SP95-E10 choisi ; « Moyenne France du jour » ; compteur « Modifier le prix, 2,156 euros par litre » (3 décimales) = moyenne France SP95-E10 lue par l'API 2,156 ; coût 1,18 € essence → capture `V-4.1-02-apres.png` ✓ (16:24:33Z, md5 abe4d049)
 - Step 3: ce sélecteur (Gazole sélectionné au clavier) → focus « Gazole » → capture `V-4.1-03-avant.png` ✓ (16:24:34Z, md5 a0673c83)
 - Step 4: je touche Gazole → « Moyenne France du jour » 2,368 €/L (moyenne France Gazole de l'API 2,368) ; coût 0,546 × 2,368 = 1,29 € → capture `V-4.1-04-apres.png` ✓ (16:24:34Z, md5 78257af7)
-- Step 5: un départ hors de France : vrai itinéraire dans Barcelone (plaça de Catalunya → Sagrada Família, 3,2 km rejoués) → « Prix : moyenne Espagne du jour · 1,790 €/L » ; 18 km/h · 3,2 km · 0,26 L · 0,46 € · 0:11 · 17 km/h moy. · 8,0 L/100 · 674 points → capture `V-4.1-05-avant.png` ✓ (16:24:57Z, md5 81b37ae2)
+- Step 5: un départ hors de France : vrai itinéraire dans Barcelone (plaça de Catalunya → Sagrada Família, 3,2 km rejoués), arrêté — l'écran Fin de trajet tel qu'il s'ouvre (haut de l'écran) → En route juste avant « Arrêter » : « Prix : moyenne Espagne du jour · 1,790 €/L » ; fin : « Barcelone → Barcelone » · « 21 oct. 2026 · 11 min · Renault Clio » ; 0,26 L, 3,2 km ; pays de départ enregistré ES (IndexedDB) ; titre visible → capture `V-4.1-05-avant.png` ✓ (17:49:36Z, md5 af522cd4, brute af522cd4) — reprise post-audit (m5-reprises-post-audit.mjs) ; prise r3 remplacée : 81b37ae2
 - Step 6: l'écran Fin de trajet s'ouvre → « Barcelone → Barcelone » ; « Moyenne Espagne du jour » 1,790 €/L (moyenne Espagne SP95-E10 de l'API : 1,790) ; pays de départ enregistré ES → capture `V-4.1-06-apres.png` ✓ (16:24:59Z, md5 c1d7dfcf)
 
 ### Issues Found
@@ -3376,7 +3376,7 @@ Rejoué : géolocalisation par context.setGeolocation depuis tests/e2e/fixtures/
 - Step 3: une position à Dartford (Royaume-Uni) → 18 stations, pays GB ; 1re « Morrisons · MFG Morrisons Grays, London Road, GRAYS 7,9 km · il y a 17 h · −4,8 c vs Royaume-Uni 2,022 €/L » → capture `V-5.7-03-avant.png` ✓ (16:25:53Z, md5 c647b527)
 - Step 4: je lis une station (fiche) → fiche « Morrisons · MFG Morrisons Grays, London Road, GRAYS » ; Gazole 2,343 €/L ← 196,9 p/L ; SP95 2,022 €/L ← 169,9 p/L ; SP95-E10 2,022 €/L ← 169,9 p/L ; SP98 2,260 €/L ← 189,9 p/L ; « 1 € = 0,8403 £ · BCE 20/10 » (taux BCE en base 0.84028) → capture `V-5.7-04-apres.png` ✓ (16:25:54Z, md5 010bf118)
 - Step 5: un pays qui ne publie pas ses prix station par station : Belgique (position Bruxelles), carte glissée → statut du pays en base : « aucun » ; bouton « Rechercher dans cette zone » → capture `V-5.7-05-avant.png` ✓ (16:26:06Z, md5 e1ec15d3)
-- Step 6: j'y cherche dans cette zone → « Ce pays ne publie pas les prix station par station Moyenne nationale · Belgique · SP95-E10 : 1,977 €/L » ; en-tête « Autour de moi » ; 0 ligne, pastilles null → capture `V-5.7-06-apres.png` ✓ (16:26:07Z, md5 d783b715)
+- Step 6: j'y cherche dans cette zone → « Ce pays ne publie pas les prix station par station Moyenne nationale · Belgique · SP95-E10 : 1,977 €/L » (message apparu après le toucher, stable 1,5 s ; suite des états : autre 62 ms → vide 624 ms → pays 2778 ms) ; en-tête « Autour de Schaerbeek » ; 0 ligne → capture `V-5.7-06-apres.png` ✓ (17:50:05Z, md5 f62741bb, brute f62741bb) — reprise post-audit (m5-reprises-post-audit.mjs) ; prise r3 remplacée : d783b715
 
 ### Issues Found
 - aucune sur la version déployée à cette passe.
@@ -3433,7 +3433,7 @@ Rejoué : géolocalisation par context.setGeolocation depuis tests/e2e/fixtures/
 ### Happy Path
 - Step 1: un trajet rouvert depuis l'historique (le trajet seul), réglages de prix et de personnes → prix « Moyenne France du jour » 2.156 ; 1 personne → capture `V-6.4-01-avant.png` ✓ (16:26:58Z, md5 620bbdfc)
 - Step 2: je change son carburant (Gazole) et son nombre de personnes (2), puis je reviens à l'historique → IndexedDB : Gazole, 2 personnes, 2.368 €/L ; ligne « Toulouse → Albi 19 oct. · 76,8 km · Gazole à 2,368 €/L · 5,73 € chacun 11,46 € » → capture `V-6.4-02-apres.png` ✓ (16:26:59Z, md5 c26d471a)
-- Step 3: un trajet rouvert (Albi → Rodez, 3 personnes) → bouton « Supprimer ce trajet » → capture `V-6.4-03-avant.png` ✓ (16:26:59Z, md5 94a8a784)
+- Step 3: un trajet rouvert (Albi → Rodez, 3 personnes) → « Albi → Rodez » ; bouton « Supprimer ce trajet » ; titre coupé de 15 px → capture `V-6.4-03-avant.png` ✓ (17:49:45Z, md5 1995676f, brute c9610fb7) — reprise post-audit (m5-reprises-post-audit.mjs) ; prise r3 remplacée : 94a8a784
 - Step 4: je touche « Supprimer ce trajet » → disparu de la liste ; totaux « 1 trajet 76,8 km 11,46 € essence » (1 trajet, 76,8 km) ; IndexedDB 1 trajet → capture `V-6.4-04-apres.png` ✓ (16:27:00Z, md5 06947c50)
 
 ### Issues Found

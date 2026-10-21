@@ -612,7 +612,7 @@ async function fluxTrajet() {
     const part = Number(await attr(p, sel("part-personne"), "data-part"));
     verifier(Math.abs(part - euros2(cout / 3)) < 0.001, `${part} vs ${cout}/3`);
     return `prix « ${await txt(p, sel("libelle-prix"))} » ${virgule(P, 3)} €/L ; coût ${virgule(cout, 2)} € ; « ${await txt(p, sel("part-personne"))} » ; boutons « ${await txt(p, sel("enregistrer-ou-supprimer"))} »`;
-  }, { cible: sel("enregistrer-ou-supprimer") });
+  }, { bas: sel("enregistrer-ou-supprimer") });
   const coutDemo = Number(await attr(p, sel("cout-trajet"), "data-cout"));
   await touche(p, "enregistrer-trajet");
   await etape("V-4.7", 2, p, "V-4.7-02-apres.png", "je touche « Enregistrer »", async () => {
@@ -963,7 +963,7 @@ async function fluxCas() {
     }, { cible: sel("prix-apres") });
     await touche(p, "compteur-prix");
     await p.locator(sel("champ-prix")).fill("1,5");
-    await etape("V-4.2", 5, p, "V-4.2-05-avant.png", "le champ du prix ouvert (« 1,5 » tapé, pas validé)", async () => `champ « ${await p.inputValue(sel("champ-prix"))} » ouvert`, { cible: sel("prix-apres") });
+    await etape("V-4.2", 5, p, "V-4.2-05-avant.png", "le champ du prix ouvert (« 1,5 » tapé, pas validé)", async () => `champ « ${await p.inputValue(sel("champ-prix"))} » ouvert`, { haut: true }); // titre du trajet visible (post-audit r3)
     await p.locator(sel("champ-prix")).press("Escape");
     await p.clock.runFor(100); // l'horloge de la page est en pause : laisser passer l'image suivante (le focus revient au compteur)
     await etape("V-4.2", 6, p, "V-4.2-06-apres.png", "j'appuie sur Échap", async () => {
@@ -971,7 +971,7 @@ async function fluxCas() {
       const prix = Number(await attr(p, sel("prix-apres"), "data-prix"));
       verifier(Math.abs(prix - moyFR("SP95-E10")) < 0.0005, `${prix}`);
       return `champ fermé ; prix toujours ${virgule(prix, 3)} €/L « ${await txt(p, sel("libelle-prix"))} » ; focus revenu sur « ${await p.evaluate(() => document.activeElement?.getAttribute("aria-label"))} »`;
-    }, { cible: sel("prix-apres") });
+    }, { haut: true });
     // US-4.E2 (régression) : prix hors bornes refusé
     await touche(p, "compteur-prix");
     await p.locator(sel("champ-prix")).fill("7");
@@ -1006,11 +1006,13 @@ async function fluxCas() {
     await p.waitForURL("**/en-route", { timeout: 15000 });
     await p.waitForFunction(() => document.querySelector('[data-el="prix-direct"]')?.getAttribute("data-prix"), null, { timeout: 20000 }).catch(() => {});
     await rouler(B, p, BCN, 1, BCN.length);
-    await etape("V-4.1", 5, p, "V-4.1-05-avant.png", "un départ hors de France : vrai itinéraire dans Barcelone (plaça de Catalunya → Sagrada Família, 3,2 km rejoués)", async () => `« ${await txt(p, sel("prix-direct"))} » ; ${directTexte(await lireDirect(p))}`);
+    const enRouteBcn = `« ${await txt(p, sel("prix-direct"))} » ; ${directTexte(await lireDirect(p))}`;
     await touche(p, "bouton-arreter");
     await p.waitForURL("**/fin", { timeout: 15000 });
     await p.clock.runFor(500);
     await p.waitForFunction(() => document.querySelector('[data-el="titre-trajet"]')?.getAttribute("data-noms") === "oui", null, { timeout: 20000 }).catch(() => {});
+    // post-audit r3 (contre-évaluation, V-4.1-05) : l'état de départ du plan est l'écran Fin de trajet, pas En route
+    await etape("V-4.1", 5, p, "V-4.1-05-avant.png", "un départ hors de France : vrai itinéraire dans Barcelone (plaça de Catalunya → Sagrada Família, 3,2 km rejoués), arrêté — l'écran Fin de trajet tel qu'il s'ouvre (haut de l'écran)", async () => `En route juste avant « Arrêter » : ${enRouteBcn} ; fin : « ${await txt(p, sel("titre-trajet"))} » · « ${await txt(p, sel("sous-titre-trajet"))} »`, { haut: true });
     const es = MOY_TOUS["SP95-E10"].get("ES");
     await etape("V-4.1", 6, p, "V-4.1-06-apres.png", "l'écran Fin de trajet s'ouvre", async () => {
       const lib = await txt(p, sel("libelle-prix"));
@@ -1274,10 +1276,15 @@ async function fluxStations() {
       await q.waitForSelector(sel("rechercher-zone"), { timeout: 5000 });
       return `statut du pays en base : « aucun » ; bouton « ${await txt(q, sel("rechercher-zone"))} »`;
     });
+    // post-audit r3 (lot 2, MEDIUM) : le message d'avant la recherche est marqué ; on attend celui d'APRÈS, sans « Aucune station… »
+    // (état transitoire réel pendant la recherche du pays, ≈ 1 à 2 s), recherche terminée, stable 1,5 s
+    await q.evaluate(() => document.querySelectorAll('[data-el="pays-sans-flux"]').forEach((e) => (e.dataset.avant = "1")));
     await touche(q, "rechercher-zone");
     await etape("V-5.7", 6, q, "V-5.7-06-apres.png", "j'y cherche dans cette zone", async () => {
       await q.waitForFunction(() => !document.querySelector('[data-el="rechercher-zone"]'), null, { timeout: 5000 });
-      await q.waitForSelector(sel("pays-sans-flux"), { timeout: 30000 });
+      await q.waitForFunction(() => document.querySelector('[data-el="pays-sans-flux"]:not([data-avant])') && !document.querySelector('[data-el="etat-vide"]') && document.querySelector(".scroll")?.getAttribute("aria-busy") === "false", null, { timeout: 30000 });
+      await dormir(1500);
+      verifier((await q.locator(sel("etat-vide")).count()) === 0, "« Aucune station… » affiché");
       const t = await txt(q, sel("pays-sans-flux"));
       verifier(/Ce pays ne publie pas les prix station par station/.test(t), t);
       return `« ${t} » ; en-tête « ${await txt(q, sel("lieu"))} » ; ${await q.locator(sel("ligne-station")).count()} ligne, pastilles ${await attr(q, sel("carte-stations"), "data-pastilles")}`;
@@ -1491,7 +1498,7 @@ async function fluxHistorique() {
     await p.waitForSelector(sel("supprimer-trajet"));
     const totAvant = await (async () => { await p.waitForTimeout(100); return null; })();
     void totAvant;
-    await etape("V-6.4", 3, p, "V-6.4-03-avant.png", "un trajet rouvert (Albi → Rodez, 3 personnes)", async () => `bouton « ${await txt(p, sel("supprimer-trajet"))} »`, { cible: sel("supprimer-trajet") });
+    await etape("V-6.4", 3, p, "V-6.4-03-avant.png", "un trajet rouvert (Albi → Rodez, 3 personnes)", async () => `bouton « ${await txt(p, sel("supprimer-trajet"))} »`, { bas: sel("supprimer-trajet") });
     await touche(p, "supprimer-trajet");
     await etape("V-6.4", 4, p, "V-6.4-04-apres.png", "je touche « Supprimer ce trajet »", async () => {
       await p.waitForURL("**/historique");

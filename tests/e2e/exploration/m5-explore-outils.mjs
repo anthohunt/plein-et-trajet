@@ -187,7 +187,7 @@ export function histoiresOuvertes() {
  * Une étape : verif() (assertions, rend le constat), puis capture livrée (tests/e2e/delivery/<nom>) et brute
  * (exploration/m5-captures-brutes/<nom>) : deux vraies prises de vue. Le texte de la page est passé au crible « péage / itinéraire ».
  */
-export async function etape(id, n, page, nom, action, verif, { cible, haut } = {}) {
+export async function etape(id, n, page, nom, action, verif, { cible, haut, bas } = {}) {
   const b = blocs.get(id);
   let ok = true;
   let constat = "";
@@ -200,6 +200,8 @@ export async function etape(id, n, page, nom, action, verif, { cible, haut } = {
   }
   if (cible) await page.locator(cible).first().scrollIntoViewIfNeeded({ timeout: 3000 }).catch(() => {});
   if (haut) await page.evaluate(() => document.querySelectorAll(".scroll").forEach((s) => (s.scrollTop = 0))).catch(() => {});
+  // bas : défilement minimal qui montre la cible en entier (bas de la cible au bas de la zone) — le haut de l'écran (titre) en garde le plus
+  if (bas) await page.evaluate((b) => { document.querySelectorAll(".scroll").forEach((s) => (s.scrollTop = 0)); document.querySelector(b)?.scrollIntoView({ block: "end" }); }, bas).catch(() => {});
   await page.waitForTimeout(300);
   // carte des stations : attendre que les tuiles du fond de carte soient chargées (sinon fond blanc sur la capture)
   await page.waitForFunction(() => !document.querySelector('[data-el="carte-stations"] canvas') || !window.__carte || window.__carte.areTilesLoaded(), null, { timeout: 6000 }).catch(() => {});
