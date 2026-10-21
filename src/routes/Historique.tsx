@@ -36,6 +36,7 @@ export default function Historique() {
           <div className="kpi"><b data-el="total-km">{tot.km.toLocaleString("fr-FR")}</b><span>{T.km}</span></div>
           <div className="kpi"><b data-el="total-euros">{fmt(tot.euros, 2)}</b><span>{T.eurosEssence}</span></div>
         </div>
+        {tot.sansPrix > 0 && <p className="hint" data-el="totaux-sans-prix" style={{ margin: "4px 16px 0" }}>{T.totauxSansPrix(tot.sansPrix)}</p>}
         <ul className="hist" data-el="historique" style={{ marginTop: 8 }}>
           {liste && liste.length === 0 && <li className="empty" data-el="historique-vide">{T.aucunTrajetV1}</li>}
           {grouperParMois(liste ?? []).map((g) => (
@@ -47,15 +48,15 @@ export default function Historique() {
                   const route = `${nomLieu(t.depart)} ${T.fleche} ${nomLieu(t.arrivee)}`;
                   return (
                     <li key={t.id} className={"hrow" + (t.id === nouveau ? " nouveau" : "")} data-trajet={t.id}>
-                      <button type="button" className="go" aria-label={T.ouvrirTrajet(route)} onClick={() => nav("/fin", { state: { id: t.id, depuisHistorique: true } })}>
+                      <button type="button" className="go" aria-describedby={`cout-${t.id}`} onClick={() => nav("/fin", { state: { id: t.id, depuisHistorique: true } })}>
                         <span className="t">{route}</span>
                         <br />
                         <span className="m">
                           {T.ligneHistorique(dateCourte(t.debut), fmt(t.km, t.km < 100 ? 1 : 0))}
-                          {t.personnes > 1 && cout != null && <span data-el="part-ligne"> · {T.partChacun(fmt(partPersonne(cout, t.personnes), 2))}</span>}
+                          {t.personnes > 1 && cout != null && <span data-el="part-ligne">{T.sep}{T.partChacun(fmt(partPersonne(cout, t.personnes), 2))}</span>}
                         </span>
                       </button>
-                      <span className="c" data-el="cout-ligne">{cout == null ? "—" : `${fmt(cout, 2)} €`}</span>
+                      <span className="c" data-el="cout-ligne" id={`cout-${t.id}`}>{cout == null ? T.vide : T.euros(fmt(cout, 2))}</span>
                     </li>
                   );
                 })}

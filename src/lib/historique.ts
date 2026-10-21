@@ -65,12 +65,25 @@ export interface Totaux {
   km: number;
   euros: number;
 }
-export function totaux(liste: TrajetV1[]): Totaux {
+export function totaux(liste: TrajetV1[]): Totaux & { sansPrix: number } {
   return {
     trajets: liste.length,
+    sansPrix: liste.filter((t) => coutTrajet(t) == null).length,
     km: Math.round(liste.reduce((s, t) => s + t.km, 0)),
     euros: Math.round(liste.reduce((s, t) => s + (coutTrajet(t) ?? 0), 0) * 100) / 100,
   };
+}
+
+/**
+ * Changer le carburant d'une fin de trajet (V-6.4, V-4.1) : le prix suit la moyenne du jour de ce carburant, celle gardée avec le
+ * trajet, sinon celle lue maintenant (`lues`). Sans moyenne pour ce carburant, le changement est refusé (null) : le trajet garde
+ * son carburant et son prix, il n'est jamais enregistré sans prix.
+ */
+export function changerCarburant(t: TrajetV1, c: Carburant, lues?: Partial<Record<Carburant, PrixMoyen>> | null): TrajetV1 | null {
+  if (c === t.carburant) return t;
+  const m = t.moyennes[c] ?? lues?.[c];
+  if (!m) return null;
+  return { ...t, carburant: c, moyennes: { ...(lues ?? {}), ...t.moyennes }, prix_litre: m.prix };
 }
 
 const moisFormat = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" });
@@ -93,7 +106,7 @@ export function grouperParMois(liste: TrajetV1[]): { mois: string; trajets: Traj
 }
 
 /** « 43,605 · 1,444 » tant que le nom du lieu n'est pas connu. */
-export const coordonnees = (l: LieuTrajet) => `${l.lat.toFixed(3).replace(".", ",")} · ${l.lon.toFixed(3).replace(".", ",")}`;
+export const coordonnees = (l: LieuTrajet) => T.coordonnees(l.lat.toFixed(3).replace(".", ","), l.lon.toFixed(3).replace(".", ","));
 export const nomLieu = (l: LieuTrajet) => l.nom ?? coordonnees(l);
 
 // ---------------------------------------------------------------- IndexedDB
@@ -120,6 +133,17 @@ export async function garderArrete(t: TrajetV1): Promise<void> {
 }
 export async function oublierArrete(): Promise<void> {
   await (await db()).delete("en_cours", CLE_ARRETE);
+}
+/**
+ * Garde une correction de fin de trajet, même si l'écran a été quitté entre-temps : trajet de l'historique, ou trajet arrêté
+ * encore en attente ; si « Enregistrer » est passé pendant ce temps, la correction va au trajet de l'historique (le trajet arrêté
+ * n'est pas recréé).
+ */
+export async function garderCorrection(t: TrajetV1): Promise<void> {
+  if (t.enregistre) return garderTrajetV1(t);
+  const a = await lireArrete();
+  if (a?.id === t.id) return garderArrete(t);
+  if (await lireTrajetV1(t.id)) return garderTrajetV1({ ...t, enregistre: true });
 }
 /** « Enregistrer » : le trajet arrêté rejoint l'historique. */
 export async function enregistrerArrete(t: TrajetV1): Promise<void> {

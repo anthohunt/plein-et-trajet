@@ -8,10 +8,10 @@ import { CARBURANTS, partiesPrix, prix3, type Carburant } from "../lib/format";
 import { fmt, validerPrix } from "../lib/calcul";
 import {
   bornerPersonnes,
+  changerCarburant,
   coutTrajet,
   enregistrerArrete,
-  garderArrete,
-  garderTrajetV1,
+  garderCorrection,
   lireArrete,
   lireTrajetV1,
   nomLieu,
@@ -40,6 +40,9 @@ export default function FinDeTrajet() {
   const [saisie, setSaisie] = useState("");
   const [erreurPrix, setErreurPrix] = useState(false);
   const [pays, setPays] = useState<Map<string, PaysInfo>>(new Map());
+  // carburant demandé dont la moyenne du jour est en cours de lecture, ou introuvable (pas de réseau)
+  const [carbAttente, setCarbAttente] = useState<{ c: Carburant; etat: "lecture" | "absente" } | null>(null);
+  const courant = useRef<TrajetV1 | null>(null);
   const titre = useRef<HTMLHeadingElement>(null);
   const champ = useRef<HTMLInputElement>(null);
   const compteur = useRef<HTMLButtonElement>(null);
@@ -53,7 +56,10 @@ export default function FinDeTrajet() {
     (idRouvert ? lireTrajetV1(idRouvert) : lireArrete())
       .then((x) => {
         if (!actif) return;
-        if (x) setT(x);
+        if (x) {
+          courant.current = x;
+          setT(x);
+        }
         else setAbsent(true);
       })
       .catch(() => actif && setAbsent(true));
@@ -67,14 +73,17 @@ export default function FinDeTrajet() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t?.id]);
 
-  /** Garde chaque correction : historique (trajet rouvert) ou trajet arrêté en attente. */
+  /**
+   * Garde chaque correction : historique (trajet rouvert) ou trajet arrêté en attente. Calculée sur le trajet courant (ref) et
+   * écrite hors du rendu : une réponse qui arrive après qu'on a quitté l'écran est quand même gardée (V-6.4, round 2).
+   */
   const changer = useCallback((f: (x: TrajetV1) => TrajetV1) => {
-    setT((x) => {
-      if (!x) return x;
-      const n = f(x);
-      (n.enregistre ? garderTrajetV1(n) : garderArrete(n)).catch(() => undefined);
-      return n;
-    });
+    const x = courant.current;
+    if (!x) return;
+    const n = f(x);
+    courant.current = n;
+    setT(n);
+    garderCorrection(n).catch(() => undefined);
   }, []);
 
   // noms des lieux (géocodage inverse) et moyennes du jour manquantes : demandés maintenant, puis au retour du réseau
@@ -109,7 +118,7 @@ export default function FinDeTrajet() {
   const prix = prixUtilise(t);
   const cout = coutTrajet(t);
   const moyenne = t.moyennes[t.carburant];
-  const nomPays = (c: string) => pays.get(c)?.nom ?? (c === "FR" ? "France" : c);
+  const nomPays = (c: string) => T.nomPays(c, pays.get(c)?.nom);
   const libellePrix =
     t.prix_perso != null ? T.monPrix : !moyenne ? T.prixInconnu : moyenne.pays !== t.pays_depart ? T.moyenneDuJourRepli(nomPays(t.pays_depart)) : T.moyenneDuJour(nomPays(moyenne.pays));
   const l100 = t.km > 0 ? (t.litres / t.km) * 100 : 0;
@@ -117,7 +126,22 @@ export default function FinDeTrajet() {
   const cmax = Math.max(1, t.conso_max, ...t.consos);
   const route = `${nomLieu(t.depart)} ${T.fleche} ${nomLieu(t.arrivee)}`;
 
-  const choisirCarburant = (c: Carburant) => changer((x) => ({ ...x, carburant: c, prix_litre: x.moyennes[c]?.prix ?? null }));
+  // un carburant sans moyenne gardée : on lit celle du jour AVANT de changer ; introuvable, le carburant ne change pas
+  const choisirCarburant = async (c: Carburant) => {
+    const x = courant.current;
+    if (!x || c === x.carburant) return;
+    if (x.moyennes[c]) {
+      setCarbAttente(null);
+      return changer((y) => changerCarburant(y, c) ?? y);
+    }
+    setCarbAttente({ c, etat: "lecture" });
+    const lues = await moyennesDuPays(x.pays_depart).catch(() => null);
+    const y = courant.current;
+    if (y && changerCarburant(y, c, lues)) {
+      setCarbAttente(null);
+      changer((z) => changerCarburant(z, c, lues) ?? z);
+    } else setCarbAttente({ c, etat: "absente" });
+  };
   const ouvrirEdition = () => {
     setSaisie(prix == null ? "" : prix3(prix));
     setErreurPrix(false);
@@ -175,10 +199,10 @@ export default function FinDeTrajet() {
         <div className="kpis">
           <div className="kpi"><b data-el="fin-litres" data-litres={t.litres}>{fmt(t.litres, 1)}</b><span>{T.litres}</span></div>
           <div className="kpi"><b data-el="fin-km" data-km={t.km}>{fmt(t.km, t.km < 100 ? 1 : 0)}</b><span>{T.km}</span></div>
-          <div className="kpi"><b data-el="fin-l100">{fmt(l100, 1)}</b><span>{T.l100} moy.</span></div>
+          <div className="kpi"><b data-el="fin-l100">{fmt(l100, 1)}</b><span>{T.l100Moy}</span></div>
         </div>
         <div className="price" data-el="prix-apres" data-prix={prix ?? undefined} data-source={t.prix_perso != null ? "perso" : "moyenne"}>
-          <div className="fuels" role="group" aria-label={T.carburant} data-el="carburant-apres" style={{ padding: 0 }}>
+          <div className="fuels" role="group" aria-label={T.carburant} data-el="carburant-apres" style={{ padding: "0 32px 0 0" }}>
             {CARBURANTS.map((c) => (
               <button key={c} type="button" className="fuel" aria-pressed={c === t.carburant} data-carburant={c} onClick={() => choisirCarburant(c)}>
                 {c}
@@ -216,11 +240,16 @@ export default function FinDeTrajet() {
                       <span className="u">{T.prixUnite}</span>
                     </span>
                   )}
-                  <span className="pen" aria-hidden="true">✎</span>
+                  <span className="pen" aria-hidden="true">{T.crayon}</span>
                 </button>
               )}
             </span>
           </div>
+          {carbAttente && (
+            <p className={carbAttente.etat === "absente" ? "err-msg" : "hint"} role={carbAttente.etat === "absente" ? "alert" : "status"} data-el="carburant-attente" data-etat={carbAttente.etat} style={{ margin: 0 }}>
+              {carbAttente.etat === "absente" ? T.carburantSansMoyenne(carbAttente.c) : T.carburantLecture(carbAttente.c)}
+            </p>
+          )}
           {erreurPrix && (
             <p className="err-msg" id="erreur-prix" role="alert" data-el="erreur-prix">{T.prixPersoErreur}</p>
           )}
@@ -232,7 +261,7 @@ export default function FinDeTrajet() {
         </div>
         <div className="costbox" data-el="cout-trajet" data-cout={cout ?? undefined}>
           <span className="totem big">
-            <span className="roll" key={String(cout)}>{cout == null ? "—" : fmt(cout, 2)}</span>
+            <span className="roll" key={String(cout)}>{cout == null ? T.vide : fmt(cout, 2)}</span>
             <span className="u">{T.eurosEssence}</span>
           </span>
         </div>
@@ -240,21 +269,21 @@ export default function FinDeTrajet() {
           <span id="lab-personnes">{T.personnes}</span>
           <div className="ctl" role="group" aria-labelledby="lab-personnes">
             <button type="button" aria-label={T.personneMoins} data-el="personnes-moins" disabled={t.personnes <= 1} onClick={() => changer((x) => ({ ...x, personnes: bornerPersonnes(x.personnes - 1) }))}>
-              −
+              {T.signeMoins}
             </button>
             <b aria-live="polite">{t.personnes}</b>
             <button type="button" aria-label={T.personnePlus} data-el="personnes-plus" disabled={t.personnes >= 9} onClick={() => changer((x) => ({ ...x, personnes: bornerPersonnes(x.personnes + 1) }))}>
-              +
+              {T.signePlus}
             </button>
           </div>
         </div>
         <p className="share" data-el="part-personne" style={{ margin: "10px 16px 0" }} data-part={cout != null && t.personnes > 1 ? partPersonne(cout, t.personnes) : undefined}>
           {t.personnes > 1 && cout != null ? (
             <>
-              <b>{fmt(partPersonne(cout, t.personnes), 2)} €</b> {T.chacun}
+              <b>{T.euros(fmt(partPersonne(cout, t.personnes), 2))}</b> {T.chacun}
             </>
           ) : t.personnes > 1 ? (
-            "—"
+            T.vide
           ) : (
             T.seul
           )}
@@ -264,7 +293,7 @@ export default function FinDeTrajet() {
             <span>{T.courbeVitesseTitre}</span>
             <span data-el="info-vitesse">{T.vitesseMoyAcc(t.vitesse_moy, t.accelerations)}</span>
           </div>
-          <Courbe valeurs={t.vitesses} max={Math.max(140, vmax)} label={T.courbeVitesseLabel(t.vitesse_moy, Math.round(vmax))} couleur="var(--ink)" />
+          <Courbe valeurs={t.vitesses} max={Math.max(50, vmax) * 1.1} label={T.courbeVitesseLabel(t.vitesse_moy, Math.round(vmax))} couleur="var(--ink)" />
         </div>
         <div className="trace" data-el="courbe-conso" data-points={t.consos.length} data-moyenne={l100.toFixed(2)} data-pointe={cmax}>
           <div className="h">
