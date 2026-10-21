@@ -61,7 +61,7 @@ export default function App() {
         </div>
       </header>
       <Routes>
-        <Route path="/trajets" element={<Trajets />} />
+        <Route path="/trajets" element={<Trajets position={position} />} />
         <Route path="/moteurs" element={<Moteurs />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<Prix position={position} carburant={carburant} setCarburant={setCarburant} tri={tri} setTri={setTri} />} />

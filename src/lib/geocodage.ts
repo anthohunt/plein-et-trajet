@@ -121,3 +121,26 @@ export async function geocoderLieu(texte: string, signal?: AbortSignal): Promise
   const tous = await chercher(q, 1, false, signal);
   return tous[0] ?? null;
 }
+
+/** Commune d'une position (pré-remplit le départ) : IGN en France (à moins de 2 km), Photon ailleurs ; null si aucune. */
+export async function nomDuLieu(lat: number, lon: number, signal?: AbortSignal): Promise<string | null> {
+  try {
+    const r = await fetch(`https://data.geopf.fr/geocodage/reverse?lon=${lon}&lat=${lat}&index=address&limit=1`, { signal });
+    if (r.ok) {
+      const p = (await r.json())?.features?.[0]?.properties;
+      if (p?.city && (p.distance == null || p.distance < 2000)) return p.city as string;
+    }
+  } catch {
+    if (signal?.aborted) return null;
+  }
+  try {
+    const r = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&lang=fr&limit=1`, { signal });
+    if (!r.ok) return null;
+    const p = (await r.json())?.features?.[0]?.properties;
+    if (!p) return null;
+    if (p.osm_key === "place" && ["city", "town", "village"].includes(p.osm_value)) return p.name ?? null;
+    return p.city ?? p.name ?? null;
+  } catch {
+    return null;
+  }
+}

@@ -2,8 +2,8 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useLocation } from "react-router-dom";
 import { T } from "../lib/textes";
-import { geocoderLieu, geocoderVille } from "../lib/geocodage";
-import { memoriserVille, type Lieu } from "../lib/position";
+import { geocoderLieu, geocoderVille, nomDuLieu } from "../lib/geocodage";
+import { memoriserVille, type Lieu, type Position } from "../lib/position";
 import { coutTotal, repartirCouts } from "../lib/pays";
 import { distanceKm } from "../lib/format";
 import { moyennesParPays } from "../lib/donnees";
@@ -39,7 +39,7 @@ interface Erreurs {
 }
 const SANS_ERREUR: Erreurs = { depart: null, arrivee: null, voiture: null };
 
-export default function Trajets() {
+export default function Trajets({ position }: { position: Position | null }) {
   const loc = useLocation();
   const arriveeInitiale = (loc.state as { arrivee?: string } | null)?.arrivee ?? "";
   const [depart, setDepart] = useState("");
@@ -80,9 +80,29 @@ export default function Trajets() {
     if (arriveeInitiale) {
       setArrivee(arriveeInitiale);
       setLieuArrivee(null);
-      champArrivee.current?.focus();
+      // l'arrivée vient de la fiche : le départ est la position (pré-remplie ci-dessous), il ne reste qu'à calculer
+      if (position?.source === "gps") document.getElementById("bouton-calculer")?.focus({ preventScroll: true });
+      else champDepart.current?.focus();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [arriveeInitiale]);
+
+  // départ pré-rempli par la commune où l'on se trouve (GPS) ; jamais par-dessus une saisie
+  const departTouche = useRef(false);
+  const latGps = position?.source === "gps" ? position.lat : null;
+  const lonGps = position?.source === "gps" ? position.lon : null;
+  useEffect(() => {
+    if (latGps == null || lonGps == null) return;
+    const c = new AbortController();
+    nomDuLieu(latGps, lonGps, c.signal).then((nom) => {
+      // champ déjà touché (saisie ou curseur dedans) : on ne remplit pas sous les doigts
+      if (!nom || c.signal.aborted || departTouche.current || document.activeElement === champDepart.current) return;
+      departTouche.current = true;
+      setDepart(nom);
+      setLieuDepart({ lat: latGps, lon: lonGps, label: nom });
+    });
+    return () => c.abort();
+  }, [latGps, lonGps]);
 
   const rafraichirHistorique = useCallback(async () => {
     try {
@@ -371,6 +391,7 @@ export default function Trajets() {
   };
 
   const inverser = () => {
+    departTouche.current = true;
     setDepart(arrivee);
     setArrivee(depart);
     setLieuDepart(lieuArrivee);
@@ -385,7 +406,6 @@ export default function Trajets() {
           <h2 className="route">{libelleCalcul}</h2>
           <div className="calcul" data-el="calcul-en-cours">
             <p className="t" role="status">{T.calculEnCours}</p>
-            <p className="d">{T.calculEnCoursDetail}</p>
             <div className="chargeur" aria-hidden="true"><i /></div>
             <button id="bouton-annuler" className="btn small" type="button" data-el="annuler-calcul" onClick={annuler}>
               {T.annuler}
@@ -404,7 +424,6 @@ export default function Trajets() {
         <div className="scroll">
           <div className="calcul" data-el="calcul-en-cours">
             <p className="t" role="status">{T.calculRoule}</p>
-            <p className="d">{T.calculRouleDetail}</p>
             <div className="chargeur" aria-hidden="true"><i /></div>
           </div>
         </div>
@@ -463,6 +482,7 @@ export default function Trajets() {
               inputRef={champDepart}
               erreur={erreurs.depart}
               onTexte={(t) => {
+                departTouche.current = true;
                 setDepart(t);
                 setLieuDepart(null);
                 setErreurs((er) => ({ ...er, depart: null }));

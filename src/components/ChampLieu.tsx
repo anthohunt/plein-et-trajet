@@ -26,6 +26,7 @@ export function ChampLieu({ id, etiquette, placeholder, dataEl, texte, onTexte, 
   const idErreur = `${id}-erreur`;
   const dernier = useRef("");
   const saisi = useRef(false); // propositions seulement après une frappe (pas pour un texte pré-rempli)
+  const vientDuFocus = useRef(false);
 
   useEffect(() => {
     if (!saisi.current) return;
@@ -112,6 +113,17 @@ export function ChampLieu({ id, etiquette, placeholder, dataEl, texte, onTexte, 
           onTexte(e.target.value);
         }}
         onKeyDown={touche}
+        onFocus={(e) => {
+          // texte pré-rempli ou choisi : sélectionné entier, la frappe le remplace sans l'effacer d'abord
+          if (saisi.current || !e.currentTarget.value) return;
+          e.currentTarget.select();
+          vientDuFocus.current = true;
+        }}
+        onMouseUp={(e) => {
+          if (!vientDuFocus.current) return;
+          vientDuFocus.current = false;
+          e.preventDefault(); // le relâchement du doigt ne défait pas la sélection
+        }}
         onBlur={() => {
           setOuvert(false);
           onSortie();
