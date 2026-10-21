@@ -82,7 +82,11 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: plein-et-trajet-apk
-      - uses: reactivecircus/android-emulator-runner@v2.38.0
+      # le démarrage de l'émulateur dépasse parfois 15 min sur les runners (run 39655982353, job immobile) : une seconde chance,
+      # seulement si le scénario n'a pas commencé (fichier sortie-m6/demarre absent)
+      - id: emu1
+        continue-on-error: true
+        uses: reactivecircus/android-emulator-runner@v2.38.0
         with:
           api-level: 34
           target: google_apis
@@ -94,7 +98,28 @@ jobs:
           # l'APK de release est installé et ouvert (contrôle de l'APK livré) ; l'instrumentation tourne sur l'APK de débogage,
           # même code, dont la WebView est inspectable. Le scénario principal installe sans -g : le dialogue d'autorisation est testé.
           script: |
-            mkdir -p sortie-m6
+            mkdir -p sortie-m6 && touch sortie-m6/demarre
+            if [ "${{ matrix.scenario }}" = principal ]; then adb install -r -g release/app-release.apk && adb shell monkey -p cloud.ingevision.pleinettrajet -c android.intent.category.LAUNCHER 1 && sleep 20 && adb exec-out screencap -p > sortie-m6/V-1.3-A01-apk-release.png && adb uninstall cloud.ingevision.pleinettrajet; fi
+            if [ "${{ matrix.scenario }}" = principal ]; then adb install -r debug/app-debug.apk; else adb install -r -g debug/app-debug.apk; fi
+            node tests/android/m6-emulateur.mjs ${{ matrix.scenario }} sortie-m6
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      - id: emu2
+        if: steps.emu1.outcome == 'failure' && hashFiles('sortie-m6/demarre') == ''
+        uses: reactivecircus/android-emulator-runner@v2.38.0
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          # les runners ubuntu-latest ont 4 cœurs : avec 2 (défaut) le démarrage dépassait parfois 10 min
+          cores: 4
+          ram-size: 4096M
+          emulator-boot-timeout: 900
+          # l'APK de release est installé et ouvert (contrôle de l'APK livré) ; l'instrumentation tourne sur l'APK de débogage,
+          # même code, dont la WebView est inspectable. Le scénario principal installe sans -g : le dialogue d'autorisation est testé.
+          script: |
+            mkdir -p sortie-m6 && touch sortie-m6/demarre
             if [ "${{ matrix.scenario }}" = principal ]; then adb install -r -g release/app-release.apk && adb shell monkey -p cloud.ingevision.pleinettrajet -c android.intent.category.LAUNCHER 1 && sleep 20 && adb exec-out screencap -p > sortie-m6/V-1.3-A01-apk-release.png && adb uninstall cloud.ingevision.pleinettrajet; fi
             if [ "${{ matrix.scenario }}" = principal ]; then adb install -r debug/app-debug.apk; else adb install -r -g debug/app-debug.apk; fi
             node tests/android/m6-emulateur.mjs ${{ matrix.scenario }} sortie-m6
@@ -106,3 +131,7 @@ jobs:
         with:
           name: captures-m6-${{ matrix.scenario }}
           path: sortie-m6/
+      # le premier essai a joué le scénario et l'a perdu : le job échoue (continue-on-error ne vaut que pour le démarrage)
+      - name: Verdict du scénario
+        if: steps.emu1.outcome == 'failure' && steps.emu2.outcome == 'skipped'
+        run: cat sortie-m6/verdicts-*.txt 2>/dev/null; exit 1

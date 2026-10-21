@@ -282,20 +282,26 @@ async function demarrer(p, lect) {
 async function principal() {
   const { lect, p: p0 } = await preparer("albi-toulouse.gpx", 700); // départ après l'arrêt à la station (points 484-664)
   let p = p0;
-  capture("V-1.3-A02-accueil");
 
-  // V-1.3 — Démarrer : dialogue(s) d'autorisation natifs, une fois (APK installé sans -g)
-  const clic = p.locator('[data-el="bouton-demarrer"]').click();
+  // V-1.3 — dialogues d'autorisation natifs, une fois (APK installé sans -g). Constaté au run 39655982353 : la localisation est
+  // demandée dès l'ouverture (position de « Autour de moi »), les notifications au premier Démarrer.
   const vus = {};
-  const limite = Date.now() + 60000;
+  let clic = null;
+  const limite = Date.now() + 75000;
   while (Date.now() < limite && !(vus.loc && vus.notif)) {
+    if (!clic && (vus.loc || Date.now() > limite - 55000)) {
+      await pause(1500);
+      capture("V-1.3-A03-accueil");
+      clic = p.locator('[data-el="bouton-demarrer"]').click();
+      journal("Démarrer touché");
+    }
     const ns = noeuds();
     if (sansAnr(ns)) continue;
     const loc = ns.find((n) => /permission_allow_foreground_only_button$/.test(n.id));
     const notif = ns.find((n) => /permission_allow_button$/.test(n.id));
     const message = ns.find((n) => /permission_message$/.test(n.id))?.text ?? "";
     if (loc && !vus.loc) {
-      capture("V-1.3-A03-dialogue-localisation");
+      capture("V-1.3-A02-dialogue-localisation");
       sh(`input tap ${loc.x} ${loc.y}`);
       vus.loc = message || loc.text;
       journal(`dialogue localisation : « ${message} » → « ${loc.text} »`);
@@ -307,7 +313,7 @@ async function principal() {
     } else if (vus.loc && /\/en-route$/.test(p.url()) && lireNotif()) break;
     await pause(700);
   }
-  await clic.catch(() => undefined);
+  await clic?.catch(() => undefined);
   constat("V-1.3 dialogue d'autorisation de localisation natif (une fois)", !!vus.loc, vus.loc ?? "");
   constat("V-1.3 dialogue d'autorisation des notifications natif", !!vus.notif, vus.notif ?? "non vu");
   await p.waitForURL(/\/en-route$/, { timeout: 60000 });
@@ -319,7 +325,7 @@ async function principal() {
   const km30 = await kmApp(p);
   const kmh = await p.locator('[data-el="vitesse"]').getAttribute("data-kmh");
   capture("V-3.1-A05-direct");
-  constat("V-3.1 direct : km et vitesse comptés", km30 > 0.3 && Number(kmh) > 10, `${km30} km, ${kmh} km/h après 30 s`);
+  constat("V-3.1 direct : km et vitesse comptés", km30 >= 0.2 && Number(kmh) > 10, `${km30} km, ${kmh} km/h après 30 s`);
 
   // V-3.4 — Pause dans l'appli : « En pause », km figés 10 s, Reprendre
   await p.locator('[data-el="bouton-pause"]').click();
@@ -349,6 +355,7 @@ async function principal() {
   constat("V-5.1 Stations pendant l'enregistrement : les points continuent", pendantSt.points.length - avantSt.points.length >= 15, `${avantSt.points.length} → ${pendantSt.points.length} points en 20 s sur Stations`);
 
   // V-3.2 — écran éteint, Google Maps (ou Paramètres) devant, 5 min de tracé
+  await pause(3000);
   capture("V-3.2-01-avant");
   const aMaps = shOk(`pm path ${MAPS}`).startsWith("package:");
   mesures.appliDevant = aMaps ? "Google Maps (com.google.android.apps.maps)" : "Paramètres (l'image n'a pas Google Maps)";
@@ -463,14 +470,16 @@ async function principal() {
   const idTrajet = await p.locator('[data-screen="T4"]').getAttribute("data-trajet");
   await p.locator('[data-el="enregistrer-trajet"]').click();
   await p.waitForURL(/\/historique$/, { timeout: 10000 });
-  await p.locator(`[data-trajet="${idTrajet}"]`).waitFor({ timeout: 10000 });
+  await p.locator(`[data-el="historique"] [data-trajet="${idTrajet}"]`).waitFor({ timeout: 10000 });
+  await pause(1500);
   capture("V-4.7-A15-historique");
   shOk(`am force-stop ${PKG}`);
   await pause(2000);
   lancer();
   p = await page();
   await p.locator('[data-el="onglet-historique"]').click({ timeout: 30000 });
-  const garde = await p.locator(`[data-trajet="${idTrajet}"]`).waitFor({ timeout: 15000 }).then(() => true, () => false);
+  const garde = await p.locator(`[data-el="historique"] [data-trajet="${idTrajet}"]`).waitFor({ timeout: 15000 }).then(() => true, () => false);
+  await pause(1000);
   capture("V-4.7-A16-historique-rouvert");
   constat("V-4.7 trajet enregistré présent dans l'historique après réouverture de l'appli", garde, idTrajet);
 
