@@ -343,7 +343,41 @@ export function estTraverseeManche(libelle: string): boolean {
   return /euro ?tunnel|le ?shuttle|channel tunnel|ferr(y|ies)|p ?& ?o|dfds|brittany|irish ferries|stena/i.test(libelle);
 }
 
-/** Le tracé franchit-il le Dartford Crossing (pont Queen Elizabeth II ou tunnels de Dartford) ? D'après les noms des routes reconnues. */
-export function franchitDartford(noms: (string[] | undefined)[]): boolean {
-  return noms.some((n) => (n ?? []).some((x) => /dartford crossing|queen elizabeth ii bridge|dartford tunnel/i.test(x)));
+/** Péage à montant officiel fixe (table `peages_fixes`) : Dartford Crossing. */
+export interface PeageFixe {
+  id: string; // « dartford » : reconnaît aussi la ligne du fournisseur (« Dartford River · Dartford RiverTunnel » chez PTV)
+  pays: string;
+  libelle: string;
+  montant: number;
+  monnaie: string;
+  noms: string; // expression régulière sur les noms des routes reconnues (Valhalla nomme le franchissement « A282 »)
+}
+export interface LignePeageSimple {
+  pays: string;
+  libelle: string;
+  montant: number;
+  fourchette?: boolean;
+}
+
+/**
+ * Royaume-Uni : retire la traversée de la Manche (non comptée) ; un péage fixe franchi (route reconnue OU ligne du fournisseur)
+ * prend son montant officiel converti au cours du jour — le Dart Charge n'a pas de TVA, le prix HT + TVA du fournisseur serait faux —
+ * et il est ajouté si le fournisseur l'a omis.
+ */
+export function appliquerPeagesRoyaumeUni(lignes: LignePeageSimple[], fixes: PeageFixe[], nomsRoutes: (string[] | undefined)[], tauxParMonnaie: Record<string, number>): { lignes: LignePeageSimple[]; mancheRetiree: boolean } {
+  const out = lignes.filter((l) => !estTraverseeManche(l.libelle));
+  const mancheRetiree = out.length !== lignes.length;
+  for (const f of fixes) {
+    const reRoute = new RegExp(f.noms, "i");
+    const reLigne = new RegExp(`${f.id}|${f.noms}`, "i");
+    const k = out.findIndex((l) => reLigne.test(l.libelle));
+    const franchi = k >= 0 || nomsRoutes.some((n) => (n ?? []).some((x) => reRoute.test(x.trim())));
+    if (!franchi) continue;
+    const taux = f.monnaie === "EUR" ? 1 : tauxParMonnaie[f.monnaie];
+    if (!(taux > 0)) continue;
+    const eur = Math.round((Number(f.montant) / taux) * 100) / 100;
+    if (k >= 0) out[k] = { ...out[k], montant: eur, fourchette: undefined };
+    else out.push({ pays: f.pays, libelle: f.libelle, montant: eur });
+  }
+  return { lignes: out, mancheRetiree };
 }

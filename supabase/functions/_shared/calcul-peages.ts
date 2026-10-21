@@ -2,7 +2,7 @@
 import type { PointGeo } from "./modele.ts";
 import { executerChaine, lireCle, lireMoteur, noterIncident, noterIssue, noterQuotaFournisseur, type Essai } from "./moteurs.ts";
 import { ErreurPeages, cleCachePeages, finQuotaJour, peagesHere, peagesPtv, pointsDePassage, totalPeages, type LignePeage } from "./peages.ts";
-import { estTraverseeManche } from "./roule.ts";
+import { appliquerPeagesRoyaumeUni, type PeageFixe } from "./roule.ts";
 
 /** Péages : fournisseur actif puis secours (table moteurs + Vault) ; l'échec n'empêche jamais le coût carburant.
  *  Tarifés sur LE tracé affiché : points de passage échantillonnés sur ce tracé (pointsDePassage), envoyés à PTV/HERE.
@@ -105,25 +105,15 @@ export async function calculerPeages(// deno-lint-ignore no-explicit-any
 }
 
 
-/** Royaume-Uni (US-3.9) : la traversée de la Manche (navette Eurotunnel, ferry) n'est pas un péage routier — retirée et signalée ;
- *  le Dartford Crossing (péage en flux libre que les fournisseurs omettent parfois) est ajouté s'il est franchi, au cours du jour. */
+/** Royaume-Uni (US-3.9) : traversée de la Manche retirée et signalée ; Dartford Crossing au montant officiel (table peages_fixes),
+ *  ajouté s'il est franchi et que le fournisseur l'a omis — règle pure : appliquerPeagesRoyaumeUni (roule.ts, testée par Vitest). */
 export async function ajusterPeagesRoyaumeUni(// deno-lint-ignore no-explicit-any
   db: any, p: ResPeages, nomsRoutes: (string[] | undefined)[]): Promise<ResPeages & { manche_retiree?: boolean }> {
   if (p.etat !== "ok") return p;
-  const lignes = p.lignes.filter((l) => !estTraverseeManche(l.libelle));
-  const retiree = lignes.length !== p.lignes.length;
   const { data: fixes } = await db.from("peages_fixes").select("id,pays,libelle,montant,monnaie,noms");
-  for (const f of (fixes ?? []) as { id: string; pays: string; libelle: string; montant: number; monnaie: string; noms: string }[]) {
-    const re = new RegExp(f.noms, "i");
-    if (!nomsRoutes.some((n) => (n ?? []).some((x) => re.test(x)))) continue;
-    if (lignes.some((l) => re.test(l.libelle))) continue; // déjà tarifé par le fournisseur
-    let eur = Number(f.montant);
-    if (f.monnaie !== "EUR") {
-      const { data: c } = await db.from("cours_change").select("taux").eq("monnaie", f.monnaie).maybeSingle();
-      if (!c?.taux) continue;
-      eur = Math.round((Number(f.montant) / Number(c.taux)) * 100) / 100;
-    }
-    lignes.push({ pays: f.pays, libelle: f.libelle, montant: eur });
-  }
-  return { ...p, lignes, total: totalPeages(lignes), ...(retiree ? { manche_retiree: true } : {}) };
+  const { data: cours } = await db.from("cours_change").select("monnaie,taux");
+  const taux: Record<string, number> = {};
+  for (const c of (cours ?? []) as { monnaie: string; taux: number }[]) taux[c.monnaie] = Number(c.taux);
+  const r = appliquerPeagesRoyaumeUni(p.lignes, (fixes ?? []) as PeageFixe[], nomsRoutes, taux);
+  return { ...p, lignes: r.lignes, total: totalPeages(r.lignes), ...(r.mancheRetiree ? { manche_retiree: true } : {}) };
 }

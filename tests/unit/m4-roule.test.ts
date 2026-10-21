@@ -15,7 +15,7 @@ import {
   dureeEnregistree,
   enDirect,
   estTraverseeManche,
-  franchitDartford,
+  appliquerPeagesRoyaumeUni,
   genreArete,
   litresPas,
   pasDe,
@@ -246,9 +246,21 @@ describe("Royaume-Uni", () => {
     expect(estTraverseeManche("P&O Ferries")).toBe(true);
     expect(estTraverseeManche("Autoroutes de France · ROISSY CDG (6) - CALAIS")).toBe(false);
   });
-  it("Dartford : détecté par le nom des routes reconnues (pont Queen Elizabeth II, tunnels de Dartford)", () => {
-    expect(franchitDartford([["M25"], ["Queen Elizabeth II Bridge", "A282"]])).toBe(true);
-    expect(franchitDartford([["Dartford Tunnel"]])).toBe(true);
-    expect(franchitDartford([["A2", "Dartford Bypass"], undefined])).toBe(false);
+  const DARTFORD = { id: "dartford", pays: "GB", libelle: "Dartford Crossing (Dart Charge, voiture, 6 h-22 h)", montant: 3.5, monnaie: "GBP", noms: "^(a282|dartford crossing|queen elizabeth ii bridge|dartford tunnel)$" };
+  const FR = { pays: "FR", libelle: "Autoroutes de France · ROISSY CDG (6) - CALAIS", montant: 25.2 };
+  it("Dartford tarifé par le fournisseur (HT + TVA) : montant remplacé par le Dart Charge officiel converti, sans doublon ; Eurotunnel retiré", () => {
+    const r = appliquerPeagesRoyaumeUni([FR, { pays: "GB", libelle: "Eurotunnel · Eurotunnel", montant: 260.1 }, { pays: "GB", libelle: "Dartford River · Dartford RiverTunnel", montant: 5 }], [DARTFORD], [["A282", "E 15"]], { GBP: 0.84028 });
+    expect(r.mancheRetiree).toBe(true);
+    expect(r.lignes.map((l) => l.montant)).toEqual([25.2, 4.17]); // 3,50 £ / 0,84028
+    expect(r.lignes[1].libelle).toBe("Dartford River · Dartford RiverTunnel");
+  });
+  it("Dartford franchi (route « A282 ») mais omis par le fournisseur : ajouté ; non franchi (« A2 Dartford Bypass ») : rien", () => {
+    expect(appliquerPeagesRoyaumeUni([FR], [DARTFORD], [["A282", "E 15", "Canterbury Way"]], { GBP: 0.84028 }).lignes).toEqual([FR, { pays: "GB", libelle: DARTFORD.libelle, montant: 4.17 }]);
+    const sans = appliquerPeagesRoyaumeUni([FR], [DARTFORD], [["A2", "Dartford Bypass"], undefined], { GBP: 0.84028 });
+    expect(sans.lignes).toEqual([FR]);
+    expect(sans.mancheRetiree).toBe(false);
+  });
+  it("sans cours du jour, aucun montant inventé", () => {
+    expect(appliquerPeagesRoyaumeUni([FR], [DARTFORD], [["A282"]], {}).lignes).toEqual([FR]);
   });
 });

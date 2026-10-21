@@ -98,7 +98,7 @@ drop policy if exists "lecture publique peages fixes" on public.peages_fixes;
 create policy "lecture publique peages fixes" on public.peages_fixes for select to anon, authenticated using (true);
 revoke insert, update, delete on public.peages_fixes from anon, authenticated;
 insert into public.peages_fixes (id, pays, libelle, montant, monnaie, noms, source, verifie_le) values
-  ('dartford', 'GB', 'Dartford Crossing (Dart Charge, voiture, 6 h-22 h)', 3.50, 'GBP', 'dartford crossing|queen elizabeth ii bridge|dartford tunnel',
+  ('dartford', 'GB', 'Dartford Crossing (Dart Charge, voiture, 6 h-22 h)', 3.50, 'GBP', '^(a282|dartford crossing|queen elizabeth ii bridge|dartford tunnel)$',   -- Valhalla nomme le franchissement « A282 »
    'https://nationalhighways.co.uk/help-centre/dart-charge-price-change/', '2026-10-21')
 on conflict (id) do update set montant = excluded.montant, libelle = excluded.libelle, noms = excluded.noms, source = excluded.source, verifie_le = excluded.verifie_le;
 
