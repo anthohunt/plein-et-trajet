@@ -1,0 +1,114 @@
+{
+  "US-6.1-01-avant.png": {
+    "action": "L'utilisateur ouvre l'écran Trajets avec sa Peugeot 208 déjà choisie.",
+    "expected": "Le bouton « Enregistrer en roulant » apparaît sous « Calculer le coût »."
+  },
+  "US-6.1-02-apres.png": {
+    "action": "L'utilisateur appuie sur « Enregistrer en roulant » et autorise la localisation.",
+    "expected": "L'écran En route s'ouvre, enregistrement lancé, Peugeot 208 rappelée en haut."
+  },
+  "US-6.2-01-avant.png": {
+    "action": "L'utilisateur démarre le trajet rejoué Albi → Toulouse.",
+    "expected": "L'enregistrement tourne, tous les compteurs sont encore à zéro."
+  },
+  "US-6.2-02-apres.png": {
+    "action": "L'utilisateur roule quelques minutes sur le trajet rejoué.",
+    "expected": "Vitesse 28 km/h avec sa courbe ; 1,4 km, 0,10 L, 0,23 €."
+  },
+  "US-6.3-01-avant.png": {
+    "action": "L'utilisateur pose le téléphone pendant l'enregistrement.",
+    "expected": "L'écran affiche 28 km/h, 1,4 km et rappelle qu'il reste allumé."
+  },
+  "US-6.3-02-apres.png": {
+    "action": "L'utilisateur laisse le téléphone posé sans toucher l'écran.",
+    "expected": "L'écran est toujours actif : 29 km/h, la distance passe à 1,9 km."
+  },
+  "US-6.3-03-avant.png": {
+    "action": "L'utilisateur roule sur autoroute pendant l'enregistrement.",
+    "expected": "Vitesse 105 km/h, 19,8 km parcourus, 2,45 € de carburant."
+  },
+  "US-6.3-04-apres.png": {
+    "action": "Le GPS ne donne plus de position depuis 18 secondes.",
+    "expected": "Un bandeau « GPS perdu » apparaît ; la distance reste figée à 19,8 km."
+  },
+  "US-6.4-01-avant.png": {
+    "action": "L'utilisateur s'arrête, l'enregistrement tourne toujours.",
+    "expected": "Vitesse 0 km/h, 2,5 km parcourus, bouton « Pause » disponible."
+  },
+  "US-6.4-02-apres.png": {
+    "action": "L'utilisateur appuie sur « Pause ».",
+    "expected": "« En pause » s'affiche, compteurs figés à 2,5 km, « Reprendre » proposé."
+  },
+  "US-6.5-01-avant.png": {
+    "action": "L'utilisateur arrive à Toulouse au bout du trajet rejoué.",
+    "expected": "Le compteur affiche 76,8 km, 4,42 L et 9,54 € en 1 h 09."
+  },
+  "US-6.5-02-apres.png": {
+    "action": "L'utilisateur appuie sur « Arrêter et voir le coût ».",
+    "expected": "« Albi → Toulouse · enregistré » : 13,03 €, 5,3 L, 77 km, péage 1,70 €."
+  },
+  "US-6.5-03-avant.png": {
+    "action": "L'utilisateur fait défiler le résultat vers le bas.",
+    "expected": "France traversée, puis tronçons autoroute, route et ville avec leurs litres."
+  },
+  "US-6.5-04-apres.png": {
+    "action": "L'utilisateur revient aux Trajets.",
+    "expected": "Albi → Toulouse, enregistré, 13,03 €, est en tête de l'historique."
+  },
+  "US-6.6-01-avant.png": {
+    "action": "L'utilisateur ouvre le résultat de son trajet enregistré Albi → Toulouse.",
+    "expected": "Le résultat affiche 13,03 € et le bloc « Ma vitesse enregistrée »."
+  },
+  "US-6.6-02-apres.png": {
+    "action": "L'utilisateur regarde le bloc « Ma vitesse enregistrée » et la note du bas.",
+    "expected": "Courbe, 64 km/h moy., 4 accélérations ; note « Calcul sur ta vitesse réelle »."
+  },
+  "US-6.6-03-avant.png": {
+    "action": "L'utilisateur ouvre un trajet calculé, non enregistré, Albi → Castres.",
+    "expected": "Le résultat affiche 6,82 €, sans bloc de vitesse enregistrée."
+  },
+  "US-6.6-04-apres.png": {
+    "action": "L'utilisateur fait défiler ce résultat Albi → Castres jusqu'en bas.",
+    "expected": "Aucun bloc « Ma vitesse enregistrée » ; la note parle d'une estimation."
+  },
+  "US-6.E1-01-avant.png": {
+    "action": "L'utilisateur est sur l'écran Trajets, sans aucun trajet enregistré.",
+    "expected": "Le bouton « Enregistrer en roulant » est proposé, l'historique est vide."
+  },
+  "US-6.E1-02-apres.png": {
+    "action": "L'utilisateur appuie sur « Enregistrer en roulant » mais refuse la localisation.",
+    "expected": "Un message explique comment autoriser la localisation ; aucun trajet créé."
+  },
+  "US-6.E2-01-avant.png": {
+    "action": "L'utilisateur lance un enregistrement et roule à peine.",
+    "expected": "Le compteur n'indique que 0,1 km et 0,01 €."
+  },
+  "US-6.E2-02-apres.png": {
+    "action": "L'utilisateur appuie aussitôt sur « Arrêter et voir le coût ».",
+    "expected": "« Trajet trop court » : 0,08 km, rien n'est ajouté à l'historique."
+  },
+  "US-6.E3-01-avant.png": {
+    "action": "L'utilisateur roule, l'enregistrement est en cours.",
+    "expected": "Le compteur affiche 74 km/h et 6,4 km parcourus en 11 minutes."
+  },
+  "US-6.E3-02-apres.png": {
+    "action": "L'appli se ferme, puis l'utilisateur la rouvre.",
+    "expected": "Un encadré propose de reprendre ou d'arrêter ; les 6,4 km sont conservés."
+  },
+  "US-3.9-01-avant.png": {
+    "action": "L'utilisateur part d'Albi et tape « Londres » comme arrivée.",
+    "expected": "Les suggestions proposent Londres, Royaume-Uni, parmi les homonymes de l'Hérault."
+  },
+  "US-3.9-02-apres.png": {
+    "action": "L'utilisateur choisit Londres et calcule le trajet.",
+    "expected": "Royaume-Uni listé : 128 km, 16,05 € ; traversée de la Manche non comptée."
+  },
+  "US-1.9-01-avant.png": {
+    "action": "L'utilisateur, géolocalisé à Londres, ouvre l'onglet Prix.",
+    "expected": "Carte et liste de stations britanniques en €/L, comparées à la moyenne Royaume-Uni."
+  },
+  "US-1.9-02-apres.png": {
+    "action": "L'utilisateur touche la station Asda de Vallance Road dans la liste.",
+    "expected": "Fiche au-dessus de la liste : 2,022 €/L, soit 169,9 p/L au cours BCE."
+  }
+}
