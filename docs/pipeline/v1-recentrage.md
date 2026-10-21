@@ -19,3 +19,4 @@ Trajet Toulouse → Paris à plusieurs, frais partagés. Les péages se lisent s
    - CORRECTION : la base ADEME Car Labelling ne contient que le catalogue neuf actuel (550 lignes dans l'appli) ; la Clio IV 2017 n'y est pas.
    - Base qui couvre la vraie voiture : EEA « CO2 cars » (Discodata, sans clé), toutes les voitures immatriculées en UE depuis 2010, avec les codes de la carte grise : D.2 type-variante-version (ex. Clio IV TCe 120 2017 : R / 5RBU / 5RBU0C), K réception CE (e2*2001/116*0327*79), P.2 kW (87), P.1 cm³ (1197), G.1 masse (1165 kg), V.7 CO2 (118 g/km NEDC).
    - Décision : **A** — saisie par le code D.2 de la carte grise (type-variante-version), identification exacte dans la base EEA ; secours : recherche « clio 2017 120 » (nom + année + puissance). Une seule fois, mémorisée.
+7. Prix par défaut : **A** — moyenne du jour du pays de départ, pour le carburant de la voiture ; remplaçable à la main avant ou après.
