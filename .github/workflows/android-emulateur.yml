@@ -1,0 +1,39 @@
+# Contrôle de l'APK sur un téléphone simulé (jalon 6) : installation, lancement, capture de l'écran d'accueil.
+name: android-emulateur
+on:
+  workflow_run:
+    workflows: [android]
+    types: [completed]
+  workflow_dispatch:
+jobs:
+  emulateur:
+    runs-on: ubuntu-latest
+    steps:
+      - name: KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - uses: actions/download-artifact@v4
+        with:
+          name: plein-et-trajet-apk
+          run-id: ${{ github.event.workflow_run.id || '' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: reactivecircus/android-emulator-runner@v2.38.0
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          script: |
+            adb install -r -g app-release.apk
+            adb shell monkey -p cloud.ingevision.pleinettrajet -c android.intent.category.LAUNCHER 1
+            sleep 25
+            adb exec-out screencap -p > accueil.png
+            adb shell pidof cloud.ingevision.pleinettrajet
+            adb logcat -d | grep -iE "Capacitor|chromium|AndroidRuntime" | tail -60 > logcat.txt || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: emulateur
+          path: |
+            accueil.png
+            logcat.txt
