@@ -41,7 +41,7 @@ import org.json.JSONObject;
 //                                     R;instant;redemarrage                              (relancé par le système)
 // Quand la page n'est pas là (processus relancé sans elle), le service calcule lui-même la ligne de chiffres de la notification :
 // km = km de la page à sa dernière mise à jour + distance des relevés suivants ; € = € de la page + litres de ces pas, chacun à la
-// consommation de la voiture à sa vitesse (table L/100 par tranche de 10 km/h, calculée par roule.ts et envoyée par la page) ×
+// consommation de la voiture à sa vitesse (table L/100 km par km/h, calculée par roule.ts et envoyée par la page) ×
 // prix. La page recalcule tout par roule.ts à sa réouverture.
 public class TrajetService extends Service implements LocationListener {
 
@@ -332,7 +332,7 @@ public class TrajetService extends Service implements LocationListener {
         org.json.JSONArray table = o.optJSONArray("l100ParVitesse");
         if (table == null || table.length() == 0) return;
         double v = kmh >= 0 ? kmh : d / dt * 3.6;
-        int k = (int) Math.min(table.length() - 1, Math.max(0, Math.round(v / 10)));
+        int k = (int) Math.min(table.length() - 1, Math.max(0, Math.floor(v)));
         litresNatif += table.optDouble(k, 0) * d / 1000 / 100;
     }
 

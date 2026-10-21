@@ -88,13 +88,14 @@ describe("journal des relevés écrit par le service natif (TrajetService.java)"
 });
 
 describe("direct natif : table de consommation envoyée au service (notifTrajet.ts)", () => {
-  it("L/100 à vitesse stable, de 0 à 200 km/h par 10 : ce que roule.ts compte pour un pas sans accélération", async () => {
+  it("L/100 à vitesse stable, de 0 à 200 km/h au km/h près : ce que roule.ts compte pour un pas sans accélération", async () => {
     const { tableConso } = await import("../../src/lib/notifTrajet");
     const { litresPas } = await import("../../supabase/functions/_shared/roule.ts");
     const t = tableConso(CLIO);
-    expect(t).toHaveLength(21);
-    expect(t[11]).toBeCloseTo(litresPas({ d: 1000, v: 110, vPrec: 110 }, CLIO) * 100, 3);
+    expect(t).toHaveLength(201);
+    // le service prend la case du km/h entier inférieur (TrajetService.compter) : à 104,9 km/h, la même phase que la page
+    for (const v of [12.5, 47.3, 99.6, 104.9, 131]) expect(t[Math.floor(v)]).toBeCloseTo(litresPas({ d: 1000, v, vPrec: v }, CLIO) * 100, 3);
     // 20 km d'autoroute à 110 km/h comptés par le service = ce que compte la page sans accélération
-    expect((t[11] * 20) / 100).toBeCloseTo(litresPas({ d: 20_000, v: 110, vPrec: 110 }, CLIO), 3);
+    expect((t[110] * 20) / 100).toBeCloseTo(litresPas({ d: 20_000, v: 110, vPrec: 110 }, CLIO), 3);
   });
 });

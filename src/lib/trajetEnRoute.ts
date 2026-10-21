@@ -20,7 +20,7 @@ export interface ContenuNotification {
   km: number;
   euros: number | null;
   prix: number | null;
-  l100ParVitesse: number[]; // consommation de la voiture (L/100 km) à 0, 10, 20… 200 km/h, pour les pas comptés par le service
+  l100ParVitesse: number[]; // consommation de la voiture (L/100 km) à 0, 1, 2… 200 km/h, pour les pas comptés par le service
   tPoint: number | null; // instant du dernier relevé compté par la page
 }
 

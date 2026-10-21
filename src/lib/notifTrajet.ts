@@ -12,9 +12,11 @@ import { TrajetEnRoute, type ContenuNotification } from "./trajetEnRoute";
 export type { ContenuNotification };
 const PERIODE_MS = 2000;
 
-/** L/100 km de la voiture à vitesse stable, de 0 à 200 km/h par 10 : ce que roule.ts compte pour un pas sans accélération. */
+/** L/100 km de la voiture à vitesse stable, de 0 à 200 km/h, km/h par km/h : ce que roule.ts compte pour un pas sans accélération.
+ *  Au km/h près : par tranches de 10, 104,9 km/h tombait sur la tranche de 100 et passait la phase WLTP « haute » au lieu de
+ *  « très haute » (run 39690690299 : € du direct natif 8 % sous ceux de la page). */
 export function tableConso(veh: VehiculeRoule): number[] {
-  return Array.from({ length: 21 }, (_, k) => +(litresPas({ d: 1000, v: k * 10, vPrec: k * 10 }, veh) * 100).toFixed(3));
+  return Array.from({ length: 201 }, (_, k) => +(litresPas({ d: 1000, v: k, vPrec: k }, veh) * 100).toFixed(3));
 }
 
 export function contenuNotification(e: EnCours, maintenant: number): ContenuNotification {
