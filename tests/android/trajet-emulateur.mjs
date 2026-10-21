@@ -3,7 +3,7 @@
 // notification → fin de trajet avec les km parcourus. La WebView de l'APK de débogage est pilotée par Playwright (CDP).
 import { execSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
-import { chromium } from "@playwright/test";
+import { _android } from "@playwright/test";
 import { voitureEea } from "../e2e/exploration/m5-aides.mjs";
 
 const PKG = "cloud.ingevision.pleinettrajet";
@@ -24,17 +24,9 @@ const avancer = () => {
 const rouler = async (s) => { for (let i = 0; i < s; i++) { avancer(); await pause(1000); } };
 
 async function page() {
-  for (let i = 0; i < 30; i++) {
-    const sock = sh("adb shell cat /proc/net/unix | grep -o 'webview_devtools_remote_[0-9]*' | head -1 || true");
-    if (sock) {
-      sh(`adb forward tcp:9222 localabstract:${sock}`);
-      const b = await chromium.connectOverCDP("http://127.0.0.1:9222");
-      const p = b.contexts()[0]?.pages()[0];
-      if (p) return p;
-    }
-    await pause(2000);
-  }
-  throw new Error("WebView introuvable");
+  const [appareil] = await _android.devices();
+  const vue = await appareil.webView({ pkg: PKG }, { timeout: 60000 });
+  return vue.page();
 }
 
 const voiture = await voitureEea("5RBU0C");
