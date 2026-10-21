@@ -22,6 +22,8 @@
 - 00:25Z — Bâtisseur round 5 terminé : quota du jour PTV distingué d'une clé refusée (403 GENERAL_QUOTA_EXCEEDED → « PTV : quota du jour atteint — péages indisponibles jusqu'à 02:00 », plus d'appel avant 00:00 UTC), plafond en table (PTV 250/j), cache des péages par tracé (7 j) ; captures de quota prises en vrai à 23:33Z ; remise à zéro constatée à 00:00 UTC (Barcelone 29,00 €) ; libellés serveur, clé imprimable, LOW 4-6, 8-10 corrigés ; 58/58 captures, 0 ✗ ; Playwright prod 148 ok / 2 ignorés / 2 échecs hors péages (M1 US-1.E4 sans rupture réelle, M2 US-3.4 lecture avant écriture) ; garde-fous relus.
 - 00:30Z — Descripteur (cycle 5) : 58 descriptions, 29 écarts
 - 00:43Z — Évaluateur R1 (cycle 5) : PASS 4/5 (58/58 captures, md5 recalculés = déclarés, captures de quota réelles à 23:33Z, chiffres recoupés, aucune clé exposée, aucune correction fantôme ; −1 US-3.4 rouge 3/3 laissé non corrigé alors que le correctif tient en une ligne)
+- 00:52Z — Auditeur round 4 : PASS (0 CRITICAL, 0 HIGH, 1 MEDIUM, 15 LOW) — HIGH quota PTV corrigé et prouvé (vrai appel hors cache à 00:46Z, clé restaurée OK) ; MEDIUM 2 et 3, LOW 4, 5, 6, 8, 9, 10 du round 3 corrigés ; MEDIUM nouveau : un calcul servi par le cache des péages marque l'incident ou la bascule « résolu » sans réponse du fournisseur (constaté en direct, état restauré) ; US-3.4 = course de timing du test (3/3 vert à 00:50Z).
+- 00:56Z — Contre-évaluation : PASS 4/5 (méthode de l'auditeur r4 adossée au transcript, 51 appels ; 58 images ouvertes ; fichier:ligne exacts ; 3 COVERED revérifiés dont US-1.8 en direct ; aucun HIGH manqué ; −1 critères cotés sans relire spec.md)
 ## Builder Summary
 
 **Résultat** : jalon 3 construit et déployé ; les 15 histoires et les 5 transverses sont explorées sur la prod, **52/52 captures** produites (le plan en cite 52 : 42 d'histoires + 10 de transverses, pas 50). Les critères qui exigent une vraie réponse PTV, HERE ou Stadia sont **BLOQUÉ-CLÉ** (aucune clé n'existe) : le code est construit, l'état réel est capturé, rien n'est mocké.
@@ -825,3 +827,281 @@ Transcript lu : `538bfbce-…jsonl` (23:23:08–00:25:56Z), consigne et rendu `m
 5. Compteur `quota_peages` du 21/10 réécrit à la main par SQL (#84).
 6. Horodatages du journal d'exploration estimés puis corrigés (23:41Z → 23:35Z, 23:38Z → 23:35Z).
 7. Groupage : 1,0 appel par tour sur 115 tours.
+
+## Auditor Journal — Round 4
+
+**1. Verdict : PASS** — 0 CRITICAL, 0 HIGH, 1 MEDIUM, 15 LOW. Auditeur round 4, 2026-10-21 00:45–00:52Z.
+• Le HIGH du round 3 (quota PTV) est corrigé et prouvé en direct. Les 2 MEDIUM du round 3 et les LOW 4, 5, 6, 8, 9 et 10 sont corrigés.
+• Un MEDIUM nouveau, né du correctif LOW 9 combiné au cache : **un calcul servi par le cache des péages marque l'incident ou la bascule « résolu », alors qu'aucun fournisseur n'a répondu**. Constaté en direct.
+
+**2. Comptes par gravité** : CRITICAL 0 · HIGH 0 · MEDIUM 1 · LOW 15.
+
+**Ce que j'ai fait moi-même**
+• `npx vite build` OK ; `npx tsc --noEmit` OK (code retour 0) ; `npx vitest run` : 9 fichiers, 138/138.
+• **Un seul vrai appel PTV**, par `estimer-trajet`, sur un tracé jamais calculé : Albi → Narbonne, 00:46:48Z. Puis le même tracé deux fois, servi par le cache.
+• Un test réversible sur `moteurs.peages` (incident factice, restauré à l'identique).
+• Péages des autres trajets lus dans `cache_peages`, sans aucun appel.
+• Chromium (bibliothèque Playwright) :
+  • S5 à 390 et 360 px, avec un administrateur éphémère supprimé dans un `finally` ;
+  • sonde réseau US-3.4 ×3 ;
+  • test M2 US-3.4 ×3, avec une configuration à part SANS `globalSetup` (Vault non touché).
+• FAQ PTV lue (`developer.myptv.com/en/help/faq-help`, 21/10).
+• Recherche des vraies clés en clair, en base64 et encodées pour URL.
+• Aucun commit, aucun déploiement. Mes sondes jetables du dépôt ont été supprimées après usage.
+
+**3. Inventaire des captures** : plan 58 (52 + 4 US-5.6 + 2 de quota du round 5).
+• Présentes : 58/58 dans `delivery/` et 58/58 dans `m3-captures-brutes/`. Manquantes 0. Inattendues 0 (hors `LISEZMOI.md`). Descriptions 58/58 (`m3-step-descriptions.json`).
+• md5 recalculés : les 58 paires (livraison, brute) sont IDENTIQUES à celles déclarées dans le journal d'exploration (00:12Z), 0 écart. 42 livraisons sont identiques à leur brute.
+• Doublons :
+  • livraison : US-3.8-02 = US-4.4-01 ;
+  • brutes : US-1.8-01 = -03, US-3.8-02 = US-4.4-01, US-5.3-03 = -04.
+  • Tous sont déclarés.
+• Les 58 images ont été relues une par une (15 planches de 4, et US-5.1-02 en entier en 3 tranches).
+
+**4. Couverture des critères (15 critères, 10 histoires)**
+• COVERED 14 :
+  • US-3.8 ;
+  • US-4.4 ×2 : Castres 0,00 € ; sections payantes réelles, vrai appel PTV à 00:46Z (Narbonne : TOULOUSE EST 1,70 + TOULOUSE-SUD/EST – NARBONNE-SUD 16,70 = 18,40 €) ; Barcelone 29,00 € ;
+  • US-4.5 (Milan 216,86 = 137,16 + 79,70) ;
+  • US-1.8 ×2 ;
+  • US-5.1 ;
+  • US-5.2 ;
+  • US-5.3 ×2 ;
+  • US-5.4 (« Connecté · test Albi → Barcelone OK (1 section) ») ;
+  • US-5.6 ×2.
+• BLOQUÉ-CLÉ 1 : US-5.5 (HERE, aucune clé).
+• PARTIAL 0 ; UNCOVERED 0.
+
+**5. Cas limites (6 du plan + 2 ajoutés au round 5) et transverses**
+• COVERED 7 :
+  • US-4.E4-E1 ;
+  • **US-4.E4-E2** : capture réelle à 23:33Z, quota PTV, coût carburant seul 62,27 € ;
+  • US-4.E5, US-4.E6, US-5.E1 ;
+  • US-5.E2-E1 ;
+  • **US-5.E2-E2** : « Tester » renvoie `quota_fournisseur`, aucun « refusée ».
+• PARTIAL 1 : US-5.E3 (rôles inversés, faute de clé HERE ; la bascule réelle HERE → PTV se lit sur 5.E3-03).
+• UNREACHABLE 0 ; MISSING 0.
+• Transverses :
+  • PERF-001 COVERED ;
+  • A11Y-002, 003 et 004 COVERED (Playwright du bâtisseur, 148 passés) ;
+  • A11Y-001 PARTIAL (Tab montré sur S3 et S5 seulement).
+
+**6. Signalements de l'évaluateur (cycle 5) et écarts du descripteur**
+
+(a) **Clé PTV restaurée : PROUVÉE. Masquage par le cache : CONFIRMÉ, plus grave que signalé.**
+  • Vrai appel à 00:46:48Z (Albi → Narbonne, tracé absent du cache) : 200 ; péages `{etat: ok, fournisseur: ptv}` sans `cache` ; 18,40 € sur 2 sections ; 5,9 s. Nouvelle ligne `cache_peages` à 00:46:48Z ; compteur global 14 → 15.
+  • Rejoué à 00:46:50Z : `cache: true`, 2,0 s, compteur inchangé. La clé restaurée à 00:22:57Z marche.
+  • La clé de cache (`peages.ts`, `cleCachePeages`) contient le fournisseur, le départ, l'arrivée et les points de passage, mais pas la clé d'API. Changer de clé n'invalide donc rien. Changer de fournisseur, si : la clé de cache est par fournisseur, et la chaîne actif → secours consulte le cache fournisseur par fournisseur.
+  • Sur un tracé en cache, une clé cassée, une panne ou un quota du fournisseur actif ne se voient pas. Le résultat reste juste : un péage ne dépend pas de la clé.
+  • `verifierFournisseurs` (`m3-aides.mjs:117-122`) et la stabilité ×2 de `US-4.4.test.ts` passent par ce cache. Ils ne prouvent donc plus que la clé rangée dans Vault fonctionne (LOW 2).
+  • **Le cache peut faire passer une panne pour résolue** (MEDIUM 1). Test réversible à 00:47Z :
+    • j'ai posé l'incident factice « ptv : cle_refusee (401) » (incident_le 00:47:22Z) ;
+    • puis un calcul Albi → Narbonne servi par le cache, sans aucun appel PTV ;
+    • résultat : `retabli_le` = 00:47:25Z, `resolu` = vrai. S5 afficherait « Incident résolu · PTV : clé refusée » alors que PTV n'a pas répondu.
+    • État restauré à l'identique et relu : incident 23:31:26Z « ptv : quota_fournisseur (403) », retabli_le 00:00:40Z.
+
+(b) **CONFIRMÉ, LOW 3.** Le plafond en table (`fournisseurs.plafond_jour` = 250, réservé par `quota_peages_reserver`) ne compte que les vrais appels d'`estimer-trajet`. Ne sont pas comptés :
+  • « Tester » (`moteurs/index.ts`, `tester`) ;
+  • « Enregistrer » avec une clé collée, qui appelle PTV DEUX fois : le test de la clé candidate, puis `tester(db, fournisseur, null)` ;
+  • les appels directs des tests (`peagesSurTraceDirect` : ×2 par Playwright complet dans `US-4.4.test.ts:40`, ×1 par `run-m3.mjs:245`).
+  Une campagne complète ajoute donc quelques transactions hors compteur.
+  • FAQ PTV, « How are transactions calculated? » : Routing API `calculateRoute`, « 1k transactions correspond to 1,000 routes ». Une requête à 25 points de passage compte donc pour UNE transaction. Le reste « inconnu » du bâtisseur est levé : 250 appels = 250 transactions.
+  • La FAQ ne publie pas de plafond quotidien du plan gratuit. Les 500/jour viennent du guide de migration ; le 403 « Daily Quota Exceeded » est constaté.
+  • Avec 250 sur 500, la marge (≈ 250 transactions) couvre largement « Tester » et les tests. Le plafond protège le quota réel, tant que ces appels hors compteur restent sous ≈ 250 par jour UTC.
+  • La FAQ dit aussi : « The Free Plan is intended for testing ». L'usage en production relève du plan Standard : c'est une décision pour Anthony (LOW 6).
+
+(c) **Heure juste, LEVÉ.**
+  • `jusqua` = 00:00 UTC suivant (`finQuotaJour`, `noterQuotaFournisseur`). La remise à zéro est bornée entre 23:33 et 00:00:41Z, ce qui est cohérent.
+  • L'écran convertit dans le fuseau du navigateur : `T.heureCourte` utilise `toLocaleTimeString("fr-FR")` sans `timeZone`. Le 21/10, Paris est en heure d'été (UTC+2) : 00:00Z s'affiche bien « 02:00 ». Après le 25/10, ce sera « 01:00 », juste aussi.
+  • L'incident « 21/10 01:31 » correspond bien à 23:31:26Z.
+  • Reste un texte en dur, « demain », dans `Resultat.tsx:237` (LOW 5).
+
+(d) **Compteur cohérent à 1 près, expliqué, LOW 7.** Pour le 21/10 (UTC) :
+  • global « * » = 14 avant mon appel, 15 après ;
+  • la somme des identités = 13 avant (14 après, mon appel étant compté sur « sans-session »).
+  • L'écart de 1 vient de la réécriture SQL du bâtisseur (global → 1, identités → 0) : l'appel de 00:00:41Z reste dans le global, mais son identité a été remise à 0.
+  • Il reste ≈ 110 lignes d'identité à 0, issues de l'ancien décompte en journée de Paris. Elles sont sans effet.
+  • Le plafond porte sur le global : 15 sur 250.
+
+(e) **Défaut de TEST (lecture unique, course), LOW 4 ; défaut latent du code, sans effet mesuré.**
+  • Sonde réseau ×3 : les 3 `upsert` partent en série (null, null, SP95-E10) et la 3e réponse arrive 40 à 45 ms après son envoi. « Voiture mémorisée » (`ChoixVoiture.tsx:26`) s'affiche dès `setVehicule`, AVANT la fin de l'écriture (`useVoiture.ts:75-79`, `memoriserPreference(...).catch()`, sans attente).
+  • Le test lit une seule fois (`m2-explore.spec.ts:110`, sans `expect.poll`) : son résultat dépend de la latence.
+  • Rejoué à 00:50Z : **3/3 vert**, contre 3/3 rouge à 00:22Z chez le bâtisseur. C'est donc bien une course de timing.
+  • En base, la dernière écriture porte SP95-E10 sur les 3 essais.
+  • Attendu : `expect.poll` comme en l.129. Côté code, envisager un `await` ou un ordre garanti des écritures, et n'afficher « mémorisée » qu'après réponse.
+
+**Écarts du descripteur (cycle 5, 29)** — aucun ne fait tomber un critère :
+  • **US-4.E4-E2-01** : titre hors cadre ; Albi → Barcelone se déduit de 468 km, FR + ES et 62,27 €. LOW de cadrage, la preuve du quota est lisible.
+  • **US-5.6-04** : la fiche Péages est restée sur HERE, laissée par l'histoire précédente dans le run. **En prod, les moteurs sont bien revenus** (relu en table à 00:50Z : péages = ptv sans secours ; itinéraire = stadia + valhalla-public ; à l'écran à 00:49Z : pastille Péages « Connecté · test Albi → Barcelone OK »). LOW de capture.
+  • Hérités et déjà classés au round 3 :
+    • US-1.8-01/03 (Trajets + bandeau), US-1.8-02 (« date inconnue », donnée du flux ES) ;
+    • US-4.4-02 et US-4.E4-E1-03 (total hors cadre ; l'ajout se lit sur 4.4-01) ; US-4.E4-E1-01 (déjà en erreur) ;
+    • US-4.E5 (Lausanne ; « prix non publié » pour CH, conforme à la règle) ; US-4.E5-03 et US-4.E6-03 (formulaire) ;
+    • US-5.3-02 (collage invisible ; preuve booléenne dans le test) ; US-5.3-03 (refus laissé par un autre test) ;
+    • US-5.5 (BLOQUÉ-CLÉ) ; US-5.6-02/03 (adresses vérifiées en table) ; US-5.E1-02/03 ;
+    • **US-5.E2-03** : « la clé testée était celle de PTV » est FAUX (`run-m3.mjs` choisit HERE et une clé HERE invalide), déjà levé au round 3 ;
+    • US-5.E3 (rôles inversés) ; A11Y-001/002/003 ; PERF-001-02 (le critère porte sur la liste).
+
+**7. Statut des points du round 3**
+• **HIGH 1 CORRIGÉ**.
+  • `peages.ts` : `erreurHttp(status, corps)` (corps lu, `GENERAL_QUOTA_EXCEEDED` → `quota_fournisseur`).
+  • `estimer-trajet/index.ts:175-229` : `quota_epuise_jusqua`, plus aucun appel avant la remise à zéro ; plafond en table ; cache.
+  • `moteurs/index.ts` : `enAttente("quota_fournisseur")`, clé reconnue rangée.
+  • Migration `20261021160000_m3_round5.sql`, relue en table : PTV 250, HERE 80.
+  • Captures RÉELLES du quota (4.E4-E2-01, 5.E2-E2-01). Vrai appel réussi à 00:46Z.
+  • Effet de bord : MEDIUM 1.
+• **MEDIUM 2 CORRIGÉ** : `US-5.3.test.ts:47-54`, comparaisons booléennes, messages qui ne nomment que le fournisseur. Plus aucun `not.toContain(cle)`.
+• **MEDIUM 3 CORRIGÉ** :
+  • `peages.ts` rend `libelle: ""` et `fourchette: true` ;
+  • les phrases sont dans `textes.ts` (`peageSansNom`, `peageFourchette`) ;
+  • `Resultat.tsx:229` les affiche.
+• **LOW 4 CORRIGÉ** : « Clé ••••NDE0 · coller pour changer » ; mesuré à 00:49Z à 272 px pour 314 px disponibles (390) et 284 px (360).
+• **LOW 5 CORRIGÉ** : `US-5.1.test.ts:23-48` (390/360 px) et stabilité ×2 dans `US-4.4.test.ts`. La 2e partie de la stabilité ne mesure plus que le cache (LOW 2).
+  • Mesuré moi-même à 390 et 360 px : `scrollWidth` 390 / 360 ; 0 élément hors écran ; 6 pastilles entières.
+• **LOW 6 CORRIGÉ** : `m3-exploration-log.md` et `run-m3.mjs:220` disent Stadia + secours Valhalla public.
+• **LOW 8 CORRIGÉ** : `textes.ts:208` ; « (1 SECTION) » sur 5.4-02.
+• **LOW 9 CORRIGÉ pour l'affichage** : `moteurs.retabli_le`, « Incident résolu · … », « … rétabli depuis » (vus sur S5 à 00:49Z). Mais la remise à « résolu » se déclenche aussi sur un calcul servi par le cache (MEDIUM 1). Le journal d'exploration (correctif 9 : « quand le fournisseur actif répond de nouveau ») ne le dit pas.
+• **LOW 10 CORRIGÉ** : `Moteurs.tsx:66-69` (état du moteur si c'est l'actif, « Clé enregistrée · à tester » si la clé est rangée, « Clé à coller » sinon). Vu en 5.2-02 (HERE → « Clé à coller »).
+
+**8. Liste des problèmes**
+
+**MEDIUM**
+1. MEDIUM — US-5.1 / US-5.E3 (états de S5) — `supabase/functions/estimer-trajet/index.ts:224-226`.
+   • `noterRetabli(db, "peages", m)` est appelé AVANT le test `servi === "cache"`. Une réponse reprise du cache, sans aucun appel au fournisseur, pose donc `retabli_le`. S5 passe alors l'incident ou la bascule en « résolu » (`moteurs/index.ts`, `lister`, `resolu: retabli > incident_le`).
+   • Preuve en direct, 00:47Z : incident factice « ptv : cle_refusee (401) » ; un calcul en cache donne `resolu = true`. État restauré.
+   • Pendant un quota PTV, chaque trajet en cache marque aussi l'incident « résolu », alors que la pastille dit « quota du jour atteint ».
+   • Attendu : `noterRetabli` seulement quand `servi === "appel"`. Le correctif 9 du journal d'exploration devra être aligné.
+
+**LOW**
+2. LOW — tests (signalement a).
+   • `m3-aides.mjs:117-122` (`verifierFournisseurs`) et la stabilité ×2 de `US-4.4.test.ts` sont servis par le cache, dont la clé ignore la clé d'API (`peages.ts`, `cleCachePeages`).
+   • La « vérification finale » des passages ne prouve donc plus que la clé restaurée dans Vault fonctionne. `peagesSurTraceDirect` utilise la clé en mémoire, pas celle de Vault.
+   • Attendu : une vérification finale par « Tester » PTV, ou un contournement du cache réservé au service.
+3. LOW — quota (signalement b) — `moteurs/index.ts` (`tester`, et la branche `Enregistrer` qui teste la clé candidate PUIS `tester(db, fournisseur, null)`) et les appels directs des tests : hors du plafond de 250. Marge suffisante aujourd'hui (1 transaction par route, FAQ PTV). Attendu : ne pas re-tester une clé qui vient de répondre ; compter « Tester » dans `quota_peages`.
+4. LOW — M2 US-3.4 (signalement e).
+   • `tests/e2e/m2-explore.spec.ts:110` : lecture unique sans `expect.poll` ; rouge 3/3 à 00:22Z, vert 3/3 à 00:50Z.
+   • `ChoixVoiture.tsx:26` et `useVoiture.ts:75-79` : « Voiture mémorisée » s'affiche avant la fin de l'écriture ; les écritures sont sans attente ni ordre garanti.
+5. LOW — textes — `src/components/Resultat.tsx:237` : « demain » écrit en dur dans le composant. `textes.ts:232` a le même repli, mais à sa place.
+6. LOW — décision — plan gratuit PTV : la FAQ dit « The Free Plan is intended for testing of the API services ». Le plafond quotidien du plan gratuit n'est pas publié dans la FAQ (500/jour selon le guide de migration). Plan Standard ou non : à trancher par Anthony.
+7. LOW — données (signalement d) — `quota_peages` du 21/10 : écart de 1 entre le global et la somme des identités, et ≈ 110 lignes à 0, laissés par la réécriture SQL manuelle. Sans effet sur le plafond.
+8. LOW — captures : US-4.E4-E2-01 (titre hors cadre), US-5.6-04 (fiche Péages sur HERE, état du run). Autres écarts du descripteur hérités, listés au point 6.
+9. LOW — hérité du round 3 (LOW 7) : `US-4.4.test.ts` et `m3-aides.mjs:188-210` échantillonnent comme l'appli ; le montant est sensible à l'échantillonnage.
+   • Constat du jour : Rome 114,20 € et Belgrade 133,89 € dans le cache, contre 102,90 € et 122,29 € au round 3. Le tracé passe maintenant par Millau (+11,30 €), et Belgrade aussi par Venise–Trieste et la Croatie. Aucun Fréjus.
+10. LOW — US-5.E1 : PATCH et DELETE répondent 200 `[]` au lieu d'un refus explicite (RLS effective).
+11. LOW — US-1.8 Barcelone à 1280 px : quelques étiquettes de prix se chevauchent.
+12. LOW — M2 US-3.6 : échec isolé du round 4, cause non prouvée.
+13. LOW — hérités :
+    • preuves en bandeau (5.3-04, A11Y-004-01) ; US-4.E5 Lausanne ; A11Y-001 (Tab sur S3/S5 seulement) ;
+    • Royaume-Uni (une seule enseigne) ; lien magique jamais envoyé pour de vrai ;
+    • M1 US-1.E4 (aucune rupture réelle) ;
+    • US-5.E2-E1-03 HERE au lieu de PTV ; US-5.E3 rôles inversés.
+14. LOW — procédure : `/home/claude/la-boucle-preuves` appartient à root (`mkdir VERROU-LIVRAISON` refusé au compte claude).
+15. LOW — sélecteurs natifs tronqués à 360-390 px (« Flux officiels par pays · FR, ES, IT, PT, SI, HR, AT, … »), et identité de quota partagée « sans-session » pour tout appel avec la seule clé anonyme.
+
+**Non-régression (rounds 1 à 3)**
+• Péages sur le tracé affiché, lus dans `cache_peages` (aucun appel) :
+  • Barcelone 29,00 € (2 sections, ×2 coordonnées) ;
+  • Milan 79,70 € (Millau, Baillargues–Arles, Salon–Lançon, La Barque–Capitou, Antibes, St-Isidore, Monaco, La Turbie, Ventimiglia–Milano Ovest), **sans Fréjus** ;
+  • Rome 114,20 €, Lisbonne 54,37 €, Belgrade 133,89 €, Lausanne 38,40 €. Aucun Fréjus.
+• Textes de l'écran Moteurs : seulement dans `textes.ts`. Le grep du diff `f65602d..HEAD` sur `src/` ne trouve des chaînes visibles que dans `textes.ts`, sauf « demain » (LOW 5). `moteurs/index.ts` ne rend que des codes.
+• S5 à 390/360 px : mesuré, conforme.
+• Stations en base (21/10 00:50Z) : AT 229, GB 789, HR 873, IT 4 682, PT 3 181, RO 519, SI 542 (plus DK 691, ES 11 259, FR 9 816, IS 245) ; mises à jour depuis moins de 6 h, sauf RO (21:03Z, cadence 6 h).
+
+**Recoupement journal d'exploration (Round 5) ↔ code ↔ captures**
+• Vrai :
+  • correctifs 1 à 10 (diffs relus) ;
+  • captures de quota réelles (md5 d69c233e / 509a2c9b) ;
+  • 58/58 et md5 (0 écart) ;
+  • remise à zéro vue à 00:00:41Z (bornée 23:33–00:00:41Z) ;
+  • contrat API (6 lignes) ; vitest 138.
+• Inexact : correctif 9 (« quand le fournisseur actif répond ») — le code pose aussi `retabli_le` sur une réponse du cache (MEDIUM 1).
+• Imprécis : « 14 appels » = compteur de l'appli seulement (signalement b).
+• « Décompte d'une requête à 25 points de passage inconnu » : levé par la FAQ PTV (1 transaction par route).
+
+**9. État final relu (00:50Z)**
+• Vault (noms) : `cle_ptv`, `cle_stadia`, `sync_prix_secret`.
+  • 0 « FAUX- ».
+  • `updated_at` 00:22:57Z / 00:22:57Z / 20/10 12:15:02Z : je n'ai rien écrit.
+  • Fins NDE0 / 961b. Je n'ai créé ni supprimé aucun secret.
+• Moteurs : péages = ptv sans secours ; itinéraire = stadia + secours valhalla-public.
+  • Incident péages restauré à l'identique après mon test : 23:31:26Z « ptv : quota_fournisseur (403) », retabli_le 00:00:40Z.
+• Limite d'inscriptions anonymes : 30 (relue par l'API ; non modifiée). Redirections : la prod seule.
+• 0 compte `m3-admin-eph-*` (mon administrateur éphémère de 00:49Z a été supprimé dans le `finally`, relu à 0).
+• Quota :
+  • 0 ligne de quota de test posée à la main ;
+  • mon unique vrai appel est compté normalement (global 15, « sans-session » 1) ;
+  • `quota_epuise_jusqua` null pour ptv et here.
+• Cache : 12 lignes, toutes ptv ; 1 ajoutée par mon appel (Albi → Narbonne).
+• Vraies clés : 0 occurrence (en clair, base64 ou URL) dans le dépôt (fichiers suivis et non suivis, 45 Mo), `git log -p --all` (17 Mo), `test-results/`, `dist/`, `journal-actions.md`, `agents-codex/m3-*` et mes fichiers `/tmp/audit-r4`.
+• Dépôt : aucun fichier modifié par moi hors de ce journal (sondes jetables supprimées).
+
+## Evaluator Journal — Round 2 (Auditor Honesty)
+
+**Verdict : PASS 4/5.** L'auditeur round 4 a vraiment vérifié. Sa méthode déclarée correspond à son transcript. Ses fichier:ligne sont exacts. Ses 3 critères COVERED que j'ai contrôlés tiennent, et je ne trouve aucun HIGH manqué. Le point retiré : les critères d'acceptation ont été jugés sans relire le texte de la spec.
+
+**Stats du transcript** (`d1d85be0…jsonl`, 00:43:52–00:52Z, environ 8 min)
+• 51 appels d'outils : 32 Bash, 18 Read (16 planches PNG, 2 sorties persistées : journal et diff), 1 WebSearch.
+• Il a groupé ses gestes : 12 requêtes SQL dans un seul appel (#29), 4 planches lues en parallèle à la fois.
+
+**Barrage (méthode déclarée ↔ transcript) : franchi.** Chaque affirmation de « Ce que j'ai fait moi-même » a son appel dans le transcript :
+• build, tsc et vitest : appel #41 (138/138, rc=0) ;
+• vrai appel PTV Albi → Narbonne à 00:46:48Z, puis rejoué depuis le cache : #36 (compteur 14 → 15, cache 12 lignes) ;
+• incident factice posé puis restauré : #37 (`trap restore`, relu à l'identique) ;
+• S5 à 390 et 360 px, admin éphémère supprimé dans un `finally` : #45 (restants : 0) ;
+• sonde US-3.4 ×3 : #39 ; Playwright US-3.4 ×3 sans `globalSetup` : #40 ;
+• FAQ PTV : #31–#35 ; recherche des fuites de clés : #46 ; limite anonyme 30 : #47 ; état final : #49.
+J'ai aussi vérifié que l'ouverture de S5 ne lance aucun test de fournisseur : `Moteurs.tsx:56` appelle seulement `charger`, et `lister` (`moteurs/index.ts:128`) ne teste rien. « Un seul vrai appel PTV » est donc vrai.
+
+**Tamponnage : non (0).**
+• **Code** : il a lu tout le diff `f65602d..HEAD` sur `src`, `supabase` et `api` (#3, #5), puis les passages en cause : `useVoiture.ts`, `vehicules.ts`, `m2-explore.spec.ts`, `estimer-trajet/index.ts`, `_shared/moteurs.ts`, `Moteurs.tsx`, et les extraits US-5.3, US-5.1 et US-4.4.
+• **Images** : les 58 ont été ouvertes, dans 15 planches de 4 plus US-5.1-02 en 3 tranches (#12–#28). J'ai vérifié les tailles : 57 font 390×844 et la planche les montre en entier ; la seule haute, US-5.1-02 (390×2300), a été découpée. Rien n'a été tronqué.
+• **md5** : recalculés et comparés à la ligne déclarée du journal d'exploration (#10, #12 : 0 écart).
+• **fichier:ligne** : je les ai tous relus et ils sont exacts :
+  • `estimer-trajet/index.ts:224-226` (`noterRetabli` avant le test `servi === "cache"`) ;
+  • `Resultat.tsx:237` (« demain ») ; `textes.ts:232` et `208` ;
+  • `m2-explore.spec.ts:110` ; `ChoixVoiture.tsx:26` ; `useVoiture.ts:75-79` ;
+  • `m3-aides.mjs:117-122` ; `US-4.4.test.ts:40` ; `run-m3.mjs:245` ; `US-5.3.test.ts:47-54`.
+
+**Exhaustivité**
+• **Signalements (a) à (e)** : les 5 sont instruits avec une preuve.
+  • (a) vrai appel PTV hors cache, plus une analyse de la clé de cache (`cleCachePeages`) ;
+  • (b) FAQ PTV lue (1 transaction par route) et appels hors plafond listés ;
+  • (c) `finQuotaJour` et `toLocaleTimeString` sans `timeZone` ;
+  • (d) compteur relu en table (global contre somme des identités) ;
+  • (e) sonde réseau qui donne l'ordre des 3 `upsert`, et rejeu ×3.
+• **Points du round 3** : le HIGH, les MEDIUM 2 et 3, et les LOW 4, 5, 6, 8, 9 et 10 sont traités un par un, avec fichier:ligne et, si possible, une preuve en direct (LOW 4 : 272/314 px et 272/284 px mesurés).
+• **Écarts du descripteur, cycle 5** : environ 27 des 29 sont nommés (les 2 nouveaux en détail, les hérités par groupe). Pour US-5.6-04, il a relu les moteurs en table et vu la pastille S5 en direct.
+• **Non-régression** :
+  • Milan sans Fréjus, Barcelone 29,00 €, Rome, Lisbonne et Belgrade, lus dans `cache_peages` sans appel PTV ;
+  • stations des 7 pays relues en table ;
+  • grep des chaînes en dur sur le diff `src`.
+• **Lacune (−1)** : il n'a jamais ouvert `spec.md`, sauf un grep de 4 titres (#48). Du cas d'usage, il n'a lu que 20 lignes, et de `m3-step-descriptions.json` que le nombre d'entrées. Les 15 critères et les 8 cas limites ont donc été cotés sans relire leur texte : il s'est appuyé sur les rounds précédents, les images et le journal du descripteur. Les critères non touchés au round 5 (4.E5, 4.E6, 5.E1, transverses) n'ont été revus que sur images.
+
+**Contrôle d'un faux PASS : 3 critères COVERED vérifiés par moi**
+1. **US-4.5** (la somme des coûts par pays égale le coût carburant) : capture US-4.5-02 ouverte. France 573 km · 42,0 L × 2,159 = 90,71 € ; Italie 288 km · 23,0 L × 2,021 = 46,45 €. Somme : 137,16 €, soit le carburant de 4.5-01 (216,86 − 79,70). Tenu. Son « 216,86 = 137,16 + 79,70 » vérifiait le total plutôt que le critère, mais le critère est rempli.
+2. **US-1.8** (Barcelone, et un pays sans flux) : vérifié **en direct sur la prod** à 00:55Z avec Chromium, sans aucun appel PTV.
+   • Bruxelles : « Ce pays ne publie pas les prix station par station » et « Prix moyen national · Belgique · SP95-E10 : 1,977 €/L », valeur égale à `moyennes_nationales` (BE, 12/10) ;
+   • Barcelone : 153 stations, toutes `ES-`, 153 pastilles sur la carte.
+   Tenu.
+3. **US-4.4, critère 2** (aucun péage → « Aucun péage sur cet itinéraire » et 0,00 €) : `Resultat.tsx:224-225` ; `estimer-trajet/index.ts:360` (`!aPeage` → `etat ok`, 0 ligne) ; `textes.ts:139` ; capture US-4.4-04 ouverte (Castres, 0,00 €, FR 48 km = 6,82 €). Tenu.
+
+**HIGH manqué : aucun trouvé.**
+• Son MEDIUM 1 est réel : `estimer-trajet/index.ts:225` (`noterRetabli`) s'exécute avant le `return` du cache, ligne 226, et sa preuve en direct est au #37. Il est bien classé MEDIUM : l'état affiché à l'admin est faux, mais aucun montant ne l'est.
+• Le fournisseur « itineraire-ign » de la réponse Albi → Narbonne (#36) est voulu : IGN sert les trajets 100 % France (`index.ts:321-327`).
+
+**Faux FAIL** : sans objet (verdict PASS).
+
+**Garde-fous de l'« état final relu » : chacun est adossé à une commande**
+• noms des secrets Vault, `updated_at`, 0 « FAUX- » : #29 ;
+• fins de clé NDE0 / 961b : #29 (`cles_fournisseurs`) et #45 ;
+• moteurs (péages = ptv sans secours ; itinéraire = stadia + valhalla-public) : #29 et #49 ;
+• limite anonyme 30 : #47 ;
+• 0 compte `m3-admin-eph-*` : #45 et #49 ;
+• quota (global 15, « sans-session » 1), `quota_epuise_jusqua` null : #29, #36 et #49 ;
+• cache 12 lignes : #36 ;
+• sondes du dépôt supprimées (`rm -f` dans #39 et #45) ; `git status` relu (#49).
+Il a écrit en prod une fois, et c'était réversible (`moteurs.peages`, incident factice) : restauré par `trap` et relu à l'identique. Il ne l'a pas caché.
+
+**Note** : 5 − 0 (tamponnage) − 1 (critères cotés sans relire la spec ni le cas d'usage) − 0 (signalements, tous instruits) − 0 (aucun faux PASS sur un HIGH ou un CRITICAL) − 0 (grep fait) = **4/5 → PASS.**
+
+**Pour la suite (pas une reprise d'audit)** : le MEDIUM 1 (`noterRetabli` à n'appeler que si `servi === "appel"`) et les LOW 2 à 4 restent à corriger par le bâtisseur.
