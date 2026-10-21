@@ -12,7 +12,9 @@
     "pastille-station",
     "tri-liste",
     "ligne-station"
-   ]
+   ],
+   "version": "v1-v4 (jalons 1-4)",
+   "remplace_en_v1_par": "T5"
   },
   {
    "id": "S2",
@@ -22,7 +24,9 @@
    "interactive_elements": [
     "fermer-fiche",
     "bouton-trajet-station"
-   ]
+   ],
+   "version": "v1-v4 (jalons 1-4)",
+   "remplace_en_v1_par": "T5"
   },
   {
    "id": "S3",
@@ -38,7 +42,9 @@
     "ligne-historique",
     "supprimer-trajet",
     "bouton-enregistrer"
-   ]
+   ],
+   "version": "v1-v4 (jalons 1-4)",
+   "remplace_en_v1_par": "T1, T6"
   },
   {
    "id": "S4",
@@ -52,7 +58,9 @@
     "detail-peages",
     "pays-traverses",
     "courbe-vitesse"
-   ]
+   ],
+   "version": "v1-v4 (jalons 1-4)",
+   "remplace_en_v1_par": "T4"
   },
   {
    "id": "S5",
@@ -65,7 +73,9 @@
     "champ-cle",
     "tester-connexion",
     "enregistrer-moteur"
-   ]
+   ],
+   "version": "v1-v4 (jalons 1-4)",
+   "remplace_en_v1_par": "aucun (écran retiré de la navigation, /admin réservé à Anthony)"
   },
   {
    "id": "S6",
@@ -77,6 +87,94 @@
     "ecran-allume",
     "bouton-pause",
     "bouton-arreter"
+   ],
+   "version": "v1-v4 (jalons 1-4)",
+   "remplace_en_v1_par": "T3"
+  },
+  {
+   "id": "T1",
+   "name": "Trajet",
+   "section": "Trajet",
+   "view": "accueil : ma voiture au centre, gros bouton rond Démarrer",
+   "version": "V1 recentrée (jalons 5-6)",
+   "interactive_elements": [
+    "onglet-trajet",
+    "ma-voiture",
+    "changer-voiture",
+    "bouton-demarrer"
+   ]
+  },
+  {
+   "id": "T2",
+   "name": "Ma voiture",
+   "section": "Trajet",
+   "view": "saisie unique de la voiture : code D.2 de la carte grise (base EEA) ou recherche nom + année + puissance",
+   "version": "V1 recentrée (jalons 5-6)",
+   "interactive_elements": [
+    "champ-d2",
+    "recherche-voiture",
+    "enregistrer-voiture"
+   ]
+  },
+  {
+   "id": "T3",
+   "name": "En route",
+   "section": "Trajet",
+   "view": "enregistrement du trajet en direct ; en fond sur Android avec notification permanente",
+   "version": "V1 recentrée (jalons 5-6)",
+   "interactive_elements": [
+    "vitesse-direct",
+    "ecran-eteint",
+    "gps-perdu",
+    "bouton-pause",
+    "bouton-arreter",
+    "notification"
+   ]
+  },
+  {
+   "id": "T4",
+   "name": "Fin de trajet",
+   "section": "Trajet / Historique",
+   "view": "prix de l'essence, coût, partage, courbes vitesse et conso, Enregistrer / Supprimer",
+   "version": "V1 recentrée (jalons 5-6)",
+   "interactive_elements": [
+    "prix-apres",
+    "carburant-apres",
+    "cout-trajet",
+    "personnes-apres",
+    "part-personne",
+    "courbe-vitesse",
+    "courbe-conso",
+    "enregistrer-ou-supprimer",
+    "supprimer-trajet"
+   ]
+  },
+  {
+   "id": "T5",
+   "name": "Stations",
+   "section": "Stations",
+   "view": "carte déplaçable + liste des stations, Rechercher dans cette zone, fiche avec Utiliser ce prix",
+   "version": "V1 recentrée (jalons 5-6)",
+   "interactive_elements": [
+    "onglet-stations",
+    "retour-trajet",
+    "selecteur-carburant",
+    "carte-stations",
+    "rechercher-zone",
+    "tri-liste",
+    "utiliser-ce-prix"
+   ]
+  },
+  {
+   "id": "T6",
+   "name": "Historique",
+   "section": "Historique",
+   "view": "totaux et trajets enregistrés groupés par mois",
+   "version": "V1 recentrée (jalons 5-6)",
+   "interactive_elements": [
+    "onglet-historique",
+    "totaux-historique",
+    "historique"
    ]
   }
  ]
