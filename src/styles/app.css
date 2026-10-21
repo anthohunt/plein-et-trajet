@@ -299,7 +299,7 @@ h2.route:focus-visible { outline: none; text-decoration: underline 3px; text-und
 .d2 input { border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: var(--surface); font: 600 20px 'JetBrains Mono', var(--f-digits); letter-spacing: .08em; text-transform: uppercase; min-width: 0; width: 100%; }
 .d2 input.q { font: 500 17px var(--f-body); letter-spacing: 0; text-transform: none; }
 .d2 input[aria-invalid="true"] { border-color: var(--dear); }
-.cg { margin: 6px 16px 0; border: 1px dashed var(--line); border-radius: 10px; padding: 10px 12px; font: 13px/1.5 var(--f-digits); color: var(--muted); }
+.cg { margin: 6px 16px 0; border: 1px dashed var(--line); border-radius: 10px; padding: 10px 12px; font: 13px/1.5 'JetBrains Mono', var(--f-digits); color: var(--muted); }
 .cg b { color: var(--ink); background: color-mix(in srgb, var(--cheap) 22%, transparent); padding: 0 3px; border-radius: 3px; }
 .spec { margin: 12px 16px 0; border: 1px solid var(--cheap); border-radius: 12px; padding: 12px; display: grid; gap: 6px; }
 .spec .nm { font: 800 20px/1.1 var(--f-display); text-transform: uppercase; }
