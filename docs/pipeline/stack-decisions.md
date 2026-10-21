@@ -12,7 +12,7 @@ Sources externes vérifiées le 2026-10-20 par téléchargement direct (réponse
 | Itinéraire | IGN Géoplateforme, `data.geopf.fr/navigation/itineraire` (ressource `bdtopo-osrm`, sans clé) | Albi → Bordeaux : 312 km, 199 min, 81 étapes avec géométrie GeoJSON. |
 | Dénivelé | IGN Géoplateforme, `data.geopf.fr/altimetrie/1.0/calcul/alti/rest/elevation.json` | Altitudes renvoyées pour une liste de points (174 m / 469 m sur le test). |
 | Géocodage départ / arrivée | IGN Géoplateforme, `data.geopf.fr/geocodage/search` | « Albi » → 43.930, 2.136, code INSEE 81004. |
-| Fond de carte | Plan IGN en tuiles vectorielles (Géoplateforme), affiché avec MapLibre GL JS | Bibliothèque front ajoutée, pas un écart de pile. |
+| Fond de carte | **Jalon 5 (round 2, 5739533) : « Positron » d'OpenFreeMap** (`tiles.openfreemap.org/styles/positron`, tuiles vectorielles OpenMapTiles sur données OpenStreetMap), affiché avec MapLibre GL JS — sans clé ni limite de requêtes, attribution demandée et affichée (`T.credits` : « OpenFreeMap © OpenMapTiles · données © contributeurs OpenStreetMap »). Avant : Plan IGN en tuiles vectorielles (Géoplateforme), sans fond hors de France, gênant pour les stations d'Europe (V-5.7). | Conditions lues sur openfreemap.org et /tos le 21/10 ; CORS `*` vérifié. Changement de fournisseur à signaler à Anthony. |
 
 ## Comment le standard s'applique ici
 

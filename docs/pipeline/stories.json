@@ -463,10 +463,14 @@
   "source": "spécification",
   "validated": true,
   "acceptance_criteria": [
-   "ÉTANT DONNÉ aucun trajet calculé, QUAND j'ouvre l'onglet Trajets, ALORS l'historique affiche « Aucun trajet pour l'instant » avec une invitation à calculer le premier"
+   "ÉTANT DONNÉ aucun trajet enregistré, QUAND j'ouvre l'onglet Historique, ALORS il affiche « Aucun trajet enregistré. » (critère aligné sur V-6.1 c2 au jalon 5 ; l'invitation à calculer le premier a disparu avec l'estimation)"
   ],
   "statut": "maintenue_v1",
-  "raison_v1": "gardée sur T6 : « Aucun trajet enregistré. »"
+  "raison_v1": "gardée sur T6 : « Aucun trajet enregistré. »",
+  "remplacee_par": [
+   "V-6.1"
+  ],
+  "note_m5": "Jalon 5 round 3 (audit r2 lot 2, LOW 5) : critère d'origine (« Aucun trajet pour l'instant », onglet Trajets, invitation à calculer) remplacé par V-6.1 c2 ; le test m5-regression vérifie le texte V1."
  },
  {
   "id": "US-3.E4",
