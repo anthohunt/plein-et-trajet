@@ -419,4 +419,11 @@ export const T = {
   ligneCarburant: (c: string, prix: string | null) => (prix == null ? c : `${c} à ${prix} €/L`),
   notificationTitre: "Plein & Trajet",
   notificationTexte: "Trajet en cours d'enregistrement",
+  // --- jalon 5, round 3 : notification Android du trajet en cours (titres et ligne de chiffres ; libellés des boutons envoyés au
+  // Java par maj() : T.reprendre, T.cestFini, T.pause, T.arreterV1)
+  notifImmobile: "Immobile depuis 10 min : c'est fini ?",
+  notifEnPause: "Trajet en pause",
+  notifGpsPerdu: "Trajet en cours · GPS perdu",
+  notifEnCours: "Trajet en cours",
+  notifTexte: (kmh: number, km: string, euros: string) => `${kmh} km/h · ${km} km · ${euros}`,
 };

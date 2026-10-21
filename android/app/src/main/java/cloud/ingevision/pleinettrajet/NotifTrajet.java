@@ -84,6 +84,11 @@ public class NotifTrajet extends Plugin {
         String texte = call.getString("texte", "");
         boolean enPause = Boolean.TRUE.equals(call.getBoolean("enPause", false));
         boolean immobile = Boolean.TRUE.equals(call.getBoolean("immobile", false));
+        // libellés des boutons : envoyés par le JS (src/lib/textes.ts) ; ceux-ci ne servent que de repli
+        String reprendre = call.getString("reprendre", "Reprendre");
+        String cestFini = call.getString("cestFini", "C'est fini");
+        String pause = call.getString("pause", "Pause");
+        String arreter = call.getString("arreter", "Arrêter");
         NotificationCompat.Builder b = new NotificationCompat.Builder(getContext(), CANAL)
             .setSmallIcon(getContext().getApplicationInfo().icon)
             .setContentTitle(titre)
@@ -98,11 +103,11 @@ public class NotifTrajet extends Plugin {
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setContentIntent(ouvrir(null, 1));
         if (immobile) {
-            b.addAction(0, "Reprendre", diffusion("reprendre-immobile", 2));
-            b.addAction(0, "C'est fini", ouvrir("arreter", 3));
+            b.addAction(0, reprendre, diffusion("reprendre-immobile", 2));
+            b.addAction(0, cestFini, ouvrir("arreter", 3));
         } else {
-            b.addAction(0, enPause ? "Reprendre" : "Pause", diffusion(enPause ? "reprendre" : "pause", 4));
-            b.addAction(0, "Arrêter", ouvrir("arreter", 5));
+            b.addAction(0, enPause ? reprendre : pause, diffusion(enPause ? "reprendre" : "pause", 4));
+            b.addAction(0, arreter, ouvrir("arreter", 5));
         }
         Notification n = b.build();
         n.flags |= Notification.FLAG_ONGOING_EVENT | Notification.FLAG_NO_CLEAR;
