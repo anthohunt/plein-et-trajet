@@ -122,10 +122,11 @@ async function fluxVoiture() {
     return `fiche « ${nom} » : année ${v.annee} · ${v.kw} · ${v.cm3} · ${v.kg} · ${v.carb} · ${v.co2} · « Base européenne EEA » ; liste : ${await txt(p, sel("versions-d2"))}`;
   });
   // code partagé par plusieurs marques / années / masses et jamais demandé à l'appli (absent du cache versions_eea) : le premier
-  // libre d'une liste tirée de la base EEA (codes D.2 portés par plusieurs marques en 2019) — chaque passage en consomme un
+  // libre d'une liste tirée de la base EEA (codes D.2 portés par plusieurs marques en 2019) — chaque passage en consomme un ;
+  // round 3 : M61A11, AD6DB000M000 et M15DZ000M000 ont leur puissance dans la base (HNSJC1B000 n'en a aucune : « — kW »)
   await p.locator("#d2").fill("");
   let CODE = null;
-  for (const c of ["BA1SACEH225", "DAW400L0", "M51AZ1", "HNSJC1B000", "M61A11"]) if ((await restAnon(`versions_eea?select=ve&ve=eq.${c}`)).length === 0) { CODE = c; break; }
+  for (const c of ["BA1SACEH225", "DAW400L0", "M51AZ1", "HNSJC1B000", "M61A11", "AD6DB000M000", "M15DZ000M000"]) if ((await restAnon(`versions_eea?select=ve&ve=eq.${c}`)).length === 0) { CODE = c; break; }
   const avantCache = await restAnon(`versions_eea?select=ve&ve=eq.${CODE}`);
   await p.locator("#d2").pressSequentially(CODE.slice(0, -1), { delay: 50 });
   await etape("V-2.1", 3, p, "V-2.1-03-avant.png", `code partagé par plusieurs versions, jamais demandé à l'appli : je tape « ${CODE} » sauf le dernier caractère`, async () => {
