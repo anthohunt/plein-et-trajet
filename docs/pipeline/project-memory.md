@@ -3,5 +3,5 @@
 - **Jalons 1 à 4 FAITS** : S1 Prix, S2 Fiche, S3 Trajets, S4 Résultat, S5 Moteurs (admin ; Vault cle_ptv, cle_stadia, sync_prix_secret : ne JAMAIS effacer), S6 En route (vitesse en direct, pause, verrou d'écran, résultat sur la vitesse réelle : recalage Valhalla, montée tirée de l'altitude, péages PTV sur le tracé recalé). Royaume-Uni : 4 flux distributeurs (~2 300 stations), pence/L + cours BCE, Dartford officiel.
 - **Tests** : Vitest 174 ; Playwright m1-m4 165/168 sur la prod (US-1.E4 rouge sans rupture réelle ; 2 HERE ignorés). Quota PTV gratuit ≈ 500/j, cache des péages 7 j.
 - **Méthode** : agents par lancer-agent-claude.sh (LA_BOUCLE_SUR_VPS=1, LA_BOUCLE_MODE_P=1), attendus au premier plan ; captures brutes tests/e2e/exploration/m{N}-captures-brutes/ ; rapport = convertir-cas-usage.py puis générateur patché copié en .cjs.
-- **En attente d'Anthony** : plan PTV payant ; couverture nationale GB (Fuel Finder) ; commentaires des rapports m2, m3, m4.
-- **Suite** : étape 5 (durcissement). Reste repéré : estimation Europe encore sur weighted_grade (europe.ts:224).
+- **V1 recentrée (21/10, maquette V1 validée)** : jalon 5 web (T1-T6, voiture par D.2 via EEA Discodata, fin de trajet + partage, Historique sur le téléphone, péages hors service sans toucher aux clés), jalon 6 Android (Capacitor 8, plugin TrajetEnRoute, APK par GitHub Actions). Kit : stack-decisions.md § V1, tasks.md T5/T6.
+- **Suite** : construire jalon 5 puis 6 ; durcissement après. PTV payant sans objet en V1.

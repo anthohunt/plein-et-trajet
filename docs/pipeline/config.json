@@ -10,14 +10,39 @@
   "front": "React + Vite statique sur Vercel (projet à lier au build)",
   "database": "Supabase, projet dédié créé au build (postgis, pg_cron, auth anonyme)",
   "secrets": "/home/claude/flux/secrets/webapp-stack.env (VERCEL_TOKEN, SUPABASE_ACCESS_TOKEN présents)",
-  "node": "20 LTS (VPS : 22 disponible)",
+  "node": "20 LTS pour le web ; 22 exigé par Capacitor 8 (CI Android et VPS : 22)",
   "externes_sans_cle": [
-   "data.economie.gouv.fr",
    "data.ademe.fr",
-   "data.geopf.fr"
-  ]
+   "data.economie.gouv.fr",
+   "data.geopf.fr",
+   "discodata.eea.europa.eu"
+  ],
+  "android": {
+   "type": "apk signé hors Play Store",
+   "build": "GitHub Actions (.github/workflows/android.yml) sur anthohunt/plein-et-trajet ; le VPS n'a ni Java ni SDK Android",
+   "signature": "keystore PKCS12 /home/claude/flux/secrets/plein-et-trajet-release.p12 (jamais commité) + secrets GitHub ANDROID_KEYSTORE_B64 / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS",
+   "distribution": "https://projets.ingevision.cloud/plein-et-trajet/plein-et-trajet.apk (dépôt privé : release non téléchargeable sans compte)",
+   "appId": "cloud.ingevision.pleinettrajet"
+  }
  },
- "skippedFeatures": [],
+ "skippedFeatures": [
+  {
+   "feature": "Estimation d'un trajet avant de partir (S3/S4)",
+   "depuis": "V1, 2026-10-21",
+   "raison": "décision 2 d'Anthony : « on va rester à ça pour une version 1 »",
+   "histoires": "statut retiree_v1 dans stories.json"
+  },
+  {
+   "feature": "Péages et vignettes",
+   "depuis": "V1, 2026-10-21",
+   "raison": "décision 2 d'Anthony ; moteur péages hors service, aucun appel PTV, clés et Vault intacts"
+  },
+  {
+   "feature": "Écran Moteurs dans la navigation",
+   "depuis": "V1, 2026-10-21",
+   "raison": "absent de la maquette V1 ; /admin gardé pour Anthony (clés Fuel Finder et autres synchros)"
+  }
+ ],
  "productionUrl": "https://plein-et-trajet.vercel.app",
  "supabaseProjectRef": "rglrwtkqwihdztgqlbsy",
  "vercelProjectId": "prj_G6FzUAooAuoQRIwMpfACkMVGMFHC"
