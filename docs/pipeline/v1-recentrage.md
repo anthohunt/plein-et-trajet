@@ -10,3 +10,4 @@ Trajet Toulouse → Paris à plusieurs, frais partagés. Les péages se lisent s
 
 ## Décisions, une par une
 1. Partage des frais : **A** — on indique le nombre de personnes, l'appli affiche le total et la part par personne (essence seule).
+2. Périmètre V1 : trajet roulé + partage des frais + **carte des prix des stations** (gardée : « lorsque je suis en route, si je veux chercher des stations d'essence sur mon chemin qui sont pas trop chères »), sur toute l'Europe et le Royaume-Uni. Le reste (estimation d'un trajet avant de partir, péages) sort de la V1 : « on va rester à ça pour une version 1, pour commencer ».

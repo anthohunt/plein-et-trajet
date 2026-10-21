@@ -3,7 +3,7 @@ import { defineConfig } from "@playwright/test";
 // Captures avant/après de la passe streamline (hors suite) : PHASE=avant|apres, APP_URL=appli locale ou déployée.
 export default defineConfig({
   testDir: ".",
-  testMatch: [/captures\.spec\.ts$/],
+  testMatch: [/captures(-r2)?\.spec\.ts$/],
   timeout: 120_000,
   expect: { timeout: 15_000 },
   workers: 1,

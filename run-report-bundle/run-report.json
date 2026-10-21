@@ -1,9 +1,9 @@
 {
   "run": "prix-carburant-trajets-2026-10-20-114307",
-  "workspace": "/home/claude/flux-runs/prix-carburant-trajets-2026-10-20-114307",
+  "workspace": "/home/claude/webapp-runs/prix-carburant-trajets-2026-10-20-114307",
   "subject": "prix-carburant-trajets-2026-10-20-114307",
   "owner": "anthony",
-  "generated_at": "2026-10-20T12:04:01Z",
+  "generated_at": "2026-10-21T05:11:45Z",
   "status": "idle",
   "active_step": 1,
   "steps": [
