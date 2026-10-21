@@ -48,16 +48,17 @@ jobs:
       # signature (empreinte = celle du magasin de clés) et manifeste fusionné (permissions, service de localisation)
       - name: Contrôles de l'APK (apksigner, aapt2)
         run: |
-          python3 tests/android/controle-apk.py android/app/build/outputs/apk/release/app-release.apk controles-apk.txt
-          sha256sum android/app/build/outputs/apk/release/app-release.apk | tee -a controles-apk.txt
+          cd android/app/build/outputs/apk
+          python3 "$GITHUB_WORKSPACE/tests/android/controle-apk.py" release/app-release.apk controles-apk.txt
+          sha256sum release/app-release.apk | tee -a controles-apk.txt
       - uses: actions/upload-artifact@v4
         with:
           name: plein-et-trajet-apk
           path: |
             android/app/build/outputs/apk/release/app-release.apk
             android/app/build/outputs/apk/debug/app-debug.apk
-            controles-apk.txt
-            controles-apk-manifeste.txt
+            android/app/build/outputs/apk/controles-apk.txt
+            android/app/build/outputs/apk/controles-apk-manifeste.txt
   # instrumentation sur un téléphone simulé (tests/android/m6-emulateur.mjs) : un job par scénario, en parallèle
   emulateur:
     needs: apk
