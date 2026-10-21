@@ -134,6 +134,17 @@ test.describe("M4 — Enregistrer en roulant et Royaume-Uni", () => {
         await page.waitForTimeout(20_000);
         expect((await lireDirect(page)).verrou).toBe("actif");
         await expect(page.locator('[data-el="ecran-allume"]')).toHaveText("Écran allumé");
+        // streamline R2 (R2, R7) : l'écart direct / résultat final et la garde des points restent dits, en une ligne chacun
+        await expect(page.locator('[data-el="direct-sans-montees"]')).toHaveText("Litres et € sans les montées, ajoutées à l'arrêt");
+        await expect(page.locator('[data-el="points-gardes"]')).toHaveText("Points GPS gardés sur le téléphone jusqu'à l'arrêt");
+        for (const el of ["direct-sans-montees", "points-gardes"]) {
+          const h = await page.locator(`[data-el="${el}"]`).evaluate((x) => {
+            const s = getComputedStyle(x);
+            const lh = parseFloat(s.lineHeight) || parseFloat(s.fontSize) * 1.3; // « normal » : environ 1,2 à 1,3 fois la taille
+            return x.getBoundingClientRect().height / lh;
+          });
+          expect(h).toBeLessThan(1.6); // une seule ligne à 390 px
+        }
       });
       test("US-6.3 — plus de 15 s sans position : « GPS perdu », distance figée ; le retour du signal relance la distance", async ({ page, context }) => {
         test.setTimeout(150_000);
@@ -163,7 +174,9 @@ test.describe("M4 — Enregistrer en roulant et Royaume-Uni", () => {
         await choisirVoiture(page);
         await lancerEnregistrement(page);
         await expect(page.locator('[data-el="ecran-allume"]')).toHaveAttribute("data-verrou", "indisponible", { timeout: 10_000 });
-        await expect(page.locator('[data-el="ecran-allume"]')).toHaveText("Désactive la mise en veille de l'écran");
+        // streamline R2 (R7) : la cause en quelques mots, puis le geste à faire
+        await expect(page.locator('[data-el="ecran-allume"]')).toHaveText("Ce navigateur ne garde pas l'écran allumé : désactive la veille");
+        await expect(page.locator('[data-el="ecran-allume"]')).toBeVisible();
       });
       test("US-6.3 — tant que le navigateur n'a pas répondu, l'écran ne prétend pas qu'il reste allumé (audit LOW 10)", async ({ page, context }) => {
         test.setTimeout(90_000);

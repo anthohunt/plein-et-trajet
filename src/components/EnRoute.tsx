@@ -116,10 +116,18 @@ export function EnRoute({ e, setE, prix, onArreter }: Props) {
             {e.enPause ? T.enPause : T.enregistrement}
           </span>
           <span data-el="voiture-en-route">{e.vehiculeLibelle}</span>
-          <span className="ecran" data-el="ecran-allume" data-verrou={verrou}>
-            {verrou === "indisponible" ? T.ecranVerrouIndispo : verrou === "attente" ? T.ecranVerrouAttente : T.ecranAllume}
-          </span>
+          {verrou !== "indisponible" && (
+            <span className="ecran" data-el="ecran-allume" data-verrou={verrou}>
+              {verrou === "actif" ? T.ecranAllume : T.ecranVerrouAttente}
+            </span>
+          )}
         </div>
+        {/* repli : le navigateur ne sait pas garder l'écran allumé ; la cause, puis le geste à faire */}
+        {verrou === "indisponible" && (
+          <p className="note verrou-indispo" role="status" data-el="ecran-allume" data-verrou={verrou}>
+            {T.ecranVerrouIndispo}
+          </p>
+        )}
         {d.gpsPerdu && (
           <div className="gps-perdu" role="alert" data-el="gps-perdu">
             <b>{T.gpsPerdu}</b>
@@ -149,6 +157,8 @@ export function EnRoute({ e, setE, prix, onArreter }: Props) {
           </div>
         </div>
         <p className="note rec-note" data-el="prix-direct">{prix ? T.prixDuJourPays(prix.pays, fmt(prix.valeur, 3)) : T.prixDuJourAbsent}</p>
+        <p className="note" data-el="direct-sans-montees">{T.directSansMontees}</p>
+        <p className="note" data-el="points-gardes">{T.pointsGardes}</p>
         <div className="recbar">
           <button className="btn ghost" type="button" data-el="bouton-pause" onClick={pause}>
             {e.enPause ? T.reprendre : T.pause}

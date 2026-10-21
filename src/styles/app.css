@@ -266,6 +266,8 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 
 /* ---------- passe streamline ---------- */
 .recstate .ecran { margin-left: auto; }
-.recstate .ecran[data-verrou="indisponible"] { color: var(--dear); font-weight: 600; }
 .price .perso-champ { margin-left: auto; }
 .price label.link { cursor: pointer; }
+.verrou-indispo { color: var(--dear); font-weight: 600; margin: 10px 16px 0; }
+.rec-note, .rec-note ~ .note { margin-bottom: 4px; } /* prix du jour, montées, points GPS : trois lignes serrées */
+.rec-note ~ .note { margin-top: 0; }
