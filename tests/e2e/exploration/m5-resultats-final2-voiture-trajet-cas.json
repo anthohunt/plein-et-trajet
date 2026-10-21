@@ -1,0 +1,1995 @@
+{
+ "passage": "final2",
+ "flux": [
+  "voiture",
+  "trajet",
+  "cas"
+ ],
+ "resultats": [
+  {
+   "nom": "V-1.1-03-avant.png",
+   "ok": true,
+   "liv": "c213538e145abdb4c046e81950380951",
+   "brute": "c213538e145abdb4c046e81950380951",
+   "url": "https://plein-et-trajet.vercel.app/"
+  },
+  {
+   "nom": "V-1.1-04-apres.png",
+   "ok": true,
+   "liv": "c427090cc235c58a4778284a592fecdb",
+   "brute": "c427090cc235c58a4778284a592fecdb",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.1-01-avant.png",
+   "ok": true,
+   "liv": "c45e4a62ebc51b77111b40777b25575b",
+   "brute": "c45e4a62ebc51b77111b40777b25575b",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.1-02-apres.png",
+   "ok": true,
+   "liv": "2e1012d962fcfd4da5455fa295d31df3",
+   "brute": "2e1012d962fcfd4da5455fa295d31df3",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.1-03-avant.png",
+   "ok": true,
+   "liv": "8a87e25f6ce197989bb527910a870df0",
+   "brute": "decb0f3f4a3c977e75fe8fc8078f0a3d",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.1-04-apres.png",
+   "ok": true,
+   "liv": "8093a94884717501f8ea120e0af17da6",
+   "brute": "8093a94884717501f8ea120e0af17da6",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.1-05-avant.png",
+   "ok": true,
+   "liv": "5776799f8d8284143b4489ffa5e58b95",
+   "brute": "5776799f8d8284143b4489ffa5e58b95",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.1-06-apres.png",
+   "ok": true,
+   "liv": "abdd89009c0b9f36a33da86129a28c67",
+   "brute": "abdd89009c0b9f36a33da86129a28c67",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.E1-01-avant.png",
+   "ok": true,
+   "liv": "f8b54811c7b082b3f6f21e01cb7feded",
+   "brute": "f8b54811c7b082b3f6f21e01cb7feded",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.E1-02-apres.png",
+   "ok": true,
+   "liv": "e30ab651ae0f67f8ddbc8db2bff56bbb",
+   "brute": "e30ab651ae0f67f8ddbc8db2bff56bbb",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.E1-03-avant.png",
+   "ok": true,
+   "liv": "d46b5b75a5ef4016fa7b3614cdf14721",
+   "brute": "d46b5b75a5ef4016fa7b3614cdf14721",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.E1-04-apres.png",
+   "ok": true,
+   "liv": "ca0704174193fa39d02fc0d5d111d71e",
+   "brute": "ca0704174193fa39d02fc0d5d111d71e",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.2-03-avant.png",
+   "ok": true,
+   "liv": "7c9b9ad52f90d2fe1c9bb687a7dbfdef",
+   "brute": "7c9b9ad52f90d2fe1c9bb687a7dbfdef",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.2-04-apres.png",
+   "ok": true,
+   "liv": "ecc668f855f8f8ad5fbab76cefad1df3",
+   "brute": "ecc668f855f8f8ad5fbab76cefad1df3",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.3-01-avant.png",
+   "ok": true,
+   "liv": "d2f35003583c6e80914bdd651babf031",
+   "brute": "d2f35003583c6e80914bdd651babf031",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.3-02-apres.png",
+   "ok": true,
+   "liv": "9bc5666c65d1eaa3f96a02f610141e30",
+   "brute": "9bc5666c65d1eaa3f96a02f610141e30",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.3-03-avant.png",
+   "ok": true,
+   "liv": "b78c73bcc199e965f8b874cac6a70dbb",
+   "brute": "b78c73bcc199e965f8b874cac6a70dbb",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.3-04-apres.png",
+   "ok": true,
+   "liv": "fbf817c9704424f8a90486be5da6c944",
+   "brute": "fbf817c9704424f8a90486be5da6c944",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.2-01-avant.png",
+   "ok": true,
+   "liv": "c150a3a40903e1516220c6853de3e7a9",
+   "brute": "c150a3a40903e1516220c6853de3e7a9",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-2.2-02-apres.png",
+   "ok": true,
+   "liv": "25c9bd31cfaf83489cd75f703d56931f",
+   "brute": "25c9bd31cfaf83489cd75f703d56931f",
+   "url": "https://plein-et-trajet.vercel.app/"
+  },
+  {
+   "nom": "V-1.2-01-avant.png",
+   "ok": true,
+   "liv": "991f8a77f3c8ed3c82df0c3b26423483",
+   "brute": "991f8a77f3c8ed3c82df0c3b26423483",
+   "url": "https://plein-et-trajet.vercel.app/historique"
+  },
+  {
+   "nom": "V-1.2-02-apres.png",
+   "ok": false,
+   "liv": "25c9bd31cfaf83489cd75f703d56931f",
+   "brute": "25c9bd31cfaf83489cd75f703d56931f",
+   "url": "https://plein-et-trajet.vercel.app/"
+  },
+  {
+   "nom": "V-1.2-03-avant.png",
+   "ok": true,
+   "liv": "7ff02c6d7178ae8b183732cf22dacd2f",
+   "brute": "7ff02c6d7178ae8b183732cf22dacd2f",
+   "url": "https://plein-et-trajet.vercel.app/"
+  },
+  {
+   "nom": "V-1.2-04-apres.png",
+   "ok": true,
+   "liv": "26d922819e5f83a2c58482d2bce11675",
+   "brute": "26d922819e5f83a2c58482d2bce11675",
+   "url": "https://plein-et-trajet.vercel.app/voiture"
+  },
+  {
+   "nom": "V-1.1-01-avant.png",
+   "ok": true,
+   "liv": "eec1001e925529b1487e991a63d55733",
+   "brute": "eec1001e925529b1487e991a63d55733",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-1.1-02-apres.png",
+   "ok": true,
+   "liv": "25c9bd31cfaf83489cd75f703d56931f",
+   "brute": "25c9bd31cfaf83489cd75f703d56931f",
+   "url": "https://plein-et-trajet.vercel.app/"
+  },
+  {
+   "nom": "V-1.2-05-avant.png",
+   "ok": true,
+   "liv": "f95c356b1d2933b207b1b74ca16085aa",
+   "brute": "f95c356b1d2933b207b1b74ca16085aa",
+   "url": "about:blank"
+  },
+  {
+   "nom": "V-1.2-06-apres.png",
+   "ok": true,
+   "liv": "25c9bd31cfaf83489cd75f703d56931f",
+   "brute": "25c9bd31cfaf83489cd75f703d56931f",
+   "url": "https://plein-et-trajet.vercel.app/"
+  },
+  {
+   "nom": "V-1.3-01-avant.png",
+   "ok": true,
+   "liv": "25c9bd31cfaf83489cd75f703d56931f",
+   "brute": "25c9bd31cfaf83489cd75f703d56931f",
+   "url": "https://plein-et-trajet.vercel.app/"
+  },
+  {
+   "nom": "V-1.3-02-apres.png",
+   "ok": true,
+   "liv": "827bc8dbf292f19c61664b3da72c503e",
+   "brute": "827bc8dbf292f19c61664b3da72c503e",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.1-01-avant.png",
+   "ok": true,
+   "liv": "4acd4d5c1970bea8e0c5baf4f6e833ff",
+   "brute": "4acd4d5c1970bea8e0c5baf4f6e833ff",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.1-02-apres.png",
+   "ok": true,
+   "liv": "061d5f77d7571ab3d991fcaf338d29eb",
+   "brute": "061d5f77d7571ab3d991fcaf338d29eb",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.1-03-avant.png",
+   "ok": true,
+   "liv": "5b505aa707c099f3ef6c8efbef2947f9",
+   "brute": "5b505aa707c099f3ef6c8efbef2947f9",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.1-04-apres.png",
+   "ok": true,
+   "liv": "4e481429ca5604dc7ea77a08e6170f52",
+   "brute": "4e481429ca5604dc7ea77a08e6170f52",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-1.1-05-avant.png",
+   "ok": true,
+   "liv": "593ca088b2829680dbd33e06078e0406",
+   "brute": "593ca088b2829680dbd33e06078e0406",
+   "url": "https://plein-et-trajet.vercel.app/historique"
+  },
+  {
+   "nom": "V-1.1-06-apres.png",
+   "ok": true,
+   "liv": "a3e693b88e8fdf45202a517be4f01122",
+   "brute": "a3e693b88e8fdf45202a517be4f01122",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-5.3-01-avant.png",
+   "ok": true,
+   "liv": "6452292460c815facdad5679a92edea0",
+   "brute": "6452292460c815facdad5679a92edea0",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.3-02-apres.png",
+   "ok": true,
+   "liv": "ebf289b0049fb0680acfaf861939589f",
+   "brute": "ebf289b0049fb0680acfaf861939589f",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.3-03-avant.png",
+   "ok": true,
+   "liv": "4c9ff5c9061dea349ec172068d108298",
+   "brute": "4c9ff5c9061dea349ec172068d108298",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.3-04-apres.png",
+   "ok": true,
+   "liv": "165952d69043411c9bb9dfeccf752f4c",
+   "brute": "165952d69043411c9bb9dfeccf752f4c",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.5-01-avant.png",
+   "ok": true,
+   "liv": "34c094663cb64580a732e8406d68c4bb",
+   "brute": "34c094663cb64580a732e8406d68c4bb",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.5-02-apres.png",
+   "ok": true,
+   "liv": "3e50e6709d88f37de3f2ea0c68c1752e",
+   "brute": "3e50e6709d88f37de3f2ea0c68c1752e",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.1-05-avant.png",
+   "ok": true,
+   "liv": "e808549096236e5cb7514204d7eea128",
+   "brute": "e808549096236e5cb7514204d7eea128",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.1-06-apres.png",
+   "ok": true,
+   "liv": "ce6d5d9bdf1ed796481fb519eb50cdc6",
+   "brute": "57d23058f8ac8d6acd805895e50b647d",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-5.6-01-avant.png",
+   "ok": true,
+   "liv": "d2eedbdeaad6c8d727f6af24437a49c5",
+   "brute": "1a05b479baac9c0a6ffced17a3567f6b",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.6-02-apres.png",
+   "ok": true,
+   "liv": "884ed01dd63e5c0e4e59293d01fb0fee",
+   "brute": "884ed01dd63e5c0e4e59293d01fb0fee",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.6-03-avant.png",
+   "ok": true,
+   "liv": "38fc764eba53c3242830488ccbcc22e4",
+   "brute": "38fc764eba53c3242830488ccbcc22e4",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.6-04-apres.png",
+   "ok": true,
+   "liv": "fd2e2bb38fef62789438b41a12f8b68a",
+   "brute": "fd2e2bb38fef62789438b41a12f8b68a",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-5.1-03-avant.png",
+   "ok": true,
+   "liv": "89677362e1a60cbdcea62cb5a2f65b4f",
+   "brute": "89677362e1a60cbdcea62cb5a2f65b4f",
+   "url": "https://plein-et-trajet.vercel.app/stations"
+  },
+  {
+   "nom": "V-5.1-04-apres.png",
+   "ok": true,
+   "liv": "e024ee0a680045a6a2ccba86320c9de3",
+   "brute": "e813bfadbc4755ddc00259b516bbda8d",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.4-01-avant.png",
+   "ok": true,
+   "liv": "82e28ddbf0ba7a108d7a5418a24d53ad",
+   "brute": "82e28ddbf0ba7a108d7a5418a24d53ad",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.4-02-apres.png",
+   "ok": true,
+   "liv": "5d4b68a8c0dff00bffa9e43adcef5008",
+   "brute": "5d4b68a8c0dff00bffa9e43adcef5008",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.4-03-avant.png",
+   "ok": true,
+   "liv": "032223508cf41c85eb11b919c55a092a",
+   "brute": "032223508cf41c85eb11b919c55a092a",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.4-04-apres.png",
+   "ok": true,
+   "liv": "c85523bf5a07268f3179b0eabd7b39a8",
+   "brute": "c85523bf5a07268f3179b0eabd7b39a8",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.5-01-avant.png",
+   "ok": true,
+   "liv": "6d67d1c3924d19da7a0dc3e0ac18cb2a",
+   "brute": "6d67d1c3924d19da7a0dc3e0ac18cb2a",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.5-02-apres.png",
+   "ok": true,
+   "liv": "4d4b00ffe02e1e028ef8b0cf8489fb9c",
+   "brute": "4d4b00ffe02e1e028ef8b0cf8489fb9c",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.7-01-avant.png",
+   "ok": true,
+   "liv": "67431a43aa278e4dc59f3af893d55a15",
+   "brute": "67431a43aa278e4dc59f3af893d55a15",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.7-02-apres.png",
+   "ok": true,
+   "liv": "18a29c89a5effebd6ec035e98a9bdd54",
+   "brute": "18a29c89a5effebd6ec035e98a9bdd54",
+   "url": "https://plein-et-trajet.vercel.app/historique"
+  },
+  {
+   "nom": "V-4.5-01-avant.png",
+   "ok": true,
+   "liv": "d80dafb8f86883de910f34b512ebc871",
+   "brute": "d80dafb8f86883de910f34b512ebc871",
+   "url": "https://plein-et-trajet.vercel.app/historique"
+  },
+  {
+   "nom": "V-4.5-02-apres.png",
+   "ok": true,
+   "liv": "e9ca073399a6e16c614bd64b387e678f",
+   "brute": "e9ca073399a6e16c614bd64b387e678f",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.6-01-avant.png",
+   "ok": true,
+   "liv": "e9ca073399a6e16c614bd64b387e678f",
+   "brute": "e9ca073399a6e16c614bd64b387e678f",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.6-02-apres.png",
+   "ok": true,
+   "liv": "7f9a9030a81b2de261f564e07228ad99",
+   "brute": "7f9a9030a81b2de261f564e07228ad99",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-1.3-03-avant.png",
+   "ok": true,
+   "liv": "1f66d5d03afbcc0bec5c2f02f541c6f1",
+   "brute": "1f66d5d03afbcc0bec5c2f02f541c6f1",
+   "url": "https://plein-et-trajet.vercel.app/"
+  },
+  {
+   "nom": "V-1.3-04-apres.png",
+   "ok": true,
+   "liv": "4cfb9d3a30a697321168dd4b32fcd837",
+   "brute": "4cfb9d3a30a697321168dd4b32fcd837",
+   "url": "https://plein-et-trajet.vercel.app/"
+  },
+  {
+   "nom": "V-3.5-03-avant.png",
+   "ok": true,
+   "liv": "56e6458eb175115fd97ec3c1a4f5c03f",
+   "brute": "56e6458eb175115fd97ec3c1a4f5c03f",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.5-04-apres.png",
+   "ok": true,
+   "liv": "b9ab7181710c0d6aaa082ca5cd91e560",
+   "brute": "b9ab7181710c0d6aaa082ca5cd91e560",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.5-05-avant.png",
+   "ok": true,
+   "liv": "876d7f76defec506f33ff90fc02ed1ae",
+   "brute": "876d7f76defec506f33ff90fc02ed1ae",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.5-06-apres.png",
+   "ok": true,
+   "liv": "fea007d03afb376c7931ea891de15a46",
+   "brute": "fea007d03afb376c7931ea891de15a46",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.7-03-avant.png",
+   "ok": true,
+   "liv": "2f9cd5d4d750c768e7deebfd1c9dabc5",
+   "brute": "2f9cd5d4d750c768e7deebfd1c9dabc5",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.7-04-apres.png",
+   "ok": true,
+   "liv": "25c9bd31cfaf83489cd75f703d56931f",
+   "brute": "25c9bd31cfaf83489cd75f703d56931f",
+   "url": "https://plein-et-trajet.vercel.app/"
+  },
+  {
+   "nom": "V-3.E1-01-avant.png",
+   "ok": true,
+   "liv": "052b37c1d37f72c196d6ec7be2917964",
+   "brute": "052b37c1d37f72c196d6ec7be2917964",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.E1-02-apres.png",
+   "ok": true,
+   "liv": "c2d7a3e61248b6a6a08ced11b79e87d6",
+   "brute": "c2d7a3e61248b6a6a08ced11b79e87d6",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.E1-03-avant.png",
+   "ok": true,
+   "liv": "46009f512a29b5b6e338bbafc6765a56",
+   "brute": "46009f512a29b5b6e338bbafc6765a56",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.E1-04-apres.png",
+   "ok": true,
+   "liv": "c2efd918949ede3241b36b863880e1d8",
+   "brute": "c2efd918949ede3241b36b863880e1d8",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-3.E1-05-avant.png",
+   "ok": true,
+   "liv": "258468ae2148db571f4518c8f26b0433",
+   "brute": "258468ae2148db571f4518c8f26b0433",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.E1-06-apres.png",
+   "ok": true,
+   "liv": "3d4ef2ff33c38f9f7b833b6ce1e27ed2",
+   "brute": "d6eb71b4d31ec2fb8d7e6bf4b9528190",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.E2-01-avant.png",
+   "ok": true,
+   "liv": "5d2ad6649eb2862e7f6f141038949910",
+   "brute": "5d2ad6649eb2862e7f6f141038949910",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.E2-02-apres.png",
+   "ok": true,
+   "liv": "872702f52eea1d98f65646d10c6141ec",
+   "brute": "872702f52eea1d98f65646d10c6141ec",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.E2-03-avant.png",
+   "ok": true,
+   "liv": "5dba9f3b0bfa929e2718e8c6279f9ff2",
+   "brute": "5dba9f3b0bfa929e2718e8c6279f9ff2",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-3.E2-04-apres.png",
+   "ok": true,
+   "liv": "a0c20a07087539443143c3f04b26fdf7",
+   "brute": "a0c20a07087539443143c3f04b26fdf7",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-4.1-01-avant.png",
+   "ok": true,
+   "liv": "b6e4421b5621252dbb531036ba976fdd",
+   "brute": "b6e4421b5621252dbb531036ba976fdd",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-4.1-02-apres.png",
+   "ok": true,
+   "liv": "48086e4b3aedd52afc8a70060085239b",
+   "brute": "48086e4b3aedd52afc8a70060085239b",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.1-03-avant.png",
+   "ok": true,
+   "liv": "cd1b3db6c312d7e16623eb4a6c8cf823",
+   "brute": "cd1b3db6c312d7e16623eb4a6c8cf823",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.1-04-apres.png",
+   "ok": true,
+   "liv": "25f1bee96c13e0701ffe01d29c2e8095",
+   "brute": "a99be2088614cea0a981ed05d550c33e",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.2-01-avant.png",
+   "ok": true,
+   "liv": "31a7e6783bbcdd899843dd631b3b4bfc",
+   "brute": "fd2651a4ffddab4d554ba6f3d718b8d0",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.2-02-apres.png",
+   "ok": true,
+   "liv": "8f7eb93e492022b62757c3af7dc786fc",
+   "brute": "c11fa5f25238a0f85944c9e998f44f36",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.2-03-avant.png",
+   "ok": true,
+   "liv": "5e214e94ae2b7e6036d9612c0a861ba3",
+   "brute": "5e214e94ae2b7e6036d9612c0a861ba3",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.2-04-apres.png",
+   "ok": true,
+   "liv": "1fa87de47e92809443c30abf7ddb8f23",
+   "brute": "8a4858934d38de528e886c29d32db465",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.2-05-avant.png",
+   "ok": true,
+   "liv": "4fb9a1dc9ee83ce5933bcddc44d2aa5a",
+   "brute": "4fb9a1dc9ee83ce5933bcddc44d2aa5a",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.2-06-apres.png",
+   "ok": true,
+   "liv": "c0f1d82ce3cadfa04ef39577f112bb9b",
+   "brute": "c0f1d82ce3cadfa04ef39577f112bb9b",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.1-05-avant.png",
+   "ok": true,
+   "liv": "79cfcfc3bee9a421e93ae76cd897e91d",
+   "brute": "79cfcfc3bee9a421e93ae76cd897e91d",
+   "url": "https://plein-et-trajet.vercel.app/en-route"
+  },
+  {
+   "nom": "V-4.1-06-apres.png",
+   "ok": true,
+   "liv": "90b6fc03da0511f167eca8ca629db156",
+   "brute": "90b6fc03da0511f167eca8ca629db156",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.7-05-avant.png",
+   "ok": true,
+   "liv": "17f45138e65b6cbb1d0b820d06b7fc20",
+   "brute": "17f45138e65b6cbb1d0b820d06b7fc20",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  },
+  {
+   "nom": "V-4.7-06-apres.png",
+   "ok": true,
+   "liv": "35b1d22d1a9d1cae06ecdb6767c22347",
+   "brute": "35b1d22d1a9d1cae06ecdb6767c22347",
+   "url": "https://plein-et-trajet.vercel.app/fin"
+  }
+ ],
+ "reseau": [
+  {
+   "flux": "voiture",
+   "url": "https://plein-et-trajet.vercel.app/",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CXOFYU4H.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-BmJdoRe1.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/voiture-eea?d2=5RBU0C",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/voiture-eea?d2=DAW400L",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/voiture-eea?d2=DAW400L0",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/voiture-eea?d2=R%205RBU%205RBU0C",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/voiture-eea?d2=ZZ9999",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/voiture-eea?d2=5RBF0A",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/voiture-eea?d2=5RBF0A",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/voiture-eea?q=clio%202017%20120",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/voiture-eea?d2=5RBU0C",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-BNKCqsUA.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-CuCRB34y.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "voiture",
+   "url": "blob:https://plein-et-trajet.vercel.app/d5284ef0-7e8a-4cc8-ad28-e07cd0840b6a",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/standard.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/metadata.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/sprite/PlanIgn.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/sprite/PlanIgn.png",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture&carburant=eq.SP95-E10&rupture=eq.false&prix=not.is.null&station_id=in.%2881000004%2C81000005%2C81000001%2C81000002%2C81990002%2C81000011%2C81990001%2C81000010%2C81380001%2C81000003%2C81000009%2C81990003%2C81160001%2C81130001%2C81150003%29",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/11/1036/745.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/11/1035/745.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/10/518/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/10/517/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/Source%20Sans%20Pro%20Regular/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/Source%20Sans%20Pro%20Italic/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://plein-et-trajet.vercel.app/",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CXOFYU4H.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-BmJdoRe1.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://plein-et-trajet.vercel.app/",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CXOFYU4H.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-BmJdoRe1.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "voiture",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://plein-et-trajet.vercel.app/voiture",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CXOFYU4H.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-BmJdoRe1.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/voiture-eea?d2=5RBU0C",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-BNKCqsUA.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://plein-et-trajet.vercel.app/assets/CarteStations-CuCRB34y.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "blob:https://plein-et-trajet.vercel.app/2728b790-9934-4b71-8523-bb8e7ee37628",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/standard.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture&carburant=eq.SP95-E10&rupture=eq.false&prix=not.is.null&station_id=in.%2881000004%2C81000005%2C81000001%2C81000002%2C81990002%2C81000011%2C81990001%2C81000010%2C81380001%2C81000003%2C81000009%2C81990003%2C81160001%2C81130001%2C81150003%29",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/metadata.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/sprite/PlanIgn.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/sprite/PlanIgn.png",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/10/518/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/10/517/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/standard.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/metadata.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/sprite/PlanIgn.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/sprite/PlanIgn.png",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/11/1036/745.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/11/1035/745.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture&carburant=eq.SP95-E10&rupture=eq.false&prix=not.is.null&station_id=in.%2881990002%2C81000004%2C81000005%2C81990001%2C81000011%2C81000009%2C81990003%2C81000001%2C81000002%2C81000010%2C81000003%2C81380001%2C81160001%2C81130001%2C81150003%29",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/Source%20Sans%20Pro/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/Source%20Sans%20Pro%20Semibold/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/Source%20Sans%20Pro%20Regular/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/10/518/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/10/517/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/Source%20Sans%20Pro%20Italic/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/10/516/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/10/515/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/geocodage/reverse?lon=1.35531424803753&lat=44.0174474141584&index=address&limit=1",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/geocodage/search?q=Montauban&type=municipality&citycode=82121&index=address&limit=1",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture&carburant=eq.SP95-E10&rupture=eq.false&prix=not.is.null&station_id=in.%2882000018%2C82000006%2C82017001%2C82000015%2C82000011%2C82000016%2C82000007%2C82000010%2C82000019%2C82290002%2C82710003%2C82130002%2C82410003%2C82700002%2C82350001%2C82290001%2C82370001%29",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture%2Cprix_origine%2Cunite_origine&station_id=eq.82000015",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/standard.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/metadata.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/sprite/PlanIgn.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/sprite/PlanIgn.png",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/11/1035/745.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/11/1036/745.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture&carburant=eq.SP95-E10&rupture=eq.false&prix=not.is.null&station_id=in.%2881000009%2C81990001%2C81990002%2C81000004%2C81000002%2C81150003%2C81000005%2C81000001%2C81990003%2C81380001%2C81000011%2C81000010%2C81000003%2C81130001%2C81160001%29",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/Source%20Sans%20Pro/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/Source%20Sans%20Pro%20Semibold/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/Source%20Sans%20Pro%20Regular/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/10/517/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/10/518/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/Source%20Sans%20Pro%20Italic/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/standard.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/stations_autour",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/metadata.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/sprite/PlanIgn.json",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/sprite/PlanIgn.png",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/11/1034/745.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/11/1035/745.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/Source%20Sans%20Pro/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/Source%20Sans%20Pro%20Semibold/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/Source%20Sans%20Pro%20Regular/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/prix?select=station_id%2Ccarburant%2Cprix%2Cmaj%2Crupture&carburant=eq.SP95-E10&rupture=eq.false&prix=not.is.null&station_id=in.%2881600004%2C81600001%2C81600003%2C81600006%2C81310003%2C81150003%29",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/annexes/ressources/vectorTiles/fonts/Source%20Sans%20Pro%20Italic/0-255.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/10/517/372.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://data.geopf.fr/tms/1.0.0/PLAN.IGN/10/517/373.pbf",
+   "methode": "GET"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "trajet",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas-refus",
+   "url": "https://plein-et-trajet.vercel.app/",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas-refus",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas-refus",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CXOFYU4H.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas-refus",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-BmJdoRe1.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas-refus",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas-refus",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas-refus",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://plein-et-trajet.vercel.app/",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CXOFYU4H.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-BmJdoRe1.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://plein-et-trajet.vercel.app/",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CXOFYU4H.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-BmJdoRe1.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://plein-et-trajet.vercel.app/",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CXOFYU4H.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-BmJdoRe1.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://plein-et-trajet.vercel.app/",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CXOFYU4H.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-BmJdoRe1.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://plein-et-trajet.vercel.app/",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CXOFYU4H.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-BmJdoRe1.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "cas",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://plein-et-trajet.vercel.app/",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CXOFYU4H.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-BmJdoRe1.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/rpc/moyennes_par_pays",
+   "methode": "POST"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/functions/v1/lieux",
+   "methode": "POST"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://plein-et-trajet.vercel.app/",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Barlow:wght@400;500;600&family=Chivo+Mono:wght@400;600&display=swap",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-CXOFYU4H.js",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://plein-et-trajet.vercel.app/assets/index-BmJdoRe1.css",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://fonts.gstatic.com/s/bigshouldersdisplay/v24/fC1_PZJEZG-e9gHhdI4-NBbfd2ys3SjJCx1czNDu.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHpv4kjgoGqM7E_DMs5.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E30-8s51os.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://rglrwtkqwihdztgqlbsy.supabase.co/rest/v1/pays?select=code%2Cnom%2Cflux_stations%2Cstatut_flux",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://fonts.gstatic.com/s/chivomono/v11/mFT0WbgRxKvF_Z5eQMO9gx8D1Q.woff2",
+   "methode": "GET"
+  },
+  {
+   "flux": "barcelone",
+   "url": "https://fonts.gstatic.com/s/barlow/v13/7cHqv4kjgoGqM7E3_-gs51os.woff2",
+   "methode": "GET"
+  }
+ ],
+ "textesInterdits": [],
+ "erreursPage": [],
+ "regression": [
+  "US-4.E2 (T4) : « 7 » validé → « Entre un prix entre 0,50 et 4,00 €/L », prix gardé 2.156 ✓"
+ ]
+}
