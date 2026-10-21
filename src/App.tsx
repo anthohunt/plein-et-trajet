@@ -15,6 +15,7 @@ import { enregistreur } from "./lib/plateforme";
 import { lireArrete } from "./lib/historique";
 import { useEnregistrement, useVoitureV1 } from "./lib/useEnregistrement";
 import { T } from "./lib/textes";
+import { brancherNotification } from "./lib/notifTrajet";
 
 const CLE_CARBURANT = "pt-carburant";
 
@@ -61,6 +62,20 @@ export default function App() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // appli Android : notification du trajet ; « Arrêter » depuis la notification ouvre la fin de trajet
+  useEffect(
+    () =>
+      brancherNotification(async () => {
+        const rec = enregistreur();
+        if (!rec.etat()) await rec.restaurer().catch(() => null);
+        if (!rec.etat()) return;
+        const r = await rec.arreter();
+        nav("trajet" in r ? "/fin" : "/", { replace: true });
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   // onglet Stations : le carburant de la voiture, d'office (V-5.2)
   useEffect(() => {
