@@ -24,3 +24,10 @@ Trajet Toulouse → Paris à plusieurs, frais partagés. Les péages se lisent s
    - Capteurs : GPS indispensable (vitesse Doppler + distance) ; accéléromètre seulement en complément (tunnels). Questions d'Anthony traitées le 21/10.
 9. Démarrage / arrêt : **A** — à la main (Démarrer / Arrêter) ; oubli d'arrêter → arrêt seul après 10 min immobile, avec demande de confirmation.
 10. Compte : **A** — pas de compte ; voiture et historique liés au téléphone (perdus en cas de changement de téléphone).
+
+## Retours d'Anthony sur la maquette V1 (21/10)
+- Retiré : bouton « Stations autour de moi » de l'écran En route (l'onglet Stations suffit) ; bouton « Retour » du bandeau « Trajet en cours » (l'onglet Trajet suffit). « Il ne faut pas répéter des boutons qui ne servent à rien. »
+- Accueil allégé : ni prix ni nombre de personnes (« on fera ça à la fin d'un trajet ») ; reste voiture, Démarrer, Mes trajets.
+- Fin de trajet, dans l'ordre : prix de l'essence (moyenne France du jour de chaque carburant courant, celui de la voiture d'office ; prix modifiable en touchant le compteur) → coût → nombre de personnes → part de chacun ; courbe de vitesse ET courbe de consommation (L/100 km) ; deux boutons « Supprimer » / « Enregistrer » (le trajet ne rejoint Mes trajets qu'à l'enregistrement).
+- Nouveau : notification permanente dans la barre du téléphone (vitesse, km, €) avec Pause / Reprendre / Arrêter, sans ouvrir l'appli.
+- Anthony : « il manque un peu des écrans » — à préciser.
