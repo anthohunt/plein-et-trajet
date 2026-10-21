@@ -2,7 +2,7 @@
 // Pause / Reprendre et Arrêter (« Reprendre » / « C'est fini » après 10 min immobile). Le service natif (TrajetService.java) la
 // tient et traite Pause / Reprendre lui-même ; la page lui envoie le contenu. Sans effet dans le navigateur.
 import { Capacitor } from "@capacitor/core";
-import { enDirect } from "../../supabase/functions/_shared/roule.ts";
+import { enDirect, litresPas, type VehiculeRoule } from "../../supabase/functions/_shared/roule.ts";
 import { fmt } from "./calcul";
 import { T } from "./textes";
 import { enregistreur, type EnCours } from "./plateforme";
@@ -11,6 +11,11 @@ import { TrajetEnRoute, type ContenuNotification } from "./trajetEnRoute";
 
 export type { ContenuNotification };
 const PERIODE_MS = 2000;
+
+/** L/100 km de la voiture à vitesse stable, de 0 à 200 km/h par 10 : ce que roule.ts compte pour un pas sans accélération. */
+export function tableConso(veh: VehiculeRoule): number[] {
+  return Array.from({ length: 21 }, (_, k) => +(litresPas({ d: 1000, v: k * 10, vPrec: k * 10 }, veh) * 100).toFixed(3));
+}
 
 export function contenuNotification(e: EnCours, maintenant: number): ContenuNotification {
   const d = enDirect(e.points, e.pauses, e.debut, maintenant, vehiculeDe(e.voiture), e.enPause);
@@ -33,8 +38,7 @@ export function contenuNotification(e: EnCours, maintenant: number): ContenuNoti
     km: d.km,
     euros: prix == null ? null : d.litres * prix,
     prix,
-    // litres par km du trajet jusqu'ici (consommation officielle de la voiture avant 0,5 km)
-    litresParKm: d.km >= 0.5 ? d.litres / d.km : vehiculeDe(e.voiture).conso.moyenne / 100,
+    l100ParVitesse: tableConso(vehiculeDe(e.voiture)),
     tPoint: d.dernierPointMs,
   };
 }

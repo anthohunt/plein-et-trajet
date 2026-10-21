@@ -40,8 +40,9 @@ import org.json.JSONObject;
 //                                     A;instant;action                                   (bouton de la notification)
 //                                     R;instant;redemarrage                              (relancé par le système)
 // Quand la page n'est pas là (processus relancé sans elle), le service calcule lui-même la ligne de chiffres de la notification :
-// km = km de la page à sa dernière mise à jour + distance des relevés suivants, € = € de la page + ces km × litres/km du trajet
-// × prix. La page recalcule tout par roule.ts à sa réouverture.
+// km = km de la page à sa dernière mise à jour + distance des relevés suivants ; € = € de la page + litres de ces pas, chacun à la
+// consommation de la voiture à sa vitesse (table L/100 par tranche de 10 km/h, calculée par roule.ts et envoyée par la page) ×
+// prix. La page recalcule tout par roule.ts à sa réouverture.
 public class TrajetService extends Service implements LocationListener {
 
     static final String TAG = "TrajetService";
@@ -65,6 +66,7 @@ public class TrajetService extends Service implements LocationListener {
     // direct natif (page absente)
     private double[] precedent; // lat, lon, instant du dernier relevé compté
     private double kmNatif;
+    private double litresNatif; // litres des pas comptés par le service depuis la dernière mise à jour de la page
     private boolean natifPret; // km du direct natif repris du journal depuis la dernière mise à jour de la page
     private long derniereNotif;
 
@@ -206,8 +208,10 @@ public class TrajetService extends Service implements LocationListener {
 
     @Override
     public void onLocationChanged(@NonNull Location l) {
-        // heure du relevé dans l'horloge du téléphone (âge du relevé pris sur l'horloge monotone) — pas l'heure de réception
-        long t = System.currentTimeMillis() - (SystemClock.elapsedRealtimeNanos() - l.getElapsedRealtimeNanos()) / 1_000_000L;
+        // heure du relevé (getTime : horloge du GNSS), pas l'heure de réception ; si elle s'écarte de plus de 30 s de l'horloge du
+        // téléphone (heure réglée à la main), l'âge du relevé pris sur l'horloge monotone
+        long parAge = System.currentTimeMillis() - (SystemClock.elapsedRealtimeNanos() - l.getElapsedRealtimeNanos()) / 1_000_000L;
+        long t = l.getTime() > 0 && Math.abs(l.getTime() - parAge) <= 30_000L ? l.getTime() : parAge;
         String ligne = "P;" + t + ";" + String.format(Locale.ROOT, "%.7f;%.7f", l.getLatitude(), l.getLongitude()) + ";"
             + nombre(l.hasAltitude(), l.getAltitude(), "%.1f") + ";" + nombre(l.hasSpeed(), l.getSpeed() * 3.6, "%.2f") + ";"
             + nombre(l.hasAccuracy(), l.getAccuracy(), "%.1f");
@@ -266,6 +270,7 @@ public class TrajetService extends Service implements LocationListener {
         long depuis = o.optLong("tPoint", Long.MIN_VALUE);
         boolean enPause = o.optBoolean("enPause");
         kmNatif = o.optDouble("km", 0);
+        litresNatif = 0;
         precedent = null;
         for (String l : lire(this).split("\n")) {
             String[] c = l.split(";", -1);
@@ -279,7 +284,7 @@ public class TrajetService extends Service implements LocationListener {
             if ("A".equals(c[0]) && t > depuis) enPause = "pause".equals(c[2]);
             if (!"P".equals(c[0]) || c.length < 4) continue;
             double la = Double.parseDouble(c[2]), lo = Double.parseDouble(c[3]);
-            if (t > depuis && !enPause && precedent != null) kmNatif += distanceM(precedent[0], precedent[1], la, lo) / 1000;
+            if (t > depuis && !enPause && precedent != null && t > precedent[2]) compter(o, distanceM(precedent[0], precedent[1], la, lo), (t - precedent[2]) / 1000.0, -1);
             precedent = new double[] { la, lo, t };
         }
         try {
@@ -294,8 +299,9 @@ public class TrajetService extends Service implements LocationListener {
         double kmh = kmhGps;
         if (precedent != null && t > precedent[2]) {
             double d = distanceM(precedent[0], precedent[1], la, lo);
-            if (!enPause) kmNatif += d / 1000;
-            if (kmh < 0) kmh = d / ((t - precedent[2]) / 1000.0) * 3.6;
+            double dt = (t - precedent[2]) / 1000.0;
+            if (kmh < 0) kmh = d / dt * 3.6;
+            if (!enPause) compter(o, d, dt, kmh);
         }
         if (precedent == null || t > precedent[2]) precedent = new double[] { la, lo, t };
         long maintenant = SystemClock.elapsedRealtime();
@@ -303,9 +309,8 @@ public class TrajetService extends Service implements LocationListener {
         derniereNotif = maintenant;
         String gabarit = o.optString("gabarit", "");
         if (gabarit.isEmpty() || enPause || o.optBoolean("immobile")) return;
-        double km0 = o.optDouble("km", 0);
         double prix = o.optDouble("prix", Double.NaN);
-        double euros = o.optDouble("euros", Double.NaN) + (kmNatif - km0) * o.optDouble("litresParKm", 0) * prix;
+        double euros = o.optDouble("euros", Double.NaN) + litresNatif * prix;
         String texte = gabarit
             .replace("{v}", String.valueOf(Math.round(Math.max(0, kmh))))
             .replace("{km}", String.format(Locale.ROOT, "%.1f", kmNatif).replace('.', ','))
@@ -319,6 +324,16 @@ public class TrajetService extends Service implements LocationListener {
         garderContenu(this, o);
         reposer(this);
         Log.i(TAG, "direct natif : " + texte);
+    }
+
+    /** Un pas compté sans la page : distance, et litres à la consommation de la voiture à cette vitesse. */
+    private void compter(JSONObject o, double d, double dt, double kmh) {
+        kmNatif += d / 1000;
+        org.json.JSONArray table = o.optJSONArray("l100ParVitesse");
+        if (table == null || table.length() == 0) return;
+        double v = kmh >= 0 ? kmh : d / dt * 3.6;
+        int k = (int) Math.min(table.length() - 1, Math.max(0, Math.round(v / 10)));
+        litresNatif += table.optDouble(k, 0) * d / 1000 / 100;
     }
 
     // ---------- notification ----------

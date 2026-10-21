@@ -136,7 +136,7 @@ const contenuDeBase = (): ContenuNotification => ({
   km: 0,
   euros: null,
   prix: null,
-  litresParKm: 0,
+  l100ParVitesse: [],
   tPoint: null,
 });
 
