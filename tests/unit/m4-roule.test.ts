@@ -1,6 +1,6 @@
 // Jalon 4 — calcul sur la vitesse réelle, distance GPS, pause, seuil de 1 km, accélérations, GPS perdu, Royaume-Uni (pence → €, Manche, Dartford).
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import GPX_ALBI_TOULOUSE from "../e2e/fixtures/albi-toulouse.gpx?raw"; // import brut de Vite : pas de dépendance aux types de Node
 import {
   ARRET_KMH,
   GPS_PERDU_MS,
@@ -182,7 +182,7 @@ describe("recalage et tronçons Autoroute / Route / Ville", () => {
     expect(m.every((x) => x.fin - x.debut + 1 <= 3000)).toBe(true);
   });
   it("le trajet GPX Albi → Toulouse, rattaché à ses routes, donne des tronçons cohérents et le pays traversé", () => {
-    const g = readFileSync("tests/e2e/fixtures/albi-toulouse.gpx", "utf8");
+    const g = GPX_ALBI_TOULOUSE;
     const pts = [...g.matchAll(/lat="([\d.-]+)" lon="([\d.-]+)"><time>([^<]+)</g)].map((m) => [Date.parse(m[3]), +m[1], +m[2], 0] as PointRoule);
     const pas = pasDe(pts);
     expect(pas.reduce((s, p) => s + p.d, 0) / 1000).toBeGreaterThan(75);
