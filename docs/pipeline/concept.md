@@ -29,6 +29,7 @@ Anthony ajoute : **les péages** dans le coût du trajet, et **toute l'Europe** 
 - Pas de comptes ni de partage social : pas de profil public, pas de commentaires sur les stations.
 - Pas de saisie de prix par les utilisateurs : les prix viennent uniquement de la source officielle.
 - Pas de voitures électriques ni de coût de recharge dans cette version.
-- Pas d'aller-retour automatique ni de partage du coût entre passagers (option C écartée).
+- Pas d'aller-retour automatique (option C écartée). Le partage du coût entre passagers, écarté au cadrage, est entré dans la V1 du 2026-10-21 (nombre de personnes et part de chacun, essence seule : décision 1 de `v1-recentrage.md`).
+- V1 (2026-10-21) : plus d'estimation d'un trajet avant de partir, plus de péages ; le coût est celui d'un trajet réellement roulé.
 - Pas de garage multi-voitures : une voiture mémorisée (option B écartée).
 - Pas de calcul de l'usure du véhicule ni de l'achat des vignettes (signalées, non chiffrées).

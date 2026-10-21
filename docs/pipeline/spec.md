@@ -21,11 +21,18 @@ Pour chaque tronçon : phase WLTP choisie par la vitesse typique (basse < 40 km/
 ## Péages et Europe (jalon 3, ajouté le 2026-10-20 après validation)
 Coût total = carburant + péages. Péages voiture TTC par section (PTV Developer, prix HT + TVA du pays ; HERE en recours), vignettes signalées non chiffrées. Prix moyen du jour par pays (Bulletin pétrolier UE hebdomadaire ; France = flux officiel). Itinéraire et profil Europe par Valhalla ; géocodage Europe Photon ; stations hors de France dans les pays qui publient (ES, IT, AT, DE, PT, SI, HR, DK, RO, IS, UK). Véhicules : ADEME + base EEA CO2 cars.
 
+## V1 recentrée (jalons 5 et 6, maquette V1 validée par Anthony le 2026-10-21 : « parfait ! on est bons »)
+Décisions : `v1-recentrage.md`. Référence visuelle : `design/mockup.html` (écrans T1-T6, 32 histoires V-x.y). La V1 donne **le coût exact de l'essence d'un trajet réellement roulé**, partagé entre les passagers. Trois onglets : **Trajet** (T1 accueil : ma voiture au centre, gros bouton rond Démarrer ; T2 Ma voiture : code D.2 de la carte grise ou recherche « clio 2017 120 », une seule fois ; T3 En route : vitesse, km, litres, €, durée, pause, arrêt, arrêt seul après 10 min immobile, GPS perdu en tunnel, notification Android ; T4 Fin de trajet : prix de l'essence — moyenne du jour du pays de départ pour le carburant de la voiture, remplaçable en touchant le compteur — puis coût, personnes, part de chacun, courbes de vitesse et de consommation, Enregistrer / Supprimer), **Stations** (T5 : carte déplaçable, « Rechercher dans cette zone », tri, fiche avec « Utiliser ce prix », Europe et Royaume-Uni), **Historique** (T6 : totaux, trajets par mois, rouvrir pour corriger ou supprimer).
+Hors-périmètre V1 : estimation d'un trajet avant de partir, péages et vignettes, écran Moteurs dans la navigation, comptes (données liées au téléphone), électrique, accéléromètre. Les histoires d'avant restent dans `stories.json` avec leur statut V1.
+
 ## Feuille de route
 
 - **Jalon 1 — Les prix autour de moi** (écrans S1, S2) : J'ouvre l'appli à Albi, je vois les vraies stations sur la carte et dans la liste avec leurs prix officiels du jour, je change de carburant, je trie, j'ouvre une fiche. 14 histoires.
 - **Jalon 2 — Le coût d'un trajet** (écrans S3, S4) : Je choisis ma voiture, je calcule Albi → Bordeaux, je vois le coût, les tronçons et leur consommation, je mets mon prix, je retrouve le trajet dans l'historique. 19 histoires.
 - **Jalon 3 — Péages, Europe et moteurs** (écrans S5) : Je branche ma clé PTV dans l'écran Moteurs, je calcule Albi → Barcelone puis Albi → Milan : le coût total ajoute les péages réels, chaque pays traversé a son prix moyen du jour, et à Barcelone la carte montre les stations espagnoles. 15 histoires.
+- **Jalon 4 — Enregistrer en roulant et Royaume-Uni** (écran S6) : enregistrement de la vitesse pendant qu'on roule, résultat sur la vitesse réelle ; Albi → Londres. 11 histoires.
+- **Jalon 5 — V1 recentrée** (écrans T1-T6) : voiture par le code D.2 (base EEA), Démarrer / Arrêter, fin de trajet (prix, coût, partage, courbes), Historique, Stations avec « Rechercher dans cette zone » et « Utiliser ce prix », arrêt seul après 10 min immobile, péages retirés. 30 histoires + 14 maintenues rejouées.
+- **Jalon 6 — Appli Android** (aucun écran propre ; traverse T1, T3, T4) : la même appli emballée pour Android, enregistrement écran éteint avec Waze ou Maps devant, notification permanente vitesse / km / € avec Pause, Reprendre, Arrêter ; APK signé installable. 2 histoires + 8 rejouées sur émulateur.
 - Transverses (5) : Accessibilité et performance s'appliquent à tous les écrans : vérifiées à chaque jalon, auditées au durcissement.
 
 ## Histoires utilisateur
