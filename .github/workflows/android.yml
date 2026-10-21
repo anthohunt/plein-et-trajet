@@ -4,6 +4,17 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      scenarios:
+        description: "Scénarios joués sur l'émulateur (liste JSON)"
+        default: '["principal","immobile"]'
+# un push plus récent remplace la vérification en cours (chaque run émulateur dure ~30 min)
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  # empreinte du certificat du magasin de clés plein-et-trajet-release.p12 (calculée au VPS, docs/pipeline/m6-journal.md)
+  EMPREINTE_SHA256: b3a3b7b2998e2d804a258491f60920417127dc01a32da2f7e2df794909314c25
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -31,16 +42,31 @@ jobs:
           ANDROID_KEYSTORE_FILE: ${{ runner.temp }}/release.p12
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      - name: Clé de signature effacée du runner
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.p12"
+      # signature (empreinte = celle du magasin de clés) et manifeste fusionné (permissions, service de localisation)
+      - name: Contrôles de l'APK (apksigner, aapt2)
+        run: |
+          python3 tests/android/controle-apk.py android/app/build/outputs/apk/release/app-release.apk controles-apk.txt
+          sha256sum android/app/build/outputs/apk/release/app-release.apk | tee -a controles-apk.txt
       - uses: actions/upload-artifact@v4
         with:
           name: plein-et-trajet-apk
           path: |
             android/app/build/outputs/apk/release/app-release.apk
             android/app/build/outputs/apk/debug/app-debug.apk
-  # contrôle sur un téléphone simulé : installation, lancement, capture de l'écran d'accueil
+            controles-apk.txt
+            controles-apk-manifeste.txt
+  # instrumentation sur un téléphone simulé (tests/android/m6-emulateur.mjs) : un job par scénario, en parallèle
   emulateur:
     needs: apk
     runs-on: ubuntu-latest
+    timeout-minutes: 80
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: ${{ fromJSON(github.event.inputs.scenarios || '["principal","immobile"]') }}
     steps:
       - name: KVM
         run: |
@@ -64,26 +90,18 @@ jobs:
           cores: 4
           ram-size: 4096M
           emulator-boot-timeout: 900
+          # l'APK de release est installé et ouvert (contrôle de l'APK livré) ; l'instrumentation tourne sur l'APK de débogage,
+          # même code, dont la WebView est inspectable. Le scénario principal installe sans -g : le dialogue d'autorisation est testé.
           script: |
-            adb install -r -g release/app-release.apk
-            adb shell monkey -p cloud.ingevision.pleinettrajet -c android.intent.category.LAUNCHER 1
-            sleep 20
-            adb exec-out screencap -p > accueil.png
-            adb uninstall cloud.ingevision.pleinettrajet
-            adb install -r -g debug/app-debug.apk
-            adb shell appops set cloud.ingevision.pleinettrajet android:mock_location allow || true
-            adb logcat -c
-            node tests/android/trajet-emulateur.mjs || (adb exec-out screencap -p > echec1.png; adb shell am force-stop cloud.ingevision.pleinettrajet; node tests/android/trajet-emulateur.mjs) || (adb exec-out screencap -p > echec.png; adb logcat -d > logcat.txt; exit 1)
-            adb logcat -d > logcat.txt
+            mkdir -p sortie-m6
+            if [ "${{ matrix.scenario }}" = principal ]; then adb install -r -g release/app-release.apk && adb shell monkey -p cloud.ingevision.pleinettrajet -c android.intent.category.LAUNCHER 1 && sleep 20 && adb exec-out screencap -p > sortie-m6/V-1.3-A01-apk-release.png && adb uninstall cloud.ingevision.pleinettrajet; fi
+            if [ "${{ matrix.scenario }}" = principal ]; then adb install -r debug/app-debug.apk; else adb install -r -g debug/app-debug.apk; fi
+            node tests/android/m6-emulateur.mjs ${{ matrix.scenario }} sortie-m6
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: emulateur
-          path: |
-            *.png
-            verdicts.txt
-            notification.txt
-            logcat.txt
+          name: captures-m6-${{ matrix.scenario }}
+          path: sortie-m6/
