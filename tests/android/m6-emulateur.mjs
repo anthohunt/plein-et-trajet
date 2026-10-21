@@ -414,13 +414,24 @@ async function preparer(gpx, depuis, source = "puce") {
   const voiture = await voitureEea("5RBU0C");
   voitureTest = voiture;
   const lect = new Lecteur(lireGpx(gpx), depuis, source);
-  lancer();
-  let p = await page();
-  await p.waitForLoadState();
-  await p.evaluate((v) => localStorage.setItem("pt-voiture-v1", JSON.stringify(v)), voiture);
-  await p.reload();
-  await p.locator('[data-el="bouton-demarrer"]').waitFor({ timeout: 30000 });
-  return { lect, p };
+  // l'émulateur perd parfois ses services Google peu après le démarrage, et le système tue l'appli qui dépend de leur
+  // fournisseur de polices (run 39690690299, job immobile : « Killing …pleinettrajet (adj 0): depends on provider
+  // …FontsProvider in dying proc com.google.android.gms.persistent ») : on rouvre l'appli, trois essais au plus
+  for (let essai = 1; ; essai++) {
+    try {
+      lancer();
+      const p = await page();
+      await p.waitForLoadState();
+      await p.evaluate((v) => localStorage.setItem("pt-voiture-v1", JSON.stringify(v)), voiture);
+      await p.reload();
+      await p.locator('[data-el="bouton-demarrer"]').waitFor({ timeout: 30000 });
+      return { lect, p };
+    } catch (e) {
+      if (essai >= 3) throw e;
+      journal(`ouverture ${essai} perdue (${String(e.message).split("\n")[0]}) — l'appli est rouverte dans 10 s`);
+      await pause(10000);
+    }
+  }
 }
 async function demarrer(p, lect) {
   await p.locator('[data-el="bouton-demarrer"]').click();
@@ -657,8 +668,12 @@ async function principal() {
   // d'écrire les relevés sans la page ; à la réouverture, la page les relit (audit r1, HIGH 2)
   await p.locator('[data-el="onglet-trajet"]').click();
   await p.locator('[data-el="bouton-demarrer"]').waitFor({ timeout: 15000 });
-  await demarrer(p, lect);
+  // la voiture roule déjà quand on touche Démarrer : tenue sur place pendant l'attente, puis lâchée à 105 km/h, elle faisait
+  // compter (à raison) une accélération 0 → 105 km/h qui n'est pas dans le tracé (run 39690690299 : trajet 2 à +22,7 % de
+  // roule.ts sur le GPX, l'écart exact de ½·m·v²)
+  lect.roule = true;
   const iDebut2 = lect.i;
+  await demarrer(p, lect);
   await pause(40000);
   capture("V-3.2-03-avant");
   const avantKill = await lireEnCours(p);
