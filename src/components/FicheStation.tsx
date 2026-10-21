@@ -57,6 +57,8 @@ export function FicheStation({ station, onFermer, onTrajet }: Props) {
     .sort()
     .pop();
   const services = [...(station.automate_24_24 ? [T.automate] : []), ...station.services.filter((x) => x !== "Automate CB 24/24")];
+  // le nom déclaré n'est montré que s'il n'est pas déjà dans le titre
+  const nomEnPlus = station.nom && !station.libelle.toLowerCase().includes(station.nom.toLowerCase()) ? station.nom : null;
 
   return (
     <div className="sheet" role="dialog" aria-modal="false" aria-labelledby="sh-name" data-el="fiche-station" data-station={station.id}>
@@ -110,7 +112,7 @@ export function FicheStation({ station, onFermer, onTrajet }: Props) {
           })}
           {cours && (
             <span data-el="cours-du-jour" data-taux={cours.taux}>
-              {T.coursDuJour(fmt(cours.taux, 4), new Date(cours.jour).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }))}
+              {T.coursDuJour(fmt(cours.taux, 4), new Date(cours.jour).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }))}
             </span>
           )}
         </div>
@@ -123,8 +125,8 @@ export function FicheStation({ station, onFermer, onTrajet }: Props) {
               : T.majPrix(anciennete(derniereMaj).texte)}
           </span>
         )}
-        {services.length > 0 && <span>{services.slice(0, 5).join(" · ")}</span>}
-        {station.nom && <span>{station.nom}</span>}
+        {services.length > 0 && <span>{services.slice(0, 3).join(" · ")}</span>}
+        {nomEnPlus && <span>{nomEnPlus}</span>}
       </div>
       <div style={{ marginTop: 12 }}>
         <button className="btn" type="button" data-el="bouton-trajet-station" onClick={() => onTrajet(adresseComplete(station))}>

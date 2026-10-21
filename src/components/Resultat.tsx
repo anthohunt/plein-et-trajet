@@ -57,13 +57,12 @@ export function Resultat({ etat, onRetour, onReessayer }: Props) {
         {etat.genre === "limite" && (
           <div className="etat" data-el="limite-itineraire">
             <p className="t" role="alert">{etat.motif === "trop_long" ? T.tropLong : T.horsCouverture}</p>
-            <p className="d">{etat.motif === "trop_long" ? T.tropLongDetail : T.horsCouvertureDetail}</p>
+            {etat.motif === "trop_long" && <p className="d">{T.tropLongDetail}</p>}
           </div>
         )}
         {etat.genre === "erreur" && (
           <div className="etat" data-el="calcul-impossible">
             <p className="t" role="alert">{T.calculImpossible}</p>
-            <p className="d">{T.calculImpossibleDetail}</p>
             <button className="btn small" type="button" data-el="reessayer-calcul" onClick={onReessayer}>{T.reessayer}</button>
           </div>
         )}
@@ -75,34 +74,26 @@ export function Resultat({ etat, onRetour, onReessayer }: Props) {
 function CorpsResultat({ d }: { d: DonneesResultat }) {
   const e = d.estimation;
   const [perso, setPerso] = useState<number | null>(null);
-  const [editeur, setEditeur] = useState(false);
   const [saisie, setSaisie] = useState("");
   const [erreurPrix, setErreurPrix] = useState(false);
   const [ouvert, setOuvert] = useState<number | null>(null);
   const champ = useRef<HTMLInputElement>(null);
-  const boutonPrix = useRef<HTMLButtonElement>(null);
   const minuteur = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(minuteur.current), []);
 
   const repartition = useMemo(() => repartirCouts(e.pays, d.moyennes, perso), [e.pays, d.moyennes, perso]);
   const multi = e.pays.length > 1;
-  const prix = repartition.lignes[0]?.prix ?? null; // prix affiché dans la plaque : celui du premier pays (le départ)
-  const carburantEuros = repartition.carburant;
-  const cout = coutTotal(carburantEuros, e.peages);
+  const prix = multi ? null : (repartition.lignes[0]?.prix ?? null); // plaque du prix : un seul pays ; plusieurs pays → prix sur chaque ligne pays
+  const cout = coutTotal(repartition.carburant, e.peages);
   const libellePrix = multi ? T.moyennePaysParPays(e.vehicule.carburant) : e.pays[0]?.code === "FR" ? T.moyenneFrance(e.vehicule.carburant) : T.moyennePaysSeul(e.pays[0]?.nom ?? "", e.vehicule.carburant);
   const maxLitres = useMemo(() => Math.max(...e.troncons.map((t) => t.litres), 0.001), [e.troncons]);
 
-  const ouvrirEditeur = () => {
-    setEditeur(true);
-    requestAnimationFrame(() => champ.current?.focus());
-  };
   const revenir = () => {
     window.clearTimeout(minuteur.current);
     setPerso(null);
     setSaisie("");
     setErreurPrix(false);
-    setEditeur(false);
-    requestAnimationFrame(() => boutonPrix.current?.focus());
+    requestAnimationFrame(() => champ.current?.focus());
   };
   // Le prix saisi n'est appliqué qu'une fois la frappe posée (Entrée, sortie du champ ou 0,45 s sans touche) :
   // taper « 12 » ne passe pas par « 1 » ; une saisie refusée laisse le coût tel qu'il était.
@@ -131,13 +122,10 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
       ev.preventDefault();
       appliquerMaintenant();
     } else if (ev.key === "Escape") {
+      // Échap efface la saisie : retour au prix moyen
       ev.preventDefault();
       ev.stopPropagation();
-      window.clearTimeout(minuteur.current);
-      setErreurPrix(false);
-      setSaisie(perso != null ? fmt(perso, 3) : "");
-      if (perso == null) setEditeur(false);
-      boutonPrix.current?.focus();
+      revenir();
     }
   };
   // Échap replie le tronçon ouvert (US-A11Y-003)
@@ -164,14 +152,6 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
             <span className="u" aria-hidden="true">{T.euro}</span>
           </span>
         )}
-        {prix != null && (
-          <span className="split" data-el="detail-cout">
-            {multi ? T.detailCoutPays(fmt(e.litres, 1), e.pays.length) : T.detailCout(fmt(e.litres, 1), fmt(prix, 3))}
-          </span>
-        )}
-        {carburantEuros != null && e.peages.etat === "ok" && (
-          <span className="split" data-el="repartition-cout">{T.carburantPeages(euros(carburantEuros), euros(e.peages.total))}</span>
-        )}
       </div>
       <div className="kpis" data-el="indicateurs">
         <div className="kpi"><b data-el="kpi-litres">{fmt(e.litres, 1)}</b><span>{T.litres}</span></div>
@@ -181,37 +161,41 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
       <div className="price" data-el="prix-perso">
         <div className="l">
           <span data-el="libelle-prix">{perso != null ? (multi ? T.monPrixTousPays : T.monPrix) : libellePrix}</span>
-          {prix != null && <TotemPrix prix={prix} cleAnim={prix3(prix)} />}
-        </div>
-        <div className="l">
-          <button ref={boutonPrix} className="link" type="button" data-el={perso != null ? "revenir-moyenne" : "mettre-mon-prix"} aria-expanded={perso == null ? editeur : undefined} onClick={() => {
-            if (perso != null) revenir();
-            else if (editeur) {
-              window.clearTimeout(minuteur.current);
-              setEditeur(false);
-            } else ouvrirEditeur();
-          }}>
-            {perso != null ? T.revenirMoyenne : T.mettreMonPrix}
-          </button>
-          {editeur && (
-            <span className="perso-champ">
-              <label htmlFor="perso">{T.prixPersoLabel}</label>
-              <input
-                id="perso"
-                ref={champ}
-                data-el="champ-prix-perso"
-                inputMode="decimal"
-                autoComplete="off"
-                placeholder={T.prixPersoPlaceholder}
-                value={saisie}
-                aria-invalid={erreurPrix || undefined}
-                aria-describedby={erreurPrix ? "perso-erreur" : undefined}
-                onChange={(ev) => surSaisie(ev.target.value)}
-                onBlur={appliquerMaintenant}
-                onKeyDown={toucheChamp}
-              />
+          {prix != null && (
+            <span data-el="prix-utilise" data-prix={prix3(prix)}>
+              <TotemPrix prix={prix} cleAnim={prix3(prix)} />
             </span>
           )}
+        </div>
+        <div className="l">
+          {/* le champ est là d'emblée : toucher « Mettre mon prix » y place le curseur */}
+          {perso != null ? (
+            <button className="link" type="button" data-el="revenir-moyenne" onClick={revenir}>
+              {T.revenirMoyenne}
+            </button>
+          ) : (
+            <label className="link" htmlFor="perso" data-el="mettre-mon-prix">
+              {T.mettreMonPrix}
+            </label>
+          )}
+          <span className="perso-champ">
+            <input
+              id="perso"
+              ref={champ}
+              data-el="champ-prix-perso"
+              inputMode="decimal"
+              autoComplete="off"
+              aria-label={perso != null ? `${T.monPrix} (${T.prixPersoLabel})` : undefined}
+              placeholder={T.prixPersoPlaceholder}
+              value={saisie}
+              aria-invalid={erreurPrix || undefined}
+              aria-describedby={erreurPrix ? "perso-erreur" : undefined}
+              onChange={(ev) => surSaisie(ev.target.value)}
+              onBlur={appliquerMaintenant}
+              onKeyDown={toucheChamp}
+            />
+            <span aria-hidden="true">{T.prixPersoLabel}</span>
+          </span>
         </div>
         {erreurPrix && (
           <p className="err-msg" id="perso-erreur" role="alert" data-el="erreur-prix-perso">
@@ -253,18 +237,21 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
           <li className="pl" key={v.pays} data-el="ligne-vignette"><span><b>{v.pays}</b> {v.libelle}</span></li>
         ))}
       </ul>
-      {e.peages.etat === "indisponible" && <p className="note" data-el="peages-indisponibles-detail">{e.peages.motif === "quota_fournisseur" ? T.peagesQuotaFournisseurDetail : e.peages.motif === "quota_atteint" ? T.peagesLimiteAtteinteDetail : T.peagesIndisponiblesDetail}</p>}
+      {e.peages.etat === "indisponible" && <p className="note" data-el="peages-indisponibles-detail">{T.peagesHorsCout}</p>}
       <h2 className="sec">{T.paysTitre}</h2>
       <ul className="plist" data-el="pays-traverses">
         {repartition.lignes.map((l) => (
           <li className="pl" key={l.code} data-pays={l.code} data-source={l.source}>
             <span>
-              <b>{l.code}</b> {l.nom} · {Math.round(l.km)} {T.km} · {l.prix == null ? T.prixAbsent : T.paysLigne2(fmt(l.litres, 1), fmt(l.prix, 3))}
+              <b>{l.code}</b> {l.nom}
+              {/* un seul pays : km, litres, prix et coût sont déjà en haut ; la ligne ne dit que le pays */}
+              {multi && <> · {Math.round(l.km)} {T.km} · {l.prix == null ? T.prixAbsent : T.paysLigne2(fmt(l.litres, 1), fmt(l.prix, 3))}</>}
+              {!multi && l.prix == null && <> · {T.prixAbsent}</>}
               {l.source === "ue" && <small className="pl-note" data-el="prix-non-publie"> — {T.prixNonPublie}</small>}
               {l.source === "flux" && l.code === "GB" && <small className="pl-note" data-el="prix-flux-pays"> — {T.prixFluxPays((d.moyennes.get(l.code)?.nb_stations ?? 0).toLocaleString("fr-FR"))}</small>}
               {l.source === "estime" && <small className="pl-note"> — {T.prixEstime}</small>}
             </span>
-            <span className="lit">{l.cout == null ? "—" : `${euros(l.cout)} ${T.euro}`}</span>
+            {multi && <span className="lit">{l.cout == null ? "—" : `${euros(l.cout)} ${T.euro}`}</span>}
           </li>
         ))}
       </ul>
@@ -296,7 +283,7 @@ function CorpsResultat({ d }: { d: DonneesResultat }) {
           );
         })}
       </ul>
-      <p className="note" data-el={d.enregistre ? "note-roule" : "note-estimation"}>{d.enregistre ? T.noteRoule : T.noteEstimation}</p>
+      {d.enregistre && <p className="note" data-el="note-roule">{T.noteRoule}</p>}
     </div>
   );
 }

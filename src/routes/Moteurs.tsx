@@ -102,10 +102,8 @@ export default function Moteurs() {
           <button className="back" type="button" data-el="retour-moteurs" onClick={() => nav("/")}>
             <span>{T.moteursRetour}</span>
           </button>
-          <span className="admin">{T.moteursReserve}</span>
         </div>
         <h2 className="route" id="titre-moteurs">{T.moteursTitre}</h2>
-        <p className="rsub">{T.moteursIntro}</p>
         {erreur && <p className="err-msg hist-msg" role="alert" data-el="moteurs-erreur">{T.moteursErreur}</p>}
         {!moteurs && !erreur && <p className="empty hist-msg" role="status">{T.moteursChargement}</p>}
         <ul className="mots" data-el="liste-moteurs">
@@ -116,21 +114,26 @@ export default function Moteurs() {
             const fs = d.secours ? m.fournisseurs.find((x) => x.id === d.secours) : undefined;
             const peages = m.service === "peages";
             const id = `mot-${m.service}`;
+            const seul = m.fournisseurs.length === 1;
             return (
               <li className="mot" key={m.service} data-service={m.service} data-el="moteur">
                 <h3>
                   {m.nom}
                   <span className={"stt " + d.etat} role="status" data-el="etat-moteur" data-etat={d.etat}>{d.message}</span>
                 </h3>
-                <div className="d">{m.description}</div>
-                <div className="r">
-                  <label className="sr-only" htmlFor={`${id}-f`}>{T.fournisseur} · {m.nom}</label>
-                  <select id={`${id}-f`} data-el={peages ? "choix-fournisseur" : "choix-fournisseur-" + m.service} value={d.actif} onChange={(e) => choisir(m, e.target.value)}>
-                    {m.fournisseurs.map((x) => (
-                      <option key={x.id} value={x.id}>{x.nom}</option>
-                    ))}
-                  </select>
-                </div>
+                {/* un seul fournisseur : rien à choisir, son nom suffit */}
+                {seul ? (
+                  <div className="d" data-el={"fournisseur-" + m.service}>{f.nom}</div>
+                ) : (
+                  <div className="r">
+                    <label className="sr-only" htmlFor={`${id}-f`}>{T.fournisseur} · {m.nom}</label>
+                    <select id={`${id}-f`} data-el={peages ? "choix-fournisseur" : "choix-fournisseur-" + m.service} value={d.actif} onChange={(e) => choisir(m, e.target.value)}>
+                      {m.fournisseurs.map((x) => (
+                        <option key={x.id} value={x.id}>{x.nom}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 {m.fournisseurs.length > 1 && (
                   <div className="r">
                     <label className="sr-only" htmlFor={`${id}-s`}>{T.secours} · {m.nom}</label>
@@ -142,7 +145,7 @@ export default function Moteurs() {
                     </select>
                   </div>
                 )}
-                {f.cle_requise ? (
+                {f.cle_requise && (
                   <>
                     <div className="r">
                       <label className="sr-only" htmlFor={`${id}-k`}>{T.cleDe(f.nom)}</label>
@@ -150,8 +153,6 @@ export default function Moteurs() {
                     </div>
                     <LienCle f={f} />
                   </>
-                ) : (
-                  <div className="d">{T.aucuneCleNecessaire}</div>
                 )}
                 {fs?.cle_requise && (
                   <>
@@ -164,7 +165,7 @@ export default function Moteurs() {
                 )}
                 <div className="r">
                   <button type="button" disabled={d.occupe} data-el={peages ? "tester-connexion" : "tester-connexion-" + m.service} onClick={() => tester(m)}>{T.tester}</button>
-                  <button type="button" className="save" disabled={d.occupe} data-el={peages ? "enregistrer-moteur" : "enregistrer-moteur-" + m.service} onClick={() => enregistrer(m)}>{T.enregistrer}</button>
+                  {(!seul || f.cle_requise) && <button type="button" className="save" disabled={d.occupe} data-el={peages ? "enregistrer-moteur" : "enregistrer-moteur-" + m.service} onClick={() => enregistrer(m)}>{T.enregistrer}</button>}
                 </div>
                 {m.bascule && <div className="d" data-el="bascule" data-resolu={m.bascule.resolu ? "oui" : "non"}>{(m.bascule.resolu ? T.basculeResolue : T.basculeNotee)(nomF(m, m.bascule.de), nomF(m, m.bascule.vers), heure(m.bascule.le))}</div>}
                 {m.incident && <div className="d" data-el="incident" data-resolu={m.incident.resolu ? "oui" : "non"}>{(m.incident.resolu ? T.incidentResolu : T.incidentNote)(lireIncident(m, m.incident.message), heure(m.incident.le))}</div>}
@@ -172,7 +173,6 @@ export default function Moteurs() {
             );
           })}
         </ul>
-        <p className="note">{T.moteursNote}</p>
       </div>
     </section>
   );

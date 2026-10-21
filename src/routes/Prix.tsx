@@ -197,7 +197,6 @@ export default function Prix({ position, carburant, setCarburant, tri, setTri }:
         {etat === "erreur" ? (
           <div className="etat" data-el="etat-erreur" role="alert">
             <p className="t">{T.prixIndisponibles}</p>
-            <p className="d">{T.prixIndisponiblesDetail}</p>
             <button type="button" className="btn small" onClick={() => setEssai((x) => x + 1)}>{T.reessayer}</button>
           </div>
         ) : etat === "chargement" && (!stations || prix?.carburant !== carburant) ? (
