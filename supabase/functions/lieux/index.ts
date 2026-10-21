@@ -1,6 +1,7 @@
 // lieux — propositions de lieux et pays d'une position, hors de France (moteur « lieux » : Photon ou IGN, lu à chaque appel).
-// Entrée : POST { action:"suggerer"|"geocoder", q } | { action:"pays", lat, lon }
-// Sortie : 200 { propositions:[{label,lat,lon,contexte,pays}] } | { lieu:{…}|null } | { pays:{code,nom}|null }
+// Entrée : POST { action:"suggerer"|"geocoder", q } | { action:"pays"|"nommer", lat, lon }
+// Sortie : 200 { propositions:[{label,lat,lon,contexte,pays}] } | { lieu:{…}|null } | { pays:{code,nom}|null } | { nom:string|null, pays:string|null }
+// « nommer » (jalon 5, fin de trajet) : géocodage inverse — IGN (Géoplateforme, index address) en France, Photon /reverse ailleurs.
 // Source Photon (komoot) : https://photon.komoot.io — autocomplétion permise, User-Agent identifiant, usage raisonnable.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { CORS, fetchTimeout, json } from "../_shared/http.ts";
@@ -8,6 +9,7 @@ import { lireMoteur } from "../_shared/moteurs.ts";
 import { pointEnFrance } from "../_shared/europe.ts";
 
 const PHOTON = "https://photon.komoot.io";
+const IGN_INVERSE = "https://data.geopf.fr/geocodage/reverse";
 const EUROPE = "-25,34,45,72"; // lon min, lat min, lon max, lat max
 const norm = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
 
@@ -73,6 +75,21 @@ Deno.serve(async (req) => {
       if (!code) return json(200, { pays: null });
       const { data } = await db.from("pays").select("code,nom").eq("code", code).maybeSingle();
       return json(200, { pays: data ?? { code, nom: code } });
+    }
+    if (c.action === "nommer") {
+      if (typeof c.lat !== "number" || typeof c.lon !== "number" || Math.abs(c.lat) > 90 || Math.abs(c.lon) > 180) return json(400, { erreur: "requete_invalide" });
+      if (pointEnFrance(c.lat, c.lon)) {
+        const r = await fetchTimeout(`${IGN_INVERSE}?index=address&lon=${c.lon}&lat=${c.lat}&limit=1`, {}, 8000);
+        if (!r.ok) throw new Error(`ign ${r.status}`);
+        const j = await r.json();
+        const p = j?.features?.[0]?.properties;
+        if (p?.city) return json(200, { nom: String(p.city), pays: "FR" });
+        // hors de toute adresse (campagne, mer) : Photon prend le relais
+      }
+      const f = await photon(`/reverse?lat=${c.lat}&lon=${c.lon}&lang=fr&limit=1`);
+      const p = f[0]?.properties as (Feature["properties"] & { city?: string; town?: string; village?: string; locality?: string; county?: string }) | undefined;
+      const nom = p?.city ?? p?.town ?? p?.village ?? p?.locality ?? p?.name ?? p?.county ?? null;
+      return json(200, { nom, pays: p?.countrycode?.toUpperCase() ?? null });
     }
     if (c.action === "suggerer" || c.action === "geocoder") {
       const q = (c.q ?? "").trim();
