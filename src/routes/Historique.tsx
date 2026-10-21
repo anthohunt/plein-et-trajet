@@ -32,7 +32,7 @@ export default function Historique() {
       <div className="scroll">
         <h2 className="route" tabIndex={-1} ref={titre}>{T.historiqueTitre}</h2>
         <div className="kpis" data-el="totaux-historique" data-trajets={tot.trajets} data-km={tot.km} data-euros={tot.euros}>
-          <div className="kpi"><b data-el="total-trajets">{tot.trajets}</b><span>{T.trajets}</span></div>
+          <div className="kpi"><b data-el="total-trajets">{tot.trajets}</b><span>{tot.trajets === 1 ? T.trajet : T.trajets}</span></div>
           <div className="kpi"><b data-el="total-km">{tot.km.toLocaleString("fr-FR")}</b><span>{T.km}</span></div>
           <div className="kpi"><b data-el="total-euros">{fmt(tot.euros, 2)}</b><span>{T.eurosEssence}</span></div>
         </div>

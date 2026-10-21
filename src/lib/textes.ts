@@ -381,6 +381,7 @@ export const T = {
   sousTitreTrajet: (date: string, duree: string, voiture: string) => `${date} · ${duree} · ${voiture}`,
   dureeHeures: (h: number, m: number) => (h > 0 ? `${h} h ${String(m).padStart(2, "0")}` : `${m} min`),
   historiqueTitre: "Historique",
+  trajet: "trajet",
   trajets: "trajets",
   aucunTrajetV1: "Aucun trajet enregistré.",
   ligneHistorique: (date: string, km: string) => `${date} · ${km} km`,
