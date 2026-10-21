@@ -2,8 +2,8 @@
  "approuve": true,
  "date": "2026-10-20T15:19:19+00:00",
  "run": "prix-carburant-trajets-2026-10-20-114307",
- "par": "agent (pré-vol autonome) après validation du mockup par Anthony le 2026-10-20",
- "source_de_verite": "docs/pipeline/design/mockup.html",
+ "par": "agent (pré-vol autonome) après validation du mockup par Anthony le 2026-10-20 ; jalons 5-6 : agent pt-spec-v1 (pré-vol sur pièces, gate cadrer) après validation de la maquette V1 par Anthony le 2026-10-21",
+ "source_de_verite": "docs/pipeline/design/mockup.html (maquette V1 validée le 2026-10-21 ; les jalons 1-4 suivent les versions 1 à 4, archivées dans l'historique git)",
  "milestones": [
   {
    "n": 1,
@@ -173,6 +173,149 @@
    ],
    "nb_stories": 11,
    "motif_sans_ecran": "S6 En route est l'écran propre du jalon 4. US-6.1, US-6.6, US-3.9 et US-1.9 enrichissent S3, S4 et S1 : rattachées au jalon 4 par exception à la règle « l'histoire suit son écran », sur décision d'Anthony (évolution du 2026-10-20, « Feu vert »)."
+  },
+  {
+   "n": 5,
+   "titre": "V1 recentrée",
+   "demontrable": true,
+   "demo": "Sur l'appli web déployée : j'enregistre ma Clio par son code D.2 « 5RBU0C » (base EEA), je touche Démarrer, je roule (vrai tracé GPS Albi → Toulouse rejoué), je passe dans Stations, je déplace la carte vers Montauban et je touche « Rechercher dans cette zone », je prends le prix d'une station, je reviens au trajet, je mets en pause puis reprends, j'arrête : la fin de trajet montre le prix, le coût, la part à 3 personnes, les courbes de vitesse et de consommation ; j'enregistre et je retrouve le trajet dans l'Historique avec ses totaux. Aucun péage nulle part, aucun appel PTV.",
+   "use_case": "tests/e2e/use-cases/m5-use-case.md",
+   "ecrans": [
+    {
+     "id": "T1",
+     "nom": "Trajet"
+    },
+    {
+     "id": "T2",
+     "nom": "Ma voiture"
+    },
+    {
+     "id": "T3",
+     "nom": "En route"
+    },
+    {
+     "id": "T4",
+     "nom": "Fin de trajet"
+    },
+    {
+     "id": "T5",
+     "nom": "Stations"
+    },
+    {
+     "id": "T6",
+     "nom": "Historique"
+    }
+   ],
+   "ecrans_traverses": [],
+   "stories": [
+    "V-1.1",
+    "V-1.2",
+    "V-1.3",
+    "V-2.1",
+    "V-2.2",
+    "V-2.3",
+    "V-2.E1",
+    "V-3.1",
+    "V-3.4",
+    "V-3.5",
+    "V-3.E1",
+    "V-3.E2",
+    "V-4.1",
+    "V-4.2",
+    "V-4.3",
+    "V-4.4",
+    "V-4.5",
+    "V-4.6",
+    "V-4.7",
+    "V-6.1",
+    "V-6.2",
+    "V-6.3",
+    "V-6.4",
+    "V-5.1",
+    "V-5.2",
+    "V-5.3",
+    "V-5.4",
+    "V-5.5",
+    "V-5.6",
+    "V-5.7"
+   ],
+   "nb_stories": 30,
+   "stories_regression": [
+    "US-1.4",
+    "US-1.6",
+    "US-2.1",
+    "US-1.E1",
+    "US-1.E2",
+    "US-1.E3",
+    "US-1.E4",
+    "US-2.E1",
+    "US-3.E3",
+    "US-4.E2",
+    "US-1.P1",
+    "US-6.E1",
+    "US-6.E2",
+    "US-6.E3"
+   ],
+   "stories_retirees": [
+    "US-2.2",
+    "US-3.2",
+    "US-3.3",
+    "US-3.5",
+    "US-3.6",
+    "US-4.1",
+    "US-4.3",
+    "US-3.E1",
+    "US-3.E2",
+    "US-4.E1",
+    "US-4.E3",
+    "US-3.P1",
+    "US-3.8",
+    "US-4.4",
+    "US-4.E4",
+    "US-4.E5",
+    "US-4.5",
+    "US-4.E6",
+    "US-3.9"
+   ],
+   "motif_regression": "Histoires des jalons 1 à 4 gardées telles quelles dans la V1 (statut maintenue_v1 dans stories.json) : déjà construites, elles sont rejouées sur les écrans T et doivent rester vertes. Les histoires retirées (statut retiree_v1) perdent leur écran : leurs tests Playwright m2/m3 sont sortis de la régression, le code mort qu'elles laissent est retiré au jalon 5."
+  },
+  {
+   "n": 6,
+   "titre": "Appli Android",
+   "demontrable": true,
+   "demo": "Je télécharge l'APK signé publié par GitHub Actions (release du dépôt anthohunt/plein-et-trajet), je l'installe sur un Android 14 (émulateur au build, téléphone d'Anthony ensuite), j'enregistre ma voiture, je touche Démarrer, j'éteins l'écran et j'ouvre Google Maps : le trajet GPS rejoué continue d'être compté ; la notification permanente montre vitesse, km et € et ses boutons Pause / Reprendre / Arrêter pilotent l'enregistrement sans ouvrir l'appli ; Arrêter ouvre la fin de trajet. La version web reste en ligne, même code.",
+   "use_case": "tests/e2e/use-cases/m6-use-case.md",
+   "ecrans": [],
+   "ecrans_traverses": [
+    {
+     "id": "T1",
+     "nom": "Trajet"
+    },
+    {
+     "id": "T3",
+     "nom": "En route"
+    },
+    {
+     "id": "T4",
+     "nom": "Fin de trajet"
+    }
+   ],
+   "stories": [
+    "V-3.2",
+    "V-3.3"
+   ],
+   "nb_stories": 2,
+   "stories_rejouees": [
+    "V-1.3",
+    "V-3.1",
+    "V-3.4",
+    "V-3.5",
+    "V-3.E1",
+    "V-3.E2",
+    "V-4.7",
+    "V-5.1"
+   ],
+   "motif_sans_ecran": "Le jalon 6 n'ajoute aucun écran : c'est la même appli, emballée pour Android. Sa matière propre est native (service de premier plan de géolocalisation, notification à boutons, points écrits par le service) et vit sur deux éléments de T3, l'écran construit au jalon 5 : `ecran-eteint` (V-3.2) et `notification` (V-3.3). Il est démontrable seul (un APK qui enregistre écran éteint), donc gardé comme jalon et non fusionné : la décision 8 d'Anthony (« B », vraie appli Android) en fait une livraison distincte, et sa vérification (émulateur, puis téléphone d'Anthony) diffère de celle du web."
   }
  ],
  "stories_transverses": {
@@ -193,21 +336,27 @@
   }
  ],
  "controles": {
-  "ecrans_total": 5,
+  "ecrans_total": 12,
   "ecrans_places_une_fois": true,
-  "stories_total": 54,
-  "stories_placees_ou_transverses": 54,
+  "stories_total": 97,
+  "stories_placees_ou_transverses": 97,
   "stories_en_double": 0,
   "stories_jouees_par_un_pas_numerote": true,
   "jalons_demontrables": [
    1,
    2,
-   3
+   3,
+   4,
+   5,
+   6
   ],
   "plans_cas_usage": [
    "tests/e2e/use-cases/m1-use-case.md",
    "tests/e2e/use-cases/m2-use-case.md",
-   "tests/e2e/use-cases/m3-use-case.md"
+   "tests/e2e/use-cases/m3-use-case.md",
+   "tests/e2e/use-cases/m4-use-case.md",
+   "tests/e2e/use-cases/m5-use-case.md",
+   "tests/e2e/use-cases/m6-use-case.md"
   ],
   "kit": [
    "spec.md",
@@ -216,13 +365,17 @@
    "rules.md"
   ],
   "depot": "https://github.com/anthohunt/plein-et-trajet (privé, commit initial ceea081)",
-  "secrets": "VERCEL_TOKEN et SUPABASE_ACCESS_TOKEN présents"
+  "secrets": "VERCEL_TOKEN et SUPABASE_ACCESS_TOKEN présents",
+  "stories_v1": 32,
+  "stories_v1_jalon5": 30,
+  "stories_v1_jalon6": 2
  },
  "corrections": [
   "Jalon « Historique et prix perso » fusionné dans le jalon 2 (aucun écran propre).",
   "Dépôt GitHub privé créé, aucun remote n'existait.",
   "2026-10-20 : jalon 3 « Péages et Europe » ajouté à la demande d'Anthony (maquette v2 validée) ; sans écran propre, il enrichit S1/S3/S4 — exception écrite dans roadmap.json.",
-  "2026-10-20 : écran S5 Moteurs (fournisseurs et clés branchables, rien en dur) ajouté au jalon 3 à la demande d'Anthony."
+  "2026-10-20 : écran S5 Moteurs (fournisseurs et clés branchables, rien en dur) ajouté au jalon 3 à la demande d'Anthony.",
+  "2026-10-21 : recentrage V1 (maquette V1 validée par Anthony, « parfait ! on est bons ») — écrans T1-T6 au jalon 5 « V1 recentrée », jalon 6 « Appli Android » sans écran propre (motif écrit) ; histoires des jalons 1-4 gardées avec un statut (maintenue_v1, remplacee_v1, retiree_v1, conservee_hors_navigation), aucune supprimée."
  ],
- "maj": "2026-10-20 : jalon 4 ajouté après validation de la maquette v4 par Anthony"
+ "maj": "2026-10-21 : jalons 5 et 6 ajoutés après validation de la maquette V1 par Anthony"
 }
