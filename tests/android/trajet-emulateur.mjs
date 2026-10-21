@@ -69,7 +69,12 @@ p = await page();
 await p.waitForURL(/\/fin$/, { timeout: 20000 }).catch(() => undefined);
 const url = p.url();
 constat("Arrêter (notification) ouvre la fin de trajet", /\/fin$/.test(url), url);
-await pause(2000);
+// les noms des lieux arrivent du géocodage inverse après l'arrêt : le titre ne doit plus montrer de coordonnées
+const titre = p.locator("h1").first();
+const nomme = await p
+  .waitForFunction(() => !/\d+,\d{3}\s·/.test(document.querySelector("h1")?.textContent ?? ""), null, { timeout: 20000 })
+  .then(() => true, () => false);
+constat("noms des lieux en titre de fin de trajet", nomme, await titre.innerText().catch(() => ""));
 sh("adb shell screencap -p /sdcard/4-fin.png");
 const txt = await p.locator("body").innerText().catch(() => "");
 const km = txt.match(/(\d+[,.]\d)\s*km/);
