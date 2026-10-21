@@ -55,7 +55,7 @@ function finir(code) {
   try {
     if (shellTest) {
       shellTest.kill();
-      journal(`remove-test-provider gps → ${shOk("cmd location providers remove-test-provider gps 2>&1") || "ok"}`);
+      journal(`remove-test-provider gps → ${shOk(commeShell("cmd location providers remove-test-provider gps 2>&1")) || "ok"}`);
     }
     logcat.kill();
   } catch {}
@@ -116,16 +116,20 @@ class Console {
 // simulée RÉPÈTE la dernière position chaque seconde (run 39667270054 : pendant les 90 s du tunnel, l'appli recevait toujours la
 // position d'entrée, « GPS perdu » n'apparaissait jamais) ; un fournisseur de test, lui, se tait quand on ne lui envoie rien.
 let shellTest = null;
+let prefixeTest = "";
+// adb root (round 2) : uid 0 n'est pas l'appli de position fictive autorisée — les commandes passent par l'uid shell (2000)
+const commeShell = (c) => (shOk("id -u") === "0" ? `su 2000 ${c}` : c);
 function fournisseurTest() {
   if (shellTest) return;
   for (const c of ["appops set com.android.shell android:mock_location allow", "appops set 2000 android:mock_location allow"]) journal(`${c} → ${shOk(c) || "ok"}`);
   journal(`aide : ${shOk("cmd location help 2>&1 | grep -iE 'test-provider' | head -8").replace(/\s+/g, " ")}`);
-  journal(`add-test-provider gps → ${shOk("cmd location providers add-test-provider gps 2>&1") || "ok"}`);
-  journal(`set-test-provider-enabled gps → ${shOk("cmd location providers set-test-provider-enabled gps true 2>&1") || "ok"}`);
+  journal(`add-test-provider gps → ${shOk(commeShell("cmd location providers add-test-provider gps 2>&1")) || "ok"}`);
+  journal(`set-test-provider-enabled gps → ${shOk(commeShell("cmd location providers set-test-provider-enabled gps true 2>&1")) || "ok"}`);
+  prefixeTest = commeShell("");
   shellTest = spawn("adb", ["shell"], { stdio: ["pipe", "ignore", "ignore"] });
 }
 function fixTest(lon, lat) {
-  shellTest.stdin.write(`cmd location providers set-test-provider-location gps --location ${lat},${lon} --accuracy 5\n`);
+  shellTest.stdin.write(`${prefixeTest}cmd location providers set-test-provider-location gps --location ${lat},${lon} --accuracy 5\n`);
 }
 let consoleEmu = null;
 async function envoyerFix(lon, lat, kn) {
