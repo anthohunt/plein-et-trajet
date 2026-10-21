@@ -6,7 +6,7 @@ import { prix3 } from "../lib/format";
 import type { Estimation } from "../lib/trajets";
 import { T } from "../lib/textes";
 import { TotemPrix } from "./TotemPrix";
-import { cheminCourbe } from "./EnRoute";
+import { cheminCourbe } from "./EnRouteM4";
 
 export interface DonneesResultat {
   departLabel: string;

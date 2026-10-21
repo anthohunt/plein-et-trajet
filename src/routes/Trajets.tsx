@@ -15,7 +15,7 @@ import { ChampLieu } from "../components/ChampLieu";
 import { ChoixVoiture } from "../components/ChoixVoiture";
 import { Historique, type EtatHistorique } from "../components/Historique";
 import { Resultat, type EtatResultat } from "../components/Resultat";
-import { EnRoute, dureeTexte } from "../components/EnRoute";
+import { EnRoute, dureeTexte } from "../components/EnRouteM4";
 import { ErreurRoule, calculerTrajetRoule, enregistrerTrajetRoule, garderEnCours, lireEnCours, oublierEnCours, paysDePosition, vehiculeRoule, type EnregistrementEnCours, type EstimationRoulee } from "../lib/enRoute";
 import { enDirect } from "../../supabase/functions/_shared/roule.ts";
 import { fmt } from "../lib/calcul";

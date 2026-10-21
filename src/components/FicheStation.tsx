@@ -1,6 +1,7 @@
-// Fiche station (S2) : feuille montante, tous les carburants ou « non vendu », focus et Échap.
+// Fiche station (T5) : feuille montante, tous les carburants ou « non vendu », focus et Échap ; « Utiliser ce prix » (jalon 5)
+// pour le carburant de la voiture, absent si la station ne le vend pas.
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { CARBURANTS, anciennete, distance } from "../lib/format";
+import { CARBURANTS, anciennete, distance, prix3, type Carburant } from "../lib/format";
 import { coursDuJour, prixStation, type Cours, type LignePrix } from "../lib/donnees";
 import { fmt } from "../lib/calcul";
 import { T } from "../lib/textes";
@@ -10,14 +11,15 @@ import type { StationAffichee } from "./LigneStation";
 interface Props {
   station: StationAffichee;
   onFermer: () => void;
-  onTrajet: (adresse: string) => void;
+  carburantVoiture: Carburant | null;
+  onUtiliserPrix: (prix: number) => void;
 }
 
 export function adresseComplete(s: { adresse: string | null; cp: string | null; ville: string | null }): string {
   return [s.adresse, [s.cp, s.ville].filter(Boolean).join(" ")].filter(Boolean).join(", ");
 }
 
-export function FicheStation({ station, onFermer, onTrajet }: Props) {
+export function FicheStation({ station, onFermer, carburantVoiture, onUtiliserPrix }: Props) {
   const titre = useRef<HTMLHeadingElement>(null);
   const feuille = useRef<HTMLDivElement>(null);
   const [lignes, setLignes] = useState<LignePrix[] | null>(null);
@@ -52,6 +54,8 @@ export function FicheStation({ station, onFermer, onTrajet }: Props) {
   }, [enPence]);
 
   const parCarburant = new Map((lignes ?? []).map((l) => [l.carburant, l]));
+  const ligneVoiture = carburantVoiture ? parCarburant.get(carburantVoiture) : undefined;
+  const prixVoiture = ligneVoiture && ligneVoiture.prix != null && !ligneVoiture.rupture ? ligneVoiture.prix : null;
   const derniereMaj = (lignes ?? [])
     .map((l) => l.maj)
     .filter((m): m is string => !!m)
@@ -146,11 +150,13 @@ export function FicheStation({ station, onFermer, onTrajet }: Props) {
         {services.length > 0 && <span>{services.slice(0, 3).join(" · ")}</span>}
         {nomEnPlus && <span>{nomEnPlus}</span>}
       </div>
-      <div style={{ marginTop: 12 }}>
-        <button className="btn" type="button" data-el="bouton-trajet-station" onClick={() => onTrajet(adresseComplete(station))}>
-          {T.trajetJusquIci}
-        </button>
-      </div>
+      {prixVoiture != null && (
+        <div style={{ marginTop: 12 }}>
+          <button className="btn" type="button" data-el="utiliser-ce-prix" data-prix={prixVoiture} onClick={() => onUtiliserPrix(prixVoiture)}>
+            {T.utiliserCePrix(prix3(prixVoiture))}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

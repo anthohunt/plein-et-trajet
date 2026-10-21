@@ -1,3 +1,4 @@
+// Écran En route du jalon 4 (estimation + trajet roulé recalé par le serveur) : hors du chemin V1 depuis le jalon 5, gardé avec src/routes/Trajets.tsx.
 // S6 En route : enregistrement en cours — vitesse et sa courbe des 3 dernières minutes, distance, litres, coût, durée, arrêts, L/100 km ;
 // verrou d'écran (Screen Wake Lock) avec repli déclaré ; « GPS perdu » après 15 s sans position ; Pause / Reprendre ; Arrêter.
 import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";

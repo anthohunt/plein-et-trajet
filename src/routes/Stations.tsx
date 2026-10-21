@@ -1,6 +1,15 @@
-// S1 Prix : sélecteur de carburant, carte des stations, liste triable ; S2 fiche station en feuille.
+// T5 Stations (jalon 5, T5.7 ; ex-S1 Prix) : sélecteur de carburant (celui de la voiture d'office), carte des stations,
+// « Rechercher dans cette zone » après un glissement (pas de rechargement automatique), liste triable ; fiche station en
+// feuille avec « Utiliser ce prix » ; bandeau « Trajet en cours » pendant un enregistrement.
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { enDirect } from "../../supabase/functions/_shared/roule.ts";
+import { enregistreur } from "../lib/plateforme";
+import { useEnregistrement, useVoitureV1 } from "../lib/useEnregistrement";
+import { garderPrixChoisi } from "../lib/prixChoisi";
+import { vehiculeDe } from "../lib/voiture";
+import { prixDirect } from "../components/EnRoute";
+import { fmt } from "../lib/calcul";
 import { SelecteurCarburant } from "../components/SelecteurCarburant";
 import { LigneStation, type StationAffichee } from "../components/LigneStation";
 import { FicheStation } from "../components/FicheStation";
@@ -9,7 +18,7 @@ import { distanceKm, libellesStations, moitie, seuilMoitie, trier, type Carburan
 import { infoPays, moyennesParPays, paysDePosition, prixCarburant, stationsAutour, tousPays, type PaysInfo, type Station } from "../lib/donnees";
 import type { MoyennePays } from "../lib/pays";
 import { prix3 } from "../lib/format";
-import { memoriserVille, type Position } from "../lib/position";
+import { type Position } from "../lib/position";
 import { communeDuLieu } from "../lib/geocodage";
 import { T } from "../lib/textes";
 
@@ -27,9 +36,12 @@ interface Props {
 
 type Etat = "chargement" | "pret" | "erreur";
 
-export default function Prix({ position, onZone, carburant, setCarburant, tri, setTri }: Props) {
+export default function Stations({ position, onZone, carburant, setCarburant, tri, setTri }: Props) {
   const nav = useNavigate();
+  const voiture = useVoitureV1();
+  const { etat: enCours, maintenant } = useEnregistrement();
   const [zone, setZone] = useState<Zone | null>(null);
+  const [zoneProposee, setZoneProposee] = useState<Zone | null>(null); // carte glissée : « Rechercher dans cette zone »
   const [stations, setStations] = useState<Station[] | null>(null);
   // prix lus pour un carburant donné : jamais affichés sous le titre d'un autre carburant
   const [prix, setPrix] = useState<{ carburant: Carburant; parStation: Map<string, { prix: number; maj: string | null }> } | null>(null);
@@ -162,8 +174,35 @@ export default function Prix({ position, onZone, carburant, setCarburant, tri, s
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const rechercherZone = () => {
+    if (!zoneProposee) return;
+    setCadrer(false);
+    setZone(zoneProposee);
+    nommerZone(zoneProposee);
+    setZoneProposee(null);
+  };
+
+  // « Utiliser ce prix » : prix du trajet en cours (retour à l'écran En route), sinon du prochain trajet (retour à l'accueil)
+  const utiliserPrix = (prix: number, station: string) => {
+    if (!voiture) return;
+    if (enCours) {
+      enregistreur().changerPrix(prix);
+      nav("/en-route");
+    } else {
+      garderPrixChoisi({ prix, carburant: voiture.carburant, station });
+      nav("/");
+    }
+  };
+  const coutEnCours = useMemo(() => {
+    if (!enCours) return null;
+    const p = prixDirect(enCours);
+    if (!p) return null;
+    return enDirect(enCours.points, enCours.pauses, enCours.debut, maintenant, vehiculeDe(enCours.voiture), enCours.enPause).litres * p.prix;
+  }, [enCours, maintenant]);
+
   const recentrer = () => {
     if (!position) return;
+    setZoneProposee(null);
     nommerZone(null);
     setRecentrage((x) => x + 1);
     setCadrer(true);
@@ -171,7 +210,15 @@ export default function Prix({ position, onZone, carburant, setCarburant, tri, s
   };
 
   return (
-    <section className="screen" data-screen="S1" role="tabpanel" id="panneau-prix" aria-labelledby="onglet-prix">
+    <section className="screen" data-screen="T5" role="tabpanel" id="panneau-stations" aria-labelledby="onglet-stations">
+      {enCours && (
+        <div className="ongoing" data-el="retour-trajet" role="status">
+          <span>
+            <span aria-hidden="true">● </span>
+            {coutEnCours == null ? T.trajetEnCoursSansPrix : T.trajetEnCours(fmt(coutEnCours, 2))}
+          </span>
+        </div>
+      )}
       <SelecteurCarburant valeur={carburant} onChange={setCarburant} />
       {position?.motif && (
         <p className="notice" role="status" data-el="message-localisation">
@@ -188,11 +235,7 @@ export default function Prix({ position, onZone, carburant, setCarburant, tri, s
               selection={ouverte?.id ?? null}
               recentrage={recentrage}
               cadrer={cadrer}
-              onDeplacement={(z) => {
-                setCadrer(false);
-                setZone(z);
-                nommerZone(z);
-              }}
+              onDeplacement={(z) => setZoneProposee(z)}
               onPastille={ouvrir}
             />
           </Suspense>
@@ -202,6 +245,11 @@ export default function Prix({ position, onZone, carburant, setCarburant, tri, s
             <span><i style={{ background: "var(--cheap)" }} />{T.legendeBas}</span>
             <span><i style={{ background: "var(--dear)" }} />{T.legendeHaut}</span>
           </div>
+        )}
+        {zoneProposee && (
+          <button type="button" className="zone" data-el="rechercher-zone" onClick={rechercherZone}>
+            {T.rechercherZone}
+          </button>
         )}
         <button type="button" className="recentre" aria-label={T.recentrer} title={T.recentrer} data-el="recentrer" onClick={recentrer}>
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2">
@@ -243,14 +291,7 @@ export default function Prix({ position, onZone, carburant, setCarburant, tri, s
         )}
       </div>
       {ouverte && (
-        <FicheStation
-          station={ouverte}
-          onFermer={fermer}
-          onTrajet={(adresse) => {
-            if (ouverte.ville) memoriserVille({ label: ouverte.ville, lat: ouverte.lat, lon: ouverte.lon });
-            nav("/trajets", { state: { arrivee: adresse } });
-          }}
-        />
+        <FicheStation station={ouverte} onFermer={fermer} carburantVoiture={voiture?.carburant ?? null} onUtiliserPrix={(p) => utiliserPrix(p, ouverte.libelle)} />
       )}
     </section>
   );

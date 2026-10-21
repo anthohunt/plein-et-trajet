@@ -123,14 +123,26 @@ export default function CarteStations({ position, moi: estIci, stations, selecti
     map.getCanvas().setAttribute("aria-label", T.carteStations);
     // seulement les déplacements de l'utilisateur (glisser, zoom, clavier), pas les cadrages programmés :
     // le geste est repéré à son début (l'inertie qui le termine n'a plus d'événement d'origine)
+    // jalon 5 (V-5.3) : un glissement de plus de 25 px (ou un zoom) propose « Rechercher dans cette zone », sans recharger
     let parUtilisateur = false;
+    let depart: { centre: maplibregl.LngLat; zoom: number } | null = null;
     map.on("movestart", (e) => {
-      if ((e as { originalEvent?: unknown }).originalEvent) parUtilisateur = true;
+      if ((e as { originalEvent?: unknown }).originalEvent) {
+        parUtilisateur = true;
+        depart = depart ?? { centre: map.getCenter(), zoom: map.getZoom() };
+      }
     });
     map.on("moveend", (e) => {
       disposer(map, marques.current);
       if (!parUtilisateur && !(e as { originalEvent?: unknown }).originalEvent) return;
       parUtilisateur = false;
+      const avant = depart;
+      if (!avant) return;
+      const p = map.project(avant.centre);
+      const cadre = map.getContainer();
+      const glisse = Math.hypot(p.x - cadre.clientWidth / 2, p.y - cadre.clientHeight / 2);
+      if (glisse <= 25 && Math.abs(map.getZoom() - avant.zoom) < 0.25) return;
+      depart = null;
       const c = map.getCenter();
       rappels.current.onDeplacement({ lat: c.lat, lon: c.lng, rayonM: rayonVisible(map) });
     });

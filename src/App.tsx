@@ -1,13 +1,19 @@
-import { useEffect, useState } from "react";
-import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { BarreOnglets } from "./components/BarreOnglets";
-import Prix from "./routes/Prix";
-import Trajets from "./routes/Trajets";
+import Stations from "./routes/Stations";
+import Trajet from "./routes/Trajet";
+import MaVoiture from "./routes/MaVoiture";
+import EnRoutePage from "./routes/EnRoutePage";
+import FinDeTrajet from "./routes/FinDeTrajet";
+import Historique from "./routes/Historique";
 import Moteurs from "./routes/Moteurs";
 import Admin from "./routes/Admin";
-import { useAdmin } from "./lib/admin";
 import { CARBURANTS, type Carburant, type Tri } from "./lib/format";
 import { localiser, type Position } from "./lib/position";
+import { enregistreur } from "./lib/plateforme";
+import { lireArrete } from "./lib/historique";
+import { useVoitureV1 } from "./lib/useEnregistrement";
 import { T } from "./lib/textes";
 
 const CLE_CARBURANT = "pt-carburant";
@@ -24,16 +30,38 @@ function carburantMemorise(): Carburant {
 
 export default function App() {
   const [position, setPosition] = useState<Position | null>(null);
-  const [carburant, setCarburantEtat] = useState<Carburant>(carburantMemorise);
+  const voiture = useVoitureV1();
+  const [carburant, setCarburantEtat] = useState<Carburant>(() => voiture?.carburant ?? carburantMemorise());
   const [tri, setTri] = useState<Tri>("prix");
   const [zone, setZone] = useState<string | null>(null); // carte déplacée : « Autour de <commune> »
-  const { admin } = useAdmin();
   const nav = useNavigate();
   const { pathname } = useLocation();
 
   useEffect(() => {
     localiser().then(setPosition);
   }, []);
+
+  // au lancement : un enregistrement gardé reprend (écran En route) ; un trajet arrêté non tranché revient (fin de trajet)
+  const lance = useRef(false);
+  useEffect(() => {
+    if (lance.current) return;
+    lance.current = true;
+    (async () => {
+      const e = await enregistreur().restaurer().catch(() => null);
+      if (e) {
+        if (pathname === "/") nav("/en-route", { replace: true });
+        return;
+      }
+      const arrete = await lireArrete().catch(() => null);
+      if (arrete && (pathname === "/" || pathname === "/en-route")) nav("/fin", { replace: true });
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // onglet Stations : le carburant de la voiture, d'office (V-5.2)
+  useEffect(() => {
+    if (pathname.startsWith("/stations") && voiture) setCarburantEtat(voiture.carburant);
+  }, [pathname, voiture]);
 
   const setCarburant = (c: Carburant) => {
     setCarburantEtat(c);
@@ -54,18 +82,18 @@ export default function App() {
         </h1>
         <div className="topr">
           <div className="where" data-el="lieu">{lieu}</div>
-          {admin && (
-            <button type="button" className="gear" data-el="bouton-moteurs" aria-label={T.moteursBouton} title={T.moteursTitre} aria-pressed={pathname.startsWith("/moteurs")} onClick={() => nav("/moteurs")}>
-              <span aria-hidden="true">⚙</span>
-            </button>
-          )}
         </div>
       </header>
       <Routes>
-        <Route path="/trajets" element={<Trajets position={position} />} />
+        <Route path="/" element={<Trajet />} />
+        <Route path="/voiture" element={<MaVoiture />} />
+        <Route path="/en-route" element={<EnRoutePage />} />
+        <Route path="/fin" element={<FinDeTrajet />} />
+        <Route path="/historique" element={<Historique />} />
+        <Route path="/stations" element={<Stations position={position} onZone={setZone} carburant={carburant} setCarburant={setCarburant} tri={tri} setTri={setTri} />} />
         <Route path="/moteurs" element={<Moteurs />} />
         <Route path="/admin" element={<Admin />} />
-        <Route path="*" element={<Prix position={position} onZone={setZone} carburant={carburant} setCarburant={setCarburant} tri={tri} setTri={setTri} />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <BarreOnglets />
     </div>
