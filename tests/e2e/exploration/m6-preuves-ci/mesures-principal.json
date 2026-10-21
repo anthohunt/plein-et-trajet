@@ -1,0 +1,39 @@
+{
+ "appliDevant": "Google Maps (com.google.android.apps.maps)",
+ "ecranEteint": {
+  "dureeS": 317.537,
+  "points": 307,
+  "plusGrandTrouS": 1.917,
+  "kmPoints": 7.194,
+  "kmGpx": 7.215
+ },
+ "ecart": {
+  "notification": {
+   "km": 9.7,
+   "euros": 2.76,
+   "prix": 2.157,
+   "litresDeduits": 1.2795549374130737
+  },
+  "direct": {
+   "km": 9.7,
+   "litres": 1.28
+  },
+  "fin": {
+   "km": 9.702574053630727,
+   "litres": 1.2779907295408588
+  },
+  "ecartKmPct": 0.03,
+  "ecartLitresPct": 0.12,
+  "ecartLitresDirectPct": 0.16
+ },
+ "arret": {
+  "pidAvant": "13724",
+  "pidApresAmKill": "13724",
+  "pidApresSigkill": "",
+  "points": {
+   "avant": 41,
+   "apres": 50,
+   "memeTrajet": true
+  }
+ }
+}

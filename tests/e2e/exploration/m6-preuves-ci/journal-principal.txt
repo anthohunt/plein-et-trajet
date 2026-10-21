@@ -1,0 +1,86 @@
+    0s scénario principal — écran mWakefulness=Awake — Maps package:/product/app/Maps/Maps.apk
+    3s appops set com.android.shell android:mock_location allow → ok
+    3s appops set 2000 android:mock_location allow → ok
+    3s aide : add-test-provider <PROVIDER> [--requiresNetwork] [--requiresSatellite] remove-test-provider <PROVIDER> set-test-provider-enabled <PROVIDER> true|false set-test-provider-location <PROVIDER> --location <LATITUDE>,<LONGITUDE>
+    3s add-test-provider gps → ok
+    3s set-test-provider-enabled gps → ok
+   19s capture V-1.3-A02-dialogue-localisation.png (55897 o)
+   19s dialogue localisation : « Allow Plein & Trajet to access this device’s location? » → « While using the app »
+   22s capture V-1.3-A03-accueil.png (26001 o)
+   22s Démarrer touché
+   31s capture V-1.3-A04-dialogue-notifications.png (31293 o)
+   31s dialogue notifications : « Allow Plein & Trajet to send you notifications? » → « Allow »
+   32s OK  V-1.3 dialogue d'autorisation de localisation natif (une fois) — Allow Plein & Trajet to access this device’s location?
+   32s OK  V-1.3 dialogue d'autorisation des notifications natif — Allow Plein & Trajet to send you notifications?
+   32s OK  V-1.3 Démarrer ouvre En route — https://localhost/en-route
+   63s capture V-3.1-A05-direct.png (37103 o)
+   63s OK  V-3.1 direct : km et vitesse comptés — 0.3 km, 74 km/h après 30 s
+   64s capture V-3.4-A06-pause-appli.png (34129 o)
+   74s OK  V-3.4 pause dans l'appli : « En pause », km figés 10 s — 0.4 → 0.4 km
+   82s capture V-3.4-A07-reprise-appli.png (37585 o)
+   82s OK  V-3.4 Reprendre dans l'appli : la distance repart — 0.4 → 0.5 km
+  103s capture V-5.1-A08-stations.png (92616 o)
+  106s capture V-5.1-A09-retour-en-route.png (38460 o)
+  106s OK  V-5.1 Stations pendant l'enregistrement : les points continuent — 40 → 61 points en 20 s sur Stations
+  109s capture V-3.2-01-avant.png (38364 o)
+  119s appli devant dessinée : com.google.android.apps.maps « Make it your map »
+  121s capture V-3.2-A10-maps-devant.png (29897 o)
+  121s OK  V-3.2 autre appli au premier plan — Google Maps (com.google.android.apps.maps) — topResumedActivity=ActivityRecord{de4c44a u0 com.google.android.apps.maps/com.google.android.maps.MapsActivity t10}
+  124s capture V-3.2-A11-ecran-eteint.png (2195 o)
+  124s OK  V-3.2 écran éteint — mWakefulness=Asleep
+  184s écran éteint depuis 1 min — mWakefulness=Asleep — GPS envoyés 182, erreurs 0
+  184s notification [écran éteint 1 min] Trajet en cours | 74 km/h · 2,6 km · 1,01 € | Pause / Arrêter
+  245s écran éteint depuis 2 min — mWakefulness=Asleep — GPS envoyés 242, erreurs 0
+  245s notification [écran éteint 2 min] Trajet en cours | 82 km/h · 3,8 km · 1,17 € | Pause / Arrêter
+  305s écran éteint depuis 3 min — mWakefulness=Asleep — GPS envoyés 302, erreurs 0
+  305s notification [écran éteint 3 min] Trajet en cours | 83 km/h · 5,2 km · 1,34 € | Pause / Arrêter
+  365s écran éteint depuis 4 min — mWakefulness=Asleep — GPS envoyés 362, erreurs 0
+  365s notification [écran éteint 4 min] Trajet en cours | 83 km/h · 6,6 km · 1,51 € | Pause / Arrêter
+  425s écran éteint depuis 5 min — mWakefulness=Asleep — GPS envoyés 422, erreurs 0
+  425s notification [écran éteint 5 min] Trajet en cours | 105 km/h · 8,2 km · 1,77 € | Pause / Arrêter
+  428s capture V-3.2-A12-reveil.png (2195 o)
+  428s OK  V-3.2 aucun trou > 15 s dans les points (IndexedDB en_cours) écran éteint + Maps — 307 points en 318 s, plus grand trou 1.917 s
+  428s OK  V-3.2 la distance couvre tout le temps écran éteint — 7.19 km comptés / 7.21 km rejoués
+  433s capture V-3.2-02-apres.png (41445 o)
+  438s capture V-3.3-01-avant.png (41093 o)
+  447s notification [lecture 1] Trajet en cours | 116 km/h · 8,7 km · 2,03 € | Pause / Arrêter
+  447s capture V-3.3-02-apres.png (33948 o)
+  447s OK  V-3.3 notification « Plein & Trajet » dans le volet — nom de l'appli en tête de la notification
+  447s OK  V-3.3 notification : vitesse, km, € + Pause et Arrêter — Trajet en cours | 116 km/h · 8,7 km · 2,03 € | Pause / Arrêter
+  457s notification [lecture 2 (+10 s)] Trajet en cours | 105 km/h · 9,1 km · 2,42 € | Pause / Arrêter
+  457s capture V-3.3-03-avant.png (33703 o)
+  457s OK  V-3.3 notification mise à jour (lectures à 10 s d'écart) — 116 km/h · 8,7 km · 2,03 € → 105 km/h · 9,1 km · 2,42 €
+  461s touché « Pause » (Pause de la notification) en 88,343
+  468s notification [après Pause] Trajet en pause | 0 km/h · 9,2 km · 2,43 € | Reprendre / Arrêter
+  468s capture V-3.3-04-apres.png (33796 o)
+  468s OK  V-3.3 Pause depuis la notification : « Trajet en pause », bouton « Reprendre », appli pas ouverte — Trajet en pause | Reprendre / Arrêter | devant : topResumedActivity=ActivityRecord{de4c44a u0 com.google.android.apps.maps/com.google.android.maps.MapsActivity t10}
+  498s notification [pause +30 s] Trajet en pause | 0 km/h · 9,2 km · 2,43 € | Reprendre / Arrêter
+  498s capture V-3.4-A13-pause-30s.png (33782 o)
+  498s OK  V-3.4 pause depuis la notification : km figés 30 s de tracé — 9.2 → 9.2 km, enPause=true, GPS rejoué jusqu'au point 466
+  502s touché « Reprendre » (Reprendre de la notification) en 100,343
+  516s notification [après Reprendre] Trajet en cours | 105 km/h · 9,4 km · 2,47 € | Pause / Arrêter
+  516s capture V-3.3-A14-reprise-notif.png (33981 o)
+  516s OK  V-3.3 Reprendre depuis la notification : « Trajet en cours », km repartent — 9.2 → 9.4 km
+  526s capture V-3.3-05-avant.png (33859 o)
+  530s notification [figée avant Arrêter] Trajet en cours | 105 km/h · 9,7 km · 2,76 € | Pause / Arrêter
+  534s touché « Arrêter » (Arrêter de la notification) en 157,343
+  543s capture V-3.3-06-apres.png (52414 o)
+  543s OK  V-3.3 Arrêter depuis la notification : l'appli s'ouvre sur la fin de trajet — https://localhost/fin | topResumedActivity=ActivityRecord{55c46fa u0 cloud.ingevision.pleinettrajet/.MainActivity t9}
+  543s OK  fin de trajet : noms des lieux en titre (pas de coordonnées) — ALBI → FLORENTIN
+  543s OK  écart km notification / fin de trajet < 3 % — 9.7 km vs 9.703 km → 0.03 %
+  543s OK  écart litres notification / fin de trajet < 5 % — 1.280 L (2.76 € / 2.157 €/L) vs 1.278 L → 0.12 % (direct à l'écran : 1.28 L, 0.16 %)
+  543s OK  notification effacée après Arrêter
+  545s capture V-4.7-A15-historique.png (25978 o)
+  553s capture V-4.7-A16-historique-rouvert.png (25938 o)
+  553s OK  V-4.7 trajet enregistré présent dans l'historique après réouverture de l'appli — 2aebfe2a-e29d-4a69-be49-37d151877fec
+  595s capture V-3.2-03-avant.png (40124 o)
+  598s am kill : processus 13724 → 13724
+  598s am kill sans effet (service de premier plan) : SIGKILL par run-as → ok
+  601s capture V-3.2-A17-appli-tuee.png (29749 o)
+  601s OK  V-3.2 processus de l'appli arrêté — 13724 → aucun
+  623s capture V-3.2-04-apres.png (39702 o)
+  623s OK  V-3.2 réouverture : le trajet en cours reprend avec tous ses points — 41 points avant → 50 après, même trajet true
+  623s OK  V-3.2 réouverture : la notification du trajet revient — 105 km/h · 2,0 km · 0,30 €
+  627s capture V-3.5-A18-fin-appli.png (52061 o)
+  627s OK  V-3.5 Arrêter dans l'appli ouvre la fin de trajet — FLORENTIN → LAGRAVE
+  628s remove-test-provider gps → ok

@@ -1,0 +1,15 @@
+{
+ "tunnel": {
+  "kmFin": 8.244281835985328,
+  "kmTrace": 8.244
+ },
+ "immobile": {
+  "secondeRejeu": 681,
+  "attenduVers": 674,
+  "titre": "Immobile depuis 10 min : c'est fini ?",
+  "actions": [
+   "Reprendre",
+   "C'est fini"
+  ]
+ }
+}

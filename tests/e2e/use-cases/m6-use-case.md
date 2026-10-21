@@ -52,3 +52,37 @@ En tant que conducteur, je pilote l'enregistrement depuis la barre du téléphon
 ## Histoires du jalon 5 rejouées sur Android (émulateur)
 
 V-1.3 (Démarrer, dialogue de localisation natif), V-3.1 (direct dans l'appli), V-3.4 (Pause dans l'appli puis dans la notification), V-3.5 (Arrêter), V-3.E1 (immobile 10 min : la notification passe à « Immobile depuis 10 min » avec « C'est fini » / « Reprendre »), V-3.E2 (trou de 90 s du tracé dérivé), V-4.7 (Enregistrer puis rouvrir l'appli : le trajet est dans l'historique), V-5.1 (passer dans Stations pendant l'enregistrement : la distance continue).
+
+## Captures de rejeu
+
+Prises de vue réelles : `adb exec-out screencap -p` dans GitHub Actions, run 39675522721 (commit fe0f9e7), artefacts
+`captures-m6-principal` et `captures-m6-immobile` ; V-3.2-05/06 par Playwright sur la prod. Brutes dans `tests/e2e/screenshots/m6/`,
+livrées dans `tests/e2e/delivery/`.
+
+- `V-1.3-A01-apk-release.png` — APK de RELEASE signé installé et ouvert (écran Trajet, pas encore de voiture)
+- `V-1.3-A02-dialogue-localisation.png` — dialogue natif « Allow Plein & Trajet to access this device’s location? » (à l'ouverture de l'appli)
+- `V-1.3-A03-accueil.png` — écran Trajet après autorisation, voiture Renault Clio, Démarrer
+- `V-1.3-A04-dialogue-notifications.png` — dialogue natif des notifications au premier Démarrer
+- `V-3.1-A05-direct.png` — En route : vitesse, km, litres, € en direct après 30 s
+- `V-3.2-A10-maps-devant.png` — Google Maps au premier plan (image google_apis, Maps présent)
+- `V-3.2-A11-ecran-eteint.png` — écran éteint (noir ; mWakefulness=Asleep au journal du job)
+- `V-3.2-A17-appli-tuee.png` — processus de l'appli tué (SIGKILL) : Maps revient devant
+- `V-3.3-A14-reprise-notif.png` — volet : après « Reprendre », « Trajet en cours », km repartis
+- `V-3.4-A06-pause-appli.png` — Pause touchée dans l'appli : « En pause », bouton « Reprendre »
+- `V-3.4-A07-reprise-appli.png` — Reprendre dans l'appli : la distance repart
+- `V-3.4-A13-pause-30s.png` — volet : 30 s de tracé plus tard, toujours « Trajet en pause », km figés
+- `V-3.5-A18-fin-appli.png` — Arrêter dans l'appli : fin de trajet « FLORENTIN → LAGRAVE »
+- `V-3.E1-A26-en-route.png` — immobile : En route avant l'arrêt
+- `V-3.E1-A27-immobile-appli.png` — immobile : « Trajet arrêté : immobile depuis 10 min » avec Reprendre / C'est fini
+- `V-3.E1-A28-notif-immobile.png` — immobile : notification « Immobile depuis 10 min : c'est fini ? » avec Reprendre / C'est fini
+- `V-3.E1-A29-reprise.png` — immobile : « Reprendre » touché dans la notification → « Trajet en cours »
+- `V-3.E1-A30-fin.png` — immobile : fin de trajet après Arrêter
+- `V-3.E2-A21-en-route.png` — tunnel : En route avant le trou
+- `V-3.E2-A22-gps-perdu.png` — tunnel : « GPS perdu (tunnel) · la distance est complétée à la sortie »
+- `V-3.E2-A23-notif-gps-perdu.png` — tunnel : notification « Trajet en cours · GPS perdu »
+- `V-3.E2-A24-gps-retrouve.png` — tunnel : signal retrouvé, distance complétée
+- `V-3.E2-A25-fin.png` — tunnel : fin de trajet 8,2 km (= tracé rejoué)
+- `V-4.7-A15-historique.png` — Enregistrer : le trajet en tête de l'historique
+- `V-4.7-A16-historique-rouvert.png` — appli arrêtée puis rouverte : le trajet est toujours dans l'historique
+- `V-5.1-A08-stations.png` — Stations pendant l'enregistrement : bandeau « Trajet en cours · … € »
+- `V-5.1-A09-retour-en-route.png` — retour sur Trajet : la distance a continué
