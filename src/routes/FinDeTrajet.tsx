@@ -26,6 +26,7 @@ import { moyennesDuPays } from "../lib/prixDuJour";
 import { tousPays, type PaysInfo } from "../lib/donnees";
 import { Courbe } from "../components/Courbe";
 import { T } from "../lib/textes";
+import { useEnLigne } from "../lib/enLigne";
 
 const dateLongue = (ms: number) => new Date(ms).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
 const dureeTexte = (s: number) => T.dureeHeures(Math.floor(s / 3600), Math.floor((s % 3600) / 60));
@@ -43,6 +44,7 @@ export default function FinDeTrajet() {
   // carburant demandé dont la moyenne du jour est en cours de lecture, ou introuvable (pas de réseau)
   const [carbAttente, setCarbAttente] = useState<{ c: Carburant; etat: "lecture" | "absente" } | null>(null);
   const courant = useRef<TrajetV1 | null>(null);
+  const enLigne = useEnLigne();
   const titre = useRef<HTMLHeadingElement>(null);
   const champ = useRef<HTMLInputElement>(null);
   const compteur = useRef<HTMLButtonElement>(null);
@@ -196,6 +198,9 @@ export default function FinDeTrajet() {
           {route}
         </h2>
         <p className="rsub" data-el="sous-titre-trajet">{T.sousTitreTrajet(dateLongue(t.debut), dureeTexte(t.duree_s), t.voiture.nom)}</p>
+        {!enLigne && (
+          <p className="hint" role="status" data-el="hors-ligne" style={{ margin: "6px 16px 0" }}>{T.horsLigneFin}</p>
+        )}
         <div className="kpis">
           <div className="kpi"><b data-el="fin-litres" data-litres={t.litres}>{fmt(t.litres, 1)}</b><span>{T.litres}</span></div>
           <div className="kpi"><b data-el="fin-km" data-km={t.km}>{fmt(t.km, t.km < 100 ? 1 : 0)}</b><span>{T.km}</span></div>

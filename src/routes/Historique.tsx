@@ -2,7 +2,8 @@
 // toucher une ligne rouvre sa fin de trajet pour la corriger ou la supprimer.
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { coutTrajet, grouperParMois, listerTrajetsV1, nomLieu, partPersonne, totaux, type TrajetV1 } from "../lib/historique";
+import { coutTrajet, grouperParMois, listerTrajetsV1, nomLieu, partPersonne, prixUtilise, totaux, type TrajetV1 } from "../lib/historique";
+import { prix3 } from "../lib/format";
 import { fmt } from "../lib/calcul";
 import { T } from "../lib/textes";
 
@@ -53,6 +54,8 @@ export default function Historique() {
                         <br />
                         <span className="m">
                           {T.ligneHistorique(dateCourte(t.debut), fmt(t.km, t.km < 100 ? 1 : 0))}
+                          {T.sep}
+                          <span data-el="carburant-ligne">{T.ligneCarburant(t.carburant, prixUtilise(t) == null ? null : prix3(prixUtilise(t) as number))}</span>
                           {t.personnes > 1 && cout != null && <span data-el="part-ligne">{T.sep}{T.partChacun(fmt(partPersonne(cout, t.personnes), 2))}</span>}
                         </span>
                       </button>

@@ -414,6 +414,9 @@ export const T = {
   carburantLecture: (c: string) => `Lecture de la moyenne ${c} du jour…`,
   carburantSansMoyenne: (c: string) => `Pas de moyenne ${c} du jour sans réseau : carburant inchangé. Reviens en ligne ou mets ton prix.`,
   totauxSansPrix: (n: number) => (n > 1 ? `${n} trajets sans prix, non comptés dans les €` : "1 trajet sans prix, non compté dans les €"),
+  horsLigneEnRoute: "Hors ligne : le trajet continue, tout est calculé sur le téléphone.",
+  horsLigneFin: "Hors ligne : litres et coût calculés sur le téléphone ; les noms des lieux viendront au retour du réseau.",
+  ligneCarburant: (c: string, prix: string | null) => (prix == null ? c : `${c} à ${prix} €/L`),
   notificationTitre: "Plein & Trajet",
   notificationTexte: "Trajet en cours d'enregistrement",
 };

@@ -10,6 +10,7 @@ import { tousPays, type PaysInfo } from "../lib/donnees";
 import { nomVoiture, vehiculeDe } from "../lib/voiture";
 import { T } from "../lib/textes";
 import { Courbe } from "./Courbe";
+import { useEnLigne } from "../lib/enLigne";
 
 export const dureeTexte = (s: number) => `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}`;
 
@@ -28,6 +29,7 @@ export function EnRoute({ e, maintenant, onArreter }: { e: EnCours; maintenant: 
   const titre = useRef<HTMLHeadingElement>(null);
   const alerte = useRef<HTMLDivElement>(null);
   const rec = enregistreur();
+  const enLigne = useEnLigne();
 
   useEffect(() => {
     titre.current?.focus({ preventScroll: true });
@@ -104,6 +106,9 @@ export function EnRoute({ e, maintenant, onArreter }: { e: EnCours; maintenant: 
         <p className="hint" data-el="ecran-eteint" data-plateforme={rec.plateforme} data-verrou={verrou}>
           {rec.plateforme === "android" ? T.ecranEteintAndroid : T.ecranEteintWeb}
         </p>
+        {!enLigne && (
+          <p className="hint" role="status" data-el="hors-ligne">{T.horsLigneEnRoute}</p>
+        )}
         {d.gpsPerdu && !immobile && (
           <p className="hint gps" role="alert" data-el="gps-perdu">{T.gpsPerduV1}</p>
         )}
