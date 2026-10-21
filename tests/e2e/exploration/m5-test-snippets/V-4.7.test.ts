@@ -15,6 +15,9 @@ test.describe("V-4.7 — Enregistrer ou supprimer", () => {
       await expect(page.locator("li.hrow").first()).toHaveAttribute("data-trajet", id!);
       const t = (await lireIdb(page)).trajets.find((x: any) => x.id === id);
       expect([t.carburant, t.personnes, t.enregistre]).toEqual(["Gazole", 2, true]);
+      // round 2 : la ligne montre le carburant et le prix choisis, et la part de chacun
+      await expect(page.locator(`li.hrow[data-trajet="${id}"] [data-el="carburant-ligne"]`)).toHaveText(`Gazole à ${virgule(t.prix_perso ?? t.prix_litre, 3)} €/L`);
+      await expect(page.locator(`li.hrow[data-trajet="${id}"] [data-el="part-ligne"]`)).toContainText("€ chacun");
     });
   });
   test.describe("Edge Case", () => {

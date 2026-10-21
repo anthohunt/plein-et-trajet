@@ -152,10 +152,23 @@ test.describe("M1 — Les prix autour de moi", () => {
   test.describe("US-1.E4 — Station en rupture", () => {
     test.describe("Edge Case", () => {
       // Données réelles : rupture temporaire de gazole déclarée dans le flux officiel
-      test("US-1.E4 — une station en rupture de gazole n'apparaît pas en Gazole", async ({ page }) => {
+      test("US-1.E4 — une station en rupture de gazole n'apparaît pas en Gazole", async ({ page, context }) => {
         const ids = (await autour()).map((s) => s.id).join(",");
-        const rup = await rest(`prix?select=station_id&carburant=eq.Gazole&rupture=is.true&station_id=in.(${ids})`);
-        expect(rup.length, "aucune rupture gazole réelle dans le rayon aujourd'hui : fixture nécessaire").toBeGreaterThan(0);
+        let rup = await rest(`prix?select=station_id&carburant=eq.Gazole&rupture=is.true&station_id=in.(${ids})`);
+        if (rup.length === 0) {
+          // jalon 5 round 2 (audit lot 2, LOW 12) : pas de rupture autour d'Albi ce jour-là → une vraie rupture ailleurs en France
+          // (station qui vend un autre carburant), la position posée à 200 m
+          for (const r of await rest("prix?select=station_id&carburant=eq.Gazole&rupture=is.true&limit=40")) {
+            if (!/^\d+$/.test(r.station_id)) continue;
+            if ((await rest(`prix?select=carburant&station_id=eq.${r.station_id}&rupture=is.false&prix=not.is.null`)).length === 0) continue;
+            const [st] = await rest(`stations?select=lat,lon&id=eq.${r.station_id}`);
+            if (!st) continue;
+            await context.setGeolocation({ latitude: Number(st.lat) + 0.0018, longitude: Number(st.lon) });
+            rup = [r];
+            break;
+          }
+        }
+        expect(rup.length, "aucune rupture gazole réelle en France aujourd'hui : fixture nécessaire").toBeGreaterThan(0);
         const id = rup[0].station_id;
         await ouvrirPrix(page);
         await choisir(page, "Gazole");

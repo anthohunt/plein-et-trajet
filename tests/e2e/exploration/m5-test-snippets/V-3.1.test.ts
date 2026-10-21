@@ -8,10 +8,17 @@ test.describe("V-3.1 — Suivre en direct", () => {
       await rejouer(context, page, PTS, 1, 200);
       const a = await direct(page);
       const vues: number[] = [];
-      await rejouer(context, page, PTS, 200, 400, async () => vues.push(Number(await page.locator(D("vitesse")).getAttribute("data-kmh"))));
+      const retards: number[] = [];
+      await rejouer(context, page, PTS, 200, 400, async () => {
+        vues.push(Number(await page.locator(D("vitesse")).getAttribute("data-kmh")));
+        // cadence : l'écran montre la dernière position reçue ; écart entre l'horloge de la page et l'instant de cette position
+        const [dernier, maintenant] = await page.evaluate(() => [Number(document.querySelector('[data-screen="T3"]')?.getAttribute("data-dernier-point")), Date.now()]);
+        retards.push(maintenant - dernier);
+      });
       const b = await direct(page);
       const changements = vues.filter((v, i) => i > 0 && v !== vues[i - 1]).length;
       expect(changements).toBeGreaterThan(20); // redessinée à chaque position (1 par seconde) : la vitesse change souvent en 200 s
+      expect(Math.max(...retards)).toBeLessThanOrEqual(2000); // mise à jour en 2 s au plus après chaque position (critère V-3.1)
       expect(b.km).toBeGreaterThan(a.km);
       expect(b.litres).toBeGreaterThan(a.litres);
       expect(b.euros).toBeGreaterThan(a.euros);

@@ -31,7 +31,7 @@ test.describe("V-6.1 — Ouvrir l'historique", () => {
       await page.goto("/historique");
       await expect(page.locator(D("historique-vide"))).toHaveText("Aucun trajet enregistré.");
       await expect(page.locator(D("totaux-historique"))).toHaveAttribute("data-trajets", "0");
-      await expect(page.locator(D("total-km"))).toHaveText("0");
+      await expect(page.locator(D("total-km"))).toHaveText("0,0"); // une décimale sous 100 km (3a2c194)
       await expect(page.locator(D("total-euros"))).toHaveText("0,00");
     });
   });

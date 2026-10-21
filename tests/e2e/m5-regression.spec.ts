@@ -173,4 +173,17 @@ test.describe("Régression V1 — histoires maintenue_v1 (T1, T3, T4, T6)", () =
     console.log(`US-PERF-001 : accueil affiché en ${ms} ms (4G simulée : 85 ms, 9 Mbit/s)`);
     expect(ms).toBeLessThan(2500);
   });
+  // round 2 (audit lot 1, LOW 16) : l'objet du critère d'origine, la liste des stations
+  test("US-PERF-001 — liste des stations affichée en moins de 2,5 s en 4G simulée", async ({ page, context }: { page: Page; context: BrowserContext }) => {
+    const cdp = await context.newCDPSession(page);
+    await cdp.send("Network.enable");
+    await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
+    await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 85, downloadThroughput: (9 * 1024 * 1024) / 8, uploadThroughput: (1.5 * 1024 * 1024) / 8 });
+    const t0 = Date.now();
+    await page.goto("/stations", { waitUntil: "commit" });
+    await page.locator('[data-el="ligne-station"]').first().waitFor();
+    const ms = Date.now() - t0;
+    console.log(`US-PERF-001 : liste des stations affichée en ${ms} ms (4G simulée : 85 ms, 9 Mbit/s)`);
+    expect(ms).toBeLessThan(2500);
+  });
 });

@@ -3,7 +3,7 @@ import { test, expect, D, PTS, avecVoiture, demarrer, arreter, direct, rejouer, 
 test.describe("V-3.5 — Arrêter", () => {
   test.describe("Happy Path", () => {
     test("V-3.5 — fin de trajet : Albi → Toulouse, date, durée, litres, km, L/100 km", async ({ page, context }) => {
-      test.setTimeout(180_000);
+      test.setTimeout(420_000); // 4 300 positions rejouées (LOW 13 lot 1 : 180 s ne suffisaient pas sous charge)
       await avecVoiture(context);
       await demarrer(page);
       await rejouer(context, page, PTS, 1, PTS.length);
@@ -33,11 +33,14 @@ test.describe("V-3.5 — Arrêter", () => {
       await context.setOffline(true);
       await arreter(page);
       await expect(page.locator(D("titre-trajet"))).toHaveAttribute("data-noms", "non");
+      await expect(page.locator(D("titre-trajet"))).toHaveText(/^\d+,\d{3} · \d+,\d{3} → \d+,\d{3} · \d+,\d{3}$/); // coordonnées, hors ligne
+      await expect(page.locator(D("hors-ligne"))).toBeVisible();
       const litres = Number(await page.locator(D("fin-litres")).getAttribute("data-litres"));
       const prix = Number(await page.locator(D("prix-apres")).getAttribute("data-prix"));
       await expect(page.locator(D("cout-trajet"))).toHaveAttribute("data-cout", String(euros2(litres * prix)));
       await context.setOffline(false);
       await expect(page.locator(D("titre-trajet"))).toHaveAttribute("data-noms", "oui", { timeout: 30_000 });
+      await expect(page.locator(D("hors-ligne"))).toHaveCount(0);
     });
   });
 });

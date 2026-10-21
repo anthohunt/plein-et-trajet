@@ -3,13 +3,17 @@ import { test, expect, D, PTS, avecVoiture, demarrer, arreter, rejouer, lireIdb,
 test.describe("V-5.7 — Europe et Royaume-Uni", () => {
   test.describe("Happy Path", () => {
     test.use({ geolocation: { latitude: 41.3874, longitude: 2.1686 } });
-    test("V-5.7 — Barcelone : stations espagnoles au prix du jour", async ({ page, context }) => {
+    test("V-5.7 — Barcelone : stations espagnoles au prix du jour, sur un fond de carte", async ({ page, context }) => {
       await avecVoiture(context);
+      // round 2 (audit lot 2, MEDIUM 5) : le fond couvre l'Europe — des tuiles OpenFreeMap répondent pour Barcelone
+      const tuiles: number[] = [];
+      page.on("response", (r) => { if (/tiles\.openfreemap\.org\/planet\//.test(r.url())) tuiles.push(r.status()); });
       await page.goto("/stations");
       await expect(lignes(page).first()).toBeVisible({ timeout: 30_000 });
       const ids = await lignes(page).evaluateAll((l) => l.map((x) => x.getAttribute("data-station")!));
       const st = await rest(`stations?select=id,pays&id=in.(${ids.map((i) => `"${i}"`).join(",")})`);
       expect(new Set(st.map((s: any) => s.pays))).toEqual(new Set(["ES"]));
+      await expect.poll(() => tuiles.filter((x) => x === 200).length, { timeout: 20_000 }).toBeGreaterThan(0);
     });
   });
   test.describe("Edge Case", () => {

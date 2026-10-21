@@ -27,5 +27,21 @@ test.describe("V-5.2 — Choisir le carburant", () => {
         expect(await prixLigne(l)).toBeCloseTo(Number(base[0].prix), 3);
       }
     });
+    test.describe("Prayssac", () => {
+      test.use({ geolocation: { latitude: 44.5041, longitude: 1.1885 } });
+      test("V-5.2 — une vraie station sans gazole (TotalEnergies Prayssac, 46220005) disparaît de la liste et de la carte en Gazole", async ({ page, context }) => {
+        const base = await rest("prix?select=carburant&station_id=eq.46220005");
+        expect(base.map((x: any) => x.carburant)).toContain("SP95-E10");
+        expect(base.map((x: any) => x.carburant)).not.toContain("Gazole");
+        await avecVoiture(context);
+        await page.goto("/stations");
+        await expect(page.locator(`${D("ligne-station")}[data-station="46220005"]`)).toBeVisible({ timeout: 30_000 });
+        await expect(page.locator(`${D("pastille-station")}[data-station="46220005"]`)).toHaveCount(1);
+        await page.locator(`${D("selecteur-carburant")} button`, { hasText: /^Gazole$/ }).tap();
+        await expect(page.locator(D("liste-stations"))).toHaveAttribute("data-carburant", "Gazole");
+        await expect(page.locator(`${D("ligne-station")}[data-station="46220005"]`)).toHaveCount(0);
+        await expect(page.locator(`${D("pastille-station")}[data-station="46220005"]`)).toHaveCount(0);
+      });
+    });
   });
 });
