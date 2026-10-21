@@ -1,111 +1,32 @@
-// Jalon 1 — « Les prix autour de moi » : spec unique consolidée.
+// Jalon 1 — « Les prix autour de moi » : spec consolidée, adaptée à la V1 (jalon 5, bâtisseur r1b).
 // Joué contre l'appli déployée, base réelle (Supabase). Seuls E1 et E2 interceptent la réponse (// MOCKED) ;
 // A11Y-004 ne fait que ralentir une vraie réponse. Aucune capture n'écrase tests/e2e/delivery/ (preuves auditées).
+// V1 : l'écran Prix est devenu T5 Stations (/stations) ; les histoires remplacee_v1 / retiree_v1 (US-1.1, 1.2, 1.3, 1.5, 2.2) sont
+// dans tests/e2e/archive/m1-explore.spec.ts. Une carte déplacée ne se recharge plus d'elle-même : « Rechercher dans cette zone » (V-5.3).
 import { test, expect, type Page } from "@playwright/test";
-import { ALBI, autour, centre, choisir, croissant, glisser, km, lignes, lireLignes, ouvrirPrix, pastilleDegagee, pastilles, rest } from "./exploration/m1-test-snippets/_aides";
+import { ALBI, autour, centre, choisir, croissant, glisser, km, lignes, lireLignes, pastilleDegagee, pastilles, rest } from "./exploration/m1-test-snippets/_aides";
+
+/** Écran Stations (ex-écran Prix), mêmes attentes qu'au jalon 1. */
+async function ouvrirPrix(p: Page) {
+  await p.goto("/stations");
+  await expect(lignes(p).first()).toBeVisible();
+  await expect(p.locator('[data-el="carte-stations"]')).toHaveAttribute("data-pastilles", /\d+/);
+  await expect(p.locator('[data-el="ecart"]').first()).toBeVisible(); // moyenne nationale chargée
+}
+/** V1 : la zone glissée se charge par « Rechercher dans cette zone ». */
+async function rechercherZone(p: Page) {
+  await p.locator('[data-el="rechercher-zone"]').click();
+  await expect(p.locator('[data-el="rechercher-zone"]')).toHaveCount(0);
+}
+/** Voiture enregistrée (vraie ligne EEA de la Clio 5RBU0C) : la fiche d'une station propose alors « Utiliser … pour mon trajet ». */
+async function avecVoiture(p: Page) {
+  const env = process.env;
+  const r = await fetch(`${env.VITE_SUPABASE_URL}/functions/v1/voiture-eea?d2=5RBU0C`, { headers: { apikey: env.VITE_SUPABASE_ANON_KEY!, Authorization: `Bearer ${env.VITE_SUPABASE_ANON_KEY}` } });
+  const v = (await r.json()).versions[0];
+  await p.addInitScript((x) => localStorage.setItem("pt-voiture-v1", JSON.stringify(x)), v);
+}
 
 test.describe("M1 — Les prix autour de moi", () => {
-  test.describe("US-1.1 — Ouvrir les prix", () => {
-    test.describe("Happy Path", () => {
-      test("US-1.1 — l'onglet Prix affiche carte et liste autour de ma position", async ({ page }) => {
-        await page.goto("/trajets");
-        await expect(page.getByRole("tab", { name: "Trajets" })).toHaveAttribute("aria-selected", "true");
-        await page.getByRole("tab", { name: "Prix" }).click();
-        await expect(lignes(page).first()).toBeVisible();
-        const n = await lignes(page).count();
-        expect(n).toBeGreaterThan(3);
-        await expect(pastilles(page)).toHaveCount(n);
-        expect(km(await centre(page), { lat: ALBI.latitude, lon: ALBI.longitude })).toBeLessThan(0.5);
-      });
-    });
-    test.describe("Edge Case", () => {
-      test.describe("position refusée", () => {
-        test.use({ permissions: [] });
-        test("US-1.1 — centrée sur Albi par défaut avec un message", async ({ page }) => {
-          await page.goto("/trajets");
-          await page.getByRole("tab", { name: "Prix" }).click();
-          await expect(page.locator('[data-el="message-localisation"]')).toContainText("Active la localisation · carte centrée sur Albi");
-          await expect(lignes(page).first()).toBeVisible();
-          expect(km(await centre(page), { lat: ALBI.latitude, lon: ALBI.longitude })).toBeLessThan(0.5);
-        });
-        test("US-1.1 — centrée sur la dernière ville saisie", async ({ page }) => {
-          await page.goto("/trajets");
-          await page.getByLabel("Départ").fill("Castres");
-          await page.getByLabel("Arrivée").focus();
-          await expect.poll(() => page.evaluate(() => localStorage.getItem("pt-derniere-ville"))).toContain("Castres");
-          await page.reload();
-          await page.getByRole("tab", { name: "Prix" }).click();
-          await expect(page.locator('[data-el="message-localisation"]')).toContainText("carte centrée sur Castres");
-          await expect(lignes(page).first()).toBeVisible();
-          expect(km(await centre(page), { lat: 43.6094, lon: 2.2455 })).toBeLessThan(1);
-        });
-      });
-    });
-  });
-
-  test.describe("US-1.2 — Choisir mon carburant", () => {
-    test.describe("Happy Path", () => {
-      test("US-1.2 — Gazole : chaque ligne et pastille au prix gazole de la base", async ({ page }) => {
-        await ouvrirPrix(page);
-        await expect(page.locator('[data-el="titre-liste"]')).toHaveText("Stations · SP95-E10");
-        await choisir(page, "Gazole");
-        await expect(page.locator('[data-el="liste-stations"]')).toHaveAttribute("data-carburant", "Gazole");
-        const l = await lireLignes(page);
-        const db: { station_id: string; prix: number }[] = await rest(`prix?select=station_id,prix&carburant=eq.Gazole&rupture=is.false&station_id=in.(${l.map((x) => x.id).join(",")})`);
-        const ref = new Map(db.map((d) => [d.station_id, Number(d.prix)]));
-        for (const x of l) expect(x.prix).toBeCloseTo(ref.get(x.id)!, 3);
-        const pins = await page.locator('[data-el="pastille-station"]').evaluateAll((e) => e.map((b) => [(b as HTMLElement).dataset.station!, b.textContent!]));
-        for (const [id, t] of pins) expect(Number(t.replace(",", "."))).toBeCloseTo(ref.get(id)!, 3);
-      });
-    });
-    test.describe("Edge Case", () => {
-      test("US-1.2 — une station qui ne vend pas le carburant choisi disparaît", async ({ page }) => {
-        const ids = (await autour()).map((s) => s.id).join(",");
-        const e10 = await rest(`prix?select=station_id&carburant=eq.SP95-E10&rupture=is.false&prix=not.is.null&station_id=in.(${ids})`);
-        const e85 = new Set((await rest(`prix?select=station_id&carburant=eq.E85&station_id=in.(${ids})`)).map((x: any) => x.station_id));
-        const cible = e10.map((x: any) => x.station_id).find((id: string) => !e85.has(id));
-        await ouvrirPrix(page);
-        await expect(page.locator(`[data-el="ligne-station"][data-station="${cible}"]`)).toHaveCount(1);
-        await choisir(page, "E85");
-        await expect(page.locator('[data-el="liste-stations"]')).toHaveAttribute("data-carburant", "E85");
-        await expect(page.locator(`[data-el="ligne-station"][data-station="${cible}"]`)).toHaveCount(0);
-        await expect(page.locator(`[data-el="pastille-station"][data-station="${cible}"]`)).toHaveCount(0);
-      });
-    });
-  });
-
-  test.describe("US-1.3 — Voir les stations sur la carte", () => {
-    test.describe("Happy Path", () => {
-      test("US-1.3 — chaque pastille est à la position réelle de sa station, avec son prix", async ({ page }) => {
-        await ouvrirPrix(page);
-        const st = Object.fromEntries((await autour()).map((s) => [s.id, s]));
-        const e = await page.evaluate((stations: any) => [...document.querySelectorAll<HTMLElement>('[data-el="pastille-station"]')].map((b) => {
-          const s = stations[b.dataset.station!], pt = (window as any).__carte.project([s.lon, s.lat]);
-          const m = document.querySelector(".map .gl")!.getBoundingClientRect(), r = b.getBoundingClientRect();
-          return { dx: Math.abs(r.left + r.width / 2 - (m.left + pt.x)), dy: Math.abs(b.parentElement!.getBoundingClientRect().bottom - (m.top + pt.y)), t: b.textContent };
-        }), st);
-        expect(e.length).toBeGreaterThan(3);
-        for (const x of e) { expect(x.dx).toBeLessThan(3); expect(x.dy).toBeLessThan(4); expect(x.t).toMatch(/^\d,\d{3}$/); }
-      });
-    });
-    test.describe("Edge Case", () => {
-      test("US-1.3 — déplacer la carte charge les stations de la nouvelle zone", async ({ page }) => {
-        const appels: any[] = [];
-        page.on("request", (r) => r.url().includes("/rpc/stations_autour") && appels.push(JSON.parse(r.postData() || "{}")));
-        await ouvrirPrix(page);
-        const avant = new Set((await lireLignes(page)).map((x) => x.id));
-        const ec = await page.evaluate(() => {
-          const m = (window as any).__carte, a = m.project([2.158, 44.05]), c = m.project(m.getCenter()), r = m.getContainer().getBoundingClientRect();
-          const dx = c.x - a.x, dy = c.y - a.y, k = Math.min(1, (r.width - 60) / Math.abs(dx || 1), (r.height - 70) / Math.abs(dy || 1));
-          return { dx: dx * k, dy: dy * k };
-        });
-        await glisser(page, ec.dx, ec.dy); // un seul glisser continu
-        await expect.poll(() => appels.length).toBeGreaterThanOrEqual(2);
-        await expect.poll(async () => (await lireLignes(page)).filter((x) => !avant.has(x.id)).length).toBeGreaterThan(0);
-      });
-    });
-  });
-
   test.describe("US-1.4 — Toucher une pastille", () => {
     test.describe("Happy Path", () => {
       test("US-1.4 — toucher une pastille ouvre la fiche de cette station", async ({ page }) => {
@@ -130,21 +51,6 @@ test.describe("M1 — Les prix autour de moi", () => {
         expect(Math.max(...lo.map((x) => x.v))).toBeLessThan(Math.min(...hi.map((x) => x.v)));
         await expect(page.locator(".pin.lo").first()).toHaveCSS("box-shadow", /31, 138, 76/);
         await expect(page.locator(".pin.hi").first()).toHaveCSS("box-shadow", /194, 73, 29/);
-      });
-    });
-  });
-
-  test.describe("US-1.5 — Trier la liste", () => {
-    test.describe("Happy Path", () => {
-      test("US-1.5 — Plus proche puis Moins cher", async ({ page }) => {
-        await ouvrirPrix(page);
-        expect(croissant((await lireLignes(page)).map((x) => x.prix))).toBe(true);
-        await page.getByRole("button", { name: "Plus proche", exact: true }).click();
-        await expect(page.locator('[data-el="liste-stations"]')).toHaveAttribute("data-tri", "distance");
-        expect(croissant((await lireLignes(page)).map((x) => x.km))).toBe(true);
-        await page.getByRole("button", { name: "Moins cher", exact: true }).click();
-        await expect(page.locator('[data-el="liste-stations"]')).toHaveAttribute("data-tri", "prix");
-        expect(croissant((await lireLignes(page)).map((x) => x.prix))).toBe(true);
       });
     });
   });
@@ -183,28 +89,13 @@ test.describe("M1 — Les prix autour de moi", () => {
     });
   });
 
-  test.describe("US-2.2 — Calculer un trajet vers la station", () => {
-    test.describe("Happy Path", () => {
-      test("US-2.2 — Coût d'un trajet jusqu'ici ouvre Trajets avec l'arrivée pré-remplie", async ({ page }) => {
-        await ouvrirPrix(page);
-        const [l] = await lireLignes(page);
-        const s = (await rest(`stations?select=adresse,cp,ville&id=eq.${l.id}`))[0];
-        await lignes(page).first().click();
-        await page.getByRole("button", { name: "Coût d'un trajet jusqu'ici" }).click();
-        await expect(page).toHaveURL(/\/trajets$/);
-        await expect(page.getByRole("tab", { name: "Trajets" })).toHaveAttribute("aria-selected", "true");
-        await expect(page.getByLabel("Arrivée")).toHaveValue(`${s.adresse}, ${s.cp} ${s.ville}`);
-      });
-    });
-  });
-
   test.describe("US-1.E1 — Source des prix injoignable", () => {
     test.describe("Edge Case", () => {
       // MOCKED: page.route — coupure réseau de la lecture des prix (impossible à provoquer sur la vraie base)
       test("US-1.E1 — prix injoignables : message + Réessayer, puis retour normal", async ({ page }) => {
         test.setTimeout(60000);
         await page.route("**/rest/v1/prix*", (r) => r.abort());
-        await page.goto("/");
+        await page.goto("/stations");
         await expect(page.locator('[data-el="etat-erreur"]')).toContainText("Prix indisponibles pour l'instant");
         await expect(page.getByRole("button", { name: "Réessayer" })).toBeVisible();
         await expect(lignes(page)).toHaveCount(0);
@@ -291,6 +182,7 @@ test.describe("M1 — Les prix autour de moi", () => {
         await ouvrirPrix(page);
         await glisser(page, -280, 0); // un glisser vers l'est
         await expect.poll(async () => km(await centre(page), { lat: ALBI.latitude, lon: ALBI.longitude })).toBeGreaterThan(4);
+        await rechercherZone(page); // V1 : la zone glissée se charge par le bouton
         await expect.poll(() => appels.length).toBeGreaterThanOrEqual(2);
         const n = appels.length;
         await page.getByRole("button", { name: "Recentrer sur ma position" }).click();
@@ -330,6 +222,7 @@ test.describe("M1 — Les prix autour de moi", () => {
       });
 
       test("US-A11Y-001 — Tab / Maj+Tab : ordre de lecture, élément focalisé visible dans son cadre, contour visible", async ({ page }) => {
+        await avecVoiture(page);
         await ouvrirPrix(page);
         await page.locator("body").click({ position: { x: 5, y: 5 } });
         const vus = [];
@@ -339,7 +232,7 @@ test.describe("M1 — Les prix autour de moi", () => {
           expect(o.contour, `contour : ${o.txt}`).toBe(true);
           expect(o.visible, `visible dans son cadre : ${o.txt}`).toBe(true);
           vus.push(o);
-          if (o.txt === "Prix") break;
+          if (o.txt === "Stations") break; // V1 : l'onglet sélectionné de la barre (ex-« Prix »)
         }
         expect(vus[0].txt).toBe("Gazole");
         expect(vus.map((v) => v.i)).toEqual([...vus.map((v) => v.i)].sort((a, b) => a - b));
@@ -350,10 +243,13 @@ test.describe("M1 — Les prix autour de moi", () => {
         await lignes(page).first().focus();
         await page.keyboard.press("Enter");
         await expect(page.locator("#sh-name")).toBeFocused();
+        // V1 : « Utiliser … pour mon trajet » n'existe qu'une fois les prix de la station lus (il dépend du carburant de la voiture)
+        await expect(page.locator('[data-el="tableau-prix"]')).toHaveAttribute("aria-busy", "false");
         await page.keyboard.press("Tab");
         await expect(page.getByRole("button", { name: "Fermer la fiche" })).toBeFocused();
         await page.keyboard.press("Tab");
-        await expect(page.getByRole("button", { name: "Coût d'un trajet jusqu'ici" })).toBeFocused();
+        // V1 : « Coût d'un trajet jusqu'ici » (US-2.2, retirée) est remplacé dans la fiche par « Utiliser … pour mon trajet » (V-5.5)
+        await expect(page.getByRole("button", { name: /^Utiliser \d,\d{3} €\/L pour mon trajet$/ })).toBeFocused();
       });
     });
   });
@@ -414,7 +310,7 @@ test.describe("M1 — Les prix autour de moi", () => {
         await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
         await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 85, downloadThroughput: (9 * 1024 * 1024) / 8, uploadThroughput: (1.5 * 1024 * 1024) / 8 });
         const t0 = Date.now();
-        await page.goto("/", { waitUntil: "commit" });
+        await page.goto("/stations", { waitUntil: "commit" });
         await lignes(page).first().waitFor();
         expect(Date.now() - t0).toBeLessThan(2500);
       });
@@ -448,7 +344,7 @@ test.describe("M1 — Les prix autour de moi", () => {
     test.describe("P4 — position refusée", () => {
       test.use({ permissions: [] });
       test("P4 — position refusée : pas de point bleu « vous êtes ici » au centre de repli", async ({ page }) => {
-        await page.goto("/");
+        await page.goto("/stations");
         await expect(page.locator('[data-el="message-localisation"]')).toBeVisible();
         await expect(lignes(page).first()).toBeVisible();
         await expect(page.locator(".maplibregl-marker.me, .me")).toHaveCount(0);
@@ -494,6 +390,7 @@ test.describe("M1 — Les prix autour de moi", () => {
         return { dx: dx * k, dy: dy * k };
       });
       await glisser(page, ec.dx, ec.dy);
+      await rechercherZone(page); // V1 : l'en-tête nomme la zone quand on la cherche
       await expect(page.locator('[data-el="lieu"]')).toHaveText(/^Autour d(e |')(?!moi)/, { timeout: 15000 });
       await page.locator('[data-el="recentrer"]').click();
       await expect(page.locator('[data-el="lieu"]')).toHaveText("Autour de moi");
@@ -502,7 +399,7 @@ test.describe("M1 — Les prix autour de moi", () => {
     // MOCKED: page.route — coupure réseau de la lecture des prix (comme US-1.E1)
     test("P7 — prix en erreur : la légende « moins cher / plus cher » n'est pas affichée", async ({ page }) => {
       await page.route("**/rest/v1/prix*", (r) => r.abort());
-      await page.goto("/");
+      await page.goto("/stations");
       await expect(page.locator('[data-el="etat-erreur"]')).toBeVisible();
       await expect(page.locator('[data-el="legende"]')).toHaveCount(0);
       await page.unroute("**/rest/v1/prix*");
