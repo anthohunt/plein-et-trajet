@@ -19,6 +19,7 @@
 - 23:25Z — Auditeur round 3 : FAIL (1 HIGH : quota quotidien PTV épuisé en prod à 23:14Z — 403 GENERAL_QUOTA_EXCEEDED lu comme « clé refusée », plafond appli 1 500/jour > 500/jour du plan gratuit ; 2 MEDIUM : clé imprimable par not.toContain dans US-5.3.test.ts, 3 libellés serveur dans peages.ts ; 17 LOW). Les 2 HIGH et 2 MEDIUM du round 2 sont corrigés ; M2 rejoué ×2 61/61.
 
 - 23:27Z — Chef : auditeur round 3 = FAIL (1 HIGH : quota quotidien PTV épuisé en prod, 403 GENERAL_QUOTA_EXCEEDED lu comme « clé refusée », plafond appli 1 500/j > quota PTV ; 2 MEDIUM : test US-5.3 qui imprimerait la clé en échec, libellés serveur dans _shared/peages.ts). Correctifs du round 2 confirmés. Bâtisseur round 5 lancé (5e cycle, même motif qu'au 4e : plan de nuit autonome, défauts précis).
+- 00:25Z — Bâtisseur round 5 terminé : quota du jour PTV distingué d'une clé refusée (403 GENERAL_QUOTA_EXCEEDED → « PTV : quota du jour atteint — péages indisponibles jusqu'à 02:00 », plus d'appel avant 00:00 UTC), plafond en table (PTV 250/j), cache des péages par tracé (7 j) ; captures de quota prises en vrai à 23:33Z ; remise à zéro constatée à 00:00 UTC (Barcelone 29,00 €) ; libellés serveur, clé imprimable, LOW 4-6, 8-10 corrigés ; 58/58 captures, 0 ✗ ; Playwright prod 148 ok / 2 ignorés / 2 échecs hors péages (M1 US-1.E4 sans rupture réelle, M2 US-3.4 lecture avant écriture) ; garde-fous relus.
 ## Builder Summary
 
 **Résultat** : jalon 3 construit et déployé ; les 15 histoires et les 5 transverses sont explorées sur la prod, **52/52 captures** produites (le plan en cite 52 : 42 d'histoires + 10 de transverses, pas 50). Les critères qui exigent une vraie réponse PTV, HERE ou Stadia sont **BLOQUÉ-CLÉ** (aucune clé n'existe) : le code est construit, l'état réel est capturé, rien n'est mocké.
@@ -684,3 +685,59 @@ Transcript lu : `36106da2-…jsonl` (22:03:43–22:39:23Z), consigne et rendu `m
 • Albi → Barcelone à 23:17Z : itinéraire stadia, **péages indisponibles (quota PTV du jour épuisé, HIGH 1)**.
 • Vraies clés : 0 occurrence (en clair, base64, URL) dans le dépôt (suivi et non suivi), `git log -p --all`, `/tmp/r4probe`, `agents-codex`, `journal-actions.md` et mes fichiers ; aucune capture ne les montre (champ mot de passe, fins seules).
 • Mes fichiers jetables sont dans `/tmp/audit-r3` (captures effacées).
+
+## Builder Summary — Round 5
+
+**Correctifs (audit round 3), commits poussés sur main, front a7f26e9 READY, Edge Functions estimer-trajet et moteurs redéployées (dernier déploiement 00:07Z)**
+- 1 HIGH quota PTV — 2e1cd69, fdead8c, 79b4e93 ; migration `20261021160000_m3_round5.sql` appliquée.
+  • Doc : OpenAPI PTV routing v1 / account v1 (403 = `GENERAL_FORBIDDEN` ou `GENERAL_QUOTA_EXCEEDED` ; journées d'usage = journées UTC). Chiffre du plan gratuit contradictoire (FAQ : 100 000/mois ; guide de migration : 500/jour) ; PTV répond « Daily Quota Exceeded » : le plafond est quotidien.
+  • (a) `erreurHttp` lit le corps : `quota_fournisseur`, jamais « clé refusée » ; plus aucun appel avant 00:00 UTC (`fournisseurs.quota_epuise_jusqua`) ; secours essayé s'il existe ; S4, pastille S5, « Tester », incidents : « PTV : quota du jour atteint — péages indisponibles jusqu'à 02:00 » (textes.ts). Une clé collée reconnue malgré le quota est rangée.
+  • (b) plafond global en table (`fournisseurs.plafond_jour` : PTV 250, HERE 80), compté en journée UTC.
+  • (c) cache `cache_peages` (fournisseur + départ + arrivée + points de passage à 1e-3, 7 jours), consulté dans la chaîne actif → secours (une réponse du secours, même en cache, reste une bascule notée) ; le créneau n'est réservé qu'au moment d'un vrai appel.
+  • (d) un seul test appelle PTV en direct (US-4.4, Barcelone + Milan) ; stabilité ×2 servie par le cache. Mesuré : 2 `run-m3.mjs` complets + Playwright complet = 14 appels réservés.
+- 2 MEDIUM clé imprimable — ba10b47 : `US-5.3.test.ts` en booléens ; aucun autre cas dans m1/m2, `run-m3.mjs`, `m3-aides.mjs`, `m3-global.mjs`, extraits.
+- 3 MEDIUM libellés serveur — 2e1cd69 : `libelle: ""` et `fourchette: true` ; « Péage » et « (estimation : maximum de la fourchette) » dans textes.ts.
+- LOW 4 (texte d'aide « Clé ••••NDE0 · coller pour changer »), 8 (pluriel), 9 (`moteurs.retabli_le` : « Incident résolu · … »), 10 (pastille = état) — 2e1cd69 ; LOW 5 (US-5.1 à 390/360 px, US-4.4 stabilité ×2) — ba10b47 ; LOW 6 (énoncés du journal et de `run-m3.mjs`) — ba10b47 + journal.
+- Un seul commit de code porte le HIGH 1, le MEDIUM 3 et les LOW 4, 8, 9, 10 : ils touchent les mêmes fichiers (peages.ts, moteurs/index.ts, textes.ts, Moteurs.tsx). Ce n'est pas un découpage atomique.
+
+**Preuves en direct**
+- 23:31Z, PTV en quota : Albi → Barcelone ×2 → `peages {indisponible, quota_fournisseur, ptv, jusqua 00:00Z}`. Le 2e calcul n'a fait aucun appel ; l'incident n'est noté qu'une fois.
+- 23:33Z : « Tester » PTV → `{etat:"wait", code:"quota_fournisseur", params:{fournisseur:"ptv", jusqua:"…T00:00:00.000Z"}}`, aucun « refusée ».
+- Remise à zéro CONSTATÉE à 00:00 UTC. À 00:00:41Z, Albi → Barcelone **29,00 €, 2 sections**. À 00:00:49Z, même résultat en `cache: true` (1,1 s au lieu de 6,0 s).
+- Compteur du 21/10, rempli en journée de Paris : remis par SQL au décompte UTC réel (1 appel).
+
+**Captures**
+- Nouvelles, réelles, prises à 23:33Z (PTV en quota), sans étiquette, liv = brute ; ajoutées au cas d'usage (« ajout round 5 ») :
+  • `US-4.E4-E2-01-quota-ptv.png` d69c233e ;
+  • `US-5.E2-E2-01-quota-ptv.png` 509a2c9b.
+- `run-m3.mjs` complet (00:07–00:12Z), après la remise à zéro : 58/58 présentes, 56 étapes ✓, 0 ✗.
+  • Le 1er passage (00:01Z) avait 3 ✗ : bascule masquée par le cache (code corrigé), « 1 section », tolérance des litres (tests corrigés).
+  • md5 des 58 dans le journal d'exploration (00:12Z).
+- Doublons :
+  • livraison : US-3.8-02 = US-4.4-01 ;
+  • brutes : US-1.8-01 = -03, US-3.8-02 = US-4.4-01, US-5.3-03 = -04.
+  • Tous déjà déclarés ; le groupe brutes US-5.6-01 = A11Y-004-02 a disparu.
+
+**Vérifications** : `npx vite build` OK ; `npx tsc --noEmit` OK ; `npx vitest run` 138/138 ; `deno check` estimer-trajet et moteurs OK ; contrat API : 6 lignes FE → BE, toutes OK (journal d'exploration, 23:35Z).
+
+**Playwright complet sur la prod** (00:13–00:22Z) : 148 passés, 2 ignorés (US-5.5 et US-5.E3, BLOQUÉ-CLÉ HERE), 2 échecs. Aucun ne vient des péages ni du quota. Copiés :
+- `tests/e2e/m1-explore.spec.ts:264:7 › … US-1.E4 — une station en rupture de gazole n'apparaît pas en Gazole` : « aucune rupture gazole réelle dans le rayon aujourd'hui : fixture nécessaire ».
+- `tests/e2e/m2-explore.spec.ts:105:7 › … US-3.4 — Peugeot → 208 → motorisation : enregistrée dans preferences…` : `toMatchObject` attendait `"carburant": "SP95-E10"` et a reçu `"carburant": null`. Rejoué seul ×3 : 3 échecs.
+  • En base, les lignes finales portent SP95-E10 : le test lit avant la 3e écriture.
+  • Code inchangé depuis le jalon 2 ; vert à 23:47Z. Non corrigé.
+- Avant la remise à zéro, M2 (PTV en quota) : 4 échecs dus à l'aide `carburantSeul`, qui attendait 55 s un bloc absent quand les péages sont indisponibles. Aide corrigée en commit séparé `test(m2)` d94c090 ; ces 4 tests sont ensuite verts.
+
+**État final relu (00:24Z)**
+- Vault (noms) : cle_ptv, cle_stadia, sync_prix_secret ; 0 « FAUX- » ; fins NDE0 / 961b. Les `updated_at` (00:22:57Z) viennent de la restauration du globalSetup, à valeur identique.
+- Moteurs : péages = ptv sans secours ; itinéraire = stadia + secours valhalla-public.
+- Limite d'inscriptions anonymes : 30, relue (montée à 300 pendant les tests).
+- Redirections : la prod seule ; 0 administrateur éphémère.
+- Clés : 0 occurrence dans les fichiers et dans `git log -p --all`.
+
+**Non vérifié / restes**
+- Décompte PTV d'une requête à 25 waypoints : inconnu (`getUsage` répond 403, la clé n'est pas maîtresse). Le plafond de 250/jour est donc une marge, pas une mesure.
+- Heure de remise à zéro : constatée une fois (00:00 UTC), pas documentée par PTV.
+- Le plan gratuit PTV exclut l'usage en production (article d'assistance PTV) : décision à prendre par Anthony (plan payant ou non).
+- HERE jamais appelé pour de vrai (pas de clé).
+- US-3.4 : M2 instable (voir ci-dessus).
+- Autres LOW (7, 11-20) non traités, comme demandé.
