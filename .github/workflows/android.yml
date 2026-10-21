@@ -60,6 +60,10 @@ jobs:
           api-level: 34
           target: google_apis
           arch: x86_64
+          # les runners ubuntu-latest ont 4 cœurs : avec 2 (défaut) le démarrage dépassait parfois 10 min
+          cores: 4
+          ram-size: 4096M
+          emulator-boot-timeout: 900
           script: |
             adb install -r -g release/app-release.apk
             adb shell monkey -p cloud.ingevision.pleinettrajet -c android.intent.category.LAUNCHER 1
@@ -69,7 +73,7 @@ jobs:
             adb install -r -g debug/app-debug.apk
             adb shell appops set cloud.ingevision.pleinettrajet android:mock_location allow || true
             adb logcat -c
-            node tests/android/trajet-emulateur.mjs || (adb exec-out screencap -p > echec.png; adb logcat -d > logcat.txt; exit 1)
+            node tests/android/trajet-emulateur.mjs || (adb exec-out screencap -p > echec1.png; adb shell am force-stop cloud.ingevision.pleinettrajet; node tests/android/trajet-emulateur.mjs) || (adb exec-out screencap -p > echec.png; adb logcat -d > logcat.txt; exit 1)
             adb logcat -d > logcat.txt
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
