@@ -757,6 +757,7 @@ async function principal() {
 
   // V-3.5 — Arrêter dans l'appli : fin de trajet
   const iFin2 = lect.i;
+  writeFileSync(`${OUT}/points-trajet2.json`, JSON.stringify({ page: (await lireEnCours(p))?.points ?? [], journal: journalNatif().filter((x) => x.type === "P") }));
   await p.locator('[data-el="bouton-arreter"]').click();
   await p.waitForURL(/\/fin$/, { timeout: 20000 });
   await p.locator('[data-el="titre-trajet"][data-noms="oui"]').waitFor({ timeout: 20000 }).catch(() => undefined);
