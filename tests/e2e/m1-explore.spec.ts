@@ -260,6 +260,9 @@ test.describe("M1 — Les prix autour de moi", () => {
         await expect(page.locator("#sh-name")).toBeFocused();
         // V1 : « Utiliser … pour mon trajet » n'existe qu'une fois les prix de la station lus (il dépend du carburant de la voiture)
         await expect(page.locator('[data-el="tableau-prix"]')).toHaveAttribute("aria-busy", "false");
+        // depuis 823c102, l'adresse est un lien vers Google Maps (coordonnées de la station) : il vient juste après le nom
+        await page.keyboard.press("Tab");
+        await expect(page.locator('[data-el="fiche-adresse-carte"]')).toBeFocused();
         await page.keyboard.press("Tab");
         await expect(page.getByRole("button", { name: "Fermer la fiche" })).toBeFocused();
         await page.keyboard.press("Tab");
