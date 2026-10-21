@@ -5,7 +5,7 @@ import gpxAlbiToulouse from "../e2e/fixtures/albi-toulouse.gpx?raw";
 import gpxImmobile from "../e2e/fixtures/albi-toulouse-immobile-11min.gpx?raw";
 import gpxTunnel from "../e2e/fixtures/albi-toulouse-tunnel-90s.gpx?raw";
 import { describe, expect, it } from "vitest";
-import { ajouterPosition, basculerPause, calculLocal, consosParDistance, enDirect, immobileDepuis, IMMOBILE_MS, pasDe, type EtatPoints, type Pause, type PointRoule, type VehiculeRoule } from "../../supabase/functions/_shared/roule.ts";
+import { ajouterPosition, basculerPause, BRUIT_MIN_M, calculLocal, consosParDistance, enDirect, immobileDepuis, IMMOBILE_MS, pasDe, type EtatPoints, type Pause, type PointRoule, type VehiculeRoule } from "../../supabase/functions/_shared/roule.ts";
 import { distanceM } from "../../supabase/functions/_shared/modele.ts";
 import { consoParPhase } from "../../supabase/functions/_shared/conso-eea.ts";
 import { bornerPersonnes, coutTrajet, grouperParMois, partPersonne, totaux, type TrajetV1 } from "../../src/lib/historique";
@@ -35,7 +35,9 @@ describe("fin de trajet calculée sur le téléphone (tracé réel Albi → Toul
   const pts = enPoints(l);
   const r = calculLocal(pts, [], CLIO, l[0].t, l[l.length - 1].t);
   it("km = longueur du tracé ; durée = 72 min 29 s", () => {
-    expect(r.km).toBeCloseTo(longueur(l) / 1000, 6);
+    // round 2 : le filtre du bruit à l'arrêt compte les passages lents par cordes d'au moins 10 m (BRUIT_MIN_M) : 23 m de moins
+    // que la somme des pas d'une seconde sur 77 km (0,03 %)
+    expect(Math.abs(r.km * 1000 - longueur(l))).toBeLessThan(30);
     expect(r.duree_s).toBe(4349);
   });
   it("la moyenne de la courbe de conso = litres ÷ km × 100 (à 0,1 près)", () => {
@@ -100,7 +102,8 @@ describe("oubli d'arrêter : arrêt automatique à 10 min d'immobilité (V-3.E1)
     const fin = immobileDepuis(pts, l[l.length - 1].t)!;
     const r = calculLocal(pts.filter((p) => p[0] <= fin), [[fin, fin]], CLIO, l[0].t, fin);
     expect(r.duree_s).toBe(Math.round((debutImmobile - l[0].t) / 1000));
-    expect(r.km).toBeCloseTo(longueur(l.slice(0, k + 1)) / 1000, 6);
+    // round 2 : les derniers mètres avant l'arrêt (moins que le seuil de bruit de 10 m) ne sont pas comptés
+    expect(Math.abs(r.km * 1000 - longueur(l.slice(0, k + 1)))).toBeLessThan(BRUIT_MIN_M);
   });
   it("en roulant (même lentement en bouchon) : jamais immobile", () => {
     const route = enPoints(gpx("albi-toulouse.gpx").slice(0, 1500));
@@ -154,5 +157,5 @@ describe("historique : totaux et mois (V-6.1, V-6.2)", () => {
     expect(g[0].trajets.map((x) => x.id)).toEqual(["a", "b"]);
     expect(g[1].trajets.map((x) => x.id)).toEqual(["c", "d"]);
   });
-  it("aucun trajet : totaux à 0", () => expect(totaux([])).toEqual({ trajets: 0, km: 0, euros: 0 }));
+  it("aucun trajet : totaux à 0", () => expect(totaux([])).toEqual({ trajets: 0, km: 0, euros: 0, sansPrix: 0 }));
 });

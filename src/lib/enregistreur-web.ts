@@ -13,6 +13,7 @@ import { moyennesDuPays } from "./prixDuJour";
 import { garderPrixChoisi, lirePrixChoisi } from "./prixChoisi";
 import { Capacitor } from "@capacitor/core";
 import { BackgroundGeolocation } from "@capgo/background-geolocation";
+import { T } from "./textes";
 
 // Appli Android (jalon 6) : le GPS passe par un service de premier plan (notification permanente), qui continue écran
 // éteint et quand Waze ou Maps est devant ; dans le navigateur, watchPosition comme avant.
@@ -60,7 +61,8 @@ function surPosition(pos: GeolocationPosition) {
   if (pos.timestamp <= dernierReleve || (dernier && t - dernier[0] < ECART_MIN_MS)) return;
   dernierReleve = pos.timestamp;
   const v = pos.coords.speed;
-  const n = ajouterPosition(etat, t, pos.coords.latitude, pos.coords.longitude, pos.coords.altitude, v == null || !Number.isFinite(v) ? null : v * 3.6);
+  const acc = pos.coords.accuracy;
+  const n = ajouterPosition(etat, t, pos.coords.latitude, pos.coords.longitude, pos.coords.altitude, v == null || !Number.isFinite(v) ? null : v * 3.6, acc > 0 && Number.isFinite(acc) ? acc : null);
   if (n !== etat) {
     etat = n;
     verifierImmobile(t);
@@ -76,7 +78,7 @@ function ecouterNatif() {
     .catch(() => undefined)
     .then(() =>
       BackgroundGeolocation.start(
-        { backgroundTitle: "Plein & Trajet", backgroundMessage: "Trajet en cours d'enregistrement", requestPermissions: true, stale: false, distanceFilter: 0 },
+        { backgroundTitle: T.notificationTitre, backgroundMessage: T.notificationTexte, requestPermissions: true, stale: false, distanceFilter: 0 },
         (l) => {
           if (!l) return;
           surPosition({
@@ -115,7 +117,7 @@ function taire() {
 function premierePosition(): Promise<GeolocationPosition> {
   return new Promise((ok, ko) => {
     if (!("geolocation" in navigator)) return ko({ code: 2 });
-    navigator.geolocation.getCurrentPosition(ok, ko, { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
+    navigator.geolocation.getCurrentPosition(ok, ko, { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 }); // un GPS froid met parfois plus de 10 s
   });
 }
 
@@ -149,7 +151,8 @@ export const enregistreurWeb: Enregistreur = {
       immobile: null,
       ignorerAvant: -Infinity,
     };
-    etat = ajouterPosition(etat, t, pos.coords.latitude, pos.coords.longitude, pos.coords.altitude, pos.coords.speed == null ? null : pos.coords.speed * 3.6);
+    const acc = pos.coords.accuracy;
+    etat = ajouterPosition(etat, t, pos.coords.latitude, pos.coords.longitude, pos.coords.altitude, pos.coords.speed == null ? null : pos.coords.speed * 3.6, acc > 0 && Number.isFinite(acc) ? acc : null);
     garder();
     ecouter();
     publier();

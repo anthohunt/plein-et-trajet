@@ -9,10 +9,11 @@
 import { arrondi, deniveleParEtape, distanceM, echantillonner, kwhEnLitres, masseTotaleKg, phaseDepuisVitesse, type Carburant, type ConsoWltp, type Echantillon, type Troncon } from "./modele.ts";
 
 /**
- * Une position enregistrée : [instant (ms), latitude, longitude, segment, altitude (m)?, vitesse GPS (km/h)?]. Le segment change
- * à chaque reprise après une pause. Les deux derniers champs (jalon 5) sont facultatifs : un point du jalon 4 reste valide.
+ * Une position enregistrée : [instant (ms), latitude, longitude, segment, altitude (m)?, vitesse GPS (km/h)?, précision (m)?].
+ * Le segment change à chaque reprise après une pause. Les trois derniers champs (jalon 5) sont facultatifs : un point du jalon 4
+ * reste valide.
  */
-export type PointRoule = [number, number, number, number, (number | null)?, (number | null)?];
+export type PointRoule = [number, number, number, number, (number | null)?, (number | null)?, (number | null)?];
 /** Pauses : [début, fin] en ms ; fin null tant que la pause dure. */
 export type Pause = [number, number | null];
 
@@ -30,6 +31,19 @@ export const IMMOBILE_KMH = 3;
 const IMMOBILE_FENETRE_S = 10; // vitesse jugée sur 10 s glissantes : le bruit d'un GPS à l'arrêt (quelques mètres) n'y suffit pas
 const IMMOBILE_PREUVE_MS = 30_000; // il faut au moins 30 s de positions immobiles avant de compter le temps sans position
 const G = 9.81;
+// Jalon 5 round 2 : bruit du GPS à l'arrêt. Garé, la position tremble de quelques mètres d'une seconde à l'autre ; comptée telle
+// quelle, elle donnait 5 à 10 km/h affichés et des km et des litres qui montaient voiture arrêtée. Un déplacement n'est compté que
+// lorsqu'il dépasse la précision du relevé (au moins 10 m, au plus 30 m) depuis le dernier point compté : la distance réelle est
+// comptée en entier, par morceaux de plus de 10 m, le tremblement jamais. La vitesse affichée vaut 0 quand la voiture ne s'est pas
+// éloignée de ce seuil en 10 s (moins de 3,6 km/h), ou quand la vitesse mesurée par le GPS (effet Doppler) est sous 3 km/h.
+export const BRUIT_MIN_M = 10;
+export const BRUIT_MAX_M = 30;
+export const ARRET_FENETRE_S = 10;
+/** Seuil de bruit entre deux relevés : la plus grande des deux précisions rapportées, bornée à [10 m, 30 m]. */
+export function seuilBruit(a: PointRoule, b: PointRoule): number {
+  const p = Math.max(a[6] ?? 0, b[6] ?? 0);
+  return Math.min(BRUIT_MAX_M, Math.max(BRUIT_MIN_M, Number.isFinite(p) ? p : 0));
+}
 
 export interface VehiculeRoule {
   masse_kg: number;
@@ -47,27 +61,47 @@ export interface Pas {
   vPrec: number; // km/h, vitesse lissée du pas précédent du segment (la sienne au premier pas d'un segment)
 }
 
-/** Pas d'un enregistrement : distance et vitesse entre positions consécutives, segment par segment (une pause coupe le segment). */
+/**
+ * Pas d'un enregistrement : distance et vitesse entre positions consécutives, segment par segment (une pause coupe le segment).
+ * `d` = distance comptée (filtre du bruit à l'arrêt, voir BRUIT_MIN_M) : 0 tant que la voiture ne s'est pas éloignée du dernier
+ * point compté de plus que la précision, puis toute la distance depuis ce point.
+ */
 export function pasDe(points: PointRoule[]): Pas[] {
   const out: Pas[] = [];
   const brutes: number[] = [];
+  let ancre = 0; // dernier point compté
+  const lieu = (p: PointRoule) => ({ lat: p[1], lon: p[2] });
   for (let i = 1; i < points.length; i++) {
-    const [t0, la0, lo0, s0] = points[i - 1];
-    const [t1, la1, lo1, s1] = points[i];
+    const [t0, , , s0] = points[i - 1];
+    const [t1, , , s1] = points[i];
     if (s1 !== s0) {
       brutes.length = 0;
+      ancre = i;
       continue;
     }
     const dt = (t1 - t0) / 1000;
     if (!(dt > 0)) continue;
-    const d = distanceM({ lat: la0, lon: lo0 }, { lat: la1, lon: lo1 });
+    const dBrut = distanceM(lieu(points[i - 1]), lieu(points[i]));
     // trou GPS (tunnel) : le pas est la ligne droite entre la dernière position d'avant et la première d'après, à la vitesse
     // moyenne du passage — pas lissée avec ses voisines
     const trou = dt * 1000 > GPS_PERDU_MS;
     if (trou) brutes.length = 0;
-    brutes.push((d / dt) * 3.6);
+    brutes.push((dBrut / dt) * 3.6);
     const fen = brutes.slice(-3);
-    const v = trou ? (d / dt) * 3.6 : fen.reduce((s, x) => s + x, 0) / fen.length;
+    const vGps = points[i][5];
+    const seuil = seuilBruit(points[ancre], points[i]);
+    const dAncre = distanceM(lieu(points[ancre]), lieu(points[i]));
+    const arretGps = !trou && vGps != null && vGps < IMMOBILE_KMH;
+    let d = 0;
+    if (trou || (!arretGps && dAncre >= seuil)) {
+      d = dAncre;
+      ancre = i;
+    }
+    // à l'arrêt (déplacement sur les 10 dernières secondes sous le seuil, ou Doppler sous 3 km/h) : 0 km/h
+    let j = i;
+    while (j > 0 && points[j - 1][3] === s1 && t1 - points[j - 1][0] <= ARRET_FENETRE_S * 1000) j--;
+    const arret = !trou && (arretGps || (j < i && distanceM(lieu(points[j]), lieu(points[i])) < seuil));
+    const v = trou ? (dBrut / dt) * 3.6 : arret ? 0 : fen.reduce((s, x) => s + x, 0) / fen.length;
     if (trou) brutes.length = 0;
     // premier pas d'un segment (départ, reprise après pause) : vitesse d'avant inconnue → aucune accélération supposée
     const prec = out.length > 0 && out[out.length - 1].i === i - 1 && brutes.length > 1 ? out[out.length - 1].v : v;
@@ -160,7 +194,8 @@ export function enDirect(points: PointRoule[], pauses: Pause[], debut: number, m
     l100: km >= 0.5 ? (litres / km) * 100 : null,
     dureeS: dureeEnregistree(debut, pauses, maintenant),
     arrets: compterArrets(vitesses),
-    vitesse: enPause || gpsPerdu ? 0 : Math.round(vitesses[vitesses.length - 1] ?? 0),
+    // après une reprise, tant que le nouveau segment n'a pas son premier pas : 0, pas la dernière vitesse d'avant la pause
+    vitesse: enPause || gpsPerdu || (pas.length > 0 && points[pas[pas.length - 1].i][3] !== points[points.length - 1][3]) ? 0 : Math.round(vitesses[vitesses.length - 1] ?? 0),
     courbe: derniers,
     gpsPerdu,
     dernierPointMs: dernier,
@@ -176,11 +211,16 @@ export interface EtatPoints {
 }
 
 /** Ajoute une position : ignorée en pause ; un instant non croissant (doublon du navigateur) est ignoré. */
-export function ajouterPosition<E extends EtatPoints>(e: E, t: number, lat: number, lon: number, altitude?: number | null, vitesseGps?: number | null): E {
+export function ajouterPosition<E extends EtatPoints>(e: E, t: number, lat: number, lon: number, altitude?: number | null, vitesseGps?: number | null, precision?: number | null): E {
   if (e.enPause) return e;
   const dernier = e.points[e.points.length - 1];
   if (dernier && t <= dernier[0]) return e;
-  const p: PointRoule = altitude == null && vitesseGps == null ? [t, lat, lon, e.segment] : [t, lat, lon, e.segment, altitude ?? null, vitesseGps ?? null];
+  const p: PointRoule =
+    altitude == null && vitesseGps == null && precision == null
+      ? [t, lat, lon, e.segment]
+      : precision == null
+        ? [t, lat, lon, e.segment, altitude ?? null, vitesseGps ?? null]
+        : [t, lat, lon, e.segment, altitude ?? null, vitesseGps ?? null, precision];
   return { ...e, points: [...e.points, p] };
 }
 
@@ -238,7 +278,7 @@ export interface ResultatLocal {
   arrets: number;
   montee_m: number;
   vitesses: number[]; // ≤ 600 valeurs, au fil du temps
-  consos: number[]; // ≤ 600 valeurs, L/100 km par tranches de distance égales (leur moyenne = litres ÷ km × 100)
+  consos: number[]; // ≤ 600 valeurs, L/100 km par tranches de distance égales, lissées sur 500 m (leur moyenne = litres ÷ km × 100)
   conso_max: number;
 }
 
@@ -295,6 +335,27 @@ export function consosParDistance(pas: Pas[], litres: number[], n: number): numb
   return l.map((li) => (li / (pasM / 1000)) * 100);
 }
 
+/**
+ * Lissage de la courbe de conso sur 500 m (jalon 5 round 2, V-4.6) : les litres de chaque tranche sont répartis à parts égales
+ * sur les tranches voisines à moins de 250 m. Les litres ne sont que déplacés : leur somme ne change pas, et la moyenne des
+ * tranches (de distances égales) reste litres ÷ km × 100. Raison : une tranche de 50 m isole un seul relevé GPS ; un démarrage
+ * ou un saut de position y montait à 100 L/100 et écrasait la courbe ; 500 m, c'est aussi le pas des altitudes (montées).
+ */
+export const LISSAGE_CONSO_M = 500;
+export function lisserConsos(consos: number[], trancheM: number, fenetreM = LISSAGE_CONSO_M): number[] {
+  const n = consos.length;
+  const k = trancheM > 0 ? Math.floor(fenetreM / 2 / trancheM) : 0;
+  if (n === 0 || k <= 0) return consos.slice();
+  const out = new Array<number>(n).fill(0);
+  for (let i = 0; i < n; i++) {
+    const a = Math.max(0, i - k);
+    const b = Math.min(n - 1, i + k);
+    const part = consos[i] / (b - a + 1);
+    for (let j = a; j <= b; j++) out[j] += part;
+  }
+  return out;
+}
+
 /** Fin de trajet calculée sur le téléphone (V1) : mêmes pas et même physique que le direct, plus les montées de l'altitude GPS. */
 export function calculLocal(points: PointRoule[], pauses: Pause[], veh: VehiculeRoule, debut: number, fin: number): ResultatLocal {
   const pas = pasDe(points);
@@ -306,7 +367,7 @@ export function calculLocal(points: PointRoule[], pauses: Pause[], veh: Vehicule
   const km = m / 1000;
   const vitesses = pas.map((p) => p.v);
   const tranches = Math.min(600, Math.max(1, Math.ceil(m / 50)));
-  const consos = consosParDistance(pas, litresParPas, tranches).map((c) => Math.round(c * 10) / 10);
+  const consos = lisserConsos(consosParDistance(pas, litresParPas, tranches), m / tranches).map((c) => Math.round(c * 10) / 10);
   return {
     km,
     litres,
