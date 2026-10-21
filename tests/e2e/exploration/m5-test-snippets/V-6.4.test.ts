@@ -47,5 +47,29 @@ test.describe("V-6.4 — Revoir, corriger, supprimer", () => {
       await expect(page.locator(D("total-trajets"))).toHaveText("1");
       await expect(page.locator(D("total-km"))).toHaveText("76,8"); // une décimale sous 100 km (3a2c194)
     });
+    // round 3 (audit r2 lot 2, MEDIUM 1) : trajet sans noms de lieux ; leur géocodage (lancé à l'ouverture) répond 3 s plus tard
+    // (latence ajoutée par page.route, déclarée) — APRÈS « Supprimer ce trajet ». Le trajet ne doit pas revenir.
+    test("V-6.4 — noms des lieux arrivés après « Supprimer ce trajet » : le trajet ne revient pas", async ({ page }) => {
+      const sansNoms = trajetPrepare({ id: "s-c", debut: "2026-10-20T08:00:00+02:00", minutes: 20, km: 14.2, litres: 1.02, prix: await moyenne("SP95-E10"), depart: "x", arrivee: "y" });
+      const t = { ...sansNoms, depart: { ...sansNoms.depart, nom: null }, arrivee: { ...sansNoms.arrivee, nom: null } };
+      const lus = (await lireIdb(page)).trajets;
+      await ecrireIdb(page, [...lus, t]);
+      let nommages = 0;
+      await page.route("**/functions/v1/lieux**", async (r) => {
+        nommages++;
+        await new Promise((ok) => setTimeout(ok, 3000));
+        await r.continue().catch(() => undefined);
+      });
+      await page.reload();
+      await page.locator('li.hrow[data-trajet="s-c"] button').tap();
+      await expect(page.locator(D("titre-trajet"))).toHaveAttribute("data-noms", "non");
+      await page.locator(D("supprimer-trajet")).tap();
+      await expect(page).toHaveURL(/\/historique$/);
+      await page.waitForTimeout(3000 + 4000); // la réponse du géocodage (3 s) est arrivée, et 4 s de plus
+      expect(nommages).toBeGreaterThan(0);
+      await expect(page.locator('li.hrow[data-trajet="s-c"]')).toHaveCount(0);
+      expect((await lireIdb(page)).trajets.map((x: any) => x.id).sort()).toEqual(["s-a", "s-b"]);
+      await expect(page.locator(D("total-trajets"))).toHaveText("2");
+    });
   });
 });
