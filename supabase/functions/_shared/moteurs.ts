@@ -65,6 +65,13 @@ export async function noterRetabli(db: any, service: string, m: Moteur): Promise
   if (m.retabli_le && new Date(m.retabli_le).getTime() >= Math.max(...dernier)) return;
   await db.from("moteurs").update({ retabli_le: new Date().toISOString() }).eq("service", service);
 }
+/** Issue d'une chaîne qui a abouti : bascule si le secours a répondu ; « rétabli » seulement si le fournisseur actif a VRAIMENT répondu.
+ *  Une réponse tirée du cache ne prouve rien sur le fournisseur (audit round 4, MEDIUM 1) : l'incident ou la bascule restent ouverts. */
+export async function noterIssue(db: any, service: string, m: Moteur, s: SortieChaine<unknown>, reponseFournisseur: boolean): Promise<void> {
+  if (!s.resultat) return;
+  if (s.bascule) await noterBascule(db, service, m.actif, s.fournisseur!);
+  else if (reponseFournisseur) await noterRetabli(db, service, m);
+}
 /** Quota du jour dépassé chez le fournisseur : plus aucun appel avant la remise à zéro attendue (00:00 UTC suivant).
  *  Si le quota est encore dépassé juste après une remise à zéro attendue (`ancien` échu), on réessaie dans 30 min plutôt que demain. */
 export async function noterQuotaFournisseur(db: any, fournisseur: string, ancien: string | null): Promise<string> {

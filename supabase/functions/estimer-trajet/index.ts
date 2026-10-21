@@ -16,7 +16,7 @@ import {
   type PointGeo,
 } from "../_shared/modele.ts";
 import { etapesDepuisAretes, pointEnFrance, vignettesTraversees } from "../_shared/europe.ts";
-import { executerChaine, lireCle, lireMoteur, noterBascule, noterIncident, noterQuotaFournisseur, noterRetabli, type Essai } from "../_shared/moteurs.ts";
+import { executerChaine, lireCle, lireMoteur, noterIncident, noterIssue, noterQuotaFournisseur, type Essai } from "../_shared/moteurs.ts";
 import { ErreurItineraire, connexionDepuisFournisseur, routeValhalla, type RouteValhalla } from "../_shared/itineraire-europe.ts";
 import { ErreurPeages, cleCachePeages, finQuotaJour, peagesHere, peagesPtv, pointsDePassage, totalPeages, type LignePeage } from "../_shared/peages.ts";
 
@@ -221,8 +221,7 @@ async function calculerPeages(// deno-lint-ignore no-explicit-any
   // un incident déjà noté n'est pas réécrit à chaque calcul tant que le quota du fournisseur actif court
   if (s.echecs.length > 0 && !(s.echecs[0].message.startsWith("quota_fournisseur") && enCours(s.echecs[0].fournisseur))) await noterIncident(db, "peages", `${s.echecs[0].fournisseur} : ${s.echecs[0].message}`);
   if (s.resultat) {
-    if (s.bascule) await noterBascule(db, "peages", m.actif, s.fournisseur!);
-    else await noterRetabli(db, "peages", m);
+    await noterIssue(db, "peages", m, s, servi === "appel"); // servi par le cache : aucune réponse du fournisseur, l'incident reste ouvert
     if (servi === "cache") return { etat: "ok", fournisseur: s.fournisseur, cache: true, lignes: s.resultat, total: totalPeages(s.resultat) };
     if (info(s.fournisseur!)?.quota_epuise_jusqua) await db.from("fournisseurs").update({ quota_epuise_jusqua: null }).eq("id", s.fournisseur);
     await db.from("cache_peages").upsert({ cle: cleCachePeages(s.fournisseur!, depart, arrivee, passages), fournisseur: s.fournisseur, lignes: s.resultat, cree_le: new Date().toISOString() });
@@ -269,8 +268,7 @@ async function itineraireEurope(// deno-lint-ignore no-explicit-any
     if (s.echecs.some((e) => e.message.startsWith("trop_long"))) throw new ErreurItineraire("trop_long");
     throw new ErreurItineraire("indisponible");
   }
-  if (s.bascule) await noterBascule(db, "itineraire", m.actif, s.fournisseur!);
-  else await noterRetabli(db, "itineraire", m);
+  await noterIssue(db, "itineraire", m, s, true); // l'itinéraire n'a pas de cache : le fournisseur a répondu
   return { route: s.resultat, fournisseur: s.fournisseur! };
 }
 
