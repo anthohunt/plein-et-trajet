@@ -29,6 +29,9 @@ export const IMMOBILE_MS = 600_000;
 export const IMMOBILE_RAYON_M = 50;
 export const IMMOBILE_KMH = 3;
 const IMMOBILE_FENETRE_S = 10; // vitesse jugée sur 10 s glissantes : le bruit d'un GPS à l'arrêt (quelques mètres) n'y suffit pas
+// … et seulement au-delà de 15 m parcourus sur la fenêtre : garé, un GPS tremble de ±5 m (11 m d'une position à l'autre), ce qui
+// faisait 4 km/h sur 10 s et empêchait l'arrêt automatique (chasse aux bugs du 21/10)
+const IMMOBILE_BRUIT_M = 15;
 const IMMOBILE_PREUVE_MS = 30_000; // il faut au moins 30 s de positions immobiles avant de compter le temps sans position
 const G = 9.81;
 // Jalon 5 round 2 : bruit du GPS à l'arrêt. Garé, la position tremble de quelques mètres d'une seconde à l'autre ; comptée telle
@@ -257,8 +260,8 @@ export function immobileDepuis(points: PointRoule[], maintenant: number, depuis 
     for (let i = k + 1; i < n; i++) if (points[i][0] - p[0] >= IMMOBILE_FENETRE_S * 1000) { fin = i; break; }
     if (fin > 0) {
       const q = points[fin];
-      const v = (distanceM({ lat: p[1], lon: p[2] }, { lat: q[1], lon: q[2] }) / ((q[0] - p[0]) / 1000)) * 3.6;
-      if (v >= IMMOBILE_KMH) break;
+      const d = distanceM({ lat: p[1], lon: p[2] }, { lat: q[1], lon: q[2] });
+      if (d > IMMOBILE_BRUIT_M && (d / ((q[0] - p[0]) / 1000)) * 3.6 >= IMMOBILE_KMH) break;
     }
     laMin = la0; laMax = la1; loMin = lo0; loMax = lo1;
     j = k;

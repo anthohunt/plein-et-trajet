@@ -202,7 +202,7 @@ export default function FinDeTrajet() {
           <p className="hint" role="status" data-el="hors-ligne" style={{ margin: "6px 16px 0" }}>{T.horsLigneFin}</p>
         )}
         <div className="kpis">
-          <div className="kpi"><b data-el="fin-litres" data-litres={t.litres}>{fmt(t.litres, 1)}</b><span>{T.litres}</span></div>
+          <div className="kpi"><b data-el="fin-litres" data-litres={t.litres}>{fmt(t.litres, 2)}</b><span>{T.litres}</span></div>
           <div className="kpi"><b data-el="fin-km" data-km={t.km}>{fmt(t.km, t.km < 100 ? 1 : 0)}</b><span>{T.km}</span></div>
           <div className="kpi"><b data-el="fin-l100">{fmt(l100, 1)}</b><span>{T.l100Moy}</span></div>
         </div>

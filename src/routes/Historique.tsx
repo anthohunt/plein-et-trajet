@@ -34,7 +34,7 @@ export default function Historique() {
         <h2 className="route" tabIndex={-1} ref={titre}>{T.historiqueTitre}</h2>
         <div className="kpis" data-el="totaux-historique" data-trajets={tot.trajets} data-km={tot.km} data-euros={tot.euros}>
           <div className="kpi"><b data-el="total-trajets">{tot.trajets}</b><span>{tot.trajets === 1 ? T.trajet : T.trajets}</span></div>
-          <div className="kpi"><b data-el="total-km">{tot.km.toLocaleString("fr-FR")}</b><span>{T.km}</span></div>
+          <div className="kpi"><b data-el="total-km">{fmt(tot.km, tot.km < 100 ? 1 : 0)}</b><span>{T.km}</span></div>
           <div className="kpi"><b data-el="total-euros">{fmt(tot.euros, 2)}</b><span>{T.eurosEssence}</span></div>
         </div>
         {tot.sansPrix > 0 && <p className="hint" data-el="totaux-sans-prix" style={{ margin: "4px 16px 0" }}>{T.totauxSansPrix(tot.sansPrix)}</p>}

@@ -69,7 +69,7 @@ export function totaux(liste: TrajetV1[]): Totaux & { sansPrix: number } {
   return {
     trajets: liste.length,
     sansPrix: liste.filter((t) => coutTrajet(t) == null).length,
-    km: Math.round(liste.reduce((s, t) => s + t.km, 0)),
+    km: Math.round(liste.reduce((s, t) => s + t.km, 0) * 10) / 10, // une décimale : 4,6 km ne s'affiche pas « 5 km »
     euros: Math.round(liste.reduce((s, t) => s + (coutTrajet(t) ?? 0), 0) * 100) / 100,
   };
 }

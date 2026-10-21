@@ -109,6 +109,18 @@ describe("oubli d'arrêter : arrêt automatique à 10 min d'immobilité (V-3.E1)
     const route = enPoints(gpx("albi-toulouse.gpx").slice(0, 1500));
     for (let i = 60; i < route.length; i += 60) expect(immobileDepuis(route.slice(0, i), route[i - 1][0])).toBeNull();
   });
+  it("garé, un GPS qui tremble de ±5,5 m sans vitesse arrête quand même le trajet à 10 min (chasse aux bugs du 21/10)", () => {
+    const base = pts[k];
+    const t0 = base[0];
+    const tremble = Array.from({ length: 133 }, (_, i) => {
+      const p = [...base] as PointRoule;
+      p[0] = t0 + i * 5000;
+      p[1] = base[1] + (5.5 * Math.sin(i * 2.1)) / 111320; // ±5,5 m, sans motif régulier
+      p[5] = null;
+      return p;
+    });
+    expect(immobileDepuis(tremble, t0 + 11 * 60_000)).toBe(t0);
+  });
   it("après « Reprendre », seuls les points suivants sont rejugés", () => {
     const fin = immobileDepuis(pts, l[l.length - 1].t)!;
     expect(immobileDepuis(pts, l[l.length - 1].t, l[l.length - 1].t)).toBeNull();

@@ -49,7 +49,7 @@ describe("V-6.4 : changer de carburant sur un trajet rouvert sans moyenne pour c
   });
   it("un trajet sans prix est compté à part dans les totaux", () => {
     const sansPrix = { ...t, id: "y", prix_litre: null } as TrajetV1;
-    expect(totaux([t, sansPrix])).toEqual({ trajets: 2, km: 150, euros: 11.45, sansPrix: 1 });
+    expect(totaux([t, sansPrix])).toEqual({ trajets: 2, km: 149.8, euros: 11.45, sansPrix: 1 });
   });
 });
 
