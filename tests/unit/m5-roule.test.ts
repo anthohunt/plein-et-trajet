@@ -36,8 +36,8 @@ describe("fin de trajet calculée sur le téléphone (tracé réel Albi → Toul
   const r = calculLocal(pts, [], CLIO, l[0].t, l[l.length - 1].t);
   it("km = longueur du tracé ; durée = 72 min 29 s", () => {
     // round 2 : le filtre du bruit à l'arrêt compte les passages lents par cordes d'au moins 10 m (BRUIT_MIN_M) : 23 m de moins
-    // que la somme des pas d'une seconde sur 77 km (0,03 %)
-    expect(Math.abs(r.km * 1000 - longueur(l))).toBeLessThan(30);
+    // que la somme des pas d'une seconde sur 77 km (0,03 %) ; round 3 : cordes vers le centre des relevés lents, 51 m (0,07 %)
+    expect(Math.abs(r.km * 1000 - longueur(l))).toBeLessThan(60);
     expect(r.duree_s).toBe(4349);
   });
   it("la moyenne de la courbe de conso = litres ÷ km × 100 (à 0,1 près)", () => {
@@ -102,8 +102,9 @@ describe("oubli d'arrêter : arrêt automatique à 10 min d'immobilité (V-3.E1)
     const fin = immobileDepuis(pts, l[l.length - 1].t)!;
     const r = calculLocal(pts.filter((p) => p[0] <= fin), [[fin, fin]], CLIO, l[0].t, fin);
     expect(r.duree_s).toBe(Math.round((debutImmobile - l[0].t) / 1000));
-    // round 2 : les derniers mètres avant l'arrêt (moins que le seuil de bruit de 10 m) ne sont pas comptés
-    expect(Math.abs(r.km * 1000 - longueur(l.slice(0, k + 1)))).toBeLessThan(BRUIT_MIN_M);
+    // round 2 : les derniers mètres avant l'arrêt (moins que le seuil de bruit de 10 m) ne sont pas comptés ; round 3 : le centre
+    // des derniers relevés lents est jugé, pas le dernier relevé — au plus deux seuils (15 m sur ce tracé)
+    expect(Math.abs(r.km * 1000 - longueur(l.slice(0, k + 1)))).toBeLessThan(2 * BRUIT_MIN_M);
   });
   it("en roulant (même lentement en bouchon) : jamais immobile", () => {
     const route = enPoints(gpx("albi-toulouse.gpx").slice(0, 1500));

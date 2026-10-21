@@ -32,6 +32,14 @@ const IMMOBILE_FENETRE_S = 10; // vitesse jugée sur 10 s glissantes : le bruit 
 // … et seulement au-delà de 15 m parcourus sur la fenêtre : garé, un GPS tremble de ±5 m (11 m d'une position à l'autre), ce qui
 // faisait 4 km/h sur 10 s et empêchait l'arrêt automatique (chasse aux bugs du 21/10)
 const IMMOBILE_BRUIT_M = 15;
+// … et au-delà de deux fois le seuil de bruit de `pasDe` (précision rapportée, 10 à 30 m) : deux relevés pris chacun dans leur
+// précision peuvent être jusqu'à deux fois plus loin l'un de l'autre. Avec 15 m fixes, un GPS à ±10 m (précision 20 m) ne laissait
+// jamais passer 10 min sans « mouvement » et l'arrêt automatique ne venait pas (audit round 2, lot 1, MEDIUM 2).
+// Sans précision rapportée (relevé simulé, ancien point) : 15 m comme avant.
+const seuilImmobile = (a: PointRoule, b: PointRoule) => {
+  const p = Math.max(a[6] ?? 0, b[6] ?? 0);
+  return Math.max(IMMOBILE_BRUIT_M, 2 * Math.min(BRUIT_MAX_M, Number.isFinite(p) ? p : 0));
+};
 const IMMOBILE_PREUVE_MS = 30_000; // il faut au moins 30 s de positions immobiles avant de compter le temps sans position
 const G = 9.81;
 // Jalon 5 round 2 : bruit du GPS à l'arrêt. Garé, la position tremble de quelques mètres d'une seconde à l'autre ; comptée telle
@@ -42,6 +50,12 @@ const G = 9.81;
 export const BRUIT_MIN_M = 10;
 export const BRUIT_MAX_M = 30;
 export const ARRET_FENETRE_S = 10;
+// Round 3 : deux relevés pris chacun dans leur précision peuvent être jusqu'à deux fois plus loin l'un de l'autre ; comparés au
+// dernier point compté, ils faisaient encore monter les km garé (±7 m à 1 Hz, précision 10 m : +0,8 à 1 km en 5 min). On compare
+// donc le dernier lieu compté au CENTRE des positions reçues depuis (le tremblement s'y moyenne) ; une fois le seuil franchi, ce
+// centre devient le lieu compté. En roulant, le centre est la position du relevé (chaque pas est compté, comme avant). L'arrêt se
+// juge aussi sur le centre des 20 dernières secondes : à 3,6 km/h, le centre est à 10 m derrière, au-dessus du seuil.
+export const ARRET_CENTRE_S = 20;
 /** Seuil de bruit entre deux relevés : la plus grande des deux précisions rapportées, bornée à [10 m, 30 m]. */
 export function seuilBruit(a: PointRoule, b: PointRoule): number {
   const p = Math.max(a[6] ?? 0, b[6] ?? 0);
@@ -72,14 +86,28 @@ export interface Pas {
 export function pasDe(points: PointRoule[]): Pas[] {
   const out: Pas[] = [];
   const brutes: number[] = [];
-  let ancre = 0; // dernier point compté
+  let ancre = 0; // dernier point compté (sa précision)
+  let lieuAncre = points.length > 0 ? { lat: points[0][1], lon: points[0][2] } : { lat: 0, lon: 0 }; // dernier lieu compté
+  let sLat = 0; // somme des positions reçues depuis le dernier lieu compté
+  let sLon = 0;
+  let nCentre = 0;
   const lieu = (p: PointRoule) => ({ lat: p[1], lon: p[2] });
+  const centre = (a: number, b: number) => {
+    let la = 0, lo = 0;
+    for (let k = a; k <= b; k++) {
+      la += points[k][1];
+      lo += points[k][2];
+    }
+    return { lat: la / (b - a + 1), lon: lo / (b - a + 1) };
+  };
   for (let i = 1; i < points.length; i++) {
     const [t0, , , s0] = points[i - 1];
     const [t1, , , s1] = points[i];
     if (s1 !== s0) {
       brutes.length = 0;
       ancre = i;
+      lieuAncre = lieu(points[i]);
+      sLat = sLon = nCentre = 0;
       continue;
     }
     const dt = (t1 - t0) / 1000;
@@ -93,17 +121,28 @@ export function pasDe(points: PointRoule[]): Pas[] {
     const fen = brutes.slice(-3);
     const vGps = points[i][5];
     const seuil = seuilBruit(points[ancre], points[i]);
-    const dAncre = distanceM(lieu(points[ancre]), lieu(points[i]));
     const arretGps = !trou && vGps != null && vGps < IMMOBILE_KMH;
+    sLat += points[i][1];
+    sLon += points[i][2];
+    nCentre++;
+    const lieuCentre = trou ? lieu(points[i]) : { lat: sLat / nCentre, lon: sLon / nCentre };
+    const dCentre = distanceM(lieuAncre, lieuCentre);
     let d = 0;
-    if (trou || (!arretGps && dAncre >= seuil)) {
-      d = dAncre;
+    if (trou || (!arretGps && dCentre >= seuil)) {
+      d = dCentre;
       ancre = i;
+      lieuAncre = lieuCentre;
+      sLat = sLon = nCentre = 0;
     }
-    // à l'arrêt (déplacement sur les 10 dernières secondes sous le seuil, ou Doppler sous 3 km/h) : 0 km/h
+    // à l'arrêt (déplacement sur les 10 dernières secondes sous le seuil, relevé à moins du seuil du centre des 20 dernières
+    // secondes, ou Doppler sous 3 km/h) : 0 km/h
     let j = i;
     while (j > 0 && points[j - 1][3] === s1 && t1 - points[j - 1][0] <= ARRET_FENETRE_S * 1000) j--;
-    const arret = !trou && (arretGps || (j < i && distanceM(lieu(points[j]), lieu(points[i])) < seuil));
+    let jc = j;
+    while (jc > 0 && points[jc - 1][3] === s1 && t1 - points[jc - 1][0] <= ARRET_CENTRE_S * 1000) jc--;
+    const arret =
+      !trou &&
+      (arretGps || (j < i && distanceM(lieu(points[j]), lieu(points[i])) < seuil) || (jc < i && distanceM(centre(jc, i - 1), lieu(points[i])) < seuil));
     const v = trou ? (dBrut / dt) * 3.6 : arret ? 0 : fen.reduce((s, x) => s + x, 0) / fen.length;
     if (trou) brutes.length = 0;
     // premier pas d'un segment (départ, reprise après pause) : vitesse d'avant inconnue → aucune accélération supposée
@@ -261,7 +300,7 @@ export function immobileDepuis(points: PointRoule[], maintenant: number, depuis 
     if (fin > 0) {
       const q = points[fin];
       const d = distanceM({ lat: p[1], lon: p[2] }, { lat: q[1], lon: q[2] });
-      if (d > IMMOBILE_BRUIT_M && (d / ((q[0] - p[0]) / 1000)) * 3.6 >= IMMOBILE_KMH) break;
+      if (d > seuilImmobile(p, q) && (d / ((q[0] - p[0]) / 1000)) * 3.6 >= IMMOBILE_KMH) break;
     }
     laMin = la0; laMax = la1; loMin = lo0; loMax = lo1;
     j = k;
