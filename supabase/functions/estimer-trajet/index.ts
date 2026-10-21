@@ -170,48 +170,60 @@ async function calculerPeages(// deno-lint-ignore no-explicit-any
   const { data: infos } = await db.from("fournisseurs").select("id,plafond_jour,quota_epuise_jusqua").in("id", chaine);
   const info = (id: string) => ((infos ?? []) as { id: string; plafond_jour: number | null; quota_epuise_jusqua: string | null }[]).find((x) => x.id === id);
 
-  // 1) cache : même fournisseur, même départ, même arrivée, même tracé → réponse réutilisée, aucun appel ni créneau de quota consommé
-  const depuis = new Date(Date.now() - CACHE_JOURS * 86400e3).toISOString();
-  for (const f of chaine) {
-    const { data: c } = await db.from("cache_peages").select("lignes").eq("cle", cleCachePeages(f, depart, arrivee, passages)).gte("cree_le", depuis).maybeSingle();
-    if (c?.lignes) return { etat: "ok", fournisseur: f, cache: true, lignes: c.lignes as LignePeage[], total: totalPeages(c.lignes as LignePeage[]) };
-  }
-
-  // 2) tous les fournisseurs de la chaîne sont en quota dépassé : rien ne part, aucun créneau consommé
-  const enCours = (f: string) => { const j = info(f)?.quota_epuise_jusqua; return j && new Date(j) > new Date() ? j : null; };
-  if (chaine.length > 0 && chaine.every((f) => enCours(f))) {
-    return { etat: "indisponible", motif: "quota_fournisseur", fournisseur: m.actif, jusqua: new Date(enCours(m.actif)!).toISOString(), lignes: [], total: 0 };
-  }
-
-  // 3) plafond du jour de l'appli (sous le quota du fournisseur actif)
-  const plafond = info(m.actif)?.plafond_jour ?? PLAFOND_PAR_DEFAUT;
-  const { data: autorise } = await db.rpc("quota_peages_reserver", { p_identite: identite, p_max_identite: QUOTA_IDENTITE, p_max_global: plafond });
-  if (autorise === false) return { etat: "indisponible", motif: "quota_atteint", fournisseur: null, lignes: [], total: 0 };
-
-  // 4) fournisseurs : actif puis secours ; un quota fournisseur encore en cours ne déclenche aucun appel
+  // 1) quota du fournisseur en cours, cache (même fournisseur, départ, arrivée et tracé, 7 jours)
   const maintenant = new Date();
+  const enCours = (f: string) => { const j = info(f)?.quota_epuise_jusqua; return j && new Date(j) > maintenant ? j : null; };
+  const depuis = new Date(Date.now() - CACHE_JOURS * 86400e3).toISOString();
+  const enCache = async (f: string): Promise<LignePeage[] | null> => {
+    const { data: c } = await db.from("cache_peages").select("lignes").eq("cle", cleCachePeages(f, depart, arrivee, passages)).gte("cree_le", depuis).maybeSingle();
+    return (c?.lignes as LignePeage[] | undefined) ?? null;
+  };
+
+  // 2) fournisseurs : actif puis secours, chacun d'abord par le cache (même fournisseur, départ, arrivée et tracé → réponse réutilisée,
+  //    aucun appel ni créneau de quota) ; un quota fournisseur en cours ne déclenche aucun appel ; le plafond du jour de l'appli
+  //    (sous le quota du fournisseur actif, en table) n'est réservé qu'au moment d'un vrai appel
+  let servi: "cache" | "appel" | null = null;
+  let plafondAtteint = false;
+  let reserve = false;
   const essais: Essai<LignePeage[]>[] = chaine.map((f) => ({
     fournisseur: f,
     appel: async () => {
-      const jusqua = info(f)?.quota_epuise_jusqua;
-      if (jusqua && new Date(jusqua) > maintenant) throw new ErreurPeages("quota_fournisseur");
+      const c = await enCache(f);
+      if (c) {
+        servi = "cache";
+        return c;
+      }
+      const jusqua = enCours(f);
+      if (jusqua) throw new ErreurPeages("quota_fournisseur");
       const cle = await lireCle(db, f);
       if (!cle) throw new ErreurPeages("cle_manquante");
+      if (!reserve) {
+        const { data: autorise } = await db.rpc("quota_peages_reserver", { p_identite: identite, p_max_identite: QUOTA_IDENTITE, p_max_global: info(m.actif)?.plafond_jour ?? PLAFOND_PAR_DEFAUT });
+        if (autorise === false) {
+          plafondAtteint = true;
+          throw new ErreurPeages("quota");
+        }
+        reserve = true;
+      }
       try {
+        servi = "appel";
         if (f === "ptv") return await peagesPtv(cle, depart, arrivee, tva, passages);
         if (f === "here") return await peagesHere(cle, depart, arrivee, passages);
       } catch (e) {
-        if (e instanceof ErreurPeages && e.motif === "quota_fournisseur") await noterQuotaFournisseur(db, f, jusqua ?? null);
+        if (e instanceof ErreurPeages && e.motif === "quota_fournisseur") await noterQuotaFournisseur(db, f, info(f)?.quota_epuise_jusqua ?? null);
         throw e;
       }
       throw new ErreurPeages("aucun_fournisseur");
     },
   }));
   const s = await executerChaine(essais);
-  if (s.echecs.length > 0) await noterIncident(db, "peages", `${s.echecs[0].fournisseur} : ${s.echecs[0].message}`);
+  if (plafondAtteint && !s.resultat) return { etat: "indisponible", motif: "quota_atteint", fournisseur: null, lignes: [], total: 0 };
+  // un incident déjà noté n'est pas réécrit à chaque calcul tant que le quota du fournisseur actif court
+  if (s.echecs.length > 0 && !(s.echecs[0].message.startsWith("quota_fournisseur") && enCours(s.echecs[0].fournisseur))) await noterIncident(db, "peages", `${s.echecs[0].fournisseur} : ${s.echecs[0].message}`);
   if (s.resultat) {
     if (s.bascule) await noterBascule(db, "peages", m.actif, s.fournisseur!);
     else await noterRetabli(db, "peages", m);
+    if (servi === "cache") return { etat: "ok", fournisseur: s.fournisseur, cache: true, lignes: s.resultat, total: totalPeages(s.resultat) };
     if (info(s.fournisseur!)?.quota_epuise_jusqua) await db.from("fournisseurs").update({ quota_epuise_jusqua: null }).eq("id", s.fournisseur);
     await db.from("cache_peages").upsert({ cle: cleCachePeages(s.fournisseur!, depart, arrivee, passages), fournisseur: s.fournisseur, lignes: s.resultat, cree_le: new Date().toISOString() });
     return { etat: "ok", fournisseur: s.fournisseur, lignes: s.resultat, total: totalPeages(s.resultat) };
