@@ -225,6 +225,11 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
 .share{font-size:15px;color:var(--muted)}.share b{font:600 22px var(--f-digits);color:var(--ink)}
 .hint{margin:6px 16px 0;font-size:12px;color:var(--muted)}
 .gbp{font:500 11px var(--f-digits);color:var(--muted)}
+.home{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;padding:24px 16px}
+.home .carcard{margin:0;width:100%;max-width:340px;grid-template-columns:minmax(0,1fr);justify-items:center;text-align:center;gap:4px;border:0;padding:0}
+.home .carcard .sp{grid-column:auto}
+.home .carcard .chg{grid-row:auto;grid-column:auto;margin-top:8px}
+.home .gobig{width:200px;height:200px;margin:0;border-radius:50%;padding:0;font-size:32px;box-shadow:0 0 0 10px color-mix(in srgb,var(--cheap) 18%,transparent)}
 .notif{margin:0 16px 20px;background:#2a2f2d;color:#e8ebe6;border-radius:16px;padding:12px 14px;display:grid;gap:8px;font-size:14px}
 .notif .nh{display:flex;gap:8px;align-items:center;font-size:12px;color:#aab1ac}
 .notif .ic{background:var(--cheap);color:#fff;border-radius:6px;font:800 10px/1 var(--f-display);padding:4px 4px}
@@ -261,7 +266,7 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
 
   <!-- T1 TRAJET (accueil) -->
   <section class="screen" data-screen="T1">
-    <div class="scroll">
+    <div class="scroll home">
       <div class="carcard" data-el="ma-voiture"><div class="nm" id="t-car"></div><div class="sp" id="t-carsp"></div><button type="button" class="chg" id="t-chg" data-el="changer-voiture">Changer</button></div>
       <button type="button" class="btn gobig" id="t-go" data-el="bouton-demarrer">Démarrer</button>
     </div>
