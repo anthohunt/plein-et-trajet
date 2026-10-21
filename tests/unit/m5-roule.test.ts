@@ -171,3 +171,13 @@ describe("historique : totaux et mois (V-6.1, V-6.2)", () => {
   });
   it("aucun trajet : totaux à 0", () => expect(totaux([])).toEqual({ trajets: 0, km: 0, euros: 0, sansPrix: 0 }));
 });
+
+describe("code D.2 : lettre O lue pour un zéro (21/10)", () => {
+  it("5RBUOC est essayé d'abord en 5RBU0C, la lettre seule reste telle quelle", async () => {
+    const { variantesD2 } = await import("../../src/lib/eea");
+    expect(variantesD2("5RBUOC")).toEqual(["5RBU0C", "5RBUOC"]);
+    expect(variantesD2("R 5RBU 5RBUOC")).toEqual(["R 5RBU 5RBU0C", "R 5RBU 5RBUOC"]);
+    expect(variantesD2("5RBU0C")).toEqual(["5RBU0C"]);
+    expect(variantesD2("BO 5RBU 5RBU0C")).toEqual(["BO 5RBU 5RBU0C"]);
+  });
+});

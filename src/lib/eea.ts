@@ -26,7 +26,24 @@ async function appeler(param: "d2" | "q", valeur: string, signal?: AbortSignal):
   throw new ErreurEea("base_injoignable");
 }
 
+/**
+ * La lettre O et le chiffre 0 se confondent sur une carte grise (« 5RBUOC » pour 5RBU0C, constaté le 21/10) : dans un morceau qui
+ * contient un chiffre, on essaie d'abord avec des zéros, puis tel quel.
+ */
+export function variantesD2(d2: string): string[] {
+  const zero = d2.replace(/\S+/g, (m) => (/\d/.test(m) ? m.replace(/[oO]/g, "0") : m));
+  return zero === d2 ? [d2] : [zero, d2];
+}
+
 /** GET voiture-eea?d2=… → versions du code, la plus immatriculée en tête. */
-export const versionsParCode = (d2: string, signal?: AbortSignal) => appeler("d2", d2, signal);
+export async function versionsParCode(d2: string, signal?: AbortSignal): Promise<VersionEea[]> {
+  const [premier, autre] = variantesD2(d2);
+  try {
+    return await appeler("d2", premier, signal);
+  } catch (e) {
+    if (autre == null || !(e instanceof ErreurEea) || e.code !== "code_inconnu") throw e;
+    return appeler("d2", autre, signal);
+  }
+}
 /** GET voiture-eea?q=… → 10 versions au plus. */
 export const versionsParNom = (q: string, signal?: AbortSignal) => appeler("q", q, signal);
