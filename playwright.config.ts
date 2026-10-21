@@ -1,10 +1,10 @@
 import { defineConfig } from "@playwright/test";
 
-// Specs consolidées des jalons 1 et 2 et extraits du jalon 3 (un fichier par histoire), joués contre l'appli déployée (base réelle).
+// Specs consolidées des jalons 1, 2 et 3, jouées contre l'appli déployée (base réelle).
 export default defineConfig({
   testDir: "tests/e2e",
   globalSetup: "./tests/e2e/exploration/m3-global.mjs", // lit les vraies clés en mémoire et les restaure après les tests
-  testMatch: /(m[12]-explore\.spec|m3-test-snippets\/US-[^/]+\.test)\.ts$/,
+  testMatch: /m[123]-explore\.spec\.ts$/, // les extraits du jalon 3 restent dans exploration/m3-test-snippets/ (non joués)
   timeout: 60_000,
   expect: { timeout: 15_000 },
   workers: 1, // jalon 3 : les histoires qui modifient la table moteurs ne tournent jamais en parallèle d'un calcul de trajet
