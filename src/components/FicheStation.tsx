@@ -91,7 +91,10 @@ export function FicheStation({ station, onFermer, carburantVoiture, onUtiliserPr
             {station.libelle}
           </h3>
           <div className="meta" data-el="fiche-adresse">
-            <span>{adresseComplete(station)}</span>
+            {/* ouvre Google Maps sur les coordonnées du flux officiel : l'adresse seule (« Autoroute A86 ») y désigne n'importe quel tronçon */}
+            <a className="adr" href={`https://www.google.com/maps/search/?api=1&query=${station.lat},${station.lon}`} target="_blank" rel="noopener noreferrer" data-el="fiche-adresse-carte">
+              {adresseComplete(station)}
+            </a>
             <span>{distance(station.distanceKm)}</span>
           </div>
         </div>

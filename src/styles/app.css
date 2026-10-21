@@ -85,6 +85,7 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 .board .totem { padding: 0; justify-self: end; font-size: 22px; background: transparent; }
 .board .na { color: var(--on-panel-muted); font: 500 13px var(--f-body); justify-self: end; }
 .meta { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.meta .adr { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 
 /* trajets (jalon 1 : formulaire de destination) */
 .form { padding: 4px 16px 0; display: grid; gap: 10px; }
