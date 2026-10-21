@@ -1,0 +1,282 @@
+{
+  "V-1.1-01-avant.png": {
+    "action": "L'utilisateur, voiture déjà enregistrée, regarde la liste des stations d'Albi.",
+    "expected": "La carte et les prix des stations autour d'Albi s'affichent."
+  },
+  "V-1.1-02-apres.png": {
+    "action": "L'utilisateur ouvre l'onglet Trajet.",
+    "expected": "Il voit sa Renault Clio 2017 et le gros bouton vert « Démarrer »."
+  },
+  "V-1.1-03-avant.png": {
+    "action": "L'utilisateur ouvre l'appli pour la première fois, sans voiture enregistrée.",
+    "expected": "L'accueil lui demande d'abord d'enregistrer sa voiture avec le code D.2."
+  },
+  "V-1.1-04-apres.png": {
+    "action": "L'utilisateur touche « Démarrer » sans voiture enregistrée.",
+    "expected": "L'écran Ma voiture s'ouvre au lieu de lancer un trajet."
+  },
+  "V-1.1-05-avant.png": {
+    "action": "L'utilisateur, un trajet en cours, consulte l'onglet Historique.",
+    "expected": "L'historique est encore vide : aucun trajet enregistré."
+  },
+  "V-1.1-06-apres.png": {
+    "action": "L'utilisateur revient sur l'onglet Trajet pendant l'enregistrement.",
+    "expected": "L'écran En route s'affiche avec vitesse, kilomètres, litres et coût."
+  },
+  "V-1.2-01-avant.png": {
+    "action": "L'utilisateur, sa Clio enregistrée, se trouve sur l'onglet Historique.",
+    "expected": "L'historique vide s'affiche, avec des totaux à zéro."
+  },
+  "V-1.2-02-apres.png": {
+    "action": "L'utilisateur revient à l'accueil.",
+    "expected": "Il lit « Renault Clio », 1.2, 118 ch, 2017, SP95-E10."
+  },
+  "V-1.2-03-avant.png": {
+    "action": "L'utilisateur s'apprête à toucher « Changer » sous sa voiture.",
+    "expected": "Le bouton « Changer » est mis en évidence sous la Renault Clio."
+  },
+  "V-1.2-04-apres.png": {
+    "action": "L'utilisateur touche « Changer ».",
+    "expected": "L'écran Ma voiture s'ouvre, champs vides avec seulement des exemples grisés."
+  },
+  "V-1.2-05-avant.png": {
+    "action": "L'utilisateur ferme l'appli puis la rouvre.",
+    "expected": "L'écran reste blanc le temps du rechargement."
+  },
+  "V-1.2-06-apres.png": {
+    "action": "L'utilisateur retrouve l'accueil après la réouverture.",
+    "expected": "Sa Renault Clio est rappelée sans rien ressaisir."
+  },
+  "V-1.3-01-avant.png": {
+    "action": "L'utilisateur, voiture enregistrée et localisation autorisée, est sur l'accueil.",
+    "expected": "Sa Clio et le bouton « Démarrer » sont prêts."
+  },
+  "V-1.3-02-apres.png": {
+    "action": "L'utilisateur touche « Démarrer ».",
+    "expected": "L'écran En route s'ouvre, « Enregistrement » allumé, compteurs à zéro."
+  },
+  "V-1.3-03-avant.png": {
+    "action": "L'utilisateur a refusé la localisation et voit l'accueil.",
+    "expected": "Sa Clio et le bouton « Démarrer » s'affichent normalement."
+  },
+  "V-1.3-04-apres.png": {
+    "action": "L'utilisateur touche « Démarrer » sans localisation.",
+    "expected": "Un encadré explique que l'enregistrement a besoin de la localisation et comment l'autoriser."
+  },
+  "V-2.1-01-avant.png": {
+    "action": "L'utilisateur place le curseur dans le champ du code D.2.",
+    "expected": "Le champ attend le code, avec un exemple de carte grise dessous."
+  },
+  "V-2.1-02-apres.png": {
+    "action": "L'utilisateur tape « 5RBU0C ».",
+    "expected": "La fiche Clio 2017 s'affiche : 87 kW, 1 197 cm³, 118 g/km."
+  },
+  "V-2.1-03-avant.png": {
+    "action": "L'utilisateur commence à taper un code partagé par plusieurs voitures.",
+    "expected": "Le début du code apparaît dans le champ D.2."
+  },
+  "V-2.1-04-apres.png": {
+    "action": "L'utilisateur termine le code « DAW400L0 ».",
+    "expected": "Soixante versions de Mini Cooper sont listées, la plus immatriculée en tête."
+  },
+  "V-2.1-05-avant.png": {
+    "action": "L'utilisateur tape le code avec des espaces, « R 5RBU… ».",
+    "expected": "Le code en cours de saisie s'affiche, espaces compris."
+  },
+  "V-2.1-06-apres.png": {
+    "action": "L'utilisateur termine « R 5RBU 5RBU0C » avec ses espaces.",
+    "expected": "Le code est reconnu : la fiche de la Clio 2017 s'affiche."
+  },
+  "V-2.2-01-avant.png": {
+    "action": "L'utilisateur vérifie la fiche de sa Clio avant d'enregistrer.",
+    "expected": "La fiche complète et le bouton « Enregistrer ma voiture » sont visibles."
+  },
+  "V-2.2-02-apres.png": {
+    "action": "L'utilisateur touche « Enregistrer ma voiture ».",
+    "expected": "L'accueil s'ouvre avec sa Renault Clio et le bouton « Démarrer »."
+  },
+  "V-2.2-03-avant.png": {
+    "action": "L'utilisateur tape « zz » dans la recherche par nom, sans résultat.",
+    "expected": "Aucune version n'est proposée ni choisie."
+  },
+  "V-2.2-04-apres.png": {
+    "action": "L'utilisateur, avec un code incomplet, regarde le bouton d'enregistrement.",
+    "expected": "Aucune fiche n'apparaît ; le bouton « Enregistrer ma voiture » reste en bas."
+  },
+  "V-2.3-01-avant.png": {
+    "action": "L'utilisateur, sans carte grise, touche le champ « Nom, année, puissance ».",
+    "expected": "Le champ de recherche par nom est prêt à recevoir sa saisie."
+  },
+  "V-2.3-02-apres.png": {
+    "action": "L'utilisateur tape « clio 2017 120 ».",
+    "expected": "Des Clio 2017 de 118 à 120 ch sont proposées avec année, kW, carburant."
+  },
+  "V-2.3-03-avant.png": {
+    "action": "L'utilisateur parcourt les suggestions de Clio.",
+    "expected": "La liste des versions 2017 reste affichée sous le champ."
+  },
+  "V-2.3-04-apres.png": {
+    "action": "L'utilisateur touche la première suggestion.",
+    "expected": "La fiche de la Clio 2017 s'affiche, comme avec le code D.2."
+  },
+  "V-2.E1-01-avant.png": {
+    "action": "L'utilisateur commence à taper un code inconnu, « ZZ999 ».",
+    "expected": "Le code partiel s'affiche, sans message pour l'instant."
+  },
+  "V-2.E1-02-apres.png": {
+    "action": "L'utilisateur termine le code « ZZ9999 », absent de la base.",
+    "expected": "« Code introuvable. Vérifie la case D.2, ou cherche par nom » s'affiche en rouge."
+  },
+  "V-2.E1-03-avant.png": {
+    "action": "L'utilisateur tape un code alors que la base européenne ne répond pas.",
+    "expected": "Le code partiel « 5RBF0 » s'affiche dans le champ."
+  },
+  "V-2.E1-04-apres.png": {
+    "action": "L'utilisateur termine sa saisie, « 5RBF0A ».",
+    "expected": "« La base européenne ne répond pas » s'affiche avec « Réessayer », saisie conservée."
+  },
+  "V-3.1-01-avant.png": {
+    "action": "L'utilisateur roule depuis trois minutes, trajet en cours.",
+    "expected": "Il voit 19 km/h, 0,8 km, 0,06 litre et 0,14 € d'essence."
+  },
+  "V-3.1-02-apres.png": {
+    "action": "L'utilisateur continue de rouler.",
+    "expected": "Vitesse, courbe, kilomètres, litres, euros et durée ont tous augmenté."
+  },
+  "V-3.1-03-avant.png": {
+    "action": "L'utilisateur roule sans avoir choisi de prix.",
+    "expected": "Le coût en direct s'affiche : 0,35 € pour 1,9 km."
+  },
+  "V-3.1-04-apres.png": {
+    "action": "L'utilisateur regarde la ligne du prix sous les compteurs.",
+    "expected": "Elle indique « moyenne France du jour · 2,156 €/L »."
+  },
+  "V-3.1-05-avant.png": {
+    "action": "L'utilisateur a repris le prix d'une station pour son trajet.",
+    "expected": "La ligne du prix indique « mon prix · 1,990 €/L »."
+  },
+  "V-3.1-06-apres.png": {
+    "action": "L'utilisateur regarde le coût en direct.",
+    "expected": "Le coût de 0,41 € est calculé avec son prix de 1,990 €/L."
+  },
+  "V-3.4-01-avant.png": {
+    "action": "L'utilisateur roule à 105 km/h sur la route.",
+    "expected": "Il a parcouru 30,3 km pour 4,56 € d'essence."
+  },
+  "V-3.4-02-apres.png": {
+    "action": "L'utilisateur touche « Pause ».",
+    "expected": "« En pause » s'affiche, les compteurs se figent, le bouton devient « Reprendre »."
+  },
+  "V-3.4-03-avant.png": {
+    "action": "L'utilisateur reste en pause pendant que la voiture avance.",
+    "expected": "Le compteur reste figé à 30,3 km."
+  },
+  "V-3.4-04-apres.png": {
+    "action": "L'utilisateur touche « Reprendre ».",
+    "expected": "L'enregistrement repart de 30,3 km, sans compter le trajet fait en pause."
+  },
+  "V-3.5-01-avant.png": {
+    "action": "L'utilisateur arrive après 74,9 km, enregistrement toujours en cours.",
+    "expected": "Il voit 5,31 litres et 10,57 € d'essence en 1 h 11."
+  },
+  "V-3.5-02-apres.png": {
+    "action": "L'utilisateur touche « Arrêter ».",
+    "expected": "La fin de trajet affiche « Albi → Toulouse », date, durée, litres, km, consommation."
+  },
+  "V-3.5-03-avant.png": {
+    "action": "L'utilisateur roule seulement un demi-kilomètre.",
+    "expected": "Les compteurs montrent 0,5 km en deux minutes."
+  },
+  "V-3.5-04-apres.png": {
+    "action": "L'utilisateur touche « Arrêter » après ce court trajet.",
+    "expected": "« Trajet trop court : 0,5 km sur 1 minimum », rien n'est ajouté."
+  },
+  "V-3.5-05-avant.png": {
+    "action": "L'utilisateur roule et va s'arrêter alors que le réseau est coupé.",
+    "expected": "Les compteurs montrent 2,0 km et 0,36 € d'essence."
+  },
+  "V-3.5-06-apres.png": {
+    "action": "L'utilisateur arrête son trajet sans réseau.",
+    "expected": "La fin de trajet s'ouvre avec litres et coût calculés : 0,36 €."
+  },
+  "V-3.E1-01-avant.png": {
+    "action": "L'utilisateur roule, trajet en cours.",
+    "expected": "Il voit 30 km/h et 2,8 km parcourus."
+  },
+  "V-3.E1-02-apres.png": {
+    "action": "L'utilisateur oublie d'arrêter et reste garé dix minutes.",
+    "expected": "« Trajet arrêté : immobile depuis 10 min » s'affiche, avec deux choix."
+  },
+  "V-3.E1-03-avant.png": {
+    "action": "L'utilisateur s'apprête à toucher « C'est fini » dans l'alerte.",
+    "expected": "Le bouton « C'est fini » est mis en évidence."
+  },
+  "V-3.E1-04-apres.png": {
+    "action": "L'utilisateur touche « C'est fini ».",
+    "expected": "La fin de trajet affiche 12 min : les dix minutes garées sont exclues."
+  },
+  "V-3.E1-05-avant.png": {
+    "action": "L'utilisateur s'apprête à toucher « Reprendre » dans l'alerte.",
+    "expected": "Le bouton « Reprendre » est mis en évidence, 4,0 km au compteur."
+  },
+  "V-3.E1-06-apres.png": {
+    "action": "L'utilisateur touche « Reprendre ».",
+    "expected": "L'enregistrement repart depuis 4,0 km, sans perdre le trajet d'avant."
+  },
+  "V-3.E2-01-avant.png": {
+    "action": "L'utilisateur roule à 105 km/h avant un tunnel.",
+    "expected": "Il a parcouru 3,5 km."
+  },
+  "V-3.E2-02-apres.png": {
+    "action": "L'utilisateur entre dans le tunnel et perd le signal GPS.",
+    "expected": "« GPS perdu (tunnel) · la distance est complétée à la sortie » s'affiche."
+  },
+  "V-3.E2-03-avant.png": {
+    "action": "L'utilisateur roule toujours dans le tunnel, sans GPS.",
+    "expected": "Le message reste affiché, compteur bloqué à 3,5 km."
+  },
+  "V-3.E2-04-apres.png": {
+    "action": "L'utilisateur sort du tunnel et le GPS revient.",
+    "expected": "Le message disparaît et la distance passe à 6,5 km."
+  },
+  "V-4.1-01-avant.png": {
+    "action": "L'utilisateur roule en Clio en France, trajet en cours.",
+    "expected": "Il voit 8,2 km au prix moyen France du jour."
+  },
+  "V-4.1-02-apres.png": {
+    "action": "L'utilisateur arrête le trajet et ouvre la fin de trajet.",
+    "expected": "SP95-E10 est choisi, prix « Moyenne France du jour » 2,156 €/L."
+  },
+  "V-4.1-03-avant.png": {
+    "action": "L'utilisateur s'apprête à toucher Gazole dans le sélecteur de carburant.",
+    "expected": "Le bouton Gazole est mis en évidence, SP95-E10 encore choisi."
+  },
+  "V-4.1-04-apres.png": {
+    "action": "L'utilisateur touche Gazole.",
+    "expected": "Le prix passe à la moyenne gazole, 2,368 €/L, et le coût à 1,29 €."
+  },
+  "V-4.1-05-avant.png": {
+    "action": "L'utilisateur roule autour de Barcelone, trajet en cours.",
+    "expected": "Le prix indiqué est « moyenne Espagne du jour · 1,790 €/L »."
+  },
+  "V-4.1-06-apres.png": {
+    "action": "L'utilisateur arrête son trajet en Espagne.",
+    "expected": "La fin de trajet affiche « Moyenne Espagne du jour » à 1,790 €/L."
+  },
+  "V-4.2-01-avant.png": {
+    "action": "L'utilisateur regarde la fin de son trajet.",
+    "expected": "Le prix est la moyenne France du jour, coût 1,18 €."
+  },
+  "V-4.2-02-apres.png": {
+    "action": "L'utilisateur touche le prix, tape 1,989 et valide.",
+    "expected": "« Mon prix » 1,989 €/L, 1,09 €, « Revenir à la moyenne » apparaît."
+  },
+  "V-4.2-03-avant.png": {
+    "action": "L'utilisateur s'apprête à toucher « Revenir à la moyenne ».",
+    "expected": "Le lien « Revenir à la moyenne » est mis en évidence."
+  },
+  "V-4.2-04-apres.png": {
+    "action": "L'utilisateur touche « Revenir à la moyenne ».",
+    "expected": "La moyenne France 2,156 €/L revient, et le coût repasse à 1,18 €."
+  }
+}
