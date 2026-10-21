@@ -84,6 +84,48 @@ export interface Pas {
  * point compté de plus que la précision, puis toute la distance depuis ce point.
  */
 export function pasDe(points: PointRoule[]): Pas[] {
+  const gardes = relevesBienDates(points);
+  if (gardes.length === points.length) return pasDeBruts(points);
+  return pasDeBruts(gardes.map((k) => points[k])).map((p) => ({ ...p, i: gardes[p.i] }));
+}
+
+// Jalon 6, round 2 (audit r1, problème 1) : des positions arrivées en rafale, datées à leur réception (10,5 s de silence au
+// passage en arrière-plan, puis un relevé en retard et le courant à 1,9 s d'écart : 225 m en 1,9 s), faisaient croire à des
+// pointes de 167 et 196 km/h, et l'énergie de ces accélérations fictives gonflait les litres (9,2 au lieu de 6,0 L/100).
+// L'appli Android date désormais chaque point par l'heure du relevé ; en plus, deux garde-fous physiques valent partout :
+// - un pas plus rapide que 250 km/h est impossible : si le relevé d'avant, retiré, laisse un pas possible, c'est lui qui était
+//   mal daté (on le retire) ; sinon c'est le nouveau qui est aberrant (saut de position : on le retire) ;
+// - une voiture ne gagne pas plus de 4 m/s² (0,4 g ; une Clio fait 0-100 km/h en 12 s, 2,3 m/s²) : la vitesse d'un pas est
+//   bornée à celle du pas précédent + 4 m/s² × durée du pas.
+export const VITESSE_MAX_KMH = 250;
+export const ACCELERATION_MAX_MS2 = 4;
+const vitesseBrute = (a: PointRoule, b: PointRoule) => {
+  const dt = (b[0] - a[0]) / 1000;
+  return dt > 0 ? (distanceM({ lat: a[1], lon: a[2] }, { lat: b[1], lon: b[2] }) / dt) * 3.6 : Infinity;
+};
+/** Index des positions gardées : sans relevé mal daté ni saut impossible (voir VITESSE_MAX_KMH). */
+export function relevesBienDates(points: PointRoule[]): number[] {
+  const k: number[] = [];
+  for (let i = 0; i < points.length; i++) {
+    const p = points[i];
+    let garder = true;
+    while (k.length > 0) {
+      const a = points[k[k.length - 1]];
+      if (a[3] !== p[3] || vitesseBrute(a, p) <= VITESSE_MAX_KMH) break;
+      const b = k.length > 1 ? points[k[k.length - 2]] : null;
+      if (b && b[3] === p[3] && vitesseBrute(b, p) <= VITESSE_MAX_KMH) {
+        k.pop();
+        continue;
+      }
+      garder = false;
+      break;
+    }
+    if (garder) k.push(i);
+  }
+  return k;
+}
+
+function pasDeBruts(points: PointRoule[]): Pas[] {
   const out: Pas[] = [];
   const brutes: number[] = [];
   let ancre = 0; // dernier point compté (sa précision)
@@ -143,10 +185,12 @@ export function pasDe(points: PointRoule[]): Pas[] {
     const arret =
       !trou &&
       (arretGps || (j < i && distanceM(lieu(points[j]), lieu(points[i])) < seuil) || (jc < i && distanceM(centre(jc, i - 1), lieu(points[i])) < seuil));
-    const v = trou ? (dBrut / dt) * 3.6 : arret ? 0 : fen.reduce((s, x) => s + x, 0) / fen.length;
+    const vLue = trou ? (dBrut / dt) * 3.6 : arret ? 0 : fen.reduce((s, x) => s + x, 0) / fen.length;
     if (trou) brutes.length = 0;
     // premier pas d'un segment (départ, reprise après pause) : vitesse d'avant inconnue → aucune accélération supposée
-    const prec = out.length > 0 && out[out.length - 1].i === i - 1 && brutes.length > 1 ? out[out.length - 1].v : v;
+    const suite = out.length > 0 && out[out.length - 1].i === i - 1 && brutes.length > 1;
+    const prec = suite ? out[out.length - 1].v : vLue;
+    const v = suite && !trou ? Math.min(vLue, prec + ACCELERATION_MAX_MS2 * dt * 3.6) : vLue;
     out.push({ i, t: t1, dt, d, v, vPrec: prec });
   }
   return out;
