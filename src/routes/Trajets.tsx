@@ -25,7 +25,7 @@ import type { Estimation } from "../lib/trajets";
 const resumeRoule = (e: EstimationRoulee) => ({ vitesses: e.enregistre.vitesses, vitesse_moy: e.enregistre.vitesse_moy, accelerations: e.enregistre.accelerations });
 
 type Phase = "formulaire" | "calcul" | "resultat" | "enroute" | "calcul-roule" | "trop-court" | "erreur-roule";
-type MessageEnregistrer = "refusee" | "indisponible" | "sans-voiture" | null;
+type MessageEnregistrer = "refusee" | "indisponible" | "sans-voiture" | "en-attente" | null;
 interface Demande {
   depart: Lieu;
   arrivee: Lieu;
@@ -179,6 +179,11 @@ export default function Trajets() {
   // US-6.1 / 6.E1 : la localisation est demandée ; refusée → message, aucun trajet créé
   const enregistrer = () => {
     if (demarrage) return;
+    // un enregistrement attend sa reprise (bandeau ci-dessus) : on ne l'écrase pas, il faut le reprendre ou l'arrêter d'abord
+    if (reprise && enCours) {
+      setMessageEnr("en-attente");
+      return;
+    }
     setMessageEnr(null);
     const v = voiture.vehicule;
     const veh = v ? vehiculeRoule(v) : null;
@@ -233,6 +238,7 @@ export default function Trajets() {
 
   const reprendreEnregistrement = () => {
     setReprise(false);
+    setMessageEnr(null);
     setPhase("enroute");
   };
 
@@ -241,6 +247,7 @@ export default function Trajets() {
     const e = enCours ?? lireEnCours();
     if (!e) return;
     setReprise(false);
+    setMessageEnr(null);
     const km = enDirect(e.points, e.pauses, e.debut, Date.now(), e.veh, true).km;
     if (km < 1) {
       oublierEnCours();
@@ -487,7 +494,7 @@ export default function Trajets() {
           <button id="bouton-calculer" className="btn" type="submit" data-el="bouton-calculer" aria-disabled={verif || undefined}>
             {verif ? T.verification : T.calculer}
           </button>
-          <button id="bouton-enregistrer" className="btn ghost recbtn" type="button" data-el="bouton-enregistrer" aria-disabled={demarrage || undefined} onClick={enregistrer}>
+          <button id="bouton-enregistrer" className="btn ghost recbtn" type="button" data-el="bouton-enregistrer" aria-disabled={demarrage || (reprise && enCours != null) || undefined} onClick={enregistrer}>
             <i className="recdot" aria-hidden="true" />
             {demarrage ? T.enregistrerAttente : T.enregistrerEnRoulant}
           </button>
@@ -501,6 +508,7 @@ export default function Trajets() {
               )}
               {messageEnr === "indisponible" && <p className="d">{T.localisationIndispo}</p>}
               {messageEnr === "sans-voiture" && <p className="d">{T.enregistrerSansVoiture}</p>}
+              {messageEnr === "en-attente" && <p className="d">{T.enregistrerEnAttente}</p>}
             </div>
           )}
         </form>

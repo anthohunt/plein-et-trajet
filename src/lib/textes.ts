@@ -275,6 +275,7 @@ export const T = {
   enregistrerEnRoulant: "Enregistrer en roulant",
   enregistrerAttente: "Recherche de ta position…",
   enregistrerSansVoiture: "Choisis ta voiture avant d'enregistrer : le calcul utilise sa consommation.",
+  enregistrerEnAttente: "Un enregistrement attend déjà ci-dessus : reprends-le ou arrête-le avant d'en commencer un autre.",
   localisationRefusee: "L'enregistrement a besoin de ta localisation",
   localisationRefuseeDetail:
     "Aucun trajet n'a été créé. Pour l'autoriser : touche le cadenas à gauche de l'adresse du site, ouvre « Autorisations » (ou « Paramètres du site »), mets « Position » sur « Autoriser », puis appuie de nouveau sur « Enregistrer en roulant ». Sur téléphone, la localisation doit aussi être activée dans les réglages.",
@@ -291,6 +292,8 @@ export const T = {
   reprendre: "Reprendre",
   arreter: "Arrêter et voir le coût",
   ecranAllume: "L'écran reste allumé pendant l'enregistrement : laisse l'appli ouverte sur le support. Les points GPS restent sur le téléphone jusqu'à l'arrêt.",
+  ecranVerrouAttente: "Demande au navigateur de garder l'écran allumé… Les points GPS restent sur le téléphone jusqu'à l'arrêt.",
+  directSansMontees: "Litres et € en direct sans les montées : le dénivelé du tracé s'ajoute au calcul final, à l'arrêt.",
   ecranVerrouIndispo:
     "Ce navigateur ne peut pas garder l'écran allumé : désactive la mise en veille automatique de l'écran pendant le trajet. Les points GPS restent sur le téléphone jusqu'à l'arrêt.",
   gpsPerdu: "GPS perdu",

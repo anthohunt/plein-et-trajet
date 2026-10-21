@@ -145,8 +145,9 @@ export function EnRoute({ e, setE, prix, onArreter }: Props) {
             <div><b data-el="direct-l100">{d.l100 == null ? "—" : fmt(d.l100, 1)}</b><span>{T.l100}</span></div>
           </div>
         </div>
-        <p className="note rec-note" data-el="ecran-allume" data-verrou={verrou}>
-          {verrou === "indisponible" ? T.ecranVerrouIndispo : T.ecranAllume}
+        <p className="note rec-note" data-el="direct-sans-montees">{T.directSansMontees}</p>
+        <p className="note" data-el="ecran-allume" data-verrou={verrou}>
+          {verrou === "indisponible" ? T.ecranVerrouIndispo : verrou === "attente" ? T.ecranVerrouAttente : T.ecranAllume}
         </p>
         <p className="note" data-el="prix-direct">{prix ? T.prixDuJourPays(prix.pays, fmt(prix.valeur, 3)) : T.prixDuJourAbsent}</p>
         <div className="recbar">

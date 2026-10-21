@@ -232,6 +232,7 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 /* ---------- jalon 4 : enregistrer en roulant (maquette v4, S6 et bloc « Ma vitesse enregistrée » de S4) ---------- */
 .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
 .recbtn { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.recbtn[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; }
 .recdot { width: 10px; height: 10px; border-radius: 50%; background: var(--dear); flex: none; }
 .etat-enr { border: 1px solid var(--line); border-left: 3px solid var(--dear); border-radius: 10px; padding: 10px 12px; display: grid; gap: 6px; }
 .etat-enr p { margin: 0; }
