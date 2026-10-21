@@ -7,7 +7,7 @@
 // BLOQUÉ-CLÉ : US-5.5 (HERE) et US-5.E3 forme du plan (HERE) restent en test.skip, faute de clé HERE.
 import fs from "node:fs";
 import path from "node:path";
-import { test, expect, ALBI_, appelerMoteurs, attendreFormulaire, BARCELONE, BARCELONE_, BELGRADE, BORDEAUX, BRUXELLES, calculer, carburantAffiche, carte, CASTRES, champ, choisirLieu, choisirVoiture, cleEnMemoire, connecterAdmin, cout, empreinteCles, env, estimerDirect, etatCarte, etatFocus, formulaire, injecterCle, LAUSANNE, lignesListe, lireEtatReel, lireResultat, MILAN, modifieLesMoteurs, moyenneDuJour, nombre, ouvrirMoteurs, ouvrirTrajets, peagesSurTraceDirect, propositions, rest, restService, S4, saisirLieu, session, sqlGestion, URL_APP, virgule } from "./exploration/m3-test-snippets/_aides";
+import { test, expect, ALBI_, appelerMoteurs, attendreFormulaire, BARCELONE, BARCELONE_, BELGRADE, BORDEAUX, BRUXELLES, calculer, carburantAffiche, carte, CASTRES, champ, choisirLieu, choisirVoiture, cleEnMemoire, connecterAdmin, cout, empreinteCles, env, estimerDirect, etatCarte, etatFocus, formulaire, injecterCle, LAUSANNE, lignesListe, lireEtatReel, lireResultat, MILAN, modifieLesMoteurs, moyenneDuJour, nombre, ouvrirMoteurs, ouvrirTrajets, peagesSurTraceDirect, propositions, rest, restService, S4, saisirLieu, session, sqlGestion, URL_APP, virgule } from "../exploration/m3-test-snippets/_aides";
 
 test.describe("M3 — Péages, Europe et moteurs", () => {
   test.describe("US-1.8 — Stations hors de France", () => {

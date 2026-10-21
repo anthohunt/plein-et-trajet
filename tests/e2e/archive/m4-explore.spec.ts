@@ -12,7 +12,7 @@ import { test, expect, type Page } from "@playwright/test";
 import {
   accorderVerrouEcran, arreterEtAttendre, attendreFinRejeu, champ, choisirVoiture, demarrerRejeu, enregistrerDepuis, env, KM5, lancerEnregistrement,
   lireDirect, lireResultat, nombreFr, ouvrirTrajets, position, propositions, PTS, rest, rouler, S6, session, trajetsDeLaPage, URL_APP, virgule,
-} from "./exploration/m4-test-snippets/_aides";
+} from "../exploration/m4-test-snippets/_aides";
 
 /** Supprime les trajets de la session anonyme de la page (ménage du test). */
 async function supprimerMesTrajets(page: Page) {

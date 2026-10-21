@@ -3,7 +3,7 @@
 // Seul US-4.E3 intercepte le réseau (// MOCKED: délai puis route.continue — le vrai backend répond).
 // Aucune capture n'est écrite dans tests/e2e/delivery/ (preuves auditées).
 import { test, expect, type Page } from "@playwright/test";
-import { S4, URL_APP, attendreFormulaire, calculer, champ, choisirDansListe, choisirVoiture, compterCalculs, dbPreference, dbTrajets, env, etatFocus, formulairePret, lignesHistorique, lireResultat, moyenneDuJour, ouvrirTrajets, propositions, rest, saisirLieu, session, trajetCalcule, virgule } from "./exploration/m2-test-snippets/_aides";
+import { S4, URL_APP, attendreFormulaire, calculer, champ, choisirDansListe, choisirVoiture, compterCalculs, dbPreference, dbTrajets, env, etatFocus, formulairePret, lignesHistorique, lireResultat, moyenneDuJour, ouvrirTrajets, propositions, rest, saisirLieu, session, trajetCalcule, virgule } from "../exploration/m2-test-snippets/_aides";
 
 // US-4.4 : le total inclut les péages depuis le jalon 3 — ces assertions comparent le coût CARBURANT (total moins péages établis), pas le total
 async function carburantSeul(page: Page): Promise<number> {

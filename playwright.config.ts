@@ -1,13 +1,14 @@
 import { defineConfig } from "@playwright/test";
 
-// Specs consolidées des jalons 1 à 4, jouées contre l'appli déployée (base réelle). Les extraits (exploration/m*-test-snippets/) sont gardés, hors suite.
+// Specs jouées contre l'appli déployée (base réelle). Jalon 5 (V1) : m2, m3, m4 archivées dans tests/e2e/archive/ (histoires retirées ou
+// remplacées) ; m1 (écran Prix devenu T5 Stations) reste à adapter aux routes V1 ; les specs m5 rejouent T1-T6.
+// Plus de globalSetup : celui du jalon 3 lisait et restaurait les clés de Vault, la V1 n'y touche pas.
 export default defineConfig({
   testDir: "tests/e2e",
-  globalSetup: "./tests/e2e/exploration/m3-global.mjs", // lit les vraies clés en mémoire et les restaure après les tests
-  testMatch: [/m[1-4]-explore\.spec\.ts$/],
+  testMatch: [/m1-explore\.spec\.ts$/, /m5-.*\.spec\.ts$/],
   timeout: 60_000,
   expect: { timeout: 15_000 },
-  workers: 1, // jalon 3 : les histoires qui modifient la table moteurs ne tournent jamais en parallèle d'un calcul de trajet
+  workers: 1,
   reporter: [["list"]],
   use: {
     baseURL: process.env.APP_URL ?? "https://plein-et-trajet.vercel.app",
