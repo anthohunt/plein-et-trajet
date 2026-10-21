@@ -64,7 +64,7 @@ const euros2 = (x) => Math.round(x * 100) / 100;
 // ---------------------------------------------------------------- journal : en-tête du passage
 fs.appendFileSync(
   JOURNAL,
-  `\n---\n\n# Passage r1b ${FLUX.join(",")} — début ${new Date().toISOString()}\n\nAppli déployée ${URL_APP}, base Supabase réelle, Playwright (bibliothèque), Chromium headless 390 × 844, toucher, fr-FR, Europe/Paris.\n` +
+  `\n---\n\n# Passage ${PASSAGE} ${FLUX.join(",")} — début ${new Date().toISOString()}\n\nAppli déployée ${URL_APP}, base Supabase réelle, Playwright (bibliothèque), Chromium headless 390 × 844, toucher, fr-FR, Europe/Paris.\n` +
     `Réel : base EEA (fonction voiture-eea), moyennes du jour (FR SP95-E10 ${virgule(moyFR("SP95-E10"), 3)} €/L, Gazole ${virgule(moyFR("Gazole"), 3)} €/L), stations et prix du jour, géocodage inverse (fonction lieux), refus de localisation (contexte sans permission), coupure réseau (context.setOffline).\n` +
     `Rejoué : géolocalisation par context.setGeolocation depuis tests/e2e/fixtures/albi-toulouse.gpx (et ses dérivés immobile / tunnel, et barcelone.gpx : vrai itinéraire Valhalla fabriqué par creer-gpx.mjs barcelone), horloge de la page accélérée par page.clock (méthode r1a : avancer l'horloge, poser la position, attendre que T3 l'ait comptée), au rythme réel (1 point/s) pendant les passages par Stations.\n`,
 );
@@ -260,11 +260,13 @@ async function fluxVoiture() {
     return `accueil : « ${await txt(p, sel("nom-voiture"))} » « ${await txt(p, sel("detail-voiture"))} » ; localStorage pt-voiture-v1 = ${v.marque} ${v.modele} ${v.ve} ${v.annee}`;
   });
   // ---- V-1.2 (1 à 4)
-  await touche(p, "onglet-historique");
-  await p.waitForSelector('[data-screen="T6"]');
-  await etape("V-1.2", 1, p, "V-1.2-01-avant.png", "la Clio enregistrée ; je suis sur l'onglet Historique", async () => `onglet ${await ongletActif(p)} ; voiture gardée ${await p.evaluate(() => JSON.parse(localStorage.getItem("pt-voiture-v1")).ve)}`);
-  await touche(p, "onglet-trajet");
-  await etape("V-1.2", 2, p, "V-1.2-02-apres.png", "je touche l'onglet Trajet : l'accueil s'affiche", async () => {
+  // round 2 : l'état de départ se voit — l'accueil avec la Clio enregistrée (même image que V-2.2-02 : même écran, même voiture)
+  await etape("V-1.2", 1, p, "V-1.2-01-avant.png", "la Clio enregistrée (accueil, juste après « Enregistrer ma voiture »)", async () => {
+    verifier((await p.evaluate(() => JSON.parse(localStorage.getItem("pt-voiture-v1")).ve)) === "5RBU0C", "voiture non gardée");
+    return `accueil « ${await txt(p, sel("nom-voiture"))} » « ${await txt(p, sel("detail-voiture"))} » ; onglet ${await ongletActif(p)} ; localStorage pt-voiture-v1 = 5RBU0C`;
+  });
+  await p.reload();
+  await etape("V-1.2", 2, p, "V-1.2-02-apres.png", "l'accueil s'affiche (page rechargée)", async () => {
     await p.waitForSelector(sel("nom-voiture"));
     const nom = (await p.locator(sel("nom-voiture")).textContent()).trim();
     const det = (await p.locator(sel("detail-voiture")).textContent()).trim();
@@ -283,10 +285,11 @@ async function fluxVoiture() {
   await touche(p, "retour-trajet-voiture");
   await p.waitForSelector(sel("nom-voiture"));
   // ---- V-1.1 (1-2)
-  await touche(p, "onglet-stations");
-  await p.waitForSelector('[data-screen="T5"]');
-  await attendreListe(p).catch(() => {});
-  await etape("V-1.1", 1, p, "V-1.1-01-avant.png", "une voiture enregistrée ; l'appli était restée sur l'onglet Stations", async () => `onglet ${await ongletActif(p)} ; voiture ${await p.evaluate(() => JSON.parse(localStorage.getItem("pt-voiture-v1")).ve)}`);
+  // round 2 : l'état de départ se voit — une voiture enregistrée, écran Trajet
+  await etape("V-1.1", 1, p, "V-1.1-01-avant.png", "une voiture enregistrée sur ce téléphone (écran Trajet)", async () => {
+    verifier((await ongletActif(p)) === "onglet-trajet", "onglet");
+    return `onglet ${await ongletActif(p)} ; carte « ${await txt(p, sel("nom-voiture"))} · ${await txt(p, sel("detail-voiture"))} » ; voiture ${await p.evaluate(() => JSON.parse(localStorage.getItem("pt-voiture-v1")).ve)}`;
+  });
   const p2 = await C.newPage();
   surveiller(p2, "voiture");
   await p2.goto(URL_APP);
@@ -301,11 +304,14 @@ async function fluxVoiture() {
   });
   await p2.close();
   // ---- V-1.2 (5-6) et V-2.2 : l'appli fermée (contexte fermé) puis rouverte (même profil)
+  // round 2 : la capture « avant » est l'appli telle qu'on la laisse, juste avant de fermer le navigateur (une appli fermée ne se
+  // photographie pas : r1 montrait l'onglet vide about:blank du navigateur relancé)
+  await etape("V-1.2", 5, p, "V-1.2-05-avant.png", "l'appli telle que je la laisse, juste avant de fermer le navigateur (puis relance sur le même profil)", async () => `URL ${p.url()} ; accueil « ${await txt(p, sel("nom-voiture"))} » ; localStorage pt-voiture-v1 = ${await p.evaluate(() => JSON.parse(localStorage.getItem("pt-voiture-v1")).ve)}`);
   await C.close();
   C = await lancer();
   p = C.pages()[0] ?? (await C.newPage());
   surveiller(p, "voiture");
-  await etape("V-1.2", 5, p, "V-1.2-05-avant.png", "l'appli fermée (navigateur fermé puis relancé sur le même profil ; onglet vide about:blank)", async () => `URL ${p.url()}`);
+  noter("V-1.2", `Step 5 — navigateur fermé puis relancé sur le même profil : onglet ${p.url()} avant d'ouvrir l'appli.`);
   await p.goto(URL_APP);
   await etape("V-1.2", 6, p, "V-1.2-06-apres.png", "je rouvre l'appli", async () => {
     await p.waitForSelector(sel("nom-voiture"));
@@ -387,10 +393,19 @@ async function fluxTrajet() {
     return `${virgule(d.litres, 2)} L × ${virgule(prix, 3)} €/L (moyenne France du jour SP95-E10 lue par l'API : ${virgule(moyFR("SP95-E10"), 3)}) = ${virgule(d.litres * prix, 3)} → affiché ${virgule(d.euros, 2)} € ; « ${await txt(p, sel("prix-direct"))} »`;
   }, { cible: sel("prix-direct") });
   await rouler(C, p, PTS, 470, 483);
-  // ---- V-1.1 (5-6) : arrêt à la station-service du GPX (points 483 à 664, 182 s)
-  await touche(p, "onglet-historique");
-  await p.waitForSelector('[data-screen="T6"]');
-  await etape("V-1.1", 5, p, "V-1.1-05-avant.png", "un trajet en cours d'enregistrement ; je suis sur l'onglet Historique", async () => `onglet ${await ongletActif(p)} ; IndexedDB enregistrement : ${(await lireIdb(p)).enregistrement?.points.length} points`);
+  // ---- V-1.1 (5-6), V-5.3, V-5.5 (1-2) : la voiture est à la station-service du GPX (points 483 à 664, 182 s) ; horloge réelle,
+  // positions au rythme réel en arrière-plan. Round 2 : V-1.1-05 montre le trajet en cours (bandeau « ● Trajet en cours » de
+  // l'onglet Stations) au lieu d'un Historique vide.
+  await p.clock.resume();
+  let fond = rejeuFond(C, PTS, 483);
+  await touche(p, "onglet-stations");
+  await p.waitForSelector(sel("retour-trajet"), { timeout: 10000 });
+  await attendreListe(p).catch(() => {});
+  await dormir(1200);
+  await etape("V-1.1", 5, p, "V-1.1-05-avant.png", "un trajet en cours d'enregistrement ; je suis sur l'onglet Stations (bandeau « Trajet en cours »)", async () => {
+    verifier((await p.locator(sel("retour-trajet")).count()) === 1, "bandeau absent");
+    return `onglet ${await ongletActif(p)} ; bandeau « ${await txt(p, sel("retour-trajet"))} » ; IndexedDB enregistrement : ${(await lireIdb(p)).enregistrement?.points.length} points`;
+  });
   await touche(p, "onglet-trajet");
   await etape("V-1.1", 6, p, "V-1.1-06-apres.png", "je touche l'onglet Trajet", async () => {
     await p.waitForSelector(T3);
@@ -398,9 +413,6 @@ async function fluxTrajet() {
     verifier((await p.locator('[data-screen="T1"]').count()) === 0, "accueil affiché");
     return `URL /en-route, écran En route « ${await txt(p, sel("etat-enregistrement"))} » (pas l'accueil)`;
   });
-  // ---- V-5.3 + V-5.5 (1-2) : vers Montauban, pendant que la voiture est à la station (positions au rythme réel en arrière-plan)
-  await p.clock.resume();
-  let fond = rejeuFond(C, PTS, 483);
   await touche(p, "onglet-stations");
   await attendreListe(p);
   await dormir(1500);
@@ -587,7 +599,7 @@ async function fluxTrajet() {
     verifier(Math.abs(nb(l100) - (litres / km) * 100) < 0.051, `L/100 ${l100}`);
     return `« ${await txt(p, sel("titre-trajet"))} » ; « ${await txt(p, sel("sous-titre-trajet"))} » ; ${await txt(p, sel("fin-litres"))} L (${litres.toFixed(3)}), ${await txt(p, sel("fin-km"))} km (${km.toFixed(2)}), ${l100} L/100 km moy.`;
   });
-  noter("V-5.5", `Step 2 — fin de trajet : libellé « ${await txt(p, sel("libelle-prix"))} », prix data-prix ${await attr(p, sel("prix-apres"), "data-prix")} (station : ${virgule(P, 3)}), coût ${await txt(p, sel("cout-trajet"))}.`);
+  noter("V-5.5", `Step 2 — la fin de ce même trajet, au prix de la station, est la capture V-4.7-01-avant.png (libellé « Mon prix », 3 personnes) ; fin de trajet : libellé « ${await txt(p, sel("libelle-prix"))} », prix data-prix ${await attr(p, sel("prix-apres"), "data-prix")} (station : ${virgule(P, 3)}), coût ${await txt(p, sel("cout-trajet"))}.`);
   if (Math.abs(Number(await attr(p, sel("prix-apres"), "data-prix")) - P) > 0.0005) probleme("V-5.5", "- la fin de trajet n'utilise pas le prix de la station");
   // ---- démonstration : 3 personnes, courbes, Enregistrer
   await touche(p, "personnes-plus");
@@ -607,13 +619,16 @@ async function fluxTrajet() {
     verifier(premiere === idTrajet, `en tête ${premiere} ≠ ${idTrajet}`);
     const rec = (await lireIdb(p)).trajets.find((t) => t.id === idTrajet);
     verifier(rec && rec.enregistre && rec.personnes === 3 && Math.abs(rec.prix_perso - P) < 0.0005 && rec.carburant === "SP95-E10", JSON.stringify({ personnes: rec?.personnes, prix: rec?.prix_perso, carb: rec?.carburant }));
+    const ligneCarb = await txt(p, `li.hrow[data-trajet="${idTrajet}"] [data-el="carburant-ligne"]`);
+    verifier(ligneCarb === `SP95-E10 à ${virgule(P, 3)} €/L`, `ligne : ${ligneCarb}`);
+    verifier(/€ chacun/.test(await txt(p, `li.hrow[data-trajet="${idTrajet}"] [data-el="part-ligne"]`)), "part absente (3 personnes)");
     return `onglet Historique, en tête : « ${(await p.locator("li.hrow").first().innerText()).replace(/\s+/g, " ")} » ; IndexedDB : prix ${rec.prix_perso} (station), carburant ${rec.carburant}, ${rec.personnes} personnes, enregistré ; totaux « ${await txt(p, sel("totaux-historique"))} »`;
   });
-  await focusClavier(p, p.locator("li.hrow button").first());
-  await etape("V-4.5", 1, p, "V-4.5-01-avant.png", "un trajet enregistré (sa ligne sélectionnée dans l'Historique)", async () => `« ${(await p.locator("li.hrow").first().innerText()).replace(/\s+/g, " ")} »`);
+  // round 2 : l'état de départ se voit — la fin du trajet enregistré, rouverte depuis l'historique (écran Fin de trajet)
   await p.locator("li.hrow button").first().tap();
   await p.waitForSelector(sel("courbe-vitesse"));
   const rec = (await lireIdb(p)).trajets.find((t) => t.id === idTrajet);
+  await etape("V-4.5", 1, p, "V-4.5-01-avant.png", "un trajet enregistré, rouvert depuis l'historique (écran Fin de trajet, haut)", async () => `onglet ${await ongletActif(p)} ; « ${await txt(p, sel("titre-trajet"))} » ; « ${await txt(p, sel("sous-titre-trajet"))} » ; enregistré : ${await attr(p, '[data-screen="T4"]', "data-enregistre")}`, { haut: true });
   await etape("V-4.5", 2, p, "V-4.5-02-apres.png", "la fin de trajet s'affiche (rouverte) — courbe de vitesse", async () => {
     const n = Number(await attr(p, sel("courbe-vitesse"), "data-points"));
     verifier(n > 50 && n <= 600, `${n} points`);
@@ -628,6 +643,7 @@ async function fluxTrajet() {
     const moy = (rec.litres / rec.km) * 100;
     const pointe = Math.max(rec.conso_max, ...rec.consos);
     verifier(info === `moy. ${virgule(moy, 1)} · pointe ${virgule(pointe, 1)} L/100`, `${info} vs ${moy}/${pointe}`);
+    verifier(pointe < 30, `pointe ${pointe} L/100 : courbe écrasée (round 2 : lissage sur 500 m)`);
     const n = Number(await attr(p, sel("courbe-conso"), "data-points"));
     verifier(n > 50 && n <= 600, `${n} points`);
     const moyCourbe = rec.consos.reduce((s, x) => s + x, 0) / rec.consos.length;
@@ -724,27 +740,31 @@ async function fluxCas() {
     await C.setOffline(true);
     await etape("V-3.5", 5, p, "V-3.5-05-avant.png", "aucun réseau (context.setOffline(true)) juste avant l'arrêt — 420 positions", async () => {
       verifier((await p.evaluate(() => navigator.onLine)) === false, "navigator.onLine vrai");
-      return `navigator.onLine = false ; ${directTexte(await lireDirect(p))} ; « ${await txt(p, sel("prix-direct"))} »`;
+      verifier((await p.locator(sel("hors-ligne")).count()) === 1, "« Hors ligne » non affiché");
+      return `navigator.onLine = false ; « ${await txt(p, sel("hors-ligne"))} » ; ${directTexte(await lireDirect(p))} ; « ${await txt(p, sel("prix-direct"))} »`;
     });
     const reqHors = reseau.length;
     await touche(p, "bouton-arreter");
     await p.waitForURL("**/fin", { timeout: 15000 });
     await p.clock.runFor(500);
     await p.waitForSelector(sel("cout-trajet"));
+    let avantNoms = "";
     await etape("V-3.5", 6, p, "V-3.5-06-apres.png", "la fin de trajet s'ouvre sans réseau", async () => {
       const litres = Number(await attr(p, sel("fin-litres"), "data-litres"));
       const cout = Number(await attr(p, sel("cout-trajet"), "data-cout"));
       const prix = Number(await attr(p, sel("prix-apres"), "data-prix"));
       verifier(Math.abs(cout - euros2(litres * prix)) < 0.001, `${cout} vs ${litres}×${prix}`);
       verifier((await attr(p, sel("titre-trajet"), "data-noms")) === "non", "noms déjà connus");
-      const avantNoms = await txt(p, sel("titre-trajet"));
-      await C.setOffline(false);
-      await p.waitForFunction(() => document.querySelector('[data-el="titre-trajet"]')?.getAttribute("data-noms") === "oui", null, { timeout: 30000 });
-      const apres = await txt(p, sel("titre-trajet"));
-      noter("V-3.5", `Step 6 — au retour du réseau (setOffline(false) → événement online), le titre passe de « ${avantNoms} » à « ${apres} » sans rien toucher ; requêtes tentées pendant la coupure : ${reseau.length - reqHors} (refusées par le navigateur hors ligne).`);
-      return `hors ligne : « ${avantNoms} » (coordonnées, noms pas encore connus) ; ${virgule(litres, 3)} L × ${virgule(prix, 3)} €/L (moyenne gardée au départ) = ${virgule(cout, 2)} € calculés sur le téléphone`;
+      verifier((await p.evaluate(() => navigator.onLine)) === false && (await p.locator(sel("hors-ligne")).count()) === 1, "pas hors ligne à la capture");
+      avantNoms = await txt(p, sel("titre-trajet"));
+      // round 2 : la capture est prise PENDANT la coupure (r1 rétablissait le réseau avant la capture : elle montrait « ALBI → ALBI »)
+      return `hors ligne (capture prise pendant la coupure) : titre « ${avantNoms} » (coordonnées, noms pas encore connus) ; « ${await txt(p, sel("hors-ligne"))} » ; ${virgule(litres, 3)} L × ${virgule(prix, 3)} €/L (moyenne gardée au départ) = ${virgule(cout, 2)} € calculés sur le téléphone`;
     });
-    // la capture de l'étape 6 montre l'état après retour du réseau (noms complétés) ; l'état hors ligne est relevé ci-dessus
+    // retour du réseau APRÈS la capture : les noms se complètent seuls (relevé au journal)
+    await C.setOffline(false);
+    const okNoms = await p.waitForFunction(() => document.querySelector('[data-el="titre-trajet"]')?.getAttribute("data-noms") === "oui", null, { timeout: 30000 }).then(() => true, () => false);
+    noter("V-3.5", `Step 6 — après la capture, retour du réseau (setOffline(false) → événement online) : le titre passe de « ${avantNoms} » à « ${await txt(p, sel("titre-trajet"))} » sans rien toucher ${okNoms ? "✓" : "✗ (noms non complétés en 30 s)"} ; « Hors ligne » affiché : ${await p.locator(sel("hors-ligne")).count()} ; requêtes tentées pendant la coupure : ${reseau.length - reqHors} (refusées par le navigateur hors ligne).`);
+    if (!okNoms) probleme("V-3.5", "- noms des lieux non complétés au retour du réseau");
     await etape("V-4.7", 3, p, "V-4.7-03-avant.png", "un trajet qui vient d'être arrêté (celui de la coupure réseau, noms complétés)", async () => `« ${await txt(p, sel("titre-trajet"))} » ; boutons « ${await txt(p, sel("enregistrer-ou-supprimer"))} »`, { cible: sel("enregistrer-ou-supprimer") });
     await touche(p, "supprimer-neuf");
     await p.waitForSelector('[data-screen="T1"]', { timeout: 10000 }).catch(() => {});
@@ -782,7 +802,13 @@ async function fluxCas() {
     // suite du rejeu jusqu'à l'alerte (point 774 = début de l'immobilité)
     let tImm = null;
     await rouler(C, p, IMM, 700, 774, { chaque: async (k) => { if (k === 773) tImm = await pageMaintenant(p); } });
-    await rouler(C, p, IMM, 774, 1365);
+    const d774 = await lireDirect(p);
+    const kmhGare = [];
+    await rouler(C, p, IMM, 774, 1365, { chaque: async (j) => { if (j % 37 === 0) kmhGare.push(Number(await attr(p, sel("vitesse"), "data-kmh"))); } });
+    const d1365 = await lireDirect(p);
+    // round 2 (audit lot 1, MEDIUM 3) : garé à ±2 m pendant ~10 min, ni km, ni litres, ni vitesse
+    noter("V-3.E1", `Garé (points 774 → 1365, bruit ±2 m, juste avant l'alerte) : km ${virgule(d774.km, 1)} → ${virgule(d1365.km, 1)}, litres ${virgule(d774.litres, 2)} → ${virgule(d1365.litres, 2)}, vitesse affichée relevée tous les 37 points : ${kmhGare.join(", ")} km/h ${d1365.km === d774.km && d1365.litres === d774.litres && kmhGare.every((x) => x === 0) ? "✓" : "✗"} (r1 : 4,0 → 5,1 km et 5 à 10 km/h).`);
+    if (!(d1365.km === d774.km && kmhGare.every((x) => x === 0))) probleme("V-3.E1", "- bruit du GPS à l'arrêt encore compté");
     let k = 1365;
     while (k < IMM.length && (await attr(p, T3, "data-etat")) !== "immobile") {
       await rouler(C, p, IMM, k, k + 1, { attendre: false });
@@ -834,7 +860,10 @@ async function fluxCas() {
       const k = IMM.length - 10;
       await rouler(C, p, IMM, k, IMM.length);
       const n2 = await pointsT3(p);
-      noter("V-3.E1", `Step 6 — après « Reprendre », 10 positions de plus : ${n} → ${n2} points (l'enregistrement repart).`);
+      const d2 = await lireDirect(p);
+      // round 2 : toujours garé après « Reprendre » : 0 km/h et ni km ni litres de plus (r1 : 10 km/h, +0,1 km, +0,01 L)
+      verifier(d2.kmh === 0 && d2.km === d.km && d2.litres === d.litres, `garé après la reprise : ${directTexte(d2)}`);
+      noter("V-3.E1", `Step 6 — après « Reprendre », 10 positions de plus (toujours garé) : ${n} → ${n2} points (l'enregistrement repart) ; ${d2.kmh} km/h, ${virgule(d2.km, 1)} km, ${virgule(d2.litres, 2)} L (inchangés).`);
       return `« ${await txt(p, sel("etat-enregistrement"))} » ; ${n} points gardés (autant qu'à l'alerte), ${virgule(d.km, 1)} km conservés`;
     });
     await touche(p, "bouton-arreter");
@@ -1015,7 +1044,14 @@ async function fluxStations() {
   surveiller(p, "stations");
   await p.goto(URL_APP);
   await p.waitForSelector(sel("nom-voiture"));
-  await etape("V-5.1", 1, p, "V-5.1-01-avant.png", "la position autorisée (Albi), accueil", async () => `position du contexte ${ALBI.latitude}, ${ALBI.longitude} ; permission ${await p.evaluate(async () => (await navigator.permissions.query({ name: "geolocation" })).state)}`);
+  // round 2 : l'onglet Stations est l'action de l'étape 2 ; avant, la position autorisée se lit dans l'en-tête (« Autour de moi » =
+  // position GPS ; refusée, l'en-tête dirait « Albi », la ville de repli)
+  await p.waitForFunction(() => document.querySelector('[data-el="lieu"]')?.textContent === "Autour de moi", null, { timeout: 15000 }).catch(() => {});
+  await etape("V-5.1", 1, p, "V-5.1-01-avant.png", "la position autorisée (Albi) : accueil, en-tête « Autour de moi »", async () => {
+    const lieu = await txt(p, sel("lieu"));
+    verifier(lieu === "Autour de moi", `en-tête « ${lieu} »`);
+    return `en-tête « ${lieu} » (position GPS reçue) ; position du contexte ${ALBI.latitude}, ${ALBI.longitude} ; permission ${await p.evaluate(async () => (await navigator.permissions.query({ name: "geolocation" })).state)}`;
+  });
   await touche(p, "onglet-stations");
   await attendreListe(p);
   await dormir(1500);
@@ -1034,48 +1070,59 @@ async function fluxStations() {
   });
   ecrireHistoire("V-5.1");
   noter("V-5.6", `Step 2 — contrôle répété sur un téléphone sans trajet (flux Stations) : ${await p.locator(sel("retour-trajet")).count()} bandeau.`);
-  // ---- V-5.2
-  await p.locator(`${sel("selecteur-carburant")} button`, { hasText: /^Gazole$/ }).tap();
-  await p.waitForSelector(`${sel("liste-stations")}[data-carburant="Gazole"]`);
-  await dormir(800);
-  await etape("V-5.2", 1, p, "V-5.2-01-avant.png", "une Clio SP95-E10 enregistrée ; je regarde les prix du Gazole dans Stations, puis je quitte l'onglet (Historique)", async () => `localStorage pt-carburant = « ${await p.evaluate(() => localStorage.getItem("pt-carburant"))} » ; voiture ${VOITURE.carburant}`);
-  await touche(p, "onglet-historique");
-  await p.waitForSelector('[data-screen="T6"]');
-  await touche(p, "onglet-stations");
-  await attendreListe(p);
-  await etape("V-5.2", 2, p, "V-5.2-02-apres.png", "j'ouvre l'onglet Stations", async () => {
-    const c = await attr(p, `${sel("selecteur-carburant")} [aria-pressed="true"]`, "class");
-    const choisi = (await p.locator(`${sel("selecteur-carburant")} [aria-pressed="true"]`).innerText()).trim();
-    verifier(choisi === "SP95-E10", choisi);
-    await p.waitForSelector(`${sel("liste-stations")}[data-carburant="SP95-E10"]`);
-    void c;
-    return `SP95-E10 choisi d'office (aria-pressed) ; titre « ${await txt(p, sel("titre-liste"))} »`;
-  });
-  await dormir(1000);
-  const e10 = await lignes(p);
-  await p.evaluate(() => { const s = document.querySelector('[data-screen="T5"] .scroll'); if (s) s.scrollTop = 120; });
-  await etape("V-5.2", 3, p, "V-5.2-03-avant.png", "la liste en SP95-E10 (faite défiler)", async () => `${e10.length} stations SP95-E10`);
-  await p.locator(`${sel("selecteur-carburant")} button`, { hasText: /^Gazole$/ }).tap();
-  await p.waitForSelector(`${sel("liste-stations")}[data-carburant="Gazole"]`);
-  await dormir(1200);
-  await etape("V-5.2", 4, p, "V-5.2-04-apres.png", "je touche Gazole", async () => {
-    const g = await lignes(p);
-    const db = await prixDb(g.map((x) => x.id), "Gazole");
-    const faux = g.filter((x) => Math.abs((db.get(x.id) ?? -1) - x.prix) > 0.0005);
-    verifier(faux.length === 0, `${faux.length} prix ≠ base`);
-    const gazE10 = await prixDb(e10.map((x) => x.id), "Gazole");
-    const sansGaz = e10.filter((x) => !gazE10.has(x.id)).map((x) => x.id);
-    const restees = sansGaz.filter((id) => g.some((x) => x.id === id));
-    verifier(restees.length === 0, `${restees.length} stations sans gazole encore listées`);
-    const pastilles = Number(await attr(p, sel("carte-stations"), "data-pastilles"));
-    verifier(pastilles === g.length, "pastilles");
-    const e10G = await prixDb(g.map((x) => x.id), "SP95-E10");
-    const nouvelles = g.filter((x) => !e10.some((y) => y.id === x.id));
-    verifier(nouvelles.every((x) => !e10G.has(x.id)), "une station vendant du SP95-E10 manquait à la liste SP95-E10");
-    if (sansGaz.length === 0) noter("V-5.2", "Step 4 — « les stations sans gazole disparaissent » : aucune station de la zone ne vend du SP95-E10 sans gazole (relevé r1b sur la base : 0 dans 25 km d'Albi, Toulouse, Castres, Montauban et Rodez), le cas n'a pas pu être montré sur données réelles. Le filtre est montré dans l'autre sens : les stations ajoutées en Gazole n'ont pas de SP95-E10 en base, et V-5.5-05 montre Carrefour Market Puygouzon (sans SP95-E10) absente de la liste SP95-E10.");
-    return `titre « ${await txt(p, sel("titre-liste"))} » ; ${g.length} lignes et ${pastilles} pastilles au prix gazole de la base (contre ${e10.length} en SP95-E10) ; stations de la liste SP95-E10 sans gazole en base : ${sansGaz.length} (${sansGaz.join(", ") || "aucune"}) → absentes ; ${nouvelles.length} stations apparues en Gazole, aucune ne vend de SP95-E10 en base ; 1re « ${g[0]?.texte} »`;
-  });
-  ecrireHistoire("V-5.2");
+  // ---- V-5.2 à Prayssac (Lot) — round 2 : une VRAIE station SP95-E10 sans gazole (TotalEnergies Prayssac, 46220005 : SP95-E10
+  // et E85 en base, aucune ligne Gazole) ; dernier carburant regardé = Gazole (pt-carburant), pour montrer le « d'office »
+  {
+    const PRAYSSAC = { latitude: 44.5041, longitude: 1.1885 };
+    const Q = await contexteAvecVoiture(navigateur, VOITURE, PRAYSSAC);
+    brancher(Q, "stations-prayssac");
+    await Q.addInitScript(() => { if (!sessionStorage.getItem("m5-init")) { localStorage.setItem("pt-carburant", "Gazole"); sessionStorage.setItem("m5-init", "1"); } });
+    const q = await Q.newPage();
+    surveiller(q, "stations-prayssac");
+    const enBase = await restAnon("prix?select=carburant,prix,rupture&station_id=eq.46220005");
+    await q.goto(URL_APP);
+    await q.waitForSelector(sel("nom-voiture"));
+    await etape("V-5.2", 1, q, "V-5.2-01-avant.png", "une Clio SP95-E10 enregistrée (accueil) ; dernier carburant regardé dans Stations : Gazole", async () => {
+      verifier((await txt(q, sel("detail-voiture"))).endsWith("SP95-E10"), "carburant de la voiture");
+      return `accueil « ${await txt(q, sel("nom-voiture"))} · ${await txt(q, sel("detail-voiture"))} » ; localStorage pt-carburant = « ${await q.evaluate(() => localStorage.getItem("pt-carburant"))} » ; position Prayssac ${PRAYSSAC.latitude}, ${PRAYSSAC.longitude}`;
+    });
+    await touche(q, "onglet-stations");
+    await attendreListe(q);
+    await dormir(1500);
+    await etape("V-5.2", 2, q, "V-5.2-02-apres.png", "j'ouvre l'onglet Stations", async () => {
+      const choisi = (await q.locator(`${sel("selecteur-carburant")} [aria-pressed="true"]`).innerText()).trim();
+      verifier(choisi === "SP95-E10", choisi);
+      await q.waitForSelector(`${sel("liste-stations")}[data-carburant="SP95-E10"]`);
+      return `SP95-E10 choisi d'office (aria-pressed), malgré le dernier choix Gazole ; titre « ${await txt(q, sel("titre-liste"))} »`;
+    });
+    const e10 = await lignes(q);
+    await etape("V-5.2", 3, q, "V-5.2-03-avant.png", "la liste en SP95-E10 autour de Prayssac", async () => {
+      verifier(e10.some((x) => x.id === "46220005"), "TotalEnergies Prayssac absente de la liste SP95-E10");
+      return `${e10.length} stations SP95-E10 : ${e10.map((x) => `${x.id} ${x.texte.split(" ·")[0]}`).join(" | ")} ; 46220005 en base : ${enBase.map((x) => `${x.carburant} ${x.prix}`).join(", ")} (aucune ligne Gazole)`;
+    });
+    const pastE10 = Number(await attr(q, sel("carte-stations"), "data-pastilles"));
+    await q.locator(`${sel("selecteur-carburant")} button`, { hasText: /^Gazole$/ }).tap();
+    await q.waitForSelector(`${sel("liste-stations")}[data-carburant="Gazole"]`);
+    await dormir(1500);
+    await etape("V-5.2", 4, q, "V-5.2-04-apres.png", "je touche Gazole", async () => {
+      const g = await lignes(q);
+      const db = await prixDb(g.map((x) => x.id), "Gazole");
+      const faux = g.filter((x) => Math.abs((db.get(x.id) ?? -1) - x.prix) > 0.0005);
+      verifier(faux.length === 0, `${faux.length} prix ≠ base`);
+      const gazE10 = await prixDb(e10.map((x) => x.id), "Gazole");
+      const sansGaz = e10.filter((x) => !gazE10.has(x.id)).map((x) => x.id);
+      verifier(sansGaz.includes("46220005"), "Prayssac non comptée sans gazole");
+      const restees = sansGaz.filter((id) => g.some((x) => x.id === id));
+      verifier(restees.length === 0, `${restees.length} stations sans gazole encore listées`);
+      const pastilles = Number(await attr(q, sel("carte-stations"), "data-pastilles"));
+      verifier(pastilles === g.length, "pastilles");
+      const surCarte = await q.locator('[data-el="pastille-station"][data-station="46220005"]').count();
+      verifier(surCarte === 0, "pastille de Prayssac encore sur la carte");
+      return `titre « ${await txt(q, sel("titre-liste"))} » ; ${g.length} lignes et ${pastilles} pastilles au prix gazole de la base (contre ${e10.length} lignes et ${pastE10} pastilles en SP95-E10) ; stations SP95-E10 sans gazole en base : ${sansGaz.join(", ")} → absentes de la liste et de la carte (pastille 46220005 : ${surCarte}) ; lignes : ${g.map((x) => `${x.id} ${virgule(x.prix, 3)}`).join(" | ")}`;
+    });
+    ecrireHistoire("V-5.2");
+    await Q.close();
+  }
   // ---- V-5.4
   await p.locator(`${sel("selecteur-carburant")} button`, { hasText: /^SP95-E10$/ }).tap();
   await p.waitForSelector(`${sel("liste-stations")}[data-carburant="SP95-E10"]`);
@@ -1156,7 +1203,9 @@ async function fluxStations() {
     surveiller(q, "barcelone-stations");
     await q.goto(URL_APP);
     await q.waitForSelector(sel("nom-voiture"));
-    await etape("V-5.7", 1, q, "V-5.7-01-avant.png", "une position à Barcelone (41,3874, 2,1686), accueil", async () => `en-tête « ${await txt(q, sel("lieu"))} »`);
+    // round 2 : l'onglet Stations est l'action de l'étape 2 ; hors de cet onglet, la V1 n'affiche nulle part la position (l'en-tête
+    // dit seulement « Autour de moi ») : l'état de départ (Barcelone) est prouvé par la position du contexte et par l'étape 2
+    await etape("V-5.7", 1, q, "V-5.7-01-avant.png", "une position à Barcelone (41,3874, 2,1686) : accueil, en-tête « Autour de moi »", async () => `en-tête « ${await txt(q, sel("lieu"))} » ; position du contexte ${BARCELONE.latitude}, ${BARCELONE.longitude} (Barcelone) ; la V1 ne montre la position que dans l'onglet Stations`);
     await touche(q, "onglet-stations");
     await attendreListe(q);
     await dormir(1500);
@@ -1264,6 +1313,7 @@ async function fluxHistorique() {
   {
     const { c, p: p0 } = await nouveauContexte("historique-reel", { latitude: PTS[0].lat, longitude: PTS[0].lon });
     await p0.close();
+    let derniere = null;
     for (const [date, a, b] of [["2026-09-14T08:00:00+02:00", 0, 600], ["2026-10-05T17:30:00+02:00", 0, 900]]) {
       const p = await c.newPage();
       surveiller(p, "historique-reel");
@@ -1282,14 +1332,21 @@ async function fluxHistorique() {
       await p.waitForFunction(() => document.querySelector('[data-el="titre-trajet"]')?.getAttribute("data-noms") === "oui", null, { timeout: 20000 }).catch(() => {});
       await touche(p, "enregistrer-trajet");
       await p.waitForURL("**/historique");
-      await p.close();
+      if (derniere) await derniere.close();
+      derniere = p;
+    }
+    // round 2 : l'état de départ se voit — l'historique juste après « Enregistrer » du trajet d'octobre (les deux trajets listés,
+    // le nouveau en tête) ; l'étape 2 rouvre l'onglet depuis l'accueil d'une appli relancée
+    {
+      const idb = await lireIdb(derniere);
+      await derniere.waitForSelector("li.hrow");
+      await etape("V-6.1", 1, derniere, "V-6.1-01-avant.png", "des trajets enregistrés en septembre et en octobre 2026 (deux trajets réellement rejoués, horloge de la page posée au 14/09 08:00 et au 05/10 17:30) : l'historique juste après le second « Enregistrer »", async () => `IndexedDB : ${idb.trajets.map((t) => `${new Date(t.debut).toISOString().slice(0, 10)} ${t.km.toFixed(1)} km`).join(" ; ")} ; lignes « ${(await derniere.locator("li.hrow").allInnerTexts()).map((x) => x.replace(/\s+/g, " ")).join(" | ")} »`);
+      await derniere.close();
     }
     const p = await c.newPage();
     surveiller(p, "historique-reel");
     await p.goto(URL_APP);
     await p.waitForSelector(sel("nom-voiture"));
-    const idb = await lireIdb(p);
-    await etape("V-6.1", 1, p, "V-6.1-01-avant.png", "des trajets enregistrés en septembre et en octobre 2026 (deux trajets réellement rejoués, horloge de la page posée au 14/09 08:00 et au 05/10 17:30)", async () => `IndexedDB : ${idb.trajets.map((t) => `${new Date(t.debut).toISOString().slice(0, 10)} ${t.km.toFixed(1)} km`).join(" ; ")}`);
     await touche(p, "onglet-historique");
     await etape("V-6.1", 2, p, "V-6.1-02-apres.png", "je touche l'onglet Historique", async () => {
       await p.waitForSelector("li.hrow");
@@ -1305,7 +1362,13 @@ async function fluxHistorique() {
     const { c, p } = await nouveauContexte("historique-vide");
     await p.goto(URL_APP);
     await p.waitForSelector(sel("nom-voiture"));
-    await etape("V-6.1", 3, p, "V-6.1-03-avant.png", "aucun trajet enregistré (téléphone neuf, voiture enregistrée)", async () => `IndexedDB : ${(await lireIdb(p)).trajets.length} trajet`);
+    // round 2 : l'état de départ se voit — l'historique vide, ouvert par son adresse ; l'étape 4 rouvre l'onglet depuis l'accueil
+    // (même écran, même état : image attendue identique, déclarée)
+    await p.goto(URL_APP + "/historique");
+    await p.waitForSelector(sel("historique-vide"));
+    await etape("V-6.1", 3, p, "V-6.1-03-avant.png", "aucun trajet enregistré (téléphone neuf, voiture enregistrée) : l'historique ouvert par son adresse", async () => `IndexedDB : ${(await lireIdb(p)).trajets.length} trajet ; « ${await txt(p, sel("historique-vide"))} »`);
+    await touche(p, "onglet-trajet");
+    await p.waitForSelector(sel("nom-voiture"));
     await touche(p, "onglet-historique");
     await etape("V-6.1", 4, p, "V-6.1-04-apres.png", "j'ouvre l'onglet Historique", async () => {
       await p.waitForSelector(sel("historique-vide"));
@@ -1331,7 +1394,13 @@ async function fluxHistorique() {
     ];
     await ecrireIdb(p, T4);
     const couts = T4.map((t) => euros2(t.litres * t.prix_litre));
-    await etape("V-6.2", 1, p, "V-6.2-01-avant.png", "ÉTAT PRÉPARÉ : 4 trajets de 77, 152, 245 et 243 km écrits en IndexedDB (format TrajetV1 de l'appli)", async () => `trajets ${T4.map((t) => `${t.km} km ${virgule(t.litres, 2)} L`).join(", ")} au prix moyen France SP95-E10 du jour ${virgule(moyFR("SP95-E10"), 3)} → coûts ${couts.map((x) => virgule(x, 2)).join(" + ")}`);
+    // round 2 : l'état de départ se voit — les 4 lignes de l'historique (liste défilée jusqu'à la dernière) ; l'étape 2 rouvre
+    // l'onglet depuis l'accueil et lit les totaux en haut
+    await p.goto(URL_APP + "/historique");
+    await p.waitForSelector('li.hrow[data-trajet="prep-77"]');
+    await etape("V-6.2", 1, p, "V-6.2-01-avant.png", "ÉTAT PRÉPARÉ : 4 trajets de 77, 152, 245 et 243 km écrits en IndexedDB (format TrajetV1 de l'appli) — leurs lignes dans l'historique", async () => `trajets ${T4.map((t) => `${t.km} km ${virgule(t.litres, 2)} L`).join(", ")} au prix moyen France SP95-E10 du jour ${virgule(moyFR("SP95-E10"), 3)} → coûts ${couts.map((x) => virgule(x, 2)).join(" + ")} ; lignes « ${(await p.locator("li.hrow").allInnerTexts()).map((x) => x.replace(/\s+/g, " ")).join(" | ")} »`, { cible: 'li.hrow[data-trajet="prep-77"]' });
+    await touche(p, "onglet-trajet");
+    await p.waitForSelector(sel("nom-voiture"));
     await touche(p, "onglet-historique");
     await etape("V-6.2", 2, p, "V-6.2-02-apres.png", "l'historique s'affiche", async () => {
       await p.waitForSelector("li.hrow");
@@ -1342,7 +1411,7 @@ async function fluxHistorique() {
       const lignesC = (await p.locator(sel("cout-ligne")).allInnerTexts()).map(nb);
       verifier(Math.abs(lignesC.reduce((s, x) => s + x, 0) - somme) < 0.001, "somme des lignes");
       return `totaux « ${tot} » = 4 trajets, 717 km, ${virgule(somme, 2)} € (somme des coûts des lignes ${lignesC.map((x) => virgule(x, 2)).join(" + ")})`;
-    });
+    }, { haut: true });
     await p.locator('li.hrow[data-trajet="prep-152"] button').tap();
     await p.waitForSelector(sel("compteur-prix"));
     await touche(p, "compteur-prix");
@@ -1421,8 +1490,8 @@ async function fluxHistorique() {
       verifier((await p.locator('li.hrow[data-trajet="prep-3p"]').count()) === 0, "encore listé");
       const tr = await attr(p, sel("totaux-historique"), "data-trajets");
       const km = await attr(p, sel("totaux-historique"), "data-km");
-      verifier(tr === "1" && km === "77", `${tr} ${km}`);
-      return `disparu de la liste ; totaux « ${await txt(p, sel("totaux-historique"))} » (1 trajet, 77 km = 76,8 arrondi) ; IndexedDB ${(await lireIdb(p)).trajets.length} trajet`;
+      verifier(tr === "1" && km === "76.8", `${tr} ${km}`); // total km à une décimale sous 100 km (3a2c194)
+      return `disparu de la liste ; totaux « ${await txt(p, sel("totaux-historique"))} » (1 trajet, 76,8 km) ; IndexedDB ${(await lireIdb(p)).trajets.length} trajet`;
     });
     ecrireHistoire("V-6.4");
     await c.close();
@@ -1435,12 +1504,19 @@ async function fluxHistorique() {
     const a = trajetPrepare({ id: "prep-412", debut: "2026-10-21T06:30:00+02:00", minutes: 345, km: 588, l100: 7.007, depart: L.albi, arrivee: L.paris, prixPerso: 2.161, enregistre: false });
     a.litres = 41.2;
     await ecrireIdb(p, [], a);
-    await etape("V-4.3", 1, p, "V-4.3-01-avant.png", "ÉTAT PRÉPARÉ : un trajet arrêté de 41,2 L, prix 2,161 €/L (« Mon prix »), écrit en IndexedDB (en_cours/arrete)", async () => `trajet arrêté en attente : ${a.km} km, ${a.litres} L, prix_perso ${a.prix_perso} ; écran Historique (vide : le trajet n'est pas encore tranché)`);
     const q = await c.newPage();
     surveiller(q, "cout-prepare");
     await p.close();
     await q.goto(URL_APP);
-    await etape("V-4.3", 2, q, "V-4.3-02-apres.png", "la fin de trajet s'affiche (appli ouverte : le trajet arrêté revient)", async () => {
+    // round 2 : l'état de départ se voit — la fin de ce trajet, haut de l'écran : 41,2 litres et le prix 2,161 €/L ; l'étape 2 lit le
+    // coût (même écran : image voisine, défilée sur le coût)
+    await q.waitForURL("**/fin", { timeout: 15000 });
+    await q.waitForSelector(sel("fin-litres"));
+    await etape("V-4.3", 1, q, "V-4.3-01-avant.png", "ÉTAT PRÉPARÉ : un trajet arrêté de 41,2 L, prix 2,161 €/L (« Mon prix »), écrit en IndexedDB (en_cours/arrete) — sa fin de trajet, haut de l'écran", async () => {
+      verifier((await txt(q, sel("fin-litres"))) === "41,20" && Number(await attr(q, sel("prix-apres"), "data-prix")) === 2.161, "litres / prix");
+      return `trajet arrêté en attente : ${a.km} km ; écran « ${await txt(q, sel("fin-litres"))} litres », prix data-prix ${await attr(q, sel("prix-apres"), "data-prix")} (« ${await txt(q, sel("libelle-prix"))} »)`;
+    }, { haut: true });
+    await etape("V-4.3", 2, q, "V-4.3-02-apres.png", "la fin de trajet s'affiche (appli ouverte : le trajet arrêté revient) — le coût", async () => {
       await q.waitForURL("**/fin", { timeout: 15000 });
       await q.waitForSelector(sel("cout-trajet"));
       const t = await txt(q, sel("cout-trajet"));
@@ -1498,6 +1574,7 @@ async function fluxHistorique() {
       verifier(a1 === "1" && a9 === "9" && plusOff, `${a1} ${a9} ${plusOff}`);
       return `« Seul : tout pour toi. » ; « − » désactivé à 1 (toucher : reste ${a1}) ; 10 touchers sur « + » → ${a9}, « + » désactivé ; revenu à ${await attr(q, sel("personnes-apres"), "data-personnes")} : « ${await txt(q, sel("part-personne"))} »`;
     }, { cible: sel("personnes-apres") });
+    noter("V-4.4", "Step 4 — une seule image ne peut pas montrer les deux bornes : la capture est à 1 personne (« Seul : tout pour toi. », « − » désactivé) ; la borne 9 (« + » désactivé après 10 touchers) est relevée dans le constat de l'étape, puis le compteur est ramené à 1.");
     ecrireHistoire("V-4.4");
     await c.close();
   }

@@ -3,7 +3,7 @@ import { test, expect, D, PTS, lireGpx, avecVoiture, demarrer, arreter, direct, 
 test.describe("V-4.5 — Courbe de vitesse", () => {
   test.describe("Happy Path", () => {
     test("V-4.5 — courbe sur tout le trajet (≤ 600 points), moyenne sur le temps roulé, accélérations", async ({ page, context }) => {
-      test.setTimeout(180_000);
+      test.setTimeout(420_000); // 4 300 positions rejouées : 180 s dépassées sous lourd (passe unique du round 2, auditeur lot 2 LOW 13)
       await avecVoiture(context);
       await demarrer(page);
       await rejouer(context, page, PTS, 1, PTS.length);
