@@ -13,7 +13,7 @@ const norm = (s: string) => s.normalize("NFD").replace(/\p{Diacritic}/gu, "").to
 
 interface Feature {
   geometry?: { coordinates?: number[] };
-  properties?: { name?: string; countrycode?: string; country?: string; state?: string; type?: string };
+  properties?: { name?: string; countrycode?: string; country?: string; state?: string; type?: string; osm_key?: string; osm_value?: string };
 }
 interface Prop {
   label: string;
@@ -39,6 +39,8 @@ function versProposition(f: Feature): Prop | null {
   const c = f.geometry?.coordinates;
   const p = f.properties;
   if (!c || c.length < 2 || !p?.name || !p.countrycode) return null;
+  // jalon 4 (US-3.9) : Photon range Londres (place=city) dans la couche « district » ; on n'en garde que les villes
+  if (p.type === "district" && !(p.osm_key === "place" && (p.osm_value === "city" || p.osm_value === "town"))) return null;
   return { label: p.name, lat: c[1], lon: c[0], contexte: [p.state, p.country].filter(Boolean).join(", "), pays: p.countrycode.toUpperCase() };
 }
 
@@ -75,7 +77,7 @@ Deno.serve(async (req) => {
     if (c.action === "suggerer" || c.action === "geocoder") {
       const q = (c.q ?? "").trim();
       if (q.length < 2 || actif !== "photon") return json(200, c.action === "suggerer" ? { propositions: [] } : { lieu: null });
-      const f = await photon(`/api/?q=${encodeURIComponent(q)}&lang=fr&limit=10&bbox=${EUROPE}&layer=city&layer=locality`);
+      const f = await photon(`/api/?q=${encodeURIComponent(q)}&lang=fr&limit=10&bbox=${EUROPE}&layer=city&layer=locality&layer=district`);
       // Photon est tolérant (« zzzz » → « zzzzz ») : on ne garde que les noms qui commencent par la saisie, hors France (l'IGN couvre la France)
       const nq = norm(q);
       const props = f.map(versProposition).filter((p): p is Prop => !!p && p.pays !== "FR" && norm(p.label).startsWith(nq));
