@@ -260,7 +260,7 @@
   "validated": true,
   "acceptance_criteria": [
    "ÉTANT DONNÉ un résultat au prix moyen France, QUAND je touche « Mettre mon prix » (prix perso) et je saisis 1,699, ALORS le coût est recalculé avec 1,699 €/L et le libellé devient « Mon prix »",
-   "ÉTANT DONNÉ un prix perso saisi, QUAND je touche « Revenir à la moyenne », ALORS le coût revient à la moyenne nationale"
+   "ÉTANT DONNÉ un prix perso saisi, QUAND je touche « moyenne » (bouton « Revenir à la moyenne »), ALORS le coût revient à la moyenne nationale"
   ]
  },
  {
@@ -598,7 +598,8 @@
   "source": "v1",
   "validated": true,
   "acceptance_criteria": [
-   "ÉTANT DONNÉ un trajet Albi → Milan calculé, QUAND je lis les pays traversés, ALORS chaque pays affiche km, litres, prix moyen du jour de son carburant et coût, et la somme des coûts pays égale le coût carburant"
+   "ÉTANT DONNÉ un trajet Albi → Milan calculé, QUAND je lis les pays traversés, ALORS chaque pays affiche km, litres, prix moyen du jour de son carburant et coût, et la somme des coûts pays égale le coût carburant",
+   "ÉTANT DONNÉ un trajet dans un seul pays, QUAND le résultat s'affiche, ALORS la section « Pays traversés » est masquée (km, litres, prix et coût sont déjà en haut)"
   ]
  },
  {

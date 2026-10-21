@@ -246,7 +246,9 @@ test.describe("M4 — Enregistrer en roulant et Royaume-Uni", () => {
           expect(r.km).toBeGreaterThanOrEqual(1);
           expect(r.litres).toBeGreaterThan(0);
           expect(r.cout).toBeGreaterThan(0);
-          expect(await page.locator('[data-el="pays-traverses"] [data-pays]').evaluateAll((l) => l.map((x) => x.getAttribute("data-pays")))).toEqual(["FR"]);
+          // streamline R2 (R4) : un seul pays (France) → pas de section « Pays traversés », le prix dit « Moyenne France du jour »
+          await expect(page.locator('[data-el="pays-traverses"]')).toHaveCount(0);
+          await expect(page.locator('[data-el="libelle-prix"]')).toContainText("Moyenne France du jour");
           const types = await page.locator('[data-el="troncons"] [data-troncon]').evaluateAll((l) => l.map((x) => x.getAttribute("data-troncon")));
           expect(types.length).toBeGreaterThan(0);
           for (const t of types) expect(["autoroute", "route", "ville"]).toContain(t);

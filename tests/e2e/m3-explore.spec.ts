@@ -218,10 +218,12 @@ test.describe("M3 — Péages, Europe et moteurs", () => {
         expect(l.every((x: any) => x.texte.includes("1,699"))).toBe(true);
         expect(l.reduce((s: number, x: any) => s + nombre(x.montant), 0)).toBeCloseTo(await carburantAffiche(page), 2);
       });
-      test("US-4.5 — trajet 100 % France : une seule ligne France, libellé « Moyenne France du jour »", async ({ page }) => {
+      test("US-4.5 — trajet 100 % France : pas de section « Pays traversés » (elle n'apprendrait rien), libellé « Moyenne France du jour »", async ({ page }) => {
         await formulaire(page, ALBI_, ["Castr", "Castres", "Tarn"]);
         await calculer(page);
-        expect((await lignesListe(page, "pays-traverses")).map((x: any) => x.pays)).toEqual(["FR"]);
+        // streamline R2 (R4) : un seul pays → km, litres, prix et coût sont déjà en haut ; la section est masquée
+        await expect(page.locator('[data-el="pays-traverses"]')).toHaveCount(0);
+        await expect(page.getByRole("heading", { name: "Pays traversés" })).toHaveCount(0);
         await expect(page.locator('[data-el="libelle-prix"]')).toContainText("Moyenne France du jour");
       });
     });

@@ -7,13 +7,12 @@ import { S4, URL_APP, attendreFormulaire, calculer, champ, choisirDansListe, cho
 
 // US-4.4 : le total inclut les péages depuis le jalon 3 — ces assertions comparent le coût CARBURANT (total moins péages établis), pas le total
 async function carburantSeul(page: Page): Promise<number> {
-  const total = Number(await page.locator('[data-el="cout"] [data-cout]').first().getAttribute("data-cout"));
   // round 5 : quand les péages sont indisponibles (ex. quota du jour PTV atteint), la répartition carburant/péages n'est pas affichée ;
   // on ne l'attend pas (innerText sur un élément absent attendait jusqu'au délai du test) : le total est alors le carburant seul
-  // passe streamline : la ligne « Carburant · Péages » est retirée ; les péages établis se lisent sur la ligne « Total péages »
-  const tot = page.locator('[data-el="total-peages"] .lit').first();
-  const p = (await tot.count()) > 0 ? Number((await tot.innerText()).replace(/[^\d,]/g, "").replace(",", ".")) : 0;
-  return Math.round((total - p) * 100) / 100;
+  // streamline R2 (R1) : avec des péages, le carburant seul se LIT sous le total (« Carburant X € · Péages Y € »)
+  const rep = page.locator('[data-el="repartition-cout"]').first();
+  if ((await rep.count()) > 0) return Number((await rep.innerText()).match(/Carburant\s+([\d\s ,]+)\s*€/)![1].replace(/\s| /g, "").replace(",", "."));
+  return Number(await page.locator('[data-el="cout"] [data-cout]').first().getAttribute("data-cout"));
 }
 
 test.describe("M2 — Le coût d'un trajet", () => {
@@ -754,18 +753,35 @@ test.describe("M2 — Le coût d'un trajet", () => {
       });
     });
     test.describe("Edge Case", () => {
-      test("US-A11Y-003 — Échap dans le champ prix efface la saisie et revient à la moyenne (focus gardé)", async ({ page }) => {
+      test("US-A11Y-003 — Échap dans le champ prix annule seulement la saisie en cours : le prix déjà appliqué reste (focus sur « Mettre mon prix »)", async ({ page }) => {
         await formulairePret(page, "Albi", "Toulouse");
         await calculer(page);
-        await page.locator('[data-el="mettre-mon-prix"]').click(); // passe streamline : le champ est là d'emblée, « Mettre mon prix » y place le curseur
+        const plaque = page.locator('[data-el="prix-utilise"]');
+        await page.locator('[data-el="mettre-mon-prix"]').click();
         await expect(page.locator('[data-el="champ-prix-perso"]')).toBeFocused();
         await page.keyboard.type("1,699");
         await page.keyboard.press("Enter");
         await expect(page.locator('[data-el="libelle-prix"]')).toHaveText("Mon prix");
+        await expect(plaque).toHaveAttribute("data-prix", "1,699");
+        const coutPerso = (await lireResultat(page)).cout;
+        // nouvelle saisie, puis Échap : retour à 1,699 (pas à la moyenne)
+        await page.locator('[data-el="mettre-mon-prix"]').click();
+        await expect(page.locator('[data-el="champ-prix-perso"]')).toHaveValue("1,699");
+        await page.locator('[data-el="champ-prix-perso"]').fill("2,1");
+        await expect(plaque).toHaveAttribute("data-prix", "2,100");
         await page.keyboard.press("Escape");
-        await expect(page.locator('[data-el="champ-prix-perso"]')).toHaveValue("");
+        await expect(page.locator('[data-el="champ-prix-perso"]')).toHaveCount(0);
+        await expect(plaque).toHaveAttribute("data-prix", "1,699");
+        await expect(page.locator('[data-el="libelle-prix"]')).toHaveText("Mon prix");
+        expect((await lireResultat(page)).cout).toBe(coutPerso);
+        await expect(page.locator('[data-el="mettre-mon-prix"]')).toBeFocused();
+        // sans prix perso : Échap referme le champ, la moyenne reste
+        await page.locator('[data-el="revenir-moyenne"]').click();
+        await page.locator('[data-el="mettre-mon-prix"]').click();
+        await page.locator('[data-el="champ-prix-perso"]').fill("1,8");
+        await page.keyboard.press("Escape");
         await expect(page.locator('[data-el="libelle-prix"]')).toContainText("Moyenne France du jour");
-        await expect(page.locator('[data-el="champ-prix-perso"]')).toBeFocused();
+        await expect(page.locator('[data-el="champ-prix-perso"]')).toHaveCount(0);
       });
       test("US-A11Y-003 — S3 : Échap ferme la liste de propositions de lieux et la liste de marques", async ({ page }) => {
         await formulairePret(page, "Albi", "Toulouse");

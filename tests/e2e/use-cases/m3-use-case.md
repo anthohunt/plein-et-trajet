@@ -31,6 +31,7 @@ En tant que conducteur, je vois pour chaque pays traversé les km, les litres et
 
 1. Partir de : un trajet Albi → Milan calculé (écran Résultat du trajet) — capture `US-4.5-01-voir-les-pays-traverss-avant.png`
 2. Faire : je lis les pays traversés ; constater : chaque pays affiche km, litres, prix moyen du jour de son carburant et coût, et la somme des coûts pays égale le coût carburant — capture `US-4.5-02-voir-les-pays-traverss-apres.png`
+3. Partir de : un trajet dans un seul pays (Albi → Castres) ; constater : pas de section « Pays traversés », le prix dit « Moyenne France du jour »
 
 
 ## US-4.E4 — Péages indisponibles

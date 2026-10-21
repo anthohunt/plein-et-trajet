@@ -147,8 +147,8 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 /* S4 Résultat du trajet */
 .rhead { padding: 6px 16px 0; display: flex; align-items: center; gap: 8px; }
 .back { border: 1px solid var(--line); background: transparent; border-radius: 8px; padding: 6px 10px; font-size: 14px; }
-.route { font: 800 30px/1.05 var(--f-display); text-transform: uppercase; margin: 12px 16px 2px; text-wrap: balance; }
-.route:focus-visible { outline: none; text-decoration: underline 3px; text-underline-offset: 6px; }
+h2.route { font: 800 30px/1.05 var(--f-display); text-transform: uppercase; margin: 12px 16px 2px; text-wrap: balance; }
+h2.route:focus-visible { outline: none; text-decoration: underline 3px; text-underline-offset: 6px; }
 .rsub { margin: 0 16px; color: var(--muted); font-size: 14px; }
 .costbox { margin: 14px 16px 0; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 .totem.big { font-size: 52px; padding: 12px 16px; border-radius: 8px; }
@@ -167,12 +167,12 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 .link { border: 0; background: transparent; text-decoration: underline; text-underline-offset: 3px; padding: 0; font-size: 14px; font-weight: 600; }
 .segs { list-style: none; margin: 0; padding: 0 16px 18px; display: grid; gap: 6px; }
 .tr { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-.tr > button { width: 100%; border: 0; background: transparent; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; text-align: left; }
+.tr > button { width: 100%; border: 0; background: transparent; display: grid; grid-template-columns: 92px minmax(0, 1fr) auto; /* même colonne de badge sur chaque ligne */ gap: 10px; align-items: center; padding: 10px 12px; text-align: left; }
 .tr > button:focus-visible { outline-offset: -3px; }
 .tn { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bar { display: block; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; margin-top: 5px; }
 .bar i { display: block; height: 100%; background: var(--ink); }
-.tag { font: 800 13px/1 var(--f-display); text-transform: uppercase; letter-spacing: .04em; padding: 5px 6px; border-radius: 4px; min-width: 78px; text-align: center; }
+.tag { font: 800 13px/1 var(--f-display); text-transform: uppercase; letter-spacing: .04em; padding: 5px 4px; border-radius: 4px; width: 100%; box-sizing: border-box; text-align: center; white-space: nowrap; }
 .tag.autoroute { background: #1f5fa8; color: #fff; }
 .tag.route { background: #e8e8e2; color: #15181a; border: 1px solid #9aa09a; }
 .tag.ville { background: #5d635f; color: #fff; }
@@ -266,8 +266,9 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 
 /* ---------- passe streamline ---------- */
 .recstate .ecran { margin-left: auto; }
-.price .perso-champ { margin-left: auto; }
-.price label.link { cursor: pointer; }
 .verrou-indispo { color: var(--dear); font-weight: 600; margin: 10px 16px 0; }
 .rec-note, .rec-note ~ .note { margin-bottom: 4px; } /* prix du jour, montées, points GPS : trois lignes serrées */
 .rec-note ~ .note { margin-top: 0; }
+.price .l.gauche { justify-content: flex-start; gap: 18px; }
+.split { font-size: 14px; color: var(--muted); font-family: var(--f-digits); }
+.split b { color: var(--ink); }

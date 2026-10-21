@@ -80,9 +80,9 @@ En tant que conducteur, je déplie un tronçon du trajet pour voir d'où vient l
 En tant que conducteur, je saisis mon prix perso au litre pour recalculer le coût.
 
 1. Partir de : un résultat au prix moyen France (écran Résultat du trajet) — capture `US-4.2-01-mettre-mon-propre-prix-avant.png`
-2. Faire : je touche « Mettre mon prix » (prix perso : le champ est déjà affiché, le toucher y place le curseur) et je saisis 1,699 ; constater : le coût est recalculé avec 1,699 €/L et le libellé devient « Mon prix » — capture `US-4.2-02-mettre-mon-propre-prix-apres.png`
+2. Faire : je touche « Mettre mon prix » (prix perso : le toucher ouvre le champ, vide) et je saisis 1,699 ; constater : le coût est recalculé avec 1,699 €/L et le libellé devient « Mon prix » — capture `US-4.2-02-mettre-mon-propre-prix-apres.png`
 3. Partir de : un prix perso saisi (écran Résultat du trajet) — capture `US-4.2-03-mettre-mon-propre-prix-avant.png`
-4. Faire : je touche « Revenir à la moyenne » ; constater : le coût revient à la moyenne nationale — capture `US-4.2-04-mettre-mon-propre-prix-apres.png`
+4. Faire : je touche « moyenne » (bouton « Revenir à la moyenne ») ; constater : le coût revient à la moyenne nationale — capture `US-4.2-04-mettre-mon-propre-prix-apres.png`
 
 
 ## US-4.3 — Revenir aux trajets
