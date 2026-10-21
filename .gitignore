@@ -8,3 +8,6 @@ test-results/
 playwright-report/
 supabase/.temp/
 supabase/.branches/
+
+# transcripts de passes (peuvent contenir des valeurs de .env.local)
+transcripts/
