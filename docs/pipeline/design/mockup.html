@@ -189,6 +189,43 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
 .tab[aria-selected="true"]{color:var(--ink)}
 .tab[aria-selected="true"]::before{content:"";position:absolute;top:-1px;left:30%;right:30%;height:3px;background:var(--ink);border-radius:0 0 3px 3px}
 
+
+/* ===== ajouts V1 ===== */
+.carcard{margin:4px 16px 0;border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center}
+.carcard .nm{font:800 22px/1.05 var(--f-display);text-transform:uppercase}
+.carcard .sp{font-size:13px;color:var(--muted);grid-column:1}
+.carcard .chg{grid-row:1/3;grid-column:2;border:1px solid var(--line);background:transparent;border-radius:8px;padding:7px 10px;font-size:14px;font-weight:600}
+.stepper{margin:12px 16px 0;border:1px solid var(--line);border-radius:10px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.stepper .ctl{display:flex;align-items:center;gap:10px}
+.stepper button{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:transparent;font-size:20px;line-height:1}
+.stepper b{font:600 22px var(--f-digits);min-width:24px;text-align:center}
+.gobig{width:auto;margin:16px 16px 0;padding:18px 16px;font:800 26px/1 var(--f-display);letter-spacing:.06em;text-transform:uppercase;border-radius:14px;background:var(--cheap);color:#fff}
+.d2{margin:8px 16px 0;display:grid;gap:8px}
+.d2 label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.d2 input{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--surface);font:600 20px var(--f-digits);letter-spacing:.08em;text-transform:uppercase;min-width:0;width:100%}
+.cg{margin:6px 16px 0;border:1px dashed var(--line);border-radius:10px;padding:10px 12px;font:13px/1.5 var(--f-digits);color:var(--muted)}
+.cg b{color:var(--ink);background:color-mix(in srgb,var(--hl) 35%,transparent);padding:0 3px;border-radius:3px}
+.spec{margin:12px 16px 0;border:1px solid var(--cheap);border-radius:12px;padding:12px;display:grid;gap:6px}
+.spec .nm{font:800 20px/1.1 var(--f-display);text-transform:uppercase}
+.spec dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 12px;margin:0;font-size:14px}
+.spec dt{color:var(--muted)}.spec dd{margin:0;font-family:var(--f-digits)}
+.sugg{list-style:none;margin:6px 16px 0;padding:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.sugg button{width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:transparent;padding:10px 12px}
+.sugg li:last-child button{border-bottom:0}
+.sugg .m{font-size:12px;color:var(--muted)}
+.or{margin:16px 16px 0;font-size:13px;color:var(--muted)}
+.ongoing{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 16px 8px;background:var(--panel);color:var(--led);border-radius:10px;padding:8px 12px;font:600 14px var(--f-body)}
+.ongoing button{border:1px solid var(--led);background:transparent;color:var(--led);border-radius:8px;padding:6px 10px;font-weight:600}
+.zone{position:absolute;left:50%;top:10px;transform:translateX(-50%);border:0;border-radius:999px;background:var(--surface);color:var(--ink);box-shadow:0 2px 10px rgba(0,0,0,.25);padding:8px 14px;font-weight:600;font-size:14px;white-space:nowrap;z-index:2}
+.map{touch-action:none;cursor:grab}
+.map .layer{position:absolute;inset:0}
+.alert{margin:10px 16px 0;border:2px solid var(--dear);border-radius:12px;padding:12px;display:grid;gap:8px}
+.alert b{font-size:15px}
+.alert .r{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.share{font-size:15px;color:var(--muted)}.share b{font:600 22px var(--f-digits);color:var(--ink)}
+.hint{margin:6px 16px 0;font-size:12px;color:var(--muted)}
+.gbp{font:500 11px var(--f-digits);color:var(--muted)}
+
 /* surlignage piloté par les histoires */
 .pulse{outline:3px solid var(--hl)!important;outline-offset:2px;animation:pulse 1.5s ease-out}
 @keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--hl) 70%,transparent)}100%{box-shadow:0 0 0 14px transparent}}
@@ -210,148 +247,139 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
 <div class="layout">
 <!-- ============ APPLI ============ -->
 <div class="app" id="app">
-  <div class="top"><div class="brand">Plein <b>&amp;</b> Trajet</div><div class="topr"><div class="where" id="where">Albi · 81000</div><button type="button" class="gear" id="gear" data-el="bouton-moteurs" aria-label="Moteurs (administration)" title="Moteurs">⚙</button></div></div>
+  <div class="top"><div class="brand">Plein <b>&amp;</b> Trajet</div><div class="where" id="where">Toulouse</div></div>
 
-  <!-- S1 PRIX -->
-  <section class="screen" data-screen="S1">
+  <!-- T1 TRAJET (accueil) -->
+  <section class="screen" data-screen="T1">
+    <div class="scroll">
+      <div class="carcard" data-el="ma-voiture"><div class="nm" id="t-car"></div><div class="sp" id="t-carsp"></div><button type="button" class="chg" id="t-chg" data-el="changer-voiture">Changer</button></div>
+      <div class="price" data-el="prix-trajet">
+        <div class="l"><span id="t-pricelab"></span><span class="totem" id="t-price"></span></div>
+        <div class="l"><button class="link" type="button" id="t-perso-btn" data-el="mettre-mon-prix">Mettre mon prix</button>
+          <span id="t-perso-wrap" hidden><label for="t-perso" style="font-size:13px;color:var(--muted)">€/L </label><input id="t-perso" inputmode="decimal"></span></div>
+      </div>
+      <div class="stepper" data-el="nb-personnes"><span>Personnes</span><div class="ctl"><button type="button" data-p="-1" aria-label="Une personne de moins">−</button><b id="t-pers">3</b><button type="button" data-p="1" aria-label="Une personne de plus">+</button></div></div>
+      <button type="button" class="btn gobig" id="t-go" data-el="bouton-demarrer">Démarrer</button>
+      <h2 class="sec">Mes trajets</h2>
+      <ul class="hist" id="hist" data-el="historique"></ul>
+    </div>
+  </section>
+
+  <!-- T2 MA VOITURE -->
+  <section class="screen" data-screen="T2" hidden>
+    <div class="scroll">
+      <div class="rhead"><button class="back" type="button" id="v-back">← Trajet</button></div>
+      <div class="route">Ma voiture</div>
+      <div class="d2" data-el="champ-d2"><label for="d2">Code D.2 de la carte grise</label><input id="d2" autocomplete="off" spellcheck="false" placeholder="5RBU0C"></div>
+      <div class="cg" aria-hidden="true">D.1 RENAULT<br>D.2 <b>R 5RBU 5RBU0C</b><br>D.3 CLIO</div>
+      <div id="v-res"></div>
+      <p class="or">Pas la carte grise sous la main ?</p>
+      <div class="d2" data-el="recherche-voiture"><label for="q">Nom, année, puissance</label><input id="q" autocomplete="off" placeholder="clio 2017 120" style="font:500 17px var(--f-body);letter-spacing:0;text-transform:none"></div>
+      <ul class="sugg" id="sugg" hidden></ul>
+      <div style="margin:16px 16px 20px"><button class="btn" type="button" id="v-save" data-el="enregistrer-voiture" disabled>Enregistrer ma voiture</button></div>
+    </div>
+  </section>
+
+  <!-- T3 EN ROUTE -->
+  <section class="screen" data-screen="T3" hidden>
+    <div class="scroll">
+      <div class="recstate"><span class="on" id="rec-on"><i></i>Enregistrement</span><span id="rec-car"></span></div>
+      <div class="live" data-el="vitesse-direct">
+        <div class="speed"><span class="totem" id="v-now"></span></div>
+        <svg class="spark" id="spark" viewBox="0 0 300 56" preserveAspectRatio="none" aria-label="Vitesse des dernières minutes"></svg>
+        <div class="lgrid">
+          <div><b id="v-km">0,0</b><span>km</span></div>
+          <div><b id="v-l">0,00</b><span>litres</span></div>
+          <div><b id="v-eur">0,00</b><span>€ essence</span></div>
+        </div>
+        <div class="lgrid">
+          <div><b id="v-t">0:00</b><span>durée</span></div>
+          <div><b id="v-moy">—</b><span>km/h moy.</span></div>
+          <div><b id="v-l100">—</b><span>L/100 km</span></div>
+        </div>
+      </div>
+      <p class="hint" data-el="ecran-eteint" id="rec-bg">Continue écran éteint, même avec Waze ou Maps devant.</p>
+      <p class="hint" data-el="gps-perdu" id="rec-gps" hidden>GPS perdu (tunnel) · la distance est complétée à la sortie.</p>
+      <div id="rec-alert"></div>
+      <div style="margin:12px 16px 0"><button class="btn ghost" type="button" id="rec-st" data-el="bouton-stations">Stations autour de moi</button></div>
+      <div class="recbar">
+        <button class="btn ghost" type="button" data-el="bouton-pause" id="rec-pause">Pause</button>
+        <button class="btn" type="button" data-el="bouton-arreter" id="rec-stop">Arrêter</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- T4 FIN DE TRAJET -->
+  <section class="screen" data-screen="T4" hidden>
+    <div class="scroll">
+      <div class="rhead"><button class="back" type="button" id="r-back">← Mes trajets</button></div>
+      <div class="route" id="r-route"></div>
+      <p class="rsub" id="r-sub"></p>
+      <div class="costbox" data-el="cout-trajet"><span class="totem big" id="r-cost"></span><span class="share" id="r-share" data-el="part-personne"></span></div>
+      <div class="kpis">
+        <div class="kpi"><b id="r-l">—</b><span>litres</span></div>
+        <div class="kpi"><b id="r-km">—</b><span>km</span></div>
+        <div class="kpi"><b id="r-l100">—</b><span>L/100 km</span></div>
+      </div>
+      <div class="price" data-el="prix-apres">
+        <div class="l"><span id="r-pricelab"></span><span class="totem" id="r-price"></span></div>
+        <div class="l"><button class="link" type="button" id="r-perso-btn">Mettre mon prix</button>
+          <span id="r-perso-wrap" hidden><label for="r-perso" style="font-size:13px;color:var(--muted)">€/L </label><input id="r-perso" inputmode="decimal"></span></div>
+      </div>
+      <div class="stepper" data-el="personnes-apres"><span>Personnes</span><div class="ctl"><button type="button" data-rp="-1" aria-label="Une personne de moins">−</button><b id="r-pers">3</b><button type="button" data-rp="1" aria-label="Une personne de plus">+</button></div></div>
+      <div class="trace" data-el="courbe-vitesse">
+        <div class="h"><span>Ma vitesse</span><span id="r-trace-info"></span></div>
+        <svg id="r-spark" viewBox="0 0 300 70" preserveAspectRatio="none" aria-label="Courbe de vitesse du trajet"></svg>
+      </div>
+      <div style="margin:14px 16px 20px"><button class="btn ghost" type="button" id="r-del" data-el="supprimer-trajet">Supprimer ce trajet</button></div>
+    </div>
+  </section>
+
+  <!-- T5 STATIONS -->
+  <section class="screen" data-screen="T5" hidden>
+    <div class="ongoing" id="ongoing" hidden data-el="retour-trajet"><span>● Trajet en cours · <span id="og-eur"></span></span><button type="button" id="og-back">Retour</button></div>
     <div class="fuels" role="group" aria-label="Carburant" data-el="selecteur-carburant" id="fuels"></div>
-    <div class="map" data-el="carte-stations" id="map" aria-label="Carte des stations">
-      <svg viewBox="0 0 400 230" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <path d="M-10 150 C60 130 110 170 170 150 S290 110 410 135" fill="none" stroke="var(--water)" stroke-width="14"/>
-        <path d="M0 60 L400 95" stroke="var(--road)" stroke-width="9"/>
-        <path d="M120 0 L170 230" stroke="var(--road)" stroke-width="7"/>
-        <path d="M260 0 C250 80 300 150 280 230" stroke="var(--road)" stroke-width="7" fill="none"/>
-        <path d="M0 200 L400 185" stroke="var(--road)" stroke-width="5"/>
-        <text x="8" y="54" font-size="10" fill="var(--muted)" font-family="Barlow">N88</text>
-        <text x="300" y="170" font-size="10" fill="var(--muted)" font-family="Barlow">Tarn</text>
-      </svg>
-      <div class="me" style="left:46%;top:52%" title="Vous êtes ici"></div>
-      <div id="pins"></div>
+    <div class="map" data-el="carte-stations" id="map" aria-label="Carte des stations, déplaçable">
+      <div class="layer" id="layer">
+        <svg viewBox="0 0 400 230" preserveAspectRatio="xMidYMid slice" aria-hidden="true" style="position:absolute;inset:-40%;width:180%;height:180%">
+          <path d="M-10 150 C60 130 110 170 170 150 S290 110 410 135" fill="none" stroke="var(--water)" stroke-width="10"/>
+          <path d="M0 60 L400 95" stroke="var(--road)" stroke-width="7"/>
+          <path d="M120 0 L170 230" stroke="var(--road)" stroke-width="5"/>
+          <path d="M260 0 C250 80 300 150 280 230" stroke="var(--road)" stroke-width="5" fill="none"/>
+          <path d="M0 200 L400 185" stroke="var(--road)" stroke-width="4"/>
+        </svg>
+        <div class="me" id="me" style="left:46%;top:52%" title="Vous êtes ici"></div>
+        <div id="pins"></div>
+      </div>
+      <button type="button" class="zone" id="zone" hidden data-el="rechercher-zone">Rechercher dans cette zone</button>
       <div class="legend"><span><i style="background:var(--cheap)"></i>moins cher</span><span><i style="background:var(--dear)"></i>plus cher</span></div>
     </div>
-    <div class="listhead"><h2 class="sec" id="listtitle">Stations · SP95-E10</h2>
+    <div class="listhead"><h2 class="sec" id="listtitle"></h2>
       <div class="seg" role="group" aria-label="Trier" data-el="tri-liste">
         <button type="button" id="sort-prix" aria-pressed="true">Moins cher</button><button type="button" id="sort-dist" aria-pressed="false">Plus proche</button>
       </div>
     </div>
     <div class="scroll"><ul class="rows" id="rows"></ul></div>
 
-    <!-- S2 FICHE (feuille) -->
-    <div class="sheet" id="sheet" data-screen-sheet="S2" role="dialog" aria-modal="false" aria-labelledby="sh-name">
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-name">
       <div class="grip"></div>
       <div class="sh-head"><div><h3 class="sh-name" id="sh-name">—</h3><div class="meta" id="sh-addr"></div></div>
-        <button class="x" type="button" data-el="fermer-fiche" id="close" aria-label="Fermer la fiche">✕</button></div>
+        <button class="x" type="button" id="close" aria-label="Fermer la fiche">✕</button></div>
       <div class="board" id="board"></div>
       <div class="meta" id="sh-meta"></div>
-      <div style="margin-top:12px"><button class="btn" type="button" data-el="bouton-trajet-station" id="to-station">Coût d'un trajet jusqu'ici</button></div>
-    </div>
-  </section>
-
-  <!-- S3 TRAJETS -->
-  <section class="screen" data-screen="S3" hidden>
-    <div class="scroll">
-      <h2 class="sec">Nouveau trajet</h2>
-      <div class="form">
-        <div class="fieldset">
-          <div class="fld"><label for="dep">Départ</label><input id="dep" list="lieux" value="Albi" data-el="champ-depart" autocomplete="off"></div>
-          <div class="fld"><label for="arr">Arrivée</label><input id="arr" list="lieux" value="Bordeaux" data-el="champ-arrivee" autocomplete="off"></div>
-        </div>
-        <datalist id="lieux"><option value="Albi"><option value="Bordeaux"><option value="Toulouse"><option value="Castres"><option value="Rodez"><option value="Montpellier"><option value="Barcelone"><option value="Milan"><option value="Londres"></datalist>
-        <div data-el="choix-voiture" style="display:grid;gap:6px">
-          <div class="car">
-            <select id="marque" aria-label="Marque"></select>
-            <select id="modele" aria-label="Modèle"></select>
-            <select id="moteur" aria-label="Motorisation"></select>
-          </div>
-          <div class="carnote"><span id="carinfo"></span><span>Voiture mémorisée</span></div>
-        </div>
-        <button class="btn" type="button" data-el="bouton-calculer" id="calc">Calculer le coût</button>
-        <button class="btn ghost recbtn" type="button" data-el="bouton-enregistrer" id="rec"><i class="recdot"></i>Enregistrer en roulant</button>
-      </div>
-      <h2 class="sec">Derniers trajets</h2>
-      <ul class="hist" id="hist"></ul>
-    </div>
-  </section>
-
-  <!-- S4 RÉSULTAT -->
-  <section class="screen" data-screen="S4" hidden>
-    <div class="scroll">
-      <div class="rhead"><button class="back" type="button" data-el="retour-trajets" id="back">← Trajets</button></div>
-      <div class="route" id="r-route">Albi → Bordeaux</div>
-      <p class="rsub" id="r-car"></p>
-      <div class="costbox"><span class="totem big" id="r-cost"></span><span class="split" id="r-split"></span></div>
-      <div class="kpis">
-        <div class="kpi"><b id="r-l">—</b><span>litres</span></div>
-        <div class="kpi"><b id="r-km">—</b><span>km</span></div>
-        <div class="kpi"><b id="r-l100">—</b><span>L/100 km</span></div>
-      </div>
-      <div class="price" data-el="prix-perso">
-        <div class="l"><span id="r-pricelab">Moyenne France du jour</span><span class="totem" id="r-price"></span></div>
-        <div class="l"><button class="link" type="button" id="perso-btn">Mettre mon prix</button>
-          <span id="perso-wrap" hidden><label for="perso" style="font-size:13px;color:var(--muted)">€/L </label><input id="perso" inputmode="decimal" placeholder="1,699"></span></div>
-      </div>
-      <div class="trace" id="r-trace" data-el="courbe-vitesse" hidden>
-        <div class="h"><span>Ma vitesse enregistrée</span><span id="r-trace-info"></span></div>
-        <svg id="r-spark" viewBox="0 0 300 70" preserveAspectRatio="none" aria-label="Courbe de vitesse du trajet enregistré"></svg>
-      </div>
-      <h2 class="sec">Péages</h2>
-      <ul class="plist" id="peages" data-el="detail-peages"></ul>
-      <h2 class="sec">Pays traversés</h2>
-      <ul class="plist" id="pays" data-el="pays-traverses"></ul>
-      <h2 class="sec">D'où vient la consommation</h2>
-      <ul class="segs" id="segs"></ul>
-      <p class="note" id="r-note-rec" hidden>Calcul sur ta vitesse réelle, seconde par seconde : accélérations, freinages, arrêts et dénivelé du tracé GPS, appliqués au modèle physique de ta voiture. Les routes sont reconnues en recalant le tracé sur la carte. Données d'exemple.</p>
-      <p class="note" id="r-note">Estimation : itinéraire découpé en tronçons, modèle physique de la voiture (masse, aérodynamique, rendement moteur), vitesses, arrêts et dénivelé de chaque tronçon ; prix moyen du jour dans chaque pays traversé ; péages voiture TTC, vignettes non incluses. Données d'exemple.</p>
-    </div>
-  </section>
-
-  <!-- S5 MOTEURS (admin) -->
-  <section class="screen" data-screen="S5" hidden>
-    <div class="scroll">
-      <div class="rhead"><button class="back" type="button" id="back-mot">← Retour</button><span class="admin">Réservé à l'administrateur</span></div>
-      <div class="route">Moteurs</div>
-      <p class="rsub">Chaque service de l'appli passe par un fournisseur branché ici. Changer de fournisseur ou de clé ne demande aucune mise à jour du code.</p>
-      <ul class="mots" id="mots"></ul>
-      <p class="note">Les clés sont stockées chiffrées sur le serveur et ne sont jamais réaffichées : seuls leurs 4 derniers caractères le sont.</p>
-    </div>
-  </section>
-
-  <!-- S6 EN ROUTE (enregistrement) -->
-  <section class="screen" data-screen="S6" hidden>
-    <div class="scroll">
-      <div class="recstate"><span class="on" id="rec-on"><i></i>Enregistrement</span><span id="rec-car"></span></div>
-      <div class="live" data-el="vitesse-direct">
-        <div class="lab">Vitesse</div>
-        <div class="speed"><span class="totem" id="v-now"></span></div>
-        <svg class="spark" id="spark" viewBox="0 0 300 56" preserveAspectRatio="none" aria-label="Vitesse des dernières minutes"></svg>
-        <div class="lgrid">
-          <div><b id="v-km">0,0</b><span>km</span></div>
-          <div><b id="v-l">0,00</b><span>litres</span></div>
-          <div><b id="v-eur">0,00</b><span>€ carburant</span></div>
-        </div>
-        <div class="lgrid">
-          <div><b id="v-t">0:00</b><span>durée</span></div>
-          <div><b id="v-stops">0</b><span>arrêts</span></div>
-          <div><b id="v-l100">—</b><span>L/100 km</span></div>
-        </div>
-      </div>
-      <p class="note" style="margin-top:10px" data-el="ecran-allume" id="rec-note">L'écran reste allumé pendant l'enregistrement : laisse l'appli ouverte sur le support. Les points GPS restent sur le téléphone jusqu'à l'arrêt.</p>
-      <div class="recbar">
-        <button class="btn ghost" type="button" data-el="bouton-pause" id="rec-pause">Pause</button>
-        <button class="btn" type="button" data-el="bouton-arreter" id="rec-stop">Arrêter et voir le coût</button>
-      </div>
+      <div style="margin-top:12px"><button class="btn" type="button" data-el="utiliser-ce-prix" id="use-price"></button></div>
     </div>
   </section>
 
   <nav class="tabs" role="tablist">
-    <button class="tab" role="tab" aria-selected="true" data-el="onglet-prix" id="tab-prix">Prix</button>
-    <button class="tab" role="tab" aria-selected="false" data-el="onglet-trajets" id="tab-trajets">Trajets</button>
+    <button class="tab" role="tab" aria-selected="true" data-el="onglet-trajet" id="tab-trajet">Trajet</button>
+    <button class="tab" role="tab" aria-selected="false" data-el="onglet-stations" id="tab-stations">Stations</button>
   </nav>
 </div>
 
 <!-- ============ HISTOIRES ============ -->
 <aside class="stories" aria-label="Histoires utilisateur">
-  <h1>Histoires v1</h1>
+  <h1>Histoires V1</h1>
   <p class="sub">Clique une histoire : la maquette va à l'écran et surligne l'élément concerné.</p>
   <div id="storylist"></div>
 </aside>
@@ -360,244 +388,221 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
 <script>
 (function(){
 const STORIES=[
- ["US-1.1","S1","onglet-prix","Ouvrir les prix","L'onglet Prix affiche la carte et la liste des stations autour de moi."],
- ["US-1.2","S1","selecteur-carburant","Choisir mon carburant","Le sélecteur change tous les prix affichés, carte et liste."],
- ["US-1.3","S1","carte-stations","Voir les stations sur la carte","Chaque station autour de moi, avec son prix."],
- ["US-1.4","S1","pastille-station","Toucher une pastille","Prix et couleur (bas / haut) ; la toucher ouvre la fiche."],
- ["US-1.5","S1","tri-liste","Trier la liste","Bascule entre « moins cher » et « plus proche »."],
- ["US-1.6","S1","ligne-station","Lire une station dans la liste","Enseigne, distance, ancienneté du prix, prix sur plaque de totem."],
- ["US-2.1","S2","fermer-fiche","Fermer la fiche","Retour à la carte sans perdre le carburant choisi."],
- ["US-2.2","S2","bouton-trajet-station","Calculer un trajet vers la station","Pré-remplit l'arrivée avec l'adresse de la station."],
- ["US-3.1","S3","onglet-trajets","Ouvrir les trajets","Le formulaire, et l'historique dessous."],
- ["US-3.2","S3","champ-depart","Saisir le départ","Propositions de lieux au fil de la frappe."],
- ["US-3.3","S3","champ-arrivee","Saisir l'arrivée","Propositions de lieux au fil de la frappe."],
- ["US-3.4","S3","choix-voiture","Choisir ma voiture","Marque, modèle, motorisation ; mémorisée pour la fois suivante."],
- ["US-3.5","S3","bouton-calculer","Calculer le coût","Lance l'estimation et ouvre le résultat."],
- ["US-3.6","S3","ligne-historique","Rejouer un ancien trajet","Recalcule ce trajet au prix du jour."],
- ["US-3.7","S3","supprimer-trajet","Supprimer un trajet","La croix retire le trajet de l'historique."],
- ["US-4.1","S4","troncon-trajet","Comprendre le calcul","Chaque tronçon se déplie : vitesse, arrêts, litres."],
- ["US-4.2","S4","prix-perso","Mettre mon propre prix","Remplace la moyenne nationale et recalcule le coût."],
- ["US-4.3","S4","retour-trajets","Revenir aux trajets","Le calcul a rejoint l'historique."],
- ["US-3.8","S3","champ-arrivee","Partir à l'étranger","Arrivée hors de France (Barcelone, Milan) : l'itinéraire traverse plusieurs pays."],
- ["US-4.4","S4","detail-peages","Voir les péages","Chaque section payante avec son montant TTC, et le total ajouté au coût."],
- ["US-4.5","S4","pays-traverses","Voir les pays traversés","Km, litres et prix moyen du jour de chaque pays, et le coût carburant par pays."],
- ["US-3.9","S3","champ-arrivee","Aller au Royaume-Uni","Arrivée à Londres : prix moyen britannique, péage du pont de Dartford ; la traversée de la Manche (tunnel ou ferry) n'est pas comptée."],
- ["US-6.1","S3","bouton-enregistrer","Enregistrer en roulant","Avec la voiture choisie, l'appli enregistre ma vitesse pendant que je roule."],
- ["US-6.2","S6","vitesse-direct","Suivre en direct","Vitesse, distance, durée, arrêts, litres et coût depuis le départ."],
- ["US-6.3","S6","ecran-allume","Garder l'écran allumé","L'écran ne se met pas en veille ; si le GPS se perd, je le vois."],
- ["US-6.4","S6","bouton-pause","Mettre en pause","Une pause (station, repas) ne compte ni distance ni consommation."],
- ["US-6.5","S6","bouton-arreter","Arrêter et voir le coût","Le résultat est calculé sur ma vitesse réelle et rejoint l'historique."],
- ["US-6.6","S4","courbe-vitesse","Voir ma courbe de vitesse","Sur un trajet enregistré : la courbe, la vitesse moyenne et le nombre d'accélérations."],
- ["US-5.1","S5","bouton-moteurs","Ouvrir les moteurs","Le bouton ⚙, visible du seul administrateur, ouvre l'écran Moteurs."],
- ["US-5.2","S5","choix-fournisseur","Choisir le fournisseur","Pour chaque service (péages, itinéraire…), on choisit le fournisseur branché."],
- ["US-5.3","S5","champ-cle","Coller la clé","La clé d'API est masquée, stockée chiffrée, jamais réaffichée (4 derniers caractères)."],
- ["US-5.4","S5","tester-connexion","Tester la connexion","Un vrai appel au fournisseur : connecté, clé refusée ou quota."],
- ["US-5.5","S5","enregistrer-moteur","Enregistrer le moteur","Le prochain calcul utilise ce fournisseur, sans mise à jour du code."]
+ ["V-1.1","T1","onglet-trajet","Ouvrir l'appli","L'appli s'ouvre sur Trajet : ma voiture, le prix, le nombre de personnes, Démarrer."],
+ ["V-1.2","T1","ma-voiture","Voir ma voiture","La voiture enregistrée une fois, avec son carburant ; « Changer » ouvre Ma voiture."],
+ ["V-1.3","T1","prix-trajet","Prix du jour par défaut","Moyenne du jour du pays de départ, pour le carburant de ma voiture."],
+ ["V-1.4","T1","mettre-mon-prix","Mettre mon prix","Je remplace la moyenne par le prix payé (avant ou après le trajet)."],
+ ["V-1.5","T1","nb-personnes","Nombre de personnes","Combien on se partage l'essence (1 à 9)."],
+ ["V-1.6","T1","bouton-demarrer","Démarrer","Lance l'enregistrement du trajet."],
+ ["V-2.1","T2","champ-d2","Saisir le code D.2","Le code type-variante-version de la carte grise identifie exactement la version de moteur (base européenne EEA)."],
+ ["V-2.2","T2","enregistrer-voiture","Vérifier et enregistrer","Je vois marque, modèle, année, puissance, cylindrée, masse, carburant, puis j'enregistre une fois pour toutes."],
+ ["V-2.3","T2","recherche-voiture","Chercher sans la carte grise","« clio 2017 120 » propose les versions correspondantes."],
+ ["V-2.E1","T2","champ-d2","Code inconnu","Code introuvable : je vérifie la case D.2 ou j'utilise la recherche."],
+ ["V-3.1","T3","vitesse-direct","Suivre en direct","Vitesse, km, litres, € d'essence, durée, vitesse moyenne."],
+ ["V-3.2","T3","ecran-eteint","Écran éteint, Waze devant","L'appli Android enregistre en arrière-plan."],
+ ["V-3.3","T3","bouton-pause","Mettre en pause","Une pause (station, repas) ne compte ni distance ni essence."],
+ ["V-3.4","T3","bouton-stations","Voir les stations en route","Ouvre la carte autour de moi ; l'enregistrement continue."],
+ ["V-3.5","T3","bouton-arreter","Arrêter","Le coût est calculé sur ma vitesse réelle et le trajet rejoint Mes trajets."],
+ ["V-3.E1","T3","bouton-arreter","Oubli d'arrêter","Immobile 10 min : l'appli arrête le trajet et me demande de confirmer."],
+ ["V-3.E2","T3","gps-perdu","GPS perdu","Tunnel : la distance manquante est complétée à la sortie."],
+ ["V-4.1","T4","cout-trajet","Coût de l'essence","Le total d'essence de ce trajet."],
+ ["V-4.2","T4","part-personne","Part de chacun","Total divisé par le nombre de personnes."],
+ ["V-4.3","T4","prix-apres","Corriger le prix après coup","Le coût et la part se recalculent."],
+ ["V-4.4","T4","personnes-apres","Corriger le nombre de personnes","La part se recalcule."],
+ ["V-4.5","T4","courbe-vitesse","Ma courbe de vitesse","Vitesse moyenne et nombre d'accélérations."],
+ ["V-4.6","T1","historique","Mes trajets","Date, trajet, coût et part ; toucher rouvre le détail."],
+ ["V-4.7","T4","supprimer-trajet","Supprimer un trajet","Retire le trajet de Mes trajets."],
+ ["V-5.1","T5","onglet-stations","Stations autour de moi","Carte et liste des prix autour de ma position."],
+ ["V-5.2","T5","selecteur-carburant","Choisir le carburant","Par défaut celui de ma voiture."],
+ ["V-5.3","T5","rechercher-zone","Rechercher dans cette zone","Je fais glisser la carte, puis « Rechercher dans cette zone » charge les stations de la zone affichée."],
+ ["V-5.4","T5","tri-liste","Trier","Moins cher ou plus proche."],
+ ["V-5.5","T5","utiliser-ce-prix","Utiliser ce prix","Depuis la fiche d'une station, son prix devient celui de mon trajet."],
+ ["V-5.6","T5","retour-trajet","Revenir au trajet","Pendant un trajet, le bandeau ramène à l'écran En route."],
+ ["V-5.7","T5","carte-stations","Europe et Royaume-Uni","Les stations d'Europe et du Royaume-Uni ; prix en €/L, prix d'origine en £ au Royaume-Uni."]
 ];
-const SCREENNAMES={S1:"Prix",S2:"Fiche station",S3:"Trajets",S4:"Résultat du trajet",S5:"Moteurs",S6:"En route"};
+const SCREENNAMES={T1:"Trajet",T2:"Ma voiture",T3:"En route",T4:"Fin de trajet",T5:"Stations"};
 
 const FUELS=["Gazole","SP95-E10","SP95","SP98","E85","GPLc"];
-const NAT={"Gazole":2.367,"SP95-E10":2.161,"SP95":2.214,"SP98":2.271,"E85":1.068,"GPLc":1.159};
-const STATIONS=[
- {n:"E.Leclerc Albi",a:"Av. Gambetta, Albi",d:1.2,x:30,y:36,off:-.052,maj:"il y a 2 h",s:"24/24 · lavage · gonflage",miss:[]},
- {n:"Intermarché Saint-Juéry",a:"Route de Millau, Saint-Juéry",d:4.0,x:82,y:28,off:-.031,maj:"il y a 5 h",s:"24/24 · boutique",miss:["GPLc"]},
- {n:"Carrefour Market Albi",a:"Rue de la Croix Verte, Albi",d:2.1,x:62,y:72,off:-.018,maj:"il y a 1 h",s:"24/24 automate",miss:["E85"]},
- {n:"TotalEnergies Albi Lices",a:"Lices Georges Pompidou, Albi",d:0.8,x:52,y:40,off:.041,maj:"il y a 3 h",s:"boutique · lavage",miss:[]},
- {n:"Esso Lescure",a:"Av. de Lescure, Lescure-d'Albigeois",d:3.4,x:70,y:12,off:.072,maj:"hier",s:"boutique",miss:["E85","GPLc"]},
- {n:"Auchan Le Séquestre",a:"Zone de Fonlabour, Le Séquestre",d:5.6,x:12,y:80,off:-.044,maj:"il y a 4 h",s:"24/24 · lavage · gonflage",miss:[]}
+const NAT={FR:{"Gazole":2.367,"SP95-E10":2.161,"SP95":2.214,"SP98":2.271,"E85":1.068,"GPLc":1.159},GB:{"Gazole":1.689,"SP95-E10":1.594,"SP95":1.594,"SP98":1.761,"E85":1.594,"GPLc":0.979}};
+const GBP=0.8403;
+const ZONES=[
+ {nom:"Toulouse",pays:"FR",me:true,st:[
+  {n:"E.Leclerc Rocade Sud",a:"Bd de Thibaud, Toulouse",d:1.2,x:30,y:36,off:-.058,maj:"il y a 2 h"},
+  {n:"Intermarché Ramonville",a:"Av. de Toulouse, Ramonville",d:4.0,x:82,y:28,off:-.031,maj:"il y a 5 h",miss:["GPLc"]},
+  {n:"Carrefour Purpan",a:"Rte de Bayonne, Toulouse",d:2.1,x:62,y:72,off:-.018,maj:"il y a 1 h",miss:["E85"]},
+  {n:"TotalEnergies Saint-Michel",a:"Grande-Rue Saint-Michel, Toulouse",d:0.8,x:52,y:40,off:.041,maj:"il y a 3 h"},
+  {n:"Esso Balma",a:"Av. de Toulouse, Balma",d:3.4,x:70,y:12,off:.072,maj:"hier",miss:["E85","GPLc"]}]},
+ {nom:"A20 · Brive",pays:"FR",st:[
+  {n:"Aire de la Corrèze (A20)",a:"A20, Saint-Pardoux-l'Ortigier",d:0,x:44,y:30,off:.248,maj:"il y a 1 h"},
+  {n:"Intermarché Brive Ouest",a:"Av. Jean-Charles Rivet, Brive",d:6.2,x:22,y:64,off:-.046,maj:"il y a 3 h"},
+  {n:"E.Leclerc Brive",a:"Av. Pierre Mendès-France, Brive",d:7.0,x:68,y:70,off:-.061,maj:"il y a 2 h"},
+  {n:"Avia Ussac",a:"Route d'Ussac, Ussac",d:8.1,x:80,y:20,off:.012,maj:"hier"}]},
+ {nom:"Londres · Dartford",pays:"GB",st:[
+  {n:"Asda Dartford",a:"Crossways Bd, Dartford",d:2.3,x:36,y:44,off:-.041,maj:"il y a 4 h"},
+  {n:"Esso Bluewater",a:"Bluewater Pkwy, Greenhithe",d:3.1,x:66,y:30,off:.022,maj:"il y a 6 h"},
+  {n:"MFG Crayford",a:"London Rd, Crayford",d:4.5,x:20,y:70,off:.035,maj:"hier",miss:["E85"]}]}
 ];
-const CARS={
- "Peugeot":{"208":[["1.2 PureTech 100 ch","SP95-E10",{A:6.4,R:4.9,V:6.1,M:7.9},1090],["1.5 BlueHDi 100 ch","Gazole",{A:5.3,R:4.0,V:4.8,M:6.6},1165]],"3008":[["1.2 PureTech 130 ch","SP95-E10",{A:7.6,R:5.9,V:7.4,M:9.4},1430],["1.5 BlueHDi 130 ch","Gazole",{A:6.2,R:4.7,V:5.9,M:7.8},1505]]},
- "Renault":{"Clio IV":[["TCe 90 ch","SP95-E10",{A:6.7,R:5.0,V:6.3,M:8.1},1090],["dCi 90 ch","Gazole",{A:5.4,R:3.9,V:4.9,M:6.7},1175]],"Mégane":[["TCe 140 ch","SP95-E10",{A:7.3,R:5.6,V:7.0,M:9.0},1320]]},
- "Dacia":{"Sandero":[["TCe 90 ch","SP95-E10",{A:6.6,R:5.0,V:6.2,M:8.0},1080],["ECO-G 100 ch","GPLc",{A:8.4,R:6.4,V:8.0,M:10.2},1110]]}
-};
-const PAYS={FR:["France",{"Gazole":2.367,"SP95-E10":2.161,"SP95":2.214,"SP98":2.271,"E85":1.068,"GPLc":1.159}],ES:["Espagne",{"Gazole":1.799,"SP95-E10":1.712,"SP95":1.712,"SP98":1.869,"E85":1.299,"GPLc":0.989}],GB:["Royaume-Uni",{"Gazole":1.689,"SP95-E10":1.594,"SP95":1.594,"SP98":1.761,"E85":1.594,"GPLc":0.979}],BE:["Belgique",{"Gazole":1.879,"SP95-E10":1.802,"SP95":1.802,"SP98":1.889,"E85":1.299,"GPLc":0.849}],IT:["Italie",{"Gazole":2.049,"SP95-E10":1.990,"SP95":1.990,"SP98":2.149,"E85":1.399,"GPLc":0.899}]};
-const ROUTES={
- "Bordeaux":{segs:[["A","Autoroute A68 / A62",205,"118 km/h moy. · 0 arrêt","FR"],["R","Routes N88 / D988",33,"78 km/h · 4 ronds-points","FR"],["V","Traversées de ville",9,"28 km/h · 21 arrêts","FR"],["M","Montées (Causse, Tarn)",6,"+180 m de dénivelé","FR"]],peages:[["FR","ASF · A62 Toulouse Nord → Bordeaux",21.40]]},
- "Toulouse":{segs:[["A","Autoroute A68",62,"116 km/h moy. · 0 arrêt","FR"],["R","Rocade et N88",9,"72 km/h · 3 ronds-points","FR"],["V","Traversées de ville",6,"24 km/h · 18 arrêts","FR"]],peages:[]},
- "Castres":{segs:[["R","N126 / D612",36,"76 km/h · 7 ronds-points","FR"],["V","Traversées de ville",4,"27 km/h · 12 arrêts","FR"],["M","Montées (Montagne Noire)",2,"+90 m de dénivelé","FR"]],peages:[]},
- "Rodez":{segs:[["R","N88",64,"84 km/h · 6 ronds-points","FR"],["V","Traversées de ville",5,"26 km/h · 14 arrêts","FR"],["M","Montées (Ségala)",8,"+420 m de dénivelé","FR"]],peages:[]},
- "Montpellier":{segs:[["A","Autoroute A75 / A750",118,"112 km/h moy. · 0 arrêt","FR"],["R","D999 / N88",72,"74 km/h · 9 ronds-points","FR"],["V","Traversées de ville",10,"27 km/h · 23 arrêts","FR"],["M","Montées (Lévézou)",11,"+610 m de dénivelé","FR"]],peages:[]},
- "Barcelone":{segs:[["A","Autoroutes A61 / A9",238,"121 km/h moy. · 0 arrêt","FR"],["R","Routes N88 / D612",48,"76 km/h · 6 ronds-points","FR"],["A","Autoroute AP-7",152,"112 km/h moy. · 0 arrêt","ES"],["V","Traversées de ville",14,"25 km/h · 31 arrêts","ES"],["M","Montées (col du Perthus)",9,"+290 m de dénivelé","FR"]],peages:[["FR","ASF · A61 Toulouse Sud → Narbonne",13.90],["FR","ASF · A9 Narbonne → Le Boulou",10.10],["ES","AP-7 La Jonquera → Barcelone",0]]},
- "Londres":{segs:[["A","Autoroutes A20 / A71 / A10 / A16",842,"119 km/h moy. · 0 arrêt","FR"],["R","N88 / D903",52,"76 km/h · 7 ronds-points","FR"],["A","Autoroute E40",64,"114 km/h moy. · 0 arrêt","BE"],["A","Autoroutes M20 / M25",118,"104 km/h moy. · 0 arrêt","GB"],["V","Traversée de Londres",19,"22 km/h · 41 arrêts","GB"],["M","Montées (Massif central)",18,"+520 m de dénivelé","FR"]],peages:[["FR","Sanef / Cofiroute · A10, A71, A16",61.20],["GB","Pont de Dartford (M25)",2.90]]},
- "Milan":{segs:[["A","Autoroutes A61 / A9 / A8",512,"118 km/h moy. · 0 arrêt","FR"],["R","Routes N88 / D612",48,"76 km/h · 6 ronds-points","FR"],["A","Autoroutes A10 / A26 / A7",268,"114 km/h moy. · 0 arrêt","IT"],["V","Traversées de ville",15,"24 km/h · 34 arrêts","IT"],["M","Montées (Ligurie)",22,"+640 m de dénivelé","IT"]],peages:[["FR","ASF / Escota · A61, A9, A8 → Vintimille",58.30],["IT","Autostrade · A10 / A26 / A7 → Milan",31.80]]}
-};
-const TAGS={A:"Autoroute",R:"Route",V:"Ville",M:"Montée"};
+const CARBASE=[
+ {d2:"5RBU0C",q:"renault clio iv tce 120 2017",marque:"Renault",modele:"Clio IV",ver:"1.2 TCe 120",annee:2017,kw:87,cm3:1197,kg:1165,fuel:"SP95-E10",co2:118,l:{A:6.4,R:4.8,V:6.7}},
+ {d2:"5RBU0D",q:"renault clio iv tce 120 edc 2017",marque:"Renault",modele:"Clio IV",ver:"1.2 TCe 120 EDC",annee:2017,kw:87,cm3:1197,kg:1165,fuel:"SP95-E10",co2:120,l:{A:6.5,R:4.9,V:6.8}},
+ {d2:"5R1H0M",q:"renault clio iv dci 90 2017",marque:"Renault",modele:"Clio IV",ver:"1.5 dCi 90",annee:2017,kw:66,cm3:1461,kg:1135,fuel:"Gazole",co2:95,l:{A:5.2,R:3.9,V:5.0}},
+ {d2:"WP5HNY",q:"peugeot 208 puretech 100 2021",marque:"Peugeot",modele:"208",ver:"1.2 PureTech 100",annee:2021,kw:74,cm3:1199,kg:1090,fuel:"SP95-E10",co2:121,l:{A:6.4,R:4.9,V:6.1}}
+];
+const PROFIL=(()=>{const a=[];const seg=(n,v0,v1,arret)=>{for(let i=0;i<n;i++){const v=v0+(v1-v0)*i/n;a.push(arret&&i%arret===0?0:Math.max(0,Math.round(v+(Math.sin(a.length*1.7)*4))));}};
+  seg(14,18,34,4);seg(16,55,82,7);seg(60,112,126,0);seg(10,84,62,0);seg(14,30,22,3);return a;})();
 
-let fuel="SP95-E10", sort="prix", cur=null, persoPrice=null, lastTrip=null;
-let car={marque:"Peugeot",modele:"208",moteur:0};
-let hist=[{dep:"Albi",arr:"Toulouse",when:"12 oct."},{dep:"Albi",arr:"Castres",when:"3 oct."},{dep:"Albi",arr:"Rodez",when:"21 sept."}];
+let car=CARBASE[0], pending=null, persons=3, perso=null, fuel=car.fuel, sort="prix", zi=0, cur=null, rec=null, trip=null;
+let hist=[
+ {route:"Albi → Toulouse",when:"12 oct.",km:77,L:4.6,price:2.161,perso:false,pers:2,v:PROFIL.slice(0,60),acc:9},
+ {route:"Toulouse → Rodez",when:"3 oct.",km:152,L:8.4,price:1.989,perso:true,pers:1,v:PROFIL.slice(10,90),acc:14}
+];
 
 const $=s=>document.querySelector(s);
 const fmt=(v,d=2)=>v.toFixed(d).replace(".",",");
 function totem(v,unit){const s=v.toFixed(3);return '<span class="roll">'+s.slice(0,4).replace(".",",")+'<sup>'+s.slice(4)+'</sup></span>'+(unit?'<span class="u">'+unit+'</span>':'');}
-function price(st,f){return st.miss.includes(f)?null:+(NAT[f]+st.off).toFixed(3);}
-
-/* ---------- PRIX ---------- */
-function renderFuels(){$("#fuels").innerHTML=FUELS.map(f=>'<button type="button" class="fuel" aria-pressed="'+(f===fuel)+'" data-f="'+f+'">'+f+'</button>').join("");}
-function renderStations(){
-  const avail=STATIONS.map((s,i)=>({s,i,p:price(s,fuel)})).filter(o=>o.p!=null);
-  const ps=avail.map(o=>o.p), lo=Math.min(...ps), hi=Math.max(...ps), mid=(lo+hi)/2;
-  $("#pins").innerHTML=avail.map((o,k)=>'<button type="button" class="pin '+(o.p<=mid?'lo':'hi')+'" style="left:'+o.s.x+'%;top:'+o.s.y+'%" data-i="'+o.i+'"'+(k===0?' data-el="pastille-station"':'')+' aria-label="'+o.s.n+', '+fmt(o.p,3)+' euros"><span class="roll">'+fmt(o.p,3)+'</span></button>').join("");
-  const list=avail.slice().sort((a,b)=>sort==="prix"?a.p-b.p:a.s.d-b.s.d);
-  $("#rows").innerHTML=list.map((o,k)=>{const dv=o.p-NAT[fuel];return '<li><button type="button" class="row" data-i="'+o.i+'"'+(k===0?' data-el="ligne-station"':'')+'><span><span class="n">'+o.s.n+'</span><br><span class="m">'+fmt(o.s.d,1)+' km · '+o.s.maj+' · </span><span class="delta '+(dv<0?'lo':'hi')+'">'+(dv<0?'−':'+')+fmt(Math.abs(dv)*100,1)+' c vs France</span></span><span class="totem">'+totem(o.p,'€/L')+'</span></button></li>';}).join("")||'<li class="empty">Aucune station ne vend ce carburant autour de vous.</li>';
-  $("#listtitle").textContent="Stations · "+fuel;
-}
-function openSheet(i){
-  cur=STATIONS[i];
-  $("#sh-name").textContent=cur.n;$("#sh-addr").textContent=cur.a+" · "+fmt(cur.d,1)+" km";
-  $("#board").innerHTML=FUELS.map(f=>{const p=price(cur,f);return '<span class="lab">'+f+'</span>'+(p==null?'<span class="na">non vendu</span>':'<span class="totem">'+totem(p,'€/L')+'</span>');}).join("");
-  $("#sh-meta").innerHTML='<span>Prix mis à jour '+cur.maj+'</span><span>'+cur.s+'</span>';
-  $("#sheet").classList.add("open");
-}
-function closeSheet(){$("#sheet").classList.remove("open");}
-
-/* ---------- VOITURE ---------- */
-function opts(el,arr,sel){el.innerHTML=arr.map((v,i)=>'<option value="'+(typeof v==="string"?v:i)+'"'+((typeof v==="string"?v===sel:i===sel)?' selected':'')+'>'+(typeof v==="string"?v:v[0])+'</option>').join("");}
-function renderCar(){
-  opts($("#marque"),Object.keys(CARS),car.marque);
-  opts($("#modele"),Object.keys(CARS[car.marque]),car.modele);
-  opts($("#moteur"),CARS[car.marque][car.modele],car.moteur);
-  const m=CARS[car.marque][car.modele][car.moteur];
-  $("#carinfo").textContent=m[1]+" · "+m[3]+" kg";
-}
-function carSpec(){return CARS[car.marque][car.modele][car.moteur];}
+function avg(){return NAT.FR[car.fuel];}
+function sparkPath(vals,w,h,max){if(!vals.length)return"";const n=Math.max(vals.length-1,1);return vals.map((v,i)=>(i?"L":"M")+(i/n*w).toFixed(1)+" "+(h-2-(v/max)*(h-6)).toFixed(1)).join(" ");}
 
 /* ---------- TRAJET ---------- */
-function compute(dep,arr){
-  const R=ROUTES[arr]||{segs:[["R","Routes",80,"75 km/h · 6 ronds-points","FR"],["V","Traversées de ville",8,"27 km/h · 15 arrêts","FR"]],peages:[]};
-  const m=carSpec();let L=0,km=0;const pays={};
-  const rows=R.segs.map(s=>{const l=s[2]*m[2][s[0]]/100;L+=l;km+=s[2];const c=s[4];pays[c]=pays[c]||{km:0,l:0};pays[c].km+=s[2];pays[c].l+=l;return {t:s[0],name:s[1],km:s[2],info:s[3],l,l100:m[2][s[0]],c};});
-  const peage=R.peages.reduce((a,p)=>a+p[2],0);
-  return {dep,arr,rows,L,km,fuel:m[1],car:car.marque+" "+car.modele+" "+m[0],pays,peages:R.peages,peage};
-}
-function fuelCost(t){return Object.keys(t.pays).reduce((a,c)=>a+t.pays[c].l*(persoPrice||PAYS[c][1][t.fuel]),0);}
-function showResult(t){
-  lastTrip=t;persoPrice=null;$("#perso").value="";$("#perso-wrap").hidden=true;
-  $("#r-route").textContent=t.dep+" → "+t.arr;
-  $("#r-car").textContent=t.car+" · "+t.fuel;
-  $("#r-l").textContent=fmt(t.L,1);$("#r-km").textContent=Math.round(t.km);$("#r-l100").textContent=fmt(t.L/t.km*100,1);
-  const max=Math.max(...t.rows.map(r=>r.l));
-  $("#segs").innerHTML=t.rows.map((r,k)=>'<li class="tr"><button type="button" aria-expanded="false"'+(k===0?' data-el="troncon-trajet"':'')+'><span class="tag '+r.t+'">'+TAGS[r.t]+'</span><span><span>'+r.name+' · '+r.km+' km · '+r.c+'</span><span class="bar"><i style="width:'+(r.l/max*100)+'%"></i></span></span><span class="lit">'+fmt(r.l,1)+' L</span></button><div class="det" hidden>'+r.info+' · '+fmt(r.l100,1)+' L/100 km sur ce tronçon</div></li>').join("");
-  const r=t.rec;$("#r-trace").hidden=!r;$("#r-note-rec").hidden=!r;$("#r-note").hidden=!!r;
-  if(r){$("#r-route").textContent=t.dep+" → "+t.arr+" · enregistré";$("#r-trace-info").textContent=r.moy+" km/h moy. · "+r.acc+" accélérations";$("#r-spark").innerHTML='<path d="'+sparkPath(r.v,300,70,140)+'" fill="none" stroke="var(--ink)" stroke-width="2" vector-effect="non-scaling-stroke"/>';}
-  renderCost();show("S4");
-}
-function renderCost(){
-  const t=lastTrip, fc=fuelCost(t), tot=fc+t.peage;
-  $("#r-pricelab").textContent=persoPrice?"Mon prix (tous pays)":"Moyenne du jour, pays par pays · "+t.fuel;
-  const multi=Object.keys(t.pays).length>1;
-  $("#r-price").innerHTML=totem(persoPrice||PAYS[Object.keys(t.pays)[0]][1][t.fuel],'€/L')+(multi&&!persoPrice?'<span class="u">FR</span>':'');
-  $("#r-cost").innerHTML='<span class="roll">'+fmt(tot,2)+'</span><span class="u">€</span>';
-  $("#r-split").innerHTML='Carburant <b>'+fmt(fc,2)+' €</b> · Péages <b>'+fmt(t.peage,2)+' €</b>';
-  $("#peages").innerHTML=t.peages.length?t.peages.map(p=>'<li class="pl"><span><b>'+p[0]+'</b> '+p[1]+'</span><span class="lit">'+(p[2]?fmt(p[2],2)+' €':'gratuit')+'</span></li>').join("")+'<li class="pl tot"><span>Total péages</span><span class="lit">'+fmt(t.peage,2)+' €</span></li>':'<li class="pl"><span>Aucun péage sur cet itinéraire</span><span class="lit">0,00 €</span></li>';
-  $("#pays").innerHTML=Object.keys(t.pays).map(c=>{const x=t.pays[c],p=persoPrice||PAYS[c][1][t.fuel];return '<li class="pl"><span><b>'+c+'</b> '+PAYS[c][0]+' · '+Math.round(x.km)+' km · '+fmt(x.l,1)+' L × '+fmt(p,3)+'</span><span class="lit">'+fmt(x.l*p,2)+' €</span></li>';}).join("");
+function renderT1(){
+  $("#t-car").textContent=car.marque+" "+car.modele;
+  $("#t-carsp").textContent=car.ver+" · "+car.annee+" · "+car.fuel;
+  $("#t-pricelab").textContent=perso?"Mon prix · "+car.fuel:"Moyenne France du jour · "+car.fuel;
+  $("#t-price").innerHTML=totem(perso||avg(),"€/L");
+  $("#t-perso-btn").textContent=perso?"Revenir à la moyenne":"Mettre mon prix";
+  $("#t-pers").textContent=persons;
+  renderHist();
 }
 function renderHist(){
-  $("#hist").innerHTML=hist.length?hist.map((h,i)=>{const t=compute(h.dep,h.arr);return '<li class="hrow"><button type="button" class="go" data-h="'+i+'"'+(i===0?' data-el="ligne-historique"':'')+'><span class="t">'+h.dep+' → '+h.arr+'</span><br><span class="m">'+Math.round(t.km)+' km · '+h.when+'</span></button><span class="c">'+fmt(fuelCost(t)+t.peage,2)+' €</span><button type="button" class="x" data-del="'+i+'"'+(i===0?' data-el="supprimer-trajet"':'')+' aria-label="Supprimer ce trajet">✕</button></li>';}).join(""):'<li class="empty">Aucun trajet pour l\'instant. Calcule ton premier trajet ci-dessus.</li>';
+  $("#hist").innerHTML=hist.length?hist.map((h,i)=>{const c=h.L*h.price;return '<li class="hrow"><button type="button" class="go" data-h="'+i+'"><span class="t">'+h.route+'</span><br><span class="m">'+h.when+' · '+h.km+' km · '+h.pers+' pers.</span></button><span class="c">'+fmt(c,2)+' €</span><span></span></li>';}).join(""):'<li class="empty">Aucun trajet.</li>';
 }
 
-/* ---------- MOTEURS ---------- */
-const MOTEURS=[
- {id:"prix",nom:"Prix des stations",d:"Prix station par station, synchronisés toutes les 10 min.",f:[["france","France · flux officiel (sans clé)",0],["espagne","Espagne · MITECO (sans clé)",0],["allemagne","Allemagne · Tankerkönig",1]],sel:"france",cle:null,etat:"ok",msg:"Connecté · 9 815 stations"},
- {id:"moyennes",nom:"Prix moyens par pays",d:"Moyenne du jour de chaque pays traversé.",f:[["bulletin","Bulletin pétrolier UE (sans clé)",0]],sel:"bulletin",cle:null,etat:"ok",msg:"Connecté · semaine du 12/10"},
- {id:"itineraire",nom:"Itinéraire",d:"Tracé, tronçons, pente et altitude.",f:[["stadia","Stadia Maps · Europe",1],["ign","IGN · France seule (sans clé)",0],["here","HERE · Europe",1]],sel:"stadia",cle:"7f3a",etat:"ok",msg:"Connecté · 1,2 % du quota"},
- {id:"peages",nom:"Péages",d:"Montant des péages voiture, TTC.",f:[["ptv","PTV Developer",1],["here","HERE",1]],sel:"ptv",cle:null,etat:"wait",msg:"Clé à coller"},
- {id:"voitures",nom:"Voitures",d:"Masse, puissance, consommation officielle par version.",f:[["ademe-eea","ADEME + EEA (sans clé)",0]],sel:"ademe-eea",cle:null,etat:"ok",msg:"Connecté · 3 604 + 41 220 versions"},
- {id:"lieux",nom:"Recherche de lieux",d:"Propositions au fil de la frappe.",f:[["photon","Photon · Europe (sans clé)",0],["ign","IGN · France (sans clé)",0]],sel:"photon",cle:null,etat:"ok",msg:"Connecté"}
-];
-const ETAT={ok:"ok",ko:"ko",wait:"wait"};
-function renderMoteurs(){
-  $("#mots").innerHTML=MOTEURS.map((m,i)=>{const f=m.f.find(x=>x[0]===m.sel);const needKey=f&&f[2];
-    return '<li class="mot" data-m="'+i+'"><h3>'+m.nom+'<span class="stt '+m.etat+'">'+m.msg+'</span></h3><div class="d">'+m.d+'</div>'+
-    '<div class="r"><label class="sr" for="f-'+m.id+'" hidden>Fournisseur</label><select id="f-'+m.id+'" data-act="four"'+(i===3?' data-el="choix-fournisseur"':'')+'>'+m.f.map(x=>'<option value="'+x[0]+'"'+(x[0]===m.sel?' selected':'')+'>'+x[1]+'</option>').join("")+'</select></div>'+
-    (needKey?'<div class="r"><input id="k-'+m.id+'" type="password" autocomplete="off" placeholder="'+(m.cle?'Clé enregistrée ••••'+m.cle+' — coller pour remplacer':'Coller la clé d\'API')+'" data-act="cle"'+(i===3?' data-el="champ-cle"':'')+'></div>':'<div class="d">Aucune clé nécessaire.</div>')+
-    '<div class="r"><button type="button" data-act="test"'+(i===3?' data-el="tester-connexion"':'')+'>Tester la connexion</button><button type="button" class="save" data-act="save"'+(i===3?' data-el="enregistrer-moteur"':'')+'>Enregistrer</button></div></li>';}).join("");
+/* ---------- VOITURE ---------- */
+function showSpec(c){
+  pending=c;$("#v-save").disabled=!c;
+  $("#v-res").innerHTML=c?'<div class="spec"><div class="nm">'+c.marque+' '+c.modele+' '+c.ver+'</div><dl><dt>Année</dt><dd>'+c.annee+'</dd><dt>Puissance</dt><dd>'+c.kw+' kW · '+Math.round(c.kw*1.36)+' ch</dd><dt>Cylindrée</dt><dd>'+c.cm3+' cm³</dd><dt>Masse</dt><dd>'+c.kg+' kg</dd><dt>Carburant</dt><dd>'+c.fuel+'</dd><dt>CO2</dt><dd>'+c.co2+' g/km</dd></dl></div>':'';
 }
-$("#mots")?.addEventListener("click",e=>{const b=e.target.closest("button[data-act]");if(!b)return;const li=b.closest(".mot"),m=MOTEURS[+li.dataset.m];const inp=li.querySelector("input");const v=inp?inp.value.trim():"";const f=m.f.find(x=>x[0]===m.sel);
-  if(b.dataset.act==="test"){ if(f[2]&&!v&&!m.cle){m.etat="ko";m.msg="Aucune clé : colle-la d'abord";} else if(v&&v.length<12){m.etat="ko";m.msg="Clé refusée par "+f[1].split(" ·")[0]+" (401)";} else {m.etat="ok";m.msg="Connecté · test Albi → Barcelone OK";} renderMoteurs(); }
-  if(b.dataset.act==="save"){ if(v){m.cle=v.slice(-4);} m.etat=m.etat==="ko"?"ko":"ok";m.msg=m.etat==="ok"?"Enregistré · utilisé dès le prochain calcul":m.msg; renderMoteurs(); }
-});
-$("#mots")?.addEventListener("change",e=>{const sel=e.target.closest('select[data-act="four"]');if(!sel)return;const m=MOTEURS[+sel.closest(".mot").dataset.m];m.sel=sel.value;const f=m.f.find(x=>x[0]===m.sel);m.etat=f[2]?"wait":"ok";m.msg=f[2]?"Clé à coller":"Prêt · sans clé";renderMoteurs();});
+$("#d2").addEventListener("input",e=>{const v=e.target.value.replace(/\s/g,"").toUpperCase();const c=CARBASE.find(x=>v.endsWith(x.d2));
+  if(c)showSpec(c);else if(v.length>=6){showSpec(null);$("#v-res").innerHTML='<p class="hint" style="color:var(--dear)">Code introuvable. Vérifie la case D.2, ou cherche par nom ci-dessous.</p>';}else showSpec(null);});
+$("#q").addEventListener("input",e=>{const w=e.target.value.toLowerCase().split(/\s+/).filter(Boolean);const r=w.length?CARBASE.filter(c=>w.every(t=>c.q.includes(t))):[];
+  $("#sugg").hidden=!r.length;$("#sugg").innerHTML=r.map(c=>'<li><button type="button" data-c="'+CARBASE.indexOf(c)+'">'+c.marque+' '+c.modele+' '+c.ver+'<br><span class="m">'+c.annee+' · '+c.kw+' kW · '+c.fuel+'</span></button></li>').join("");});
+$("#sugg").addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;showSpec(CARBASE[+b.dataset.c]);$("#sugg").hidden=true;});
+$("#v-save").addEventListener("click",()=>{if(!pending)return;car=pending;fuel=car.fuel;try{localStorage.setItem("pt-car-v1",car.d2);}catch(e){}show("T1");});
+$("#v-back").addEventListener("click",()=>show("T1"));
+$("#t-chg").addEventListener("click",()=>{$("#d2").value="";$("#q").value="";$("#sugg").hidden=true;showSpec(null);show("T2");});
 
-/* ---------- ENREGISTREMENT ---------- */
-// profil d'exemple : ville → route → autoroute → ville, une valeur par « tic » (≈ 20 s de route)
-const PROFIL=(()=>{const a=[];const seg=(n,v0,v1,arret)=>{for(let i=0;i<n;i++){const v=v0+(v1-v0)*i/n;a.push(arret&&i%arret===0?0:Math.max(0,Math.round(v+(Math.sin(a.length*1.7)*4))));}};
-  seg(14,18,34,4);seg(16,55,82,7);seg(40,110,124,0);seg(10,84,62,0);seg(14,30,22,3);return a;})();
-let rec=null;
-function sparkPath(vals,w,h,max){if(!vals.length)return"";const n=Math.max(vals.length-1,1);return vals.map((v,i)=>(i?"L":"M")+(i/n*w).toFixed(1)+" "+(h-2-(v/max)*(h-6)).toFixed(1)).join(" ");}
+/* ---------- EN ROUTE ---------- */
 function bande(v){return v<45?"V":v<90?"R":"A";}
-function l100De(m,v,dv){const b=m[2][bande(v)];return b+(dv>8?2.6:dv>3?1.1:0);}
-function startRec(){rec={i:0,v:[],km:0,L:0,s:0,stops:0,paused:false,timer:null,last:0};$("#rec-car").textContent=car.marque+" "+car.modele+" "+carSpec()[0];$("#rec-pause").textContent="Pause";$("#rec-on").innerHTML="<i></i>Enregistrement";show("S6");tickRec();rec.timer=setInterval(tickRec,450);}
-function tickRec(){if(!rec||rec.paused)return;const m=carSpec();const v=PROFIL[rec.i%PROFIL.length];const dv=v-rec.last;
-  if(v===0&&rec.last>0)rec.stops++;const dkm=v*20/3600;rec.km+=dkm;rec.L+=dkm*l100De(m,v,dv)/100;rec.s+=20;rec.v.push(v);rec.last=v;rec.i++;renderRec();}
-function renderRec(){const m=carSpec();const p=PAYS.FR[1][m[1]];
+function l100(v,dv){return car.l[bande(v)]+(dv>8?2.4:dv>3?1:0);}
+function startRec(){rec={i:0,v:[],km:0,L:0,s:0,paused:false,timer:null,last:0,acc:0,price:perso||avg(),perso:!!perso};$("#rec-car").textContent=car.marque+" "+car.modele+" · "+persons+" pers.";$("#rec-pause").textContent="Pause";$("#rec-on").innerHTML="<i></i>Enregistrement";$("#rec-on").style.color="";$("#rec-alert").innerHTML="";$("#rec-gps").hidden=true;show("T3");tick();rec.timer=setInterval(tick,450);}
+function tick(){if(!rec||rec.paused)return;const v=PROFIL[rec.i%PROFIL.length],dv=v-rec.last;if(dv>8)rec.acc++;const dkm=v*20/3600;rec.km+=dkm;rec.L+=dkm*l100(v,dv)/100;rec.s+=20;rec.v.push(v);rec.last=v;rec.i++;renderRec();}
+function renderRec(){
   $("#v-now").innerHTML='<span>'+rec.last+'</span><span class="u">km/h</span>';
-  $("#v-km").textContent=fmt(rec.km,1);$("#v-l").textContent=fmt(rec.L,2);$("#v-eur").textContent=fmt(rec.L*p,2);
-  $("#v-t").textContent=Math.floor(rec.s/3600)+":"+String(Math.floor(rec.s%3600/60)).padStart(2,"0");$("#v-stops").textContent=rec.stops;$("#v-l100").textContent=rec.km>0.5?fmt(rec.L/rec.km*100,1):"—";
-  const last=rec.v.slice(-60);$("#spark").innerHTML='<path d="'+sparkPath(last,300,56,140)+'" fill="none" stroke="var(--led)" stroke-width="2" vector-effect="non-scaling-stroke"/>';}
-function pauseRec(){if(!rec)return;rec.paused=!rec.paused;rec.last=0;$("#rec-pause").textContent=rec.paused?"Reprendre":"Pause";$("#rec-on").innerHTML=rec.paused?"En pause":"<i></i>Enregistrement";$("#rec-on").style.color=rec.paused?"var(--muted)":"";}
-function stopRec(){if(!rec)return;clearInterval(rec.timer);rec.paused=false;while(rec.i<PROFIL.length)tickRec(); /* maquette : on rejoue le trajet d'exemple jusqu'au bout */const m=carSpec();const parts={A:{km:0,l:0,n:0,vs:0},R:{km:0,l:0,n:0,vs:0},V:{km:0,l:0,n:0,vs:0,st:0}};let prev=0,acc=0;
-  rec.v.forEach(v=>{const b=bande(v),dkm=v*20/3600,dv=v-prev;const P=parts[b];P.km+=dkm;P.l+=dkm*l100De(m,v,dv)/100;P.n++;P.vs+=v;if(v===0&&prev>0)parts.V.st++;if(dv>8)acc++;prev=v;});
-  const noms={A:"Autoroute",R:"Route",V:"Ville"};
-  const rows=["A","R","V"].filter(k=>parts[k].km>0.05).map(k=>{const P=parts[k];return {t:k,name:noms[k],km:Math.round(P.km*10)/10,info:Math.round(P.vs/P.n)+" km/h moy."+(k==="V"?" · "+parts.V.st+" arrêts":"")+" · vitesse réelle",l:P.l,l100:P.l/P.km*100,c:"FR"};});
-  const L=rows.reduce((a,r)=>a+r.l,0),km=rows.reduce((a,r)=>a+r.km,0);
-  const t={dep:"Albi",arr:"Toulouse",rows,L,km,fuel:m[1],car:car.marque+" "+car.modele+" "+m[0],pays:{FR:{km,l:L}},peages:[],peage:0,rec:{v:rec.v.slice(),acc,moy:Math.round(km/(rec.s/3600))}};
-  hist.unshift({dep:"Albi",arr:"Toulouse",when:"enregistré aujourd'hui"});hist=hist.slice(0,8);renderHist();rec=null;showResult(t);}
-
-/* ---------- NAVIGATION ---------- */
-function show(id){
-  const base=id==="S2"?"S1":id;
-  document.querySelectorAll("[data-screen]").forEach(s=>s.hidden=s.dataset.screen!==base);
-  $("#tab-prix").setAttribute("aria-selected",base==="S1"||base==="S2");
-  $("#tab-trajets").setAttribute("aria-selected",base==="S3"||base==="S4"||base==="S6");
-  $("#gear").setAttribute("aria-pressed",base==="S5");
-  if(id==="S2"){if(!$("#sheet").classList.contains("open"))openSheet(0);}else closeSheet();
+  $("#v-km").textContent=fmt(rec.km,1);$("#v-l").textContent=fmt(rec.L,2);$("#v-eur").textContent=fmt(rec.L*rec.price,2);
+  $("#v-t").textContent=Math.floor(rec.s/3600)+":"+String(Math.floor(rec.s%3600/60)).padStart(2,"0");
+  $("#v-moy").textContent=rec.s>60?Math.round(rec.km/(rec.s/3600)):"—";$("#v-l100").textContent=rec.km>0.5?fmt(rec.L/rec.km*100,1):"—";
+  $("#spark").innerHTML='<path d="'+sparkPath(rec.v.slice(-60),300,56,140)+'" fill="none" stroke="var(--led)" stroke-width="2" vector-effect="non-scaling-stroke"/>';
+  $("#og-eur").textContent=fmt(rec.L*rec.price,2)+" €";
 }
+function pauseRec(){if(!rec)return;rec.paused=!rec.paused;rec.last=0;$("#rec-pause").textContent=rec.paused?"Reprendre":"Pause";$("#rec-on").innerHTML=rec.paused?"En pause":"<i></i>Enregistrement";$("#rec-on").style.color=rec.paused?"var(--muted)":"";}
+function stopRec(){if(!rec)return;clearInterval(rec.timer);rec.paused=false;$("#rec-alert").innerHTML="";
+  // maquette : le trajet d'exemple est rejoué en accéléré jusqu'à Paris (678 km)
+  while(rec.i<PROFIL.length)tick();const k=678/rec.km;
+  trip={route:"Toulouse → Paris",when:"aujourd'hui",km:678,L:rec.L*k,price:rec.price,perso:rec.perso,pers:persons,v:rec.v.slice(),acc:Math.round(rec.acc*k/3),dur:"6 h 41"};
+  hist.unshift(trip);rec=null;showTrip(trip);}
+function autoStop(){if(!rec)return;rec.paused=true;$("#rec-on").innerHTML="Immobile depuis 10 min";$("#rec-on").style.color="var(--dear)";
+  $("#rec-alert").innerHTML='<div class="alert"><b>Trajet arrêté : immobile depuis 10 min.</b><div class="r"><button class="btn ghost" type="button" id="al-res">Reprendre</button><button class="btn" type="button" id="al-ok">C\'est fini</button></div></div>';
+  $("#al-res").onclick=()=>{$("#rec-alert").innerHTML="";pauseRec();};$("#al-ok").onclick=stopRec;}
 
-/* ---------- ÉVÉNEMENTS ---------- */
-$("#fuels").addEventListener("click",e=>{const b=e.target.closest("[data-f]");if(!b)return;fuel=b.dataset.f;renderFuels();renderStations();if(cur&&$("#sheet").classList.contains("open"))openSheet(STATIONS.indexOf(cur));});
+/* ---------- FIN DE TRAJET ---------- */
+function showTrip(t){trip=t;$("#r-perso-wrap").hidden=true;renderTrip();show("T4");}
+function renderTrip(){const t=trip,c=t.L*t.price;
+  $("#r-route").textContent=t.route;$("#r-sub").textContent=t.when+(t.dur?" · "+t.dur:"")+" · "+car.marque+" "+car.modele;
+  $("#r-cost").innerHTML='<span class="roll">'+fmt(c,2)+'</span><span class="u">€ essence</span>';
+  $("#r-share").innerHTML=t.pers>1?'<b>'+fmt(c/t.pers,2)+' €</b> chacun · '+t.pers+' personnes':'1 personne';
+  $("#r-l").textContent=fmt(t.L,1);$("#r-km").textContent=t.km;$("#r-l100").textContent=fmt(t.L/t.km*100,1);
+  $("#r-pricelab").textContent=t.perso?"Mon prix · "+car.fuel:"Moyenne France du jour · "+car.fuel;$("#r-price").innerHTML=totem(t.price,"€/L");
+  $("#r-perso-btn").textContent=t.perso?"Revenir à la moyenne":"Mettre mon prix";$("#r-pers").textContent=t.pers;
+  const moy=t.dur?Math.round(t.km/6.68):Math.round(t.v.reduce((a,b)=>a+b,0)/t.v.length);
+  $("#r-trace-info").textContent=moy+" km/h moy. · "+t.acc+" accélérations";
+  $("#r-spark").innerHTML='<path d="'+sparkPath(t.v,300,70,140)+'" fill="none" stroke="var(--ink)" stroke-width="2" vector-effect="non-scaling-stroke"/>';
+}
+$("#r-perso-btn").addEventListener("click",()=>{if(trip.perso){trip.perso=false;trip.price=avg();$("#r-perso-wrap").hidden=true;renderTrip();}else{$("#r-perso-wrap").hidden=false;$("#r-perso").value="";$("#r-perso").focus();}});
+$("#r-perso").addEventListener("input",e=>{const v=parseFloat(e.target.value.replace(",","."));if(v>0&&v<5){trip.price=v;trip.perso=true;const w=$("#r-perso-wrap");renderTrip();w.hidden=false;}});
+document.querySelectorAll("[data-rp]").forEach(b=>b.addEventListener("click",()=>{trip.pers=Math.min(9,Math.max(1,trip.pers+ +b.dataset.rp));renderTrip();}));
+$("#r-del").addEventListener("click",()=>{const i=hist.indexOf(trip);if(i>=0)hist.splice(i,1);trip=null;show("T1");});
+$("#r-back").addEventListener("click",()=>show("T1"));
+$("#hist").addEventListener("click",e=>{const g=e.target.closest("[data-h]");if(g)showTrip(hist[+g.dataset.h]);});
+
+/* ---------- STATIONS ---------- */
+function zone(){return ZONES[zi];}
+function sprice(s,f){if((s.miss||[]).includes(f))return null;return +(NAT[zone().pays][f]+s.off).toFixed(3);}
+function renderFuels(){$("#fuels").innerHTML=FUELS.map(f=>'<button type="button" class="fuel" aria-pressed="'+(f===fuel)+'" data-f="'+f+'">'+f+'</button>').join("");}
+function renderStations(){const z=zone();
+  const av=z.st.map((s,i)=>({s,i,p:sprice(s,fuel)})).filter(o=>o.p!=null);const ps=av.map(o=>o.p).sort((a,b)=>a-b),med=ps[Math.floor((ps.length-1)/2)];
+  $("#pins").innerHTML=av.map(o=>'<button type="button" class="pin '+(o.p<=med?'lo':'hi')+'" style="left:'+o.s.x+'%;top:'+o.s.y+'%" data-i="'+o.i+'" aria-label="'+o.s.n+', '+fmt(o.p,3)+' euros"><span class="roll">'+fmt(o.p,3)+'</span></button>').join("");
+  $("#me").hidden=!z.me;
+  const list=av.slice().sort((a,b)=>sort==="prix"?a.p-b.p:a.s.d-b.s.d);
+  $("#rows").innerHTML=list.map(o=>{const dv=o.p-NAT[z.pays][fuel];return '<li><button type="button" class="row" data-i="'+o.i+'"><span><span class="n">'+o.s.n+'</span><br><span class="m">'+(o.s.d?fmt(o.s.d,1)+' km · ':'sur l\'autoroute · ')+o.s.maj+' · </span><span class="delta '+(dv<0?'lo':'hi')+'">'+(dv<0?'−':'+')+fmt(Math.abs(dv)*100,1)+' c vs moyenne</span>'+(z.pays==="GB"?'<br><span class="gbp">'+fmt(o.p*GBP*100,1)+' p/L</span>':'')+'</span><span class="totem">'+totem(o.p,'€/L')+'</span></button></li>';}).join("")||'<li class="empty">Aucune station pour ce carburant ici.</li>';
+  $("#listtitle").textContent=z.nom+" · "+fuel;
+}
+function openSheet(i){cur=zone().st[i];const z=zone();
+  $("#sh-name").textContent=cur.n;$("#sh-addr").textContent=cur.a+(cur.d?" · "+fmt(cur.d,1)+" km":"");
+  $("#board").innerHTML=FUELS.map(f=>{const p=sprice(cur,f);return '<span class="lab">'+f+'</span>'+(p==null?'<span class="na">non vendu</span>':'<span class="totem">'+totem(p,'€/L')+'</span>');}).join("");
+  $("#sh-meta").innerHTML='<span>Prix mis à jour '+cur.maj+'</span>'+(z.pays==="GB"?'<span>1 € = '+fmt(GBP,4)+' £ · BCE</span>':'');
+  const p=sprice(cur,car.fuel);$("#use-price").hidden=p==null;if(p!=null)$("#use-price").textContent="Utiliser "+fmt(p,3)+" €/L pour mon trajet";
+  $("#sheet").classList.add("open");$("#sh-name").setAttribute("tabindex","-1");$("#sh-name").focus();}
+function closeSheet(){$("#sheet").classList.remove("open");}
+$("#use-price").addEventListener("click",()=>{const p=sprice(cur,car.fuel);closeSheet();if(rec){rec.price=p;rec.perso=true;renderRec();show("T3");}else{perso=p;show("T1");}});
+let drag=null,ox=0,oy=0;
+$("#map").addEventListener("pointerdown",e=>{if(e.target.closest(".pin,.zone"))return;drag={x:e.clientX-ox,y:e.clientY-oy};$("#map").setPointerCapture(e.pointerId);});
+$("#map").addEventListener("pointermove",e=>{if(!drag)return;ox=e.clientX-drag.x;oy=e.clientY-drag.y;$("#layer").style.transform="translate("+ox+"px,"+oy+"px)";if(Math.hypot(ox,oy)>25)$("#zone").hidden=false;});
+$("#map").addEventListener("pointerup",()=>{drag=null;});
+$("#zone").addEventListener("click",()=>{zi=(zi+1)%ZONES.length;ox=oy=0;$("#layer").style.transform="";$("#zone").hidden=true;if(zone().pays==="GB"&&fuel==="E85")fuel="SP95-E10";renderFuels();renderStations();});
+$("#fuels").addEventListener("click",e=>{const b=e.target.closest("[data-f]");if(!b)return;fuel=b.dataset.f;renderFuels();renderStations();});
 $("#sort-prix").addEventListener("click",()=>{sort="prix";$("#sort-prix").setAttribute("aria-pressed",true);$("#sort-dist").setAttribute("aria-pressed",false);renderStations();});
 $("#sort-dist").addEventListener("click",()=>{sort="dist";$("#sort-dist").setAttribute("aria-pressed",true);$("#sort-prix").setAttribute("aria-pressed",false);renderStations();});
 $("#pins").addEventListener("click",e=>{const b=e.target.closest("[data-i]");if(b)openSheet(+b.dataset.i);});
 $("#rows").addEventListener("click",e=>{const b=e.target.closest("[data-i]");if(b)openSheet(+b.dataset.i);});
 $("#close").addEventListener("click",closeSheet);
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet();});
-$("#to-station").addEventListener("click",()=>{$("#arr").value=cur.a;show("S3");$("#arr").focus();});
-$("#tab-prix").addEventListener("click",()=>show("S1"));
-$("#tab-trajets").addEventListener("click",()=>show("S3"));
-$("#marque").addEventListener("change",e=>{car.marque=e.target.value;car.modele=Object.keys(CARS[car.marque])[0];car.moteur=0;renderCar();});
-$("#modele").addEventListener("change",e=>{car.modele=e.target.value;car.moteur=0;renderCar();});
-$("#moteur").addEventListener("change",e=>{car.moteur=+e.target.value;renderCar();});
-$("#calc").addEventListener("click",()=>{const dep=$("#dep").value.trim()||"Albi",arr=($("#arr").value.trim()||"Bordeaux");const key=Object.keys(ROUTES).find(k=>arr.toLowerCase().includes(k.toLowerCase()))||arr;const t=compute(dep,key);t.arr=arr;hist.unshift({dep,arr:key,when:"aujourd'hui"});hist=hist.slice(0,8);renderHist();showResult(t);});
-$("#hist").addEventListener("click",e=>{const d=e.target.closest("[data-del]");if(d){hist.splice(+d.dataset.del,1);renderHist();return;}const g=e.target.closest("[data-h]");if(g){const h=hist[+g.dataset.h];showResult(compute(h.dep,h.arr));}});
-$("#segs").addEventListener("click",e=>{const b=e.target.closest(".tr>button");if(!b)return;const d=b.nextElementSibling;d.hidden=!d.hidden;b.setAttribute("aria-expanded",!d.hidden);});
-$("#perso-btn").addEventListener("click",()=>{const w=$("#perso-wrap");if(w.hidden){w.hidden=false;$("#perso").focus();$("#perso-btn").textContent="Revenir à la moyenne";}else{w.hidden=true;persoPrice=null;$("#perso").value="";$("#perso-btn").textContent="Mettre mon prix";renderCost();}});
-$("#perso").addEventListener("input",e=>{const v=parseFloat(e.target.value.replace(",","."));persoPrice=v>0&&v<5?v:null;renderCost();});
-$("#back").addEventListener("click",()=>show("S3"));
-$("#rec").addEventListener("click",startRec);
+
+/* ---------- NAVIGATION ---------- */
+function show(id){
+  document.querySelectorAll("[data-screen]").forEach(s=>s.hidden=s.dataset.screen!==id);
+  $("#tab-trajet").setAttribute("aria-selected",id!=="T5");$("#tab-stations").setAttribute("aria-selected",id==="T5");
+  $("#ongoing").hidden=!(id==="T5"&&rec);
+  $("#where").textContent=id==="T5"?zone().nom:"Toulouse";
+  if(id==="T1")renderT1();if(id==="T5"){renderFuels();renderStations();}else closeSheet();
+}
+$("#tab-trajet").addEventListener("click",()=>show(rec?"T3":"T1"));
+$("#tab-stations").addEventListener("click",()=>{fuel=car.fuel;show("T5");});
+$("#t-go").addEventListener("click",startRec);
 $("#rec-pause").addEventListener("click",pauseRec);
 $("#rec-stop").addEventListener("click",stopRec);
-$("#gear").addEventListener("click",()=>show("S5"));
-$("#back-mot").addEventListener("click",()=>show("S1"));
+$("#rec-st").addEventListener("click",()=>{fuel=car.fuel;zi=0;show("T5");});
+$("#og-back").addEventListener("click",()=>show("T3"));
+document.querySelectorAll("[data-p]").forEach(b=>b.addEventListener("click",()=>{persons=Math.min(9,Math.max(1,persons+ +b.dataset.p));renderT1();}));
+$("#t-perso-btn").addEventListener("click",()=>{if(perso){perso=null;$("#t-perso-wrap").hidden=true;renderT1();}else{$("#t-perso-wrap").hidden=false;$("#t-perso").value="";$("#t-perso").focus();}});
+$("#t-perso").addEventListener("input",e=>{const v=parseFloat(e.target.value.replace(",","."));perso=v>0&&v<5?v:null;renderT1();$("#t-perso-wrap").hidden=false;});
 
 /* ---------- HISTOIRES ---------- */
 const groups={};STORIES.forEach(s=>(groups[s[1]]=groups[s[1]]||[]).push(s));
-$("#storylist").innerHTML=Object.keys(groups).map(g=>'<div class="sgrp">'+g+' · '+SCREENNAMES[g]+'</div>'+groups[g].map(s=>'<button type="button" class="st" data-story="'+s[0]+'" data-screen-go="'+s[1]+'" data-target="'+s[2]+'"><b><em>'+s[0]+'</em>'+s[3]+'</b><span>'+s[4]+'</span></button>').join("")).join("");
+$("#storylist").innerHTML=Object.keys(groups).map(g=>'<div class="sgrp">'+SCREENNAMES[g]+'</div>'+groups[g].map(s=>'<button type="button" class="st" data-story="'+s[0]+'" data-screen-go="'+s[1]+'" data-target="'+s[2]+'"><b><em>'+s[0]+'</em>'+s[3]+'</b><span>'+s[4]+'</span></button>').join("")).join("");
 $("#storylist").addEventListener("click",e=>{
   const b=e.target.closest(".st");if(!b)return;
   document.querySelectorAll(".st.on").forEach(x=>x.classList.remove("on"));b.classList.add("on");
-  const sc=b.dataset.screenGo;
-  if(sc==="S6"&&!rec)startRec();
-  if(sc==="S4"&&b.dataset.target==="courbe-vitesse"){if(!rec)startRec();for(let k=0;k<70;k++)tickRec();stopRec();}
-  else if(sc==="S4"&&!lastTrip)showResult(compute("Albi","Bordeaux"));else show(sc);
-  if(sc==="S4")show("S4");
+  const sc=b.dataset.screenGo,id=b.dataset.story;
+  if(sc==="T3"){if(!rec)startRec();else show("T3");if(id==="V-3.E1")autoStop();if(id==="V-3.E2")$("#rec-gps").hidden=false;}
+  else if(sc==="T4"){if(!trip){if(!rec)startRec();for(let k=0;k<40;k++)tick();stopRec();}else show("T4");}
+  else if(sc==="T2"){$("#t-chg").click();if(id==="V-2.2"){$("#d2").value="5RBU0C";$("#d2").dispatchEvent(new Event("input"));}if(id==="V-2.E1"){$("#d2").value="ZZ9999";$("#d2").dispatchEvent(new Event("input"));}if(id==="V-2.3"){$("#q").value="clio 2017 120";$("#q").dispatchEvent(new Event("input"));}}
+  else if(sc==="T5"){if(id==="V-5.6"&&!rec){startRec();}fuel=car.fuel;show("T5");if(id==="V-5.3")$("#zone").hidden=false;if(id==="V-5.7"){zi=2;$("#zone").hidden=true;renderStations();$("#where").textContent=zone().nom;}if(id==="V-5.5")openSheet(0);}
+  else show(sc);
   const el=document.querySelector('[data-el="'+b.dataset.target+'"]');
   if(el){el.classList.remove("pulse");void el.offsetWidth;el.classList.add("pulse");el.scrollIntoView({block:"nearest",behavior:"smooth"});setTimeout(()=>el.classList.remove("pulse"),1500);}
 });
 
-try{const s=JSON.parse(localStorage.getItem("pt-car")||"null");if(s&&CARS[s.marque]&&CARS[s.marque][s.modele])car=s;}catch(e){}
-["marque","modele","moteur"].forEach(id=>$("#"+id).addEventListener("change",()=>{try{localStorage.setItem("pt-car",JSON.stringify(car));}catch(e){}}));
-renderFuels();renderStations();renderCar();renderHist();renderMoteurs();
+try{const d=localStorage.getItem("pt-car-v1");const c=CARBASE.find(x=>x.d2===d);if(c){car=c;fuel=c.fuel;}}catch(e){}
+show("T1");
 })();
 </script>
