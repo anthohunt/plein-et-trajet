@@ -184,7 +184,7 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
 .trace svg{width:100%;height:70px;display:block;margin-top:6px}
 .badge{display:inline-block;font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.06em;border:1px solid var(--line);border-radius:999px;padding:4px 8px;color:var(--muted);margin:0 16px}
 /* onglets */
-.tabs{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);background:var(--surface)}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--line);background:var(--surface)}
 .tab{border:0;background:transparent;padding:12px 0 14px;font:800 17px/1 var(--f-display);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);position:relative}
 .tab[aria-selected="true"]{color:var(--ink)}
 .tab[aria-selected="true"]::before{content:"";position:absolute;top:-1px;left:30%;right:30%;height:3px;background:var(--ink);border-radius:0 0 3px 3px}
@@ -264,8 +264,19 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
     <div class="scroll">
       <div class="carcard" data-el="ma-voiture"><div class="nm" id="t-car"></div><div class="sp" id="t-carsp"></div><button type="button" class="chg" id="t-chg" data-el="changer-voiture">Changer</button></div>
       <button type="button" class="btn gobig" id="t-go" data-el="bouton-demarrer">Démarrer</button>
-      <h2 class="sec">Mes trajets</h2>
-      <ul class="hist" id="hist" data-el="historique"></ul>
+    </div>
+  </section>
+
+  <!-- T6 HISTORIQUE -->
+  <section class="screen" data-screen="T6" hidden>
+    <div class="scroll">
+      <div class="route">Historique</div>
+      <div class="kpis" data-el="totaux-historique">
+        <div class="kpi"><b id="h-n">0</b><span>trajets</span></div>
+        <div class="kpi"><b id="h-km">0</b><span>km</span></div>
+        <div class="kpi"><b id="h-eur">0</b><span>€ essence</span></div>
+      </div>
+      <ul class="hist" id="hist" data-el="historique" style="margin-top:8px"></ul>
     </div>
   </section>
 
@@ -321,7 +332,7 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
   <!-- T4 FIN DE TRAJET -->
   <section class="screen" data-screen="T4" hidden>
     <div class="scroll">
-      <div class="rhead"><button class="back" type="button" id="r-back">← Mes trajets</button></div>
+      <div class="rhead"><button class="back" type="button" id="r-back">← Historique</button></div>
       <div class="route" id="r-route"></div>
       <p class="rsub" id="r-sub"></p>
       <div class="kpis">
@@ -392,6 +403,7 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
   <nav class="tabs" role="tablist">
     <button class="tab" role="tab" aria-selected="true" data-el="onglet-trajet" id="tab-trajet">Trajet</button>
     <button class="tab" role="tab" aria-selected="false" data-el="onglet-stations" id="tab-stations">Stations</button>
+    <button class="tab" role="tab" aria-selected="false" data-el="onglet-historique" id="tab-hist">Historique</button>
   </nav>
 </div>
 
@@ -406,10 +418,9 @@ h2.sec{font:600 13px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08
 <script>
 (function(){
 const STORIES=[
- ["V-1.1","T1","onglet-trajet","Ouvrir l'appli","L'appli s'ouvre sur Trajet : ma voiture, Démarrer, mes trajets."],
+ ["V-1.1","T1","onglet-trajet","Ouvrir l'appli","L'appli s'ouvre sur Trajet : ma voiture et Démarrer."],
  ["V-1.2","T1","ma-voiture","Voir ma voiture","La voiture enregistrée une fois, avec son carburant ; « Changer » ouvre Ma voiture."],
  ["V-1.3","T1","bouton-demarrer","Démarrer","Lance l'enregistrement du trajet."],
- ["V-1.4","T1","historique","Mes trajets","Les trajets enregistrés : date, km, coût ; toucher rouvre le détail."],
  ["V-2.1","T2","champ-d2","Saisir le code D.2","Le code type-variante-version de la carte grise identifie exactement la version de moteur (base européenne EEA)."],
  ["V-2.2","T2","enregistrer-voiture","Vérifier et enregistrer","Je vois marque, modèle, année, puissance, cylindrée, masse, carburant, puis j'enregistre une fois pour toutes."],
  ["V-2.3","T2","recherche-voiture","Chercher sans la carte grise","« clio 2017 120 » propose les versions correspondantes."],
@@ -428,7 +439,10 @@ const STORIES=[
  ["V-4.5","T4","courbe-vitesse","Courbe de vitesse","Vitesse au fil du trajet, vitesse moyenne, accélérations."],
  ["V-4.6","T4","courbe-conso","Courbe de consommation","Litres aux 100 km au fil du trajet."],
  ["V-4.7","T4","enregistrer-ou-supprimer","Enregistrer ou supprimer","« Enregistrer ce trajet » l'ajoute à Mes trajets ; « Supprimer » l'oublie."],
- ["V-4.8","T4","supprimer-trajet","Revoir et supprimer","Un trajet de Mes trajets se rouvre, se corrige (prix, personnes) et se supprime."],
+ ["V-6.1","T6","onglet-historique","Ouvrir l'historique","Tous les trajets enregistrés, du plus récent au plus ancien, groupés par mois."],
+ ["V-6.2","T6","totaux-historique","Totaux","Nombre de trajets, km et € d'essence cumulés."],
+ ["V-6.3","T6","historique","Lire un trajet","Date, trajet, km, coût et part de chacun."],
+ ["V-6.4","T4","supprimer-trajet","Revoir, corriger, supprimer","Un trajet se rouvre, se corrige (prix, personnes) et se supprime."],
  ["V-5.1","T5","onglet-stations","Stations autour de moi","Carte et liste des prix autour de ma position ; l'enregistrement continue."],
  ["V-5.2","T5","selecteur-carburant","Choisir le carburant","Par défaut celui de ma voiture."],
  ["V-5.3","T5","rechercher-zone","Rechercher dans cette zone","Je fais glisser la carte, puis « Rechercher dans cette zone » charge les stations de la zone affichée."],
@@ -437,7 +451,7 @@ const STORIES=[
  ["V-5.6","T5","retour-trajet","Trajet en cours","Pendant un trajet, un bandeau rappelle qu'il tourne ; l'onglet Trajet y ramène."],
  ["V-5.7","T5","carte-stations","Europe et Royaume-Uni","Les stations d'Europe et du Royaume-Uni ; prix en €/L, prix d'origine en £ au Royaume-Uni."]
 ];
-const SCREENNAMES={T1:"Trajet",T2:"Ma voiture",T3:"En route",T4:"Fin de trajet",T5:"Stations"};
+const SCREENNAMES={T1:"Trajet",T2:"Ma voiture",T3:"En route",T4:"Fin de trajet",T5:"Stations",T6:"Historique"};
 
 const FUELS=["Gazole","SP95-E10","SP95","SP98","E85","GPLc"];
 const NAT={FR:{"Gazole":2.367,"SP95-E10":2.161,"SP95":2.214,"SP98":2.271,"E85":1.068,"GPLc":1.159},GB:{"Gazole":1.689,"SP95-E10":1.594,"SP95":1.594,"SP98":1.761,"E85":1.594,"GPLc":0.979}};
@@ -472,7 +486,9 @@ let car=CARBASE[0], pending=null, fuel=car.fuel, sort="prix", zi=0, cur=null, re
 function mkTrip(o){const c=o.v.map((v,i)=>+(car.l[v<45?"V":v<90?"R":"A"]+((v-(o.v[i-1]||0))>8?2.4:0)).toFixed(1));return Object.assign({fuel:car.fuel,perso:null,c,saved:true},o);}
 let hist=[
  mkTrip({route:"Albi → Toulouse",when:"12 oct.",km:77,L:4.6,pers:2,v:PROFIL.slice(0,60),acc:9}),
- mkTrip({route:"Toulouse → Rodez",when:"3 oct.",km:152,L:8.4,perso:1.989,pers:1,v:PROFIL.slice(10,90),acc:14})
+ mkTrip({route:"Toulouse → Rodez",when:"3 oct.",km:152,L:8.4,perso:1.989,pers:1,v:PROFIL.slice(10,90),acc:14}),
+ mkTrip({route:"Toulouse → Bordeaux",when:"14 sept.",mois:"Septembre 2026",km:245,L:14.1,pers:3,v:PROFIL.slice(5,100),acc:21}),
+ mkTrip({route:"Toulouse → Montpellier",when:"2 sept.",mois:"Septembre 2026",km:243,L:13.6,pers:2,v:PROFIL.slice(0,95),acc:19})
 ];
 
 const $=s=>document.querySelector(s);
@@ -486,10 +502,11 @@ function sparkPath(vals,w,h,max){if(!vals.length)return"";const n=Math.max(vals.
 function renderT1(){
   $("#t-car").textContent=car.marque+" "+car.modele;
   $("#t-carsp").textContent=car.ver+" · "+car.annee+" · "+car.fuel;
-  renderHist();
 }
 function renderHist(){
-  $("#hist").innerHTML=hist.length?hist.map((h,i)=>'<li class="hrow"><button type="button" class="go" data-h="'+i+'"><span class="t">'+h.route+'</span><br><span class="m">'+h.when+' · '+h.km+' km'+(h.pers>1?' · '+fmt(h.L*tprice(h)/h.pers,2)+' € chacun':'')+'</span></button><span class="c">'+fmt(h.L*tprice(h),2)+' €</span><span></span></li>').join(""):'<li class="empty">Aucun trajet.</li>';
+  const tot=hist.reduce((a,h)=>a+h.L*tprice(h),0);$("#h-n").textContent=hist.length;$("#h-km").textContent=hist.reduce((a,h)=>a+h.km,0);$("#h-eur").textContent=fmt(tot,2);
+  let mois="";
+  $("#hist").innerHTML=hist.length?hist.map((h,i)=>{const m=h.mois||"Octobre 2026";const g=m!==mois?'<li class="sgrp" style="margin:14px 0 4px;color:var(--muted)">'+m+'</li>':"";mois=m;return g+'<li class="hrow"><button type="button" class="go" data-h="'+i+'"><span class="t">'+h.route+'</span><br><span class="m">'+h.when+' · '+h.km+' km'+(h.pers>1?' · '+fmt(h.L*tprice(h)/h.pers,2)+' € chacun':'')+'</span></button><span class="c">'+fmt(h.L*tprice(h),2)+' €</span><span></span></li>';}).join(""):'<li class="empty">Aucun trajet enregistré.</li>';
 }
 
 /* ---------- VOITURE ---------- */
@@ -558,10 +575,10 @@ $("#r-pricebox").addEventListener("focusout",()=>{if(editing)setTimeout(applyPer
 $("#r-avg").addEventListener("click",()=>{trip.perso=null;renderTrip();});
 $("#r-fuels").addEventListener("click",e=>{const b=e.target.closest("[data-rf]");if(!b)return;trip.fuel=b.dataset.rf;renderTrip();});
 document.querySelectorAll("[data-rp]").forEach(b=>b.addEventListener("click",()=>{trip.pers=Math.min(9,Math.max(1,trip.pers+ +b.dataset.rp));renderTrip();}));
-$("#r-save").addEventListener("click",()=>{trip.saved=true;hist.unshift(trip);trip=null;show("T1");const f=$("#hist .hrow");if(f){f.classList.add("pulse");setTimeout(()=>f.classList.remove("pulse"),1500);}});
+$("#r-save").addEventListener("click",()=>{trip.saved=true;hist.unshift(trip);trip=null;show("T6");const f=$("#hist .hrow");if(f){f.classList.add("pulse");setTimeout(()=>f.classList.remove("pulse"),1500);}});
 $("#r-del").addEventListener("click",()=>{trip=null;show("T1");});
-$("#r-del2").addEventListener("click",()=>{const i=hist.indexOf(trip);if(i>=0)hist.splice(i,1);trip=null;show("T1");});
-$("#r-back").addEventListener("click",()=>show("T1"));
+$("#r-del2").addEventListener("click",()=>{const i=hist.indexOf(trip);if(i>=0)hist.splice(i,1);trip=null;show("T6");});
+$("#r-back").addEventListener("click",()=>show("T6"));
 $("#hist").addEventListener("click",e=>{const g=e.target.closest("[data-h]");if(g)showTrip(hist[+g.dataset.h]);});
 
 /* ---------- STATIONS ---------- */
@@ -600,13 +617,15 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet();});
 /* ---------- NAVIGATION ---------- */
 function show(id){
   document.querySelectorAll("[data-screen]").forEach(s=>s.hidden=s.dataset.screen!==id);
-  $("#tab-trajet").setAttribute("aria-selected",id!=="T5");$("#tab-stations").setAttribute("aria-selected",id==="T5");
+  const tab=id==="T5"?"st":(id==="T6"||(id==="T4"&&trip&&trip.saved))?"hi":"tr";
+  $("#tab-trajet").setAttribute("aria-selected",tab==="tr");$("#tab-stations").setAttribute("aria-selected",tab==="st");$("#tab-hist").setAttribute("aria-selected",tab==="hi");
   $("#ongoing").hidden=!(id==="T5"&&rec);
   $("#where").textContent=id==="T5"?zone().nom:"Toulouse";
-  if(id==="T1")renderT1();if(id==="T5"){renderFuels();renderStations();}else closeSheet();
+  if(id==="T1")renderT1();if(id==="T6")renderHist();if(id==="T5"){renderFuels();renderStations();}else closeSheet();
 }
 $("#tab-trajet").addEventListener("click",()=>show(rec?"T3":"T1"));
 $("#tab-stations").addEventListener("click",()=>{fuel=car.fuel;show("T5");});
+$("#tab-hist").addEventListener("click",()=>show("T6"));
 $("#t-go").addEventListener("click",startRec);
 $("#rec-pause").addEventListener("click",pauseRec);
 $("#rec-stop").addEventListener("click",stopRec);
@@ -621,7 +640,7 @@ $("#storylist").addEventListener("click",e=>{
   document.querySelectorAll(".st.on").forEach(x=>x.classList.remove("on"));b.classList.add("on");
   const sc=b.dataset.screenGo,id=b.dataset.story;
   if(sc==="T3"){if(!rec)startRec();else show("T3");if(id==="V-3.E1")autoStop();if(id==="V-3.E2")$("#rec-gps").hidden=false;}
-  else if(sc==="T4"){if(id==="V-4.8"){if(rec){clearInterval(rec.timer);rec=null;}showTrip(hist[0]);}else{if(!trip||trip.saved){if(!rec)startRec();for(let k=0;k<40;k++)tick();stopRec();}else show("T4");if(id==="V-4.4"){trip.pers=3;renderTrip();}if(id==="V-4.2"){editing=true;renderTrip();}}}
+  else if(sc==="T4"){if(id==="V-6.4"){if(rec){clearInterval(rec.timer);rec=null;}showTrip(hist[0]);}else{if(!trip||trip.saved){if(!rec)startRec();for(let k=0;k<40;k++)tick();stopRec();}else show("T4");if(id==="V-4.4"){trip.pers=3;renderTrip();}if(id==="V-4.2"){editing=true;renderTrip();}}}
   else if(sc==="T2"){$("#t-chg").click();if(id==="V-2.2"){$("#d2").value="5RBU0C";$("#d2").dispatchEvent(new Event("input"));}if(id==="V-2.E1"){$("#d2").value="ZZ9999";$("#d2").dispatchEvent(new Event("input"));}if(id==="V-2.3"){$("#q").value="clio 2017 120";$("#q").dispatchEvent(new Event("input"));}}
   else if(sc==="T5"){if(id==="V-5.6"&&!rec){startRec();}fuel=car.fuel;show("T5");if(id==="V-5.3")$("#zone").hidden=false;if(id==="V-5.7"){zi=2;$("#zone").hidden=true;renderStations();$("#where").textContent=zone().nom;}if(id==="V-5.5")openSheet(0);}
   else show(sc);

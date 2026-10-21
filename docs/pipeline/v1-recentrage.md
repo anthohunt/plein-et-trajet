@@ -30,4 +30,4 @@ Trajet Toulouse → Paris à plusieurs, frais partagés. Les péages se lisent s
 - Accueil allégé : ni prix ni nombre de personnes (« on fera ça à la fin d'un trajet ») ; reste voiture, Démarrer, Mes trajets.
 - Fin de trajet, dans l'ordre : prix de l'essence (moyenne France du jour de chaque carburant courant, celui de la voiture d'office ; prix modifiable en touchant le compteur) → coût → nombre de personnes → part de chacun ; courbe de vitesse ET courbe de consommation (L/100 km) ; deux boutons « Supprimer » / « Enregistrer » (le trajet ne rejoint Mes trajets qu'à l'enregistrement).
 - Nouveau : notification permanente dans la barre du téléphone (vitesse, km, €) avec Pause / Reprendre / Arrêter, sans ouvrir l'appli.
-- Anthony : « il manque un peu des écrans » — à préciser.
+- Écran manquant précisé par Anthony : « un écran qui permettait de voir un historique des trajets qu'on a effectués » → onglet Historique (totaux trajets, km, € ; liste par mois ; toucher rouvre le trajet pour le corriger ou le supprimer). La liste quitte l'accueil.
