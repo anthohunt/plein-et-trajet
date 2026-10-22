@@ -7,10 +7,11 @@ import crypto from "node:crypto";
 import { RACINE } from "./m5-aides.mjs";
 
 export const env = process.env;
-export const LIVRAISON = path.join(RACINE, "tests/e2e/delivery");
-export const BRUTES = path.join(RACINE, "tests/e2e/exploration/m5-captures-brutes");
-export const JOURNAL = path.join(RACINE, "tests/e2e/exploration/m5-exploration-log.md");
+export const LIVRAISON = process.env.SHOTS_DIR ? path.resolve(RACINE, process.env.SHOTS_DIR) : path.join(RACINE, "tests/e2e/delivery");
+export const BRUTES = process.env.SHOTS_AUX_DIR ? path.join(path.resolve(RACINE, process.env.SHOTS_AUX_DIR), "brutes") : path.join(RACINE, "tests/e2e/exploration/m5-captures-brutes");
+export const JOURNAL = process.env.SHOTS_AUX_DIR ? path.join(path.resolve(RACINE, process.env.SHOTS_AUX_DIR), "journal.md") : path.join(RACINE, "tests/e2e/exploration/m5-exploration-log.md");
 fs.mkdirSync(LIVRAISON, { recursive: true });
+if (process.env.SHOTS_AUX_DIR) fs.mkdirSync(path.dirname(JOURNAL), { recursive: true });
 fs.mkdirSync(BRUTES, { recursive: true });
 
 export const md5 = (b) => crypto.createHash("md5").update(b).digest("hex");
