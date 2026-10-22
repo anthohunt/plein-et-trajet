@@ -1,9 +1,9 @@
 # Pipeline Status
 
-- **Current step:** 5
-- **Sub-step:** hardening round 1 — correctifs et non-régression faits ; décision d'expédier en attente d'Anthony
-- **Last updated:** 2026-10-22T06:27:31+00:00
-- **Summary:** Round 1 complete. 2 critical + 9 high fixed (D1-D11, déployés 2f0d99d). 10 medium (D15 réglé au passage) + 23 low remaining (différés / acceptés). Régression : Vitest 283/283, Playwright prod 103/103, 0 violation CSP. Choix A/B/C dans docs/pipeline/hardening-r1-consolidated.md. CI Android toujours bloquée (facturation).
+- **Current step:** 6
+- **Sub-step:** complete
+- **Last updated:** 2026-10-22
+- **Summary:** Story reconciliation & delivery complete. 40 unchanged, 18 modified, 4 new, 39 removed stories. Passe finale : 207 captures fraîches + 14 Android de la CI du jalon 6 + 10 étapes Moteurs non rejouées (clés de prod) ; audit 4/5 PASS. Delivery package ready (docs/delivery/). CI Android toujours bloquée (facturation).
 
 ## Milestones
 - [x] Milestone 1 — Les prix autour de moi (journal : docs/pipeline/m1-journal.md)
