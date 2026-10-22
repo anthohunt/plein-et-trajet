@@ -1165,3 +1165,64 @@ L'audit round 3 est réel et vérifiable appel par appel. Le HIGH « deux horlog
 - citer stories.json comme source des critères.
 - 03:17Z — Contre-évaluation : PASS 4/5 (audit r3 réel : 47 images ouvertes, JUnit et Vitest r2/HEAD rejoués, APK et prod web vérifiés en direct, comptage en base adossé à #86 ; HIGH deux horloges fermé, recontrôlé par moi : numérotation après relance, relecture, double bouton ; LOW 1 et « sens en avance » bien classés LOW, rejoués au JDK ; −1 : stories.json non ouvert, version r3 de A10 annoncée sans appel)
 - 03:17Z — Contre-évaluation r3 : PASS 4/5 (HIGH bien fermé, LOW bien classés ; −1 : stories.json non ouvert, une capture annoncée ouverte sans appel). Double PASS au cycle 3. Chef : agent tests + commit + déploiement lancé (m6-tests-deploiement ; aucune modification Android permise, CI bloquée).
+
+## Correctifs post-audit
+
+Agent tests + commit + déploiement (étape 4.4, cycle 3). Aucun fichier sous android/ ni de src/ modifié (CI bloquée par la
+facturation GitHub : un changement ne pourrait plus être construit ni prouvé).
+- **L-52 (audit r3 LOW 4)** — 7e428fb. Avant : « 39671788190 (immobile vert), **39675522721 (tout vert)**. — rectifié : job principal
+  en échec… ». Après : « 39671788190 (immobile vert ; job principal en échec, voir Builder Summary r2 § 7), **39675522721 (tout vert)**. »
+- **L-formulation (LOW 2 et 3)** — 7e428fb. Builder Summary r3 : ligne « Rectificatif » ajoutée sous le décalage joué (sens « en
+  avance » prouvé en unitaire seulement, décalage joué à l'émulateur entre −0,56 s et +0,5 s ; sens « en retard » joué à ≥ +2,4 s ;
+  « dans les deux sens » faux pour l'émulateur). Journal d'exploration : titre « 02:05Z → 03:05Z » → « 02:05Z → 02:44Z » ; « (run
+  final ci-dessous) » → « (run final jamais lancé : voir l'entrée 02:45Z) » ; « ≥ −0,6 s » de la ligne 282 rectifié. Contre-évaluation
+  r3 : « leur version r3 ouverte » → « leur version r3 de A01 ouverte » (§ 3 de l'audit r3).
+- **L-desc (LOW 6)** — b810f54. V-3.2-01-avant, avant : « 105 km/h, 10,2 km, 1,41 € après 7 minutes » (recopie de V-3.3-01) ; image
+  ouverte : 74 km/h, 1,4 km, 0,24 €, durée 0:01 ; après : « L'écran En route affiche 74 km/h, 1,4 km, 0,24 € et une durée de 0:01. »
+- **L-port (LOW 5)** — 7d7889d. /tmp/r3-jvm/r2port/…/JournalTrajet.java existait encore : copié dans
+  tests/e2e/exploration/m6-preuves-ci/r3/r2port/ avec un README (commande de rejeu). Rejoué au VPS (JDK 21 portable, sous `lourd`) :
+  portage r2 **3 échecs / 5** (mêmes 3 tests que junit-journal-rouge-r2.txt), JournalTrajet du HEAD **5/5**.
+- **L-fonction (LOW 8)** — pas de commit (déploiement serveur). `npx supabase functions deploy trajet-roule --use-api` avec le jeton
+  du projet (.env.local) : version **8 (21/10 16:08Z) → 9 (22/10 03:20:13Z)**, ACTIVE, lue par l'API de gestion. Source téléchargée
+  dans un dossier jetable (`supabase functions download`) : `_shared/roule.ts` déployé = celui du HEAD, identique à 5af2e2c
+  (`git diff 5af2e2c HEAD -- …/roule.ts` vide). Fonction non appelée (aucun appelant routé). Verrou de livraison pris puis retiré.
+- Non traités, restent notés : audit r3 LOW 1 (notification faussée si bouton touché après relance avant le 1er relevé : code
+  Android, non constructible), LOW 7 (refus de localisation non joué sur Android) ; contre-évaluation r3 : « citer stories.json ».
+
+## Test & Regression
+
+- **Vitest** : 22 fichiers, **280/280** (sous `lourd`).
+- **Build** (`vite build`, sous `lourd`) : index-DLTQhoup.js 498,84 kB (gzip 148,65), CarteStations-DwNidOJ9.js 807,00 kB (gzip
+  219,69), index-DnAxcy7b.css 27,48 kB, CarteStations-CuCRB34y.css 65,48 kB, index.html 1,29 kB — même bundle que la prod.
+- **tsc --noEmit** : 0 erreur.
+- **Playwright sur la prod** (un seul lancement, sous `lourd`, 17,8 min) : **102/103** — m1-explore 23/23, m5-explore 64/65,
+  m5-regression 8/8, m6-explore (nouveau) 7/7. Échec : m5-explore V-2.3 « clio 2017 120 » (aucune suggestion en 60 s) ; rejoué seul
+  3 fois (`--repeat-each=3`) : **3/3 verts** → instabilité passagère du service de recherche, pas une régression ; ni fixme ni skip.
+- **m6-explore.spec.ts** (3a4bddd) : V-3.2 pas 5-6 (Chromium complet, permission accordée par CDP : sentinelle « screen » tenue,
+  data-verrou=actif, plateforme web ; relâchée à l'arrêt ; refus réel par la coquille headless → « indisponible », trajet continu) et
+  rejeu web de V-1.3 → V-3.1 → V-5.1 → V-3.4, V-3.5 → V-4.7 et de la réouverture pendant un trajet ; requêtes serveur en 2xx, aucune
+  vers PTV / estimer-trajet / trajet-roule ; aucune interception. playwright.config.ts : m6-explore ajouté au testMatch.
+- **Android** : `git diff 71f19b3 HEAD -- android/ src/ capacitor.config.*` = **0 ligne** (71f19b3 = head_sha du run 39710484157 lu
+  par l'API) : ce que l'APK embarque n'a pas changé depuis le run de référence **39710484157** (apk 119600375716, principal
+  119601549204, immobile 119601549105, fini 119601549111, horloge 119601549182 : tous success). Run créé par le push sur HEAD
+  (3a4bddd) : **39718685402**, job apk « not started » (annotation facturation GitHub, 0 étape), emulateur skipped — non démarré,
+  compté ni rouge ni vert. Aucun run déclenché à la main.
+- **Régressions** : aucune. **Correctifs de code** : aucun.
+
+## Deploy
+
+- Commit poussé : **3a4bddd** (puis ce commit de journal). Prod : https://plein-et-trajet.vercel.app — Vercel
+  dpl_DEWowg5xzVK25PESFJgZ4fmA1S8r **READY** (3a4bddd, relu par l'API), bundle index-DLTQhoup.js.
+- APK : https://projets.ingevision.cloud/plein-et-trajet/plein-et-trajet.apk — curl **200**, 3 559 936 octets, sha256
+  **95f2e58aa01e3729926e76f1dfb05f355467be927079583ab5aec989dd50acf8** = release/app-release.apk de l'artefact 12397675178 (run
+  39710484157, 71f19b3, téléchargé par l'API et recalculé) ; page d'accueil : « commit 71f19b3 ».
+- Vérification (tests/e2e/exploration/m6-deploy-verify.mjs, Chromium 148 complet, 390 × 844, toucher) : **PASS**. T1 → T2 (5RBU0C :
+  Renault Clio 1.2 · 87 kW · 2017) → T3 (900 positions, 6,6 km, 0,47 L, 1,01 € ; verrou « actif », sentinelle tenue) → T4 (Albi →
+  Albi, verrou relâché) → T6 (trajet en tête, enregistré). **11 requêtes serveur, 11 × 200** (voiture-eea 1, pays 1, lieux 3,
+  moyennes_par_pays 6), **0** vers myptv / estimer-trajet / trajet-roule, 0 erreur de page. IndexedDB et localStorage effacés
+  (« aucune » base restante). Captures (vraies prises, livrées et brutes, ouvertes) : m6-deploy-verify-01 (En route), -02 (fin),
+  -03 (Historique).
+- Garde-fous relus (API de gestion, lecture seule, noms et comptes seulement) avant (03:19Z) et après (03:48Z) : `trajets` 1 057 /
+  1 057, `cles_fournisseurs` 2 / 2, vault 3 noms (cle_ptv, cle_stadia, sync_prix_secret) / 3. Aucun appel PTV ; magasin de clés
+  jamais touché ; ajouts git par chemin ; aucun pkill.
+- 03:48Z — Tests + déploiement : correctifs post-audit L-52, formulation, description, portage r2 (JUnit 3/5 → 5/5), trajet-roule v9 ; m6-explore 7/7 ; Vitest 280/280, tsc 0, build OK, Playwright 102/103 (V-2.3 instable, 3/3 au rejeu) ; Android inchangé depuis 71f19b3 (0 ligne), run 39718685402 non démarré (facturation) ; Vercel READY 3a4bddd, vérification PASS (11 × 200, 0 interdite), APK 95f2e58a…acf8 = artefact.
