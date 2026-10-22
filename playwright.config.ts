@@ -4,10 +4,12 @@ import { defineConfig } from "@playwright/test";
 // remplacées) ; m1 (écran Prix devenu T5 Stations) est adapté aux routes V1 (sa version d'origine est archivée) ;
 // m5-regression rejoue les histoires maintenue_v1 de T1, T3, T4, T6 ; m5-explore consolide les extraits du jalon 5 (V-1.1 à V-6.4,
 // V1-retraits ; 4 min par test, réglé dans la spec). tests/e2e/archive/ n'est jamais joué.
+// Jalon 6 : m6-explore joue la partie web du jalon (V-3.2 pas 5-6, verrou d'écran, Chromium complet du cache Playwright) et un
+// rejeu web des histoires reprises par l'Android ; la partie Android tourne dans GitHub Actions (tests/android/m6-emulateur.mjs).
 // Plus de globalSetup : celui du jalon 3 lisait et restaurait les clés de Vault, la V1 n'y touche pas.
 export default defineConfig({
   testDir: "tests/e2e",
-  testMatch: [/m1-explore\.spec\.ts$/, /m5-.*\.spec\.ts$/],
+  testMatch: [/m1-explore\.spec\.ts$/, /m5-.*\.spec\.ts$/, /m6-explore\.spec\.ts$/],
   testIgnore: ["**/archive/**"],
   timeout: 60_000,
   expect: { timeout: 15_000 },
