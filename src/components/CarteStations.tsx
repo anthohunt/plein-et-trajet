@@ -5,7 +5,7 @@
 // - pastilles qui se chevauchent : empilées vers le haut, une tige les relie à leur station ;
 // - pastilles hors du cadre : retirées du parcours clavier et de l'arbre d'accessibilité.
 import { useEffect, useRef } from "react";
-import maplibregl from "maplibre-gl";
+import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { prix3 } from "../lib/format";
 import { T } from "../lib/textes";
