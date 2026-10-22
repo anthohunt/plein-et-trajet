@@ -1,0 +1,190 @@
+{
+  "V-1.3-A01-apk-release.png": {
+    "action": "L'utilisateur ouvre l'appli Android tout juste installée, sans voiture enregistrée.",
+    "expected": "L'écran Trajet demande d'enregistrer d'abord sa voiture, sous un grand bouton Démarrer."
+  },
+  "V-1.3-A02-dialogue-localisation.png": {
+    "action": "L'utilisateur ouvre l'appli pour la première fois.",
+    "expected": "Android demande d'autoriser Plein & Trajet à connaître la position du téléphone."
+  },
+  "V-1.3-A03-accueil.png": {
+    "action": "L'utilisateur a autorisé la position et revient sur l'écran Trajet.",
+    "expected": "La Renault Clio est affichée avec le bouton Changer et le grand bouton Démarrer."
+  },
+  "V-1.3-A04-dialogue-notifications.png": {
+    "action": "L'utilisateur touche Démarrer pour la première fois.",
+    "expected": "Android demande d'autoriser les notifications ; l'enregistrement a commencé derrière."
+  },
+  "V-3.1-A05-direct.png": {
+    "action": "L'utilisateur suit son trajet simulé peu après le départ.",
+    "expected": "L'écran affiche 74 km/h, 0,3 km, 0,05 litre et 0,12 € en direct."
+  },
+  "V-3.2-01-avant.png": {
+    "action": "L'utilisateur regarde son trajet en cours dans l'appli.",
+    "expected": "L'écran En route affiche 74 km/h, 1,4 km, 0,24 € et une durée de 0:01."
+  },
+  "V-3.2-02-apres.png": {
+    "action": "L'utilisateur revient dans l'appli après avoir laissé Google Maps devant.",
+    "expected": "Le trajet continue : 105 km/h, 9,8 km, 1,36 € après 7 minutes."
+  },
+  "V-3.2-03-avant.png": {
+    "action": "L'utilisateur a un deuxième trajet en cours dans l'appli.",
+    "expected": "L'écran En route affiche 105 km/h et 1,3 km au tout début du trajet."
+  },
+  "V-3.2-04-apres.png": {
+    "action": "L'utilisateur rouvre l'appli après que le système l'a fermée.",
+    "expected": "Le trajet reprend sans perte : 105 km/h, 4,7 km, 0,67 €, sans alerte GPS."
+  },
+  "V-3.2-05-avant.png": {
+    "action": "L'utilisateur ouvre la version web dans un navigateur.",
+    "expected": "L'écran Trajet montre la Renault Clio et le grand bouton Démarrer."
+  },
+  "V-3.2-06-apres.png": {
+    "action": "L'utilisateur démarre un trajet sur la version web.",
+    "expected": "Un message demande de garder l'écran allumé, sinon le navigateur coupe le GPS."
+  },
+  "V-3.2-A10-maps-devant.png": {
+    "action": "L'utilisateur passe sur Google Maps pendant l'enregistrement.",
+    "expected": "Google Maps occupe l'écran avec une carte de l'Amérique du Nord."
+  },
+  "V-3.2-A11-ecran-eteint.png": {
+    "action": "L'utilisateur éteint l'écran du téléphone pendant le trajet.",
+    "expected": "L'écran est entièrement noir, comme voulu : le téléphone est en veille."
+  },
+  "V-3.2-A12-reveil.png": {
+    "action": "L'utilisateur rallume l'écran quelques minutes plus tard.",
+    "expected": "Google Maps est toujours au premier plan, la carte affichée."
+  },
+  "V-3.2-A17-appli-tuee.png": {
+    "action": "L'utilisateur reste sur Google Maps pendant que le système ferme l'appli.",
+    "expected": "Seul Google Maps est visible ; la fermeture de l'appli ne se voit pas."
+  },
+  "V-3.2-A31-batterie-appli.png": {
+    "action": "L'utilisateur touche Démarrer pour la première fois.",
+    "expected": "L'appli explique pourquoi rester active écran éteint et propose Plus tard ou Autoriser."
+  },
+  "V-3.2-A32-batterie-systeme.png": {
+    "action": "L'utilisateur touche Autoriser dans l'explication de l'appli.",
+    "expected": "Android demande s'il laisse l'appli tourner en arrière-plan, avec Deny ou Allow."
+  },
+  "V-3.2-A33-tuee-notif.png": {
+    "action": "L'utilisateur descend la barre alors que l'appli a été fermée.",
+    "expected": "La notification continue : Trajet en cours, 105 km/h, 3,2 km, 0,45 €."
+  },
+  "V-3.3-01-avant.png": {
+    "action": "L'utilisateur a un trajet en cours dans l'appli.",
+    "expected": "L'écran En route affiche 105 km/h, 10,2 km et 1,41 €."
+  },
+  "V-3.3-02-apres.png": {
+    "action": "L'utilisateur descend la barre du téléphone.",
+    "expected": "La notification Plein & Trajet montre 105 km/h, 11,2 km, 1,55 €, Pause et Arrêter."
+  },
+  "V-3.3-03-avant.png": {
+    "action": "L'utilisateur garde la barre du téléphone ouverte.",
+    "expected": "La notification indique Trajet en cours, 11,6 km et 1,60 €, avec Pause et Arrêter."
+  },
+  "V-3.3-04-apres.png": {
+    "action": "L'utilisateur touche Pause dans la notification.",
+    "expected": "La notification passe à Trajet en pause, 0 km/h, avec le bouton Reprendre."
+  },
+  "V-3.3-05-avant.png": {
+    "action": "L'utilisateur regarde la notification après avoir repris le trajet.",
+    "expected": "La notification indique Trajet en cours, 12,2 km et 1,70 €."
+  },
+  "V-3.3-06-apres.png": {
+    "action": "L'utilisateur touche Arrêter dans la notification.",
+    "expected": "L'appli s'ouvre sur la fin du trajet Albi vers Lagrave : 12,2 km, 1,70 €."
+  },
+  "V-3.3-A14-reprise-notif.png": {
+    "action": "L'utilisateur touche Reprendre dans la notification.",
+    "expected": "La notification repasse à Trajet en cours et la distance remonte à 11,9 km."
+  },
+  "V-3.3-A36-pause-horloge-decalee.png": {
+    "action": "L'utilisateur met en pause depuis la notification, téléphone à l'heure en retard.",
+    "expected": "La notification reste en pause : 0 km/h, 0,8 km, bouton Reprendre."
+  },
+  "V-3.3-A37-pause-horloge-avance.png": {
+    "action": "L'utilisateur met en pause depuis la notification, téléphone à l'heure en avance.",
+    "expected": "La notification reste en pause : 0 km/h, 1,1 km, bouton Reprendre."
+  },
+  "V-3.4-A06-pause-appli.png": {
+    "action": "L'utilisateur touche Pause dans l'appli.",
+    "expected": "L'écran indique En pause, 0 km/h, et le bouton devient Reprendre."
+  },
+  "V-3.4-A07-reprise-appli.png": {
+    "action": "L'utilisateur touche Reprendre dans l'appli.",
+    "expected": "L'enregistrement repart : 74 km/h, la distance passe à 0,5 km."
+  },
+  "V-3.4-A13-pause-30s.png": {
+    "action": "L'utilisateur laisse le trajet en pause un moment.",
+    "expected": "La notification reste en pause, distance figée à 11,6 km."
+  },
+  "V-3.5-A18-fin-appli.png": {
+    "action": "L'utilisateur touche Arrêter dans l'appli.",
+    "expected": "La fin du trajet Lagrave vers Brens affiche 4,7 km, 6,6 L/100 et 0,67 €."
+  },
+  "V-3.E1-A26-en-route.png": {
+    "action": "L'utilisateur commence un trajet simulé qui s'arrêtera bientôt.",
+    "expected": "L'écran En route affiche 32 km/h et 0,2 km."
+  },
+  "V-3.E1-A27-immobile-appli.png": {
+    "action": "L'utilisateur reste immobile 10 minutes pendant le trajet.",
+    "expected": "L'appli annonce trajet arrêté, immobile depuis 10 min, avec Reprendre ou C'est fini."
+  },
+  "V-3.E1-A28-notif-immobile.png": {
+    "action": "L'utilisateur descend la barre pendant l'immobilité.",
+    "expected": "La notification demande « Immobile depuis 10 min : c'est fini ? », avec Reprendre."
+  },
+  "V-3.E1-A29-reprise.png": {
+    "action": "L'utilisateur touche Reprendre dans la notification.",
+    "expected": "La notification repasse à Trajet en cours, 1,2 km, 0,22 €."
+  },
+  "V-3.E1-A30-fin.png": {
+    "action": "L'utilisateur arrête ensuite le trajet.",
+    "expected": "La fin du trajet Albi vers Le Sequestre affiche 1,2 km et 0,22 €."
+  },
+  "V-3.E1-A34-cest-fini-notif.png": {
+    "action": "L'utilisateur descend la barre après 10 minutes immobile.",
+    "expected": "La notification demande si c'est fini, avec Reprendre et C'est fini."
+  },
+  "V-3.E1-A35-fin-cest-fini.png": {
+    "action": "L'utilisateur touche C'est fini dans la notification.",
+    "expected": "L'appli affiche la fin du trajet : 1 min, 1,2 km, 0,22 €."
+  },
+  "V-3.E2-A21-en-route.png": {
+    "action": "L'utilisateur roule en trajet simulé avant un tunnel.",
+    "expected": "L'écran En route affiche 105 km/h et 0,4 km."
+  },
+  "V-3.E2-A22-gps-perdu.png": {
+    "action": "L'utilisateur passe dans un tunnel simulé, sans signal GPS.",
+    "expected": "Un message rouge annonce GPS perdu, distance complétée à la sortie ; vitesse à 0."
+  },
+  "V-3.E2-A23-notif-gps-perdu.png": {
+    "action": "L'utilisateur descend la barre pendant le tunnel.",
+    "expected": "La notification indique Trajet en cours · GPS perdu, 3,5 km."
+  },
+  "V-3.E2-A24-gps-retrouve.png": {
+    "action": "L'utilisateur sort du tunnel simulé.",
+    "expected": "Le message a disparu et la distance est complétée à 7,0 km."
+  },
+  "V-3.E2-A25-fin.png": {
+    "action": "L'utilisateur arrête le trajet après le tunnel.",
+    "expected": "La fin du trajet Brens vers Parisot affiche 8,2 km et 1,32 €."
+  },
+  "V-4.7-A15-historique.png": {
+    "action": "L'utilisateur enregistre son trajet puis ouvre l'historique.",
+    "expected": "Le trajet Albi vers Lagrave, 12,2 km, 1,70 €, apparaît en tête."
+  },
+  "V-4.7-A16-historique-rouvert.png": {
+    "action": "L'utilisateur ferme puis rouvre l'appli et retourne à l'historique.",
+    "expected": "Le trajet Albi vers Lagrave, 12,2 km, 1,70 €, est toujours là."
+  },
+  "V-5.1-A08-stations.png": {
+    "action": "L'utilisateur passe dans Stations pendant l'enregistrement.",
+    "expected": "Un bandeau indique Trajet en cours · 0,20 € au-dessus de la carte des prix."
+  },
+  "V-5.1-A09-retour-en-route.png": {
+    "action": "L'utilisateur revient sur l'écran Trajet.",
+    "expected": "La distance a continué : 1,2 km, 0,22 €, 74 km/h."
+  }
+}
