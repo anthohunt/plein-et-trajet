@@ -32,7 +32,12 @@ export interface LignePrix {
 export async function stationsAutour(lat: number, lon: number, rayonM: number): Promise<Station[]> {
   const { data, error } = await supabase.rpc("stations_autour", { lat, lon, rayon_m: Math.round(rayonM) });
   if (error) throw new Error(error.message);
-  return (data ?? []) as Station[];
+  // durcissement r1 (D5, D6) : stations aux coordonnées invalides écartées dès la lecture (un LngLat invalide fait planter la carte) ;
+  // champs de liste manquants normalisés
+  return ((data ?? []) as Station[])
+    .map((s) => ({ ...s, lat: Number(s.lat), lon: Number(s.lon) }))
+    .filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lon) && Math.abs(s.lat) <= 90 && Math.abs(s.lon) <= 180 && s.id != null)
+    .map((s) => ({ ...s, services: Array.isArray(s.services) ? s.services : [] }));
 }
 
 /** rest/v1/prix : prix d'un carburant pour une liste de stations, ruptures et prix absents exclus. */
