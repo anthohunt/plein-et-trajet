@@ -7,9 +7,13 @@
 import { useEffect, useRef } from "react";
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+// maplibre-gl 6 (D7) : worker servi comme un vrai fichier de l'appli (même origine) ; sans cet appel sous Vite, la carte reste vide
+import urlWorker from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { prix3 } from "../lib/format";
 import { T } from "../lib/textes";
 import type { StationAffichee } from "./LigneStation";
+
+maplibregl.setWorkerUrl(urlWorker);
 
 const STYLE_FOND = "https://tiles.openfreemap.org/styles/positron";
 const TIGE = 7; // px entre la pastille et la station
@@ -152,6 +156,11 @@ export default function CarteStations({ position, moi: estIci, stations, selecti
     carte.current = map;
     (window as unknown as { __carte?: maplibregl.Map }).__carte = map; // inspection par les tests e2e
     return () => {
+      // durcissement r1 (D7) : la référence globale d'inspection retenait la carte (et son canvas) après la sortie de Stations
+      const g = window as unknown as { __carte?: maplibregl.Map };
+      if (g.__carte === map) delete g.__carte;
+      moi.current = null;
+      marques.current = [];
       map.remove();
       carte.current = null;
     };
