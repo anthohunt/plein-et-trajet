@@ -144,8 +144,21 @@ let decalageAppareil = null; // horloge de l'émulateur − horloge du runner (m
 // round 3 (scénario « horloge ») : l'heure des positions décalée sur l'horloge du téléphone, comme un téléphone dont l'heure
 // automatique tolère jusqu'à 2 s d'écart avec l'heure GNSS (+1500 : téléphone en retard ; −1500 : en avance)
 let avanceGnssMs = 0;
+/** Horloge de l'émulateur − horloge du runner : milieu de l'aller-retour adb le plus court sur 7 essais (à ± la moitié près). */
+function mesurerDecalage() {
+  let mieux = null;
+  for (let k = 0; k < 7; k++) {
+    const t1 = Date.now();
+    const d = Number(shOk("date +%s%3N"));
+    const t2 = Date.now();
+    if (Number.isFinite(d) && (!mieux || t2 - t1 < mieux.rtt)) mieux = { rtt: t2 - t1, decalage: d - (t1 + t2) / 2 };
+  }
+  mesures.horlogeEmulateur = mieux;
+  journal(`horloge de l'émulateur − runner : ${mieux?.decalage} ms (aller-retour adb ${mieux?.rtt} ms)`);
+  return mieux?.decalage ?? 0;
+}
 function fixTest(lon, lat, t) {
-  if (decalageAppareil == null) decalageAppareil = Number(shOk("date +%s%3N")) - Date.now() || 0;
+  if (decalageAppareil == null) decalageAppareil = mesurerDecalage();
   const heure = Math.round(t + decalageAppareil + avanceGnssMs);
   shellTest.stdin.write(`${prefixeTest}cmd location providers set-test-provider-location gps --location ${lat},${lon} --accuracy 5 --time ${heure}\n`);
 }
@@ -1003,6 +1016,8 @@ async function pauseDecalee(p, lect, avance, nomCapture) {
   m.reprise = { titre: n5?.titre, km: n5?.km, boutons: boutons.map((x) => `${x.quoi}@${x.t}`), pause: pa, relevesApresReprise: apres.length, perdus: perdus.length, pointsPendantPause: pendant.length };
   constat(`V-3.3 ${tag} : Reprendre de la notification, km repartent`, !!tapR && n5?.titre === "Trajet en cours" && n5.km > kms[0], `${kms[0]} → ${n5?.km} km, ${n5?.titre}`);
   constat(`V-3.3 ${tag} : aucun relevé d'après la reprise jeté par la page, aucun point gardé pendant la pause`, apres.length >= 8 && perdus.length === 0 && pendant.length === 0, `${apres.length} relevés après la reprise dans le journal, ${perdus.length} absents de la page ; ${pendant.length} point(s) dans la pause [${pa?.[0]}, ${pa?.[1]}]`);
+  // écart heure des relevés − heure du téléphone mesuré par le service lui-même (logcat, round 3) : le décalage réellement joué
+  m.ecartsService = (readFileSync(`${OUT}/logcat-${SCENARIO}.txt`, "utf8").match(/bouton \S+ daté \d+ \(écart GNSS -?\d+ ms/g) ?? []).slice(-2);
   mesures[avance > 0 ? "retard" : "avance"] = m;
   // pièces : le journal du service, numéroté, et ce que la page en a gardé (curseur, pauses, heures des points)
   let k = 0;
