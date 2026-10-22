@@ -1,6 +1,6 @@
 OK  V-3.E2 « GPS perdu » dans l'appli et la notification pendant le trou — true | Trajet en cours · GPS perdu
 OK  V-3.E2 signal retrouvé : « GPS perdu » disparaît
-OK  V-3.E2 distance complétée à travers le trou de 90 s (écart < 3 %) — 8.244 km vs 8.244 km rejoués
-OK  V-3.E1 notification « Immobile depuis 10 min » écran éteint, avec « Reprendre » et « C'est fini » — Immobile depuis 10 min : c'est fini ? | Reprendre / C'est fini | seconde 681 (immobile depuis la seconde 74)
+OK  V-3.E2 distance complétée à travers le trou de 90 s (écart < 3 %) — 8.215 km vs 8.244 km rejoués
+OK  V-3.E1 notification « Immobile depuis 10 min » écran éteint, avec « Reprendre » et « C'est fini » — Immobile depuis 10 min : c'est fini ? | Reprendre / C'est fini | seconde 683 (immobile depuis la seconde 74)
 OK  V-3.E1 alerte d'immobilité dans l'appli
 OK  V-3.E1 « Reprendre » de la notification : l'enregistrement repart — Trajet en cours | écran enregistrement

@@ -24,15 +24,16 @@ V2 Signer: public key MD5 digest: 68354ad4f347bde61c1f4ddf3ff6bcaf
 
 OK  APK signé (apksigner verify) — code 0
 OK  empreinte SHA-256 du certificat = celle du magasin de clés — ['b3a3b7b2998e2d804a258491f60920417127dc01a32da2f7e2df794909314c25'] / attendu b3a3b7b2998e2d804a258491f60920417127dc01a32da2f7e2df794909314c25
-permissions : android.permission.ACCESS_COARSE_LOCATION, android.permission.ACCESS_FINE_LOCATION, android.permission.ACCESS_NETWORK_STATE, android.permission.FOREGROUND_SERVICE, android.permission.FOREGROUND_SERVICE_LOCATION, android.permission.INTERNET, android.permission.POST_NOTIFICATIONS, android.permission.RECEIVE_BOOT_COMPLETED, android.permission.WAKE_LOCK, cloud.ingevision.pleinettrajet.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+permissions : android.permission.ACCESS_COARSE_LOCATION, android.permission.ACCESS_FINE_LOCATION, android.permission.FOREGROUND_SERVICE, android.permission.FOREGROUND_SERVICE_LOCATION, android.permission.INTERNET, android.permission.POST_NOTIFICATIONS, android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, android.permission.WAKE_LOCK, cloud.ingevision.pleinettrajet.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
 
 OK  permission FOREGROUND_SERVICE
 OK  permission FOREGROUND_SERVICE_LOCATION
 OK  permission ACCESS_FINE_LOCATION
 OK  permission POST_NOTIFICATIONS
+OK  permission REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 OK  PAS de ACCESS_BACKGROUND_LOCATION
-services : com.capgo.capacitor_background_geolocation.BackgroundGeolocationService foregroundServiceType=0x00000008; androidx.work.impl.background.systemjob.SystemJobService foregroundServiceType=—; androidx.work.impl.foreground.SystemForegroundService foregroundServiceType=—; androidx.room.MultiInstanceInvalidationService foregroundServiceType=—
+services : cloud.ingevision.pleinettrajet.TrajetService foregroundServiceType=0x00000008
 
-OK  service de premier plan foregroundServiceType=location — com.capgo.capacitor_background_geolocation.BackgroundGeolocationService
-ÉCART service nommé TrajetService dans le plan — c'est le service du plugin @capgo/background-geolocation (pas renommé : même rôle)
-6646959d16b73b14001506488a1062adc78bac6fd838f412623470da758100bb  release/app-release.apk
+OK  service de premier plan foregroundServiceType=location — cloud.ingevision.pleinettrajet.TrajetService
+OK  le service de localisation est TrajetService (seul) — cloud.ingevision.pleinettrajet.TrajetService
+868e7404497cb9bb068fefbce5849b8be30bdcb8d18c8d54cb8f9dc77edb400a  release/app-release.apk

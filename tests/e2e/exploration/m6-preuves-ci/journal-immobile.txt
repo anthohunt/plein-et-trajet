@@ -1,28 +1,35 @@
     0s scénario immobile — écran mWakefulness=Awake — Maps package:/product/app/Maps/Maps.apk
-    2s appops set com.android.shell android:mock_location allow → ok
-    2s appops set 2000 android:mock_location allow → ok
-    2s aide : add-test-provider <PROVIDER> [--requiresNetwork] [--requiresSatellite] remove-test-provider <PROVIDER> set-test-provider-enabled <PROVIDER> true|false set-test-provider-location <PROVIDER> --location <LATITUDE>,<LONGITUDE>
-    2s add-test-provider gps → ok
-    2s set-test-provider-enabled gps → ok
-   22s capture V-3.E2-A21-en-route.png (39123 o)
-  153s capture V-3.E2-A22-gps-perdu.png (40422 o)
-  153s notification [tunnel] Trajet en cours · GPS perdu | 0 km/h · 3,5 km · 0,55 € | Pause / Arrêter
-  157s capture V-3.E2-A23-notif-gps-perdu.png (34883 o)
-  157s OK  V-3.E2 « GPS perdu » dans l'appli et la notification pendant le trou — true | Trajet en cours · GPS perdu
-  233s capture V-3.E2-A24-gps-retrouve.png (40740 o)
-  233s OK  V-3.E2 signal retrouvé : « GPS perdu » disparaît
-  282s capture V-3.E2-A25-fin.png (52484 o)
-  282s OK  V-3.E2 distance complétée à travers le trou de 90 s (écart < 3 %) — 8.244 km vs 8.244 km rejoués
-  304s capture V-3.E1-A26-en-route.png (38489 o)
-  965s immobile : seconde du rejeu 681, écran mWakefulness=Asleep
-  965s notification [immobile] Immobile depuis 10 min : c'est fini ? | 0 km/h · 1,2 km · 0,22 € | Reprendre / C'est fini
-  965s OK  V-3.E1 notification « Immobile depuis 10 min » écran éteint, avec « Reprendre » et « C'est fini » — Immobile depuis 10 min : c'est fini ? | Reprendre / C'est fini | seconde 681 (immobile depuis la seconde 74)
-  970s capture V-3.E1-A27-immobile-appli.png (40760 o)
-  970s OK  V-3.E1 alerte d'immobilité dans l'appli
-  974s capture V-3.E1-A28-notif-immobile.png (35309 o)
-  977s touché « Reprendre » (Reprendre (immobile) de la notification) en 100,362
-  985s notification [après Reprendre (immobile)] Trajet en cours | 0 km/h · 1,2 km · 0,22 € | Pause / Arrêter
-  985s capture V-3.E1-A29-reprise.png (33338 o)
-  985s OK  V-3.E1 « Reprendre » de la notification : l'enregistrement repart — Trajet en cours | écran enregistrement
-  988s capture V-3.E1-A30-fin.png (52830 o)
-  989s remove-test-provider gps → ok
+    0s adb root : oui ; APK installé : versionName=1.0 pkgFlags=[ HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP ]
+    3s appops set com.android.shell android:mock_location allow → ok
+    3s appops set 2000 android:mock_location allow → ok
+    3s aide : add-test-provider <PROVIDER> [--requiresNetwork] [--requiresSatellite] remove-test-provider <PROVIDER> set-test-provider-enabled <PROVIDER> true|false set-test-provider-location <PROVIDER> --location <LATITUDE>,<LONGITUDE>
+    3s add-test-provider gps → ok
+    3s set-test-provider-enabled gps → ok
+   11s dialogue système de batterie : « Let app always run in background? | Allowing Plein & Trajet to always run in the background may reduce battery life. 
+
+You can change this later from Settings > Apps. | Deny | Allow » → « Allow »
+   13s batterie proposée : Garder le trajet compté écran éteint Pour économiser la batterie, Android peut arrêter l'appli en route : le trajet ne serait plus compté. Autorise Plein & Trajet à rester active en arrière-plan ; elle n'y tourne que pendant un trajet. Plus tard Autoriser | système Let app always run in background? | Allowing Plein & Trajet to always run in the background may reduce battery life. 
+
+You can change this later from Settings > Apps. | Deny | Allow | hors optimisation true
+   30s capture V-3.E2-A21-en-route.png (39511 o)
+  160s capture V-3.E2-A22-gps-perdu.png (40443 o)
+  160s notification [tunnel] Trajet en cours · GPS perdu | 0 km/h · 3,5 km · 0,50 € | Pause / Arrêter
+  167s capture V-3.E2-A23-notif-gps-perdu.png (35665 o)
+  167s OK  V-3.E2 « GPS perdu » dans l'appli et la notification pendant le trou — true | Trajet en cours · GPS perdu
+  240s capture V-3.E2-A24-gps-retrouve.png (41270 o)
+  240s OK  V-3.E2 signal retrouvé : « GPS perdu » disparaît
+  289s capture V-3.E2-A25-fin.png (51798 o)
+  289s OK  V-3.E2 distance complétée à travers le trou de 90 s (écart < 3 %) — 8.215 km vs 8.244 km rejoués
+  320s capture V-3.E1-A26-en-route.png (38661 o)
+  982s immobile : seconde du rejeu 683, écran mWakefulness=Asleep
+  982s notification [immobile] Immobile depuis 10 min : c'est fini ? | 0 km/h · 1,2 km · 0,22 € | Reprendre / C'est fini
+  982s OK  V-3.E1 notification « Immobile depuis 10 min » écran éteint, avec « Reprendre » et « C'est fini » — Immobile depuis 10 min : c'est fini ? | Reprendre / C'est fini | seconde 683 (immobile depuis la seconde 74)
+  988s capture V-3.E1-A27-immobile-appli.png (40839 o)
+  988s OK  V-3.E1 alerte d'immobilité dans l'appli
+  994s capture V-3.E1-A28-notif-immobile.png (34544 o)
+  996s touché « Reprendre » (Reprendre (immobile) de la notification) en 100,412
+ 1003s notification [après Reprendre (immobile)] Trajet en cours | 0 km/h · 1,2 km · 0,22 € | Pause / Arrêter
+ 1006s capture V-3.E1-A29-reprise.png (34123 o)
+ 1006s OK  V-3.E1 « Reprendre » de la notification : l'enregistrement repart — Trajet en cours | écran enregistrement
+ 1011s capture V-3.E1-A30-fin.png (52919 o)
+ 1011s remove-test-provider gps → ok

@@ -1,27 +1,39 @@
 OK  V-1.3 dialogue d'autorisation de localisation natif (une fois) — Allow Plein & Trajet to access this device’s location?
+OK  V-3.2 premier Démarrer : l'appli explique et propose de sortir de l'optimisation de batterie — Garder le trajet compté écran éteint Pour économiser la batterie, Android peut arrêter l'appli en route : le trajet ne serait plus compté. Autorise Plein & Trajet à rester active en arrière-plan ; elle n'y tourne que pendant un trajet. Plus tard Autoriser
+OK  V-3.2 dialogue système « optimisation de batterie » accepté : appli hors optimisation (deviceidle whitelist) — Let app always run in background? | Allowing Plein & Trajet to always run in the background may reduce battery life. 
+
+You can change this later from Settings > Apps. | Deny | Allow | whitelist true
 OK  V-1.3 dialogue d'autorisation des notifications natif — Allow Plein & Trajet to send you notifications?
 OK  V-1.3 Démarrer ouvre En route — https://localhost/en-route
 OK  V-3.1 direct : km et vitesse comptés — 0.3 km, 74 km/h après 30 s
 OK  V-3.4 pause dans l'appli : « En pause », km figés 10 s — 0.4 → 0.4 km
 OK  V-3.4 Reprendre dans l'appli : la distance repart — 0.4 → 0.5 km
-OK  V-5.1 Stations pendant l'enregistrement : les points continuent — 40 → 61 points en 20 s sur Stations
-OK  V-3.2 autre appli au premier plan — Google Maps (com.google.android.apps.maps) — topResumedActivity=ActivityRecord{de4c44a u0 com.google.android.apps.maps/com.google.android.maps.MapsActivity t10}
+OK  V-5.1 Stations pendant l'enregistrement : les points continuent — 42 → 62 points en 20 s sur Stations
+OK  V-3.2 autre appli au premier plan — Google Maps (com.google.android.apps.maps) — topResumedActivity=ActivityRecord{4d9ee74 u0 com.google.android.apps.maps/com.google.android.maps.MapsActivity t10}
 OK  V-3.2 écran éteint — mWakefulness=Asleep
-OK  V-3.2 aucun trou > 15 s dans les points (IndexedDB en_cours) écran éteint + Maps — 307 points en 318 s, plus grand trou 1.917 s
-OK  V-3.2 la distance couvre tout le temps écran éteint — 7.19 km comptés / 7.21 km rejoués
+OK  V-3.2 aucun trou > 15 s dans les points écrits par le service (journal), écran éteint + Maps, depuis le dernier point d'avant — 310 points en 341 s, plus grand trou 12 s (page : 310 points, 12 s)
+OK  V-3.2 la distance couvre tout le temps écran éteint — 7.99 km comptés / 8.07 km rejoués
 OK  V-3.3 notification « Plein & Trajet » dans le volet — nom de l'appli en tête de la notification
-OK  V-3.3 notification : vitesse, km, € + Pause et Arrêter — Trajet en cours | 116 km/h · 8,7 km · 2,03 € | Pause / Arrêter
-OK  V-3.3 notification mise à jour (lectures à 10 s d'écart) — 116 km/h · 8,7 km · 2,03 € → 105 km/h · 9,1 km · 2,42 €
-OK  V-3.3 Pause depuis la notification : « Trajet en pause », bouton « Reprendre », appli pas ouverte — Trajet en pause | Reprendre / Arrêter | devant : topResumedActivity=ActivityRecord{de4c44a u0 com.google.android.apps.maps/com.google.android.maps.MapsActivity t10}
-OK  V-3.4 pause depuis la notification : km figés 30 s de tracé — 9.2 → 9.2 km, enPause=true, GPS rejoué jusqu'au point 466
-OK  V-3.3 Reprendre depuis la notification : « Trajet en cours », km repartent — 9.2 → 9.4 km
-OK  V-3.3 Arrêter depuis la notification : l'appli s'ouvre sur la fin de trajet — https://localhost/fin | topResumedActivity=ActivityRecord{55c46fa u0 cloud.ingevision.pleinettrajet/.MainActivity t9}
-OK  fin de trajet : noms des lieux en titre (pas de coordonnées) — ALBI → FLORENTIN
-OK  écart km notification / fin de trajet < 3 % — 9.7 km vs 9.703 km → 0.03 %
-OK  écart litres notification / fin de trajet < 5 % — 1.280 L (2.76 € / 2.157 €/L) vs 1.278 L → 0.12 % (direct à l'écran : 1.28 L, 0.16 %)
+OK  V-3.3 notification : vitesse, km, € + Pause et Arrêter — Trajet en cours | 105 km/h · 11,0 km · 1,52 € | Pause / Arrêter
+OK  V-3.3 notification mise à jour (lectures à 10 s d'écart) — 105 km/h · 11,0 km · 1,52 € → 105 km/h · 11,5 km · 1,60 €
+OK  V-3.3 Pause depuis la notification : « Trajet en pause », bouton « Reprendre », appli pas ouverte — Trajet en pause | Reprendre / Arrêter | devant : topResumedActivity=ActivityRecord{4d9ee74 u0 com.google.android.apps.maps/com.google.android.maps.MapsActivity t10}
+OK  V-3.4 pause depuis la notification : km figés 30 s de tracé — 11.6 → 11.6 km, enPause=true, GPS rejoué jusqu'au point 557
+OK  V-3.3 Reprendre depuis la notification : « Trajet en cours », km repartent — 11.6 → 11.9 km
+OK  V-3.3 Arrêter depuis la notification : l'appli s'ouvre sur la fin de trajet — https://localhost/fin | topResumedActivity=ActivityRecord{88e60b u0 cloud.ingevision.pleinettrajet/.MainActivity t9}
+OK  fin de trajet : noms des lieux en titre (pas de coordonnées) — ALBI → LAGRAVE
+OK  écart km notification (direct de la page) / fin de trajet < 3 % — 12.2 km vs 12.213 km → 0.11 %
+OK  écart litres notification (direct de la page) / fin de trajet < 5 % — 0.784 L (1.69 € / 2.155 €/L) vs 0.785 L → 0.11 % (direct à l'écran : 0.79 L, 0.62 %)
 OK  notification effacée après Arrêter
-OK  V-4.7 trajet enregistré présent dans l'historique après réouverture de l'appli — 2aebfe2a-e29d-4a69-be49-37d151877fec
-OK  V-3.2 processus de l'appli arrêté — 13724 → aucun
-OK  V-3.2 réouverture : le trajet en cours reprend avec tous ses points — 41 points avant → 50 après, même trajet true
-OK  V-3.2 réouverture : la notification du trajet revient — 105 km/h · 2,0 km · 0,30 €
-OK  V-3.5 Arrêter dans l'appli ouvre la fin de trajet — FLORENTIN → LAGRAVE
+OK  V-4.7 trajet enregistré présent dans l'historique après réouverture de l'appli — c47a1162-8ef1-4236-b0f7-f31751e4e91f
+OK  V-3.2 processus tué (SIGKILL) puis relancé par le système sans ouvrir l'appli — 14605 → 15820 en 1.225 s | devant : topResumedActivity=ActivityRecord{4d9ee74 u0 com.google.android.apps.maps/com.google.android.maps.MapsActivity t10}
+OK  V-3.2 appli laissée morte ≥ 60 s sans être rouverte — 74.6 s
+OK  V-3.2 le service a écrit les relevés pendant que l'appli était morte (≥ 0,6 par seconde) — 62 relevés dans le journal entre l'arrêt et la réouverture (74.6 s, GPS figé les 4 dernières s)
+OK  V-3.2 trou dans les relevés dû à la mort du processus < 15 s — dernier relevé avant l'arrêt → premier après : 1 s (service relancé 1.032 s après le SIGKILL)
+OK  V-3.2 réouverture : le trajet reprend avec tous ses points, ceux écrits sans la page compris — 48 points avant → 125 après ; fenêtre : 62 dans la page / 62 dans le journal ; même trajet true
+OK  V-3.2 réouverture : la notification du trajet revient — 0 km/h · 4,5 km · 0,64 €
+OK  V-3.3 appli morte : la notification continue, calculée par le service (km qui montent) — 105 km/h · 3,3 km · 0,46 € → 105 km/h · 4,5 km · 0,63 €
+OK  écart km direct natif (service, page absente) / direct de la page (rouverte) < 3 % — 4.5 km vs 4.5 km → 0 %
+OK  écart € direct natif / direct de la page < 5 % — 0.63 € vs 0.64 € → 1.56 %
+OK  V-3.5 Arrêter dans l'appli ouvre la fin de trajet — LAGRAVE → BRENS
+OK  consommation du trajet 1 = celle du trajet 2 à ±10 % — 6.43 L/100 (12.21 km) vs 6.62 L/100 (4.54 km) → 2.9 %
+OK  chaque trajet = roule.ts sur son tronçon du GPX (heures du GPX) à ±10 % — trajet 1 : 6.43 vs 6.45 L/100 (-0.3 %) ; trajet 2 : 6.62 vs 6.63 L/100 (-0.2 %)

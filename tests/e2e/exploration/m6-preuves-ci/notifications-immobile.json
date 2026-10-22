@@ -2,15 +2,15 @@
  {
   "etiquette": "tunnel",
   "titre": "Trajet en cours · GPS perdu",
-  "texte": "0 km/h · 3,5 km · 0,55 €",
+  "texte": "0 km/h · 3,5 km · 0,50 €",
   "actions": [
    "Pause",
    "Arrêter"
   ],
   "kmh": 0,
   "km": 3.5,
-  "euros": 0.55,
-  "lu": 1792617262607
+  "euros": 0.5,
+  "lu": 1792630449097
  },
  {
   "etiquette": "immobile",
@@ -23,7 +23,7 @@
   "kmh": 0,
   "km": 1.2,
   "euros": 0.22,
-  "lu": 1792618075042
+  "lu": 1792631270524
  },
  {
   "etiquette": "après Reprendre (immobile)",
@@ -36,6 +36,6 @@
   "kmh": 0,
   "km": 1.2,
   "euros": 0.22,
-  "lu": 1792618094274
+  "lu": 1792631292288
  }
 ]

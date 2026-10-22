@@ -2,144 +2,183 @@
  {
   "etiquette": "écran éteint 1 min",
   "titre": "Trajet en cours",
-  "texte": "74 km/h · 2,6 km · 1,01 €",
+  "texte": "74 km/h · 3,3 km · 0,45 €",
   "actions": [
    "Pause",
    "Arrêter"
   ],
   "kmh": 74,
-  "km": 2.6,
-  "euros": 1.01,
-  "lu": 1792617323428
+  "km": 3.3,
+  "euros": 0.45,
+  "lu": 1792630599458
  },
  {
   "etiquette": "écran éteint 2 min",
   "titre": "Trajet en cours",
-  "texte": "82 km/h · 3,8 km · 1,17 €",
+  "texte": "83 km/h · 4,6 km · 0,63 €",
   "actions": [
    "Pause",
    "Arrêter"
   ],
-  "kmh": 82,
-  "km": 3.8,
-  "euros": 1.17,
-  "lu": 1792617383514
+  "kmh": 83,
+  "km": 4.6,
+  "euros": 0.63,
+  "lu": 1792630659640
  },
  {
   "etiquette": "écran éteint 3 min",
   "titre": "Trajet en cours",
-  "texte": "83 km/h · 5,2 km · 1,34 €",
+  "texte": "83 km/h · 6,0 km · 0,79 €",
   "actions": [
    "Pause",
    "Arrêter"
   ],
   "kmh": 83,
-  "km": 5.2,
-  "euros": 1.34,
-  "lu": 1792617443600
+  "km": 6,
+  "euros": 0.79,
+  "lu": 1792630719784
  },
  {
   "etiquette": "écran éteint 4 min",
   "titre": "Trajet en cours",
-  "texte": "83 km/h · 6,6 km · 1,51 €",
+  "texte": "105 km/h · 7,5 km · 1,01 €",
   "actions": [
    "Pause",
    "Arrêter"
   ],
-  "kmh": 83,
-  "km": 6.6,
-  "euros": 1.51,
-  "lu": 1792617503710
+  "kmh": 105,
+  "km": 7.5,
+  "euros": 1.01,
+  "lu": 1792630779927
  },
  {
   "etiquette": "écran éteint 5 min",
   "titre": "Trajet en cours",
-  "texte": "105 km/h · 8,2 km · 1,77 €",
+  "texte": "105 km/h · 9,2 km · 1,27 €",
   "actions": [
    "Pause",
    "Arrêter"
   ],
   "kmh": 105,
-  "km": 8.2,
-  "euros": 1.77,
-  "lu": 1792617563798
+  "km": 9.2,
+  "euros": 1.27,
+  "lu": 1792630840082
  },
  {
   "etiquette": "lecture 1",
   "titre": "Trajet en cours",
-  "texte": "116 km/h · 8,7 km · 2,03 €",
+  "texte": "105 km/h · 11,0 km · 1,52 €",
   "actions": [
    "Pause",
    "Arrêter"
   ],
-  "kmh": 116,
-  "km": 8.7,
-  "euros": 2.03,
-  "lu": 1792617585478
+  "kmh": 105,
+  "km": 11,
+  "euros": 1.52,
+  "lu": 1792630903919
  },
  {
   "etiquette": "lecture 2 (+10 s)",
   "titre": "Trajet en cours",
-  "texte": "105 km/h · 9,1 km · 2,42 €",
+  "texte": "105 km/h · 11,5 km · 1,60 €",
   "actions": [
    "Pause",
    "Arrêter"
   ],
   "kmh": 105,
-  "km": 9.1,
-  "euros": 2.42,
-  "lu": 1792617595683
+  "km": 11.5,
+  "euros": 1.6,
+  "lu": 1792630917469
  },
  {
   "etiquette": "après Pause",
   "titre": "Trajet en pause",
-  "texte": "0 km/h · 9,2 km · 2,43 €",
+  "texte": "0 km/h · 11,6 km · 1,60 €",
   "actions": [
    "Reprendre",
    "Arrêter"
   ],
   "kmh": 0,
-  "km": 9.2,
-  "euros": 2.43,
-  "lu": 1792617606479
+  "km": 11.6,
+  "euros": 1.6,
+  "lu": 1792630931487
  },
  {
   "etiquette": "pause +30 s",
   "titre": "Trajet en pause",
-  "texte": "0 km/h · 9,2 km · 2,43 €",
+  "texte": "0 km/h · 11,6 km · 1,60 €",
   "actions": [
    "Reprendre",
    "Arrêter"
   ],
   "kmh": 0,
-  "km": 9.2,
-  "euros": 2.43,
-  "lu": 1792617636726
+  "km": 11.6,
+  "euros": 1.6,
+  "lu": 1792630964440
  },
  {
   "etiquette": "après Reprendre",
   "titre": "Trajet en cours",
-  "texte": "105 km/h · 9,4 km · 2,47 €",
+  "texte": "105 km/h · 11,9 km · 1,64 €",
   "actions": [
    "Pause",
    "Arrêter"
   ],
   "kmh": 105,
-  "km": 9.4,
-  "euros": 2.47,
-  "lu": 1792617654548
+  "km": 11.9,
+  "euros": 1.64,
+  "lu": 1792630985388
  },
  {
   "etiquette": "figée avant Arrêter",
   "titre": "Trajet en cours",
-  "texte": "105 km/h · 9,7 km · 2,76 €",
+  "texte": "105 km/h · 12,2 km · 1,69 €",
   "actions": [
    "Pause",
    "Arrêter"
   ],
   "kmh": 105,
-  "km": 9.7,
-  "euros": 2.76,
-  "lu": 1792617668671
+  "km": 12.2,
+  "euros": 1.69,
+  "lu": 1792631004568
+ },
+ {
+  "etiquette": "appli tuée +30 s (service seul)",
+  "titre": "Trajet en cours",
+  "texte": "105 km/h · 3,3 km · 0,46 €",
+  "actions": [
+   "Pause",
+   "Arrêter"
+  ],
+  "kmh": 105,
+  "km": 3.3,
+  "euros": 0.46,
+  "lu": 1792631150780
+ },
+ {
+  "etiquette": "direct natif figé (page absente)",
+  "titre": "Trajet en cours",
+  "texte": "105 km/h · 4,5 km · 0,63 €",
+  "actions": [
+   "Pause",
+   "Arrêter"
+  ],
+  "kmh": 105,
+  "km": 4.5,
+  "euros": 0.63,
+  "lu": 1792631191722
+ },
+ {
+  "etiquette": "direct de la page figé (rouverte)",
+  "titre": "Trajet en cours",
+  "texte": "105 km/h · 4,5 km · 0,64 €",
+  "actions": [
+   "Pause",
+   "Arrêter"
+  ],
+  "kmh": 105,
+  "km": 4.5,
+  "euros": 0.64,
+  "lu": 1792631202362
  }
 ]

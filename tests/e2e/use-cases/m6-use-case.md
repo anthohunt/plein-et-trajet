@@ -55,28 +55,34 @@ V-1.3 (Démarrer, dialogue de localisation natif), V-3.1 (direct dans l'appli), 
 
 ## Captures de rejeu
 
-Prises de vue réelles : `adb exec-out screencap -p` dans GitHub Actions, run 39675522721 (commit fe0f9e7), artefacts
-`captures-m6-principal` et `captures-m6-immobile` ; V-3.2-05/06 par Playwright sur la prod. Brutes dans `tests/e2e/screenshots/m6/`,
-livrées dans `tests/e2e/delivery/`.
+Prises de vue réelles : `adb exec-out screencap -p` dans GitHub Actions, **run 39701223352 (commit f2cdab1, round 2), APK de
+RELEASE signé**, artefacts `captures-m6-principal`, `captures-m6-immobile` et `captures-m6-fini` ; V-3.2-05/06 par Playwright sur
+la prod (round 1, écran web inchangé). Brutes dans `tests/e2e/screenshots/m6/`, livrées dans `tests/e2e/delivery/`.
 
 - `V-1.3-A01-apk-release.png` — APK de RELEASE signé installé et ouvert (écran Trajet, pas encore de voiture)
 - `V-1.3-A02-dialogue-localisation.png` — dialogue natif « Allow Plein & Trajet to access this device’s location? » (à l'ouverture de l'appli)
 - `V-1.3-A03-accueil.png` — écran Trajet après autorisation, voiture Renault Clio, Démarrer
-- `V-1.3-A04-dialogue-notifications.png` — dialogue natif des notifications au premier Démarrer
+- `V-1.3-A04-dialogue-notifications.png` — dialogue natif des notifications au premier Démarrer (après la proposition de batterie)
 - `V-3.1-A05-direct.png` — En route : vitesse, km, litres, € en direct après 30 s
-- `V-3.2-A10-maps-devant.png` — Google Maps au premier plan (image google_apis, Maps présent)
+- `V-3.2-A10-maps-devant.png` — Google Maps au premier plan, carte affichée (écran de connexion passé par « Skip »)
 - `V-3.2-A11-ecran-eteint.png` — écran éteint (noir ; mWakefulness=Asleep au journal du job)
-- `V-3.2-A17-appli-tuee.png` — processus de l'appli tué (SIGKILL) : Maps revient devant
+- `V-3.2-A12-reveil.png` — écran rallumé après 5 min : Maps toujours devant
+- `V-3.2-A17-appli-tuee.png` — processus de l'appli tué (SIGKILL) : Maps devant, l'appli n'est pas rouverte
+- `V-3.2-A31-batterie-appli.png` — premier Démarrer : « Garder le trajet compté écran éteint », explication, Plus tard / Autoriser
+- `V-3.2-A32-batterie-systeme.png` — dialogue système « Let app always run in background? » (Deny / Allow)
+- `V-3.2-A33-tuee-notif.png` — appli tuée depuis 25 s, jamais rouverte : la notification continue, chiffres calculés par le service seul
 - `V-3.3-A14-reprise-notif.png` — volet : après « Reprendre », « Trajet en cours », km repartis
 - `V-3.4-A06-pause-appli.png` — Pause touchée dans l'appli : « En pause », bouton « Reprendre »
 - `V-3.4-A07-reprise-appli.png` — Reprendre dans l'appli : la distance repart
 - `V-3.4-A13-pause-30s.png` — volet : 30 s de tracé plus tard, toujours « Trajet en pause », km figés
-- `V-3.5-A18-fin-appli.png` — Arrêter dans l'appli : fin de trajet « FLORENTIN → LAGRAVE »
+- `V-3.5-A18-fin-appli.png` — Arrêter dans l'appli : fin du trajet 2 (celui de l'appli tuée), L/100 du même ordre que le trajet 1
 - `V-3.E1-A26-en-route.png` — immobile : En route avant l'arrêt
 - `V-3.E1-A27-immobile-appli.png` — immobile : « Trajet arrêté : immobile depuis 10 min » avec Reprendre / C'est fini
 - `V-3.E1-A28-notif-immobile.png` — immobile : notification « Immobile depuis 10 min : c'est fini ? » avec Reprendre / C'est fini
 - `V-3.E1-A29-reprise.png` — immobile : « Reprendre » touché dans la notification → « Trajet en cours »
 - `V-3.E1-A30-fin.png` — immobile : fin de trajet après Arrêter
+- `V-3.E1-A34-cest-fini-notif.png` — job « fini » : notification « Immobile depuis 10 min : c'est fini ? » avant « C'est fini »
+- `V-3.E1-A35-fin-cest-fini.png` — job « fini » : « C'est fini » touché dans la notification → fin de trajet, durée arrêtée au début de l'immobilité
 - `V-3.E2-A21-en-route.png` — tunnel : En route avant le trou
 - `V-3.E2-A22-gps-perdu.png` — tunnel : « GPS perdu (tunnel) · la distance est complétée à la sortie »
 - `V-3.E2-A23-notif-gps-perdu.png` — tunnel : notification « Trajet en cours · GPS perdu »

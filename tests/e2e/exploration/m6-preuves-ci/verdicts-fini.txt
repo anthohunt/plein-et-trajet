@@ -1,0 +1,2 @@
+OK  V-3.E1 « C'est fini » depuis la notification : l'appli s'ouvre sur la fin de trajet — https://localhost/fin | topResumedActivity=ActivityRecord{15f7f6e u0 cloud.ingevision.pleinettrajet/.MainActivity t8}
+OK  V-3.E1 fin datée du début de l'immobilité (pas de l'instant du toucher) — fin 1792630408624 = immobile depuis 1792630408624 ; durée 75 s (attendu 74.907 s) ; 22 oct. 2026 · 1 min · Renault Clio

@@ -1,39 +1,110 @@
 {
+ "batterie": {
+  "appli": "Garder le trajet compté écran éteint Pour économiser la batterie, Android peut arrêter l'appli en route : le trajet ne serait plus compté. Autorise Plein & Trajet à rester active en arrière-plan ; elle n'y tourne que pendant un trajet. Plus tard Autoriser",
+  "systeme": "Let app always run in background? | Allowing Plein & Trajet to always run in the background may reduce battery life. \n\nYou can change this later from Settings > Apps. | Deny | Allow",
+  "horsOptimisation": true
+ },
  "appliDevant": "Google Maps (com.google.android.apps.maps)",
  "ecranEteint": {
-  "dureeS": 317.537,
-  "points": 307,
-  "plusGrandTrouS": 1.917,
-  "kmPoints": 7.194,
-  "kmGpx": 7.215
+  "dureeS": 340.58,
+  "pointsJournal": 310,
+  "plusGrandTrouJournalS": 12,
+  "ou": 1792630500871,
+  "pointsPage": 310,
+  "plusGrandTrouPageS": 12,
+  "kmPoints": 7.994,
+  "kmGpx": 8.073
  },
  "ecart": {
   "notification": {
-   "km": 9.7,
-   "euros": 2.76,
-   "prix": 2.157,
-   "litresDeduits": 1.2795549374130737
+   "km": 12.2,
+   "euros": 1.69,
+   "prix": 2.155,
+   "litresDeduits": 0.7842227378190255
   },
   "direct": {
-   "km": 9.7,
-   "litres": 1.28
+   "km": 12.2,
+   "litres": 0.79
   },
   "fin": {
-   "km": 9.702574053630727,
-   "litres": 1.2779907295408588
+   "km": 12.213176546790786,
+   "litres": 0.7851046125812228
   },
-  "ecartKmPct": 0.03,
-  "ecartLitresPct": 0.12,
-  "ecartLitresDirectPct": 0.16
+  "ecartKmPct": 0.11,
+  "ecartLitresPct": 0.11,
+  "ecartLitresDirectPct": 0.62
+ },
+ "conso": {
+  "trajet1": {
+   "km": 12.213176546790786,
+   "litres": 0.7851046125812228,
+   "l100": 6.43,
+   "reference": {
+    "km": 14.114,
+    "litres": 0.9103,
+    "l100": 6.45,
+    "points": [
+     0,
+     587
+    ]
+   },
+   "ecartReferencePct": -0.3
+  },
+  "trajet2": {
+   "km": 4.544701562505417,
+   "litres": 0.30076721404761075,
+   "l100": 6.62,
+   "reference": {
+    "km": 4.574,
+    "litres": 0.3033,
+    "l100": 6.63,
+    "points": [
+     587,
+     744
+    ]
+   },
+   "ecartReferencePct": -0.2
+  },
+  "ecartPct": 2.9
  },
  "arret": {
-  "pidAvant": "13724",
-  "pidApresAmKill": "13724",
-  "pidApresSigkill": "",
+  "racine": true,
+  "pidAvant": "14605",
+  "pidApresAmKill": "14605",
+  "pidRelance": "15820",
+  "processusRelanceApresS": 1.225,
+  "journal": {
+   "dernierPointAvantKill": 1792631116871,
+   "premierPointApres": 1792631117871,
+   "trouS": 1,
+   "relanceServiceApresKillS": 1.032,
+   "fenetreS": 74.631,
+   "pointsJournalFenetre": 62,
+   "pointsPageFenetre": 62
+  },
   "points": {
-   "avant": 41,
-   "apres": 50,
+   "avant": 48,
+   "apres": 125,
    "memeTrajet": true
   }
+ },
+ "ecartNatif": {
+  "natif": {
+   "km": 4.5,
+   "euros": 0.63,
+   "texte": "105 km/h · 4,5 km · 0,63 €"
+  },
+  "page": {
+   "km": 4.5,
+   "euros": 0.64,
+   "texte": "105 km/h · 4,5 km · 0,64 €"
+  },
+  "pendantMort": {
+   "km": 3.3,
+   "euros": 0.46,
+   "texte": "105 km/h · 3,3 km · 0,46 €"
+  },
+  "ecartKmPct": 0,
+  "ecartEurosPct": 1.56
  }
 }
