@@ -41,7 +41,7 @@ export function contenuNotification(e: EnCours, maintenant: number): ContenuNoti
     euros: prix == null ? null : d.litres * prix,
     prix,
     l100ParVitesse: tableConso(vehiculeDe(e.voiture)),
-    tPoint: d.dernierPointMs,
+    ligne: e.ligne ?? 0,
   };
 }
 

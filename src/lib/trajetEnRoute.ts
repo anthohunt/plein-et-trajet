@@ -21,7 +21,8 @@ export interface ContenuNotification {
   euros: number | null;
   prix: number | null;
   l100ParVitesse: number[]; // consommation de la voiture (L/100 km) à 0, 1, 2… 200 km/h, pour les pas comptés par le service
-  tPoint: number | null; // instant du dernier relevé compté par la page
+  ligne: number; // numéro de la dernière ligne du journal appliquée par la page : le service rejoue les suivantes, et ne laisse pas
+  // la page écraser un bouton de la notification qu'elle n'a pas encore appliqué (round 3)
 }
 
 export interface TrajetEnRoutePlugin {
@@ -32,7 +33,7 @@ export interface TrajetEnRoutePlugin {
   maj(o: ContenuNotification): Promise<void>;
   batterie(): Promise<{ horsOptimisation: boolean }>;
   proposerBatterie(): Promise<{ horsOptimisation: boolean }>;
-  addListener(evt: "releve", f: (e: { ligne: string }) => void): Promise<PluginListenerHandle>;
+  addListener(evt: "releve", f: (e: { ligne: string; n: number }) => void): Promise<PluginListenerHandle>;
   addListener(evt: "action", f: (e: { action: string }) => void): Promise<PluginListenerHandle>;
 }
 

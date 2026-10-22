@@ -75,16 +75,21 @@ function surPosition(pos: GeolocationPosition) {
   publier();
 }
 
-/** Une ligne du journal du service natif : relevé GPS (P) ou bouton de la notification (A). */
-export type Entree =
+/** Une ligne du journal du service natif : relevé GPS (P) ou bouton de la notification (A) ; `n` = son numéro dans le journal. */
+export type Entree = (
   | { type: "P"; t: number; lat: number; lon: number; altitude: number | null; kmh: number | null; precision: number | null }
-  | { type: "A"; t: number; action: string };
+  | { type: "A"; t: number; action: string }
+) & { n?: number };
 
 const nombreOuNull = (s: string | undefined) => (s == null || s === "" || !Number.isFinite(Number(s)) ? null : Number(s));
-/** Lit le journal écrit par TrajetService.java (une ligne par événement, champs séparés par « ; »). */
-export function lireJournal(texte: string): Entree[] {
+/** Lit le journal écrit par TrajetService.java (une ligne par événement, champs séparés par « ; ») ; les lignes non vides sont
+ *  numérotées à partir de `premier`, comme le service les compte (JournalTrajet.java). */
+export function lireJournal(texte: string, premier = 1): Entree[] {
   const out: Entree[] = [];
+  let n = premier - 1;
   for (const l of texte.split("\n")) {
+    if (l === "") continue;
+    n++;
     const c = l.split(";");
     const t = Number(c[1]);
     if (!Number.isFinite(t)) continue;
@@ -92,8 +97,8 @@ export function lireJournal(texte: string): Entree[] {
       const lat = Number(c[2]);
       const lon = Number(c[3]);
       if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
-      out.push({ type: "P", t, lat, lon, altitude: nombreOuNull(c[4]), kmh: nombreOuNull(c[5]), precision: nombreOuNull(c[6]) });
-    } else if (c[0] === "A" && c[2]) out.push({ type: "A", t, action: c[2] });
+      out.push({ type: "P", t, lat, lon, altitude: nombreOuNull(c[4]), kmh: nombreOuNull(c[5]), precision: nombreOuNull(c[6]), n });
+    } else if (c[0] === "A" && c[2]) out.push({ type: "A", t, action: c[2], n });
   }
   return out;
 }
@@ -108,16 +113,47 @@ export function entreesEnPoints(entrees: Entree[]): PointRoule[] {
   return e.points;
 }
 
-/** Applique une ligne du journal, une seule fois (curseur `lu`) : position, ou bouton de la notification à son instant. */
-function appliquer(x: Entree) {
-  if (!etat || x.t <= (etat.lu ?? -Infinity)) return;
+/** Ce que l'application d'une ligne du journal lit et change dans l'état d'un trajet. */
+export type EtatJournal = EtatPoints & { immobile: number | null; ignorerAvant: number; lu?: number; ligne?: number };
+
+/**
+ * Applique une ligne du journal, une seule fois. Round 3 (audit r2, problème 1) : l'ORDRE est le numéro de la ligne dans le
+ * journal, pas son heure — un relevé est daté par le GNSS, un bouton par le service, et l'heure automatique d'Android laisse
+ * jusqu'à 2 s entre les deux. L'heure garde son sens : un relevé mesuré avant une pause compte même écrit après le bouton, un
+ * relevé de la pause écrit après la reprise ne compte pas, et une pause ne commence jamais avant le dernier point compté.
+ */
+export function appliquerEntree<E extends EtatJournal>(e: E, x: Entree): E {
+  // état gardé avant le round 3 : seule l'heure de sa dernière ligne (`lu`) dit ce qui a été appliqué
+  const vu = x.n != null && e.ligne != null ? x.n <= e.ligne : e.ligne == null && x.t <= (e.lu ?? -Infinity);
+  if (vu) return e;
+  let r = e;
+  const pa = r.pauses[r.pauses.length - 1];
   if (x.type === "P") {
-    etat = avecReleve(etat, x);
-    verifierImmobile(x.t);
-  } else if (x.action === "pause" && !etat.enPause) etat = basculerPause(etat, x.t);
-  else if (x.action === "reprendre" && etat.enPause && etat.immobile == null) etat = basculerPause(etat, x.t);
-  else if (x.action === "reprendre-immobile" && etat.immobile != null) etat = { ...basculerPause({ ...etat, immobile: null }, x.t), ignorerAvant: x.t };
-  if (etat) etat = { ...etat, lu: x.t };
+    if (!r.enPause) {
+      if (!(pa && pa[1] != null && x.t <= pa[1])) r = avecReleve(r, x);
+    } else if (pa && pa[1] == null && x.t < pa[0]) r = { ...avecReleve({ ...r, enPause: false }, x), enPause: true };
+  } else {
+    const t = Math.max(x.t, r.points[r.points.length - 1]?.[0] ?? -Infinity, r.enPause && pa ? pa[0] : -Infinity);
+    if (x.action === "pause" && !r.enPause) r = basculerPause(r, t);
+    else if (x.action === "reprendre" && r.enPause && r.immobile == null) r = basculerPause(r, t);
+    else if (x.action === "reprendre-immobile" && r.immobile != null) r = { ...basculerPause({ ...r, immobile: null }, t), ignorerAvant: t };
+  }
+  return x.n != null ? { ...r, ligne: x.n, lu: undefined } : { ...r, lu: Math.max(x.t, r.lu ?? -Infinity) };
+}
+function appliquer(x: Entree) {
+  if (!etat) return;
+  etat = appliquerEntree(etat, x);
+  if (x.type === "P") verifierImmobile(x.t);
+}
+
+// appli Android : écart heure des relevés − horloge de la page, mesuré sur le dernier relevé reçu en direct ; les boutons de
+// l'appli (Pause, Reprendre) sont datés sur l'horloge des relevés, comme ceux de la notification
+let ecartReleves = 0;
+function instantBouton(e: EnCours): number {
+  const t = Date.now();
+  if (!natif) return t;
+  const pa = e.pauses[e.pauses.length - 1];
+  return Math.max(t + ecartReleves, (e.points[e.points.length - 1]?.[0] ?? -Infinity) + 1, e.enPause && pa ? pa[0] : -Infinity);
 }
 
 /** Contenu de la notification avant la première mise à jour par notifTrajet.ts. */
@@ -137,7 +173,7 @@ const contenuDeBase = (): ContenuNotification => ({
   euros: null,
   prix: null,
   l100ParVitesse: [],
-  tPoint: null,
+  ligne: 0,
 });
 
 // relecture du journal en cours (réouverture de l'appli) : « Arrêter » l'attend, sinon la fin de trajet perdrait des points
@@ -148,8 +184,9 @@ async function ecouterNatif() {
   const id = etat.id;
   // les lignes reçues en direct attendent que le journal soit relu : appliquées avant lui, elles feraient sauter les plus anciennes
   let tampon: Entree[] | null = [];
-  ecouteReleves = TrajetEnRoute.addListener("releve", ({ ligne }) => {
-    const x = lireJournal(ligne);
+  ecouteReleves = TrajetEnRoute.addListener("releve", ({ ligne, n }) => {
+    const x = lireJournal(ligne, n);
+    for (const y of x) if (y.type === "P") ecartReleves = y.t - Date.now();
     if (tampon) tampon.push(...x);
     else if (x.length > 0) {
       x.forEach(appliquer);
@@ -258,19 +295,19 @@ export const enregistreurWeb: Enregistreur = {
 
   pause() {
     if (!etat || etat.enPause) return;
-    etat = basculerPause(etat, Date.now());
+    etat = basculerPause(etat, instantBouton(etat));
     garder();
     publier();
   },
   reprendre() {
     if (!etat || !etat.enPause || etat.immobile != null) return;
-    etat = basculerPause(etat, Date.now());
+    etat = basculerPause(etat, instantBouton(etat));
     garder();
     publier();
   },
   reprendreApresImmobile() {
     if (!etat || etat.immobile == null) return;
-    const t = Date.now();
+    const t = instantBouton(etat);
     etat = { ...basculerPause({ ...etat, immobile: null }, t), ignorerAvant: t };
     garder();
     publier();
