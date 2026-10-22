@@ -372,6 +372,15 @@ async function repondreBatterie(p, nomAppli, nomSysteme) {
     if (nomSysteme) capture(nomSysteme);
     sh(`input tap ${oui.x} ${oui.y}`);
     journal(`dialogue système de batterie : « ${vu.systeme} » → « ${oui.text} »`);
+    // un dialogue « ne répond pas » de l'émulateur peut manger le toucher (run 39708165229, job immobile : dialogue resté ouvert,
+    // En route jamais atteint) : on retouche tant que le dialogue de batterie est là, trois fois au plus
+    for (let k = 0; k < 3; k++) {
+      await pause(1500);
+      const encore = await trouver((n) => n.pkg === "com.android.settings" && (n.id === "android:id/button1" || /^(Allow|Autoriser)$/i.test(n.text)), 2);
+      if (!encore) break;
+      sh(`input tap ${encore.x} ${encore.y}`);
+      journal(`dialogue de batterie encore ouvert : « ${encore.text} » retouché`);
+    }
   }
   await pause(1500);
   vu.horsOptimisation = shOk("dumpsys deviceidle whitelist").includes(PKG);
@@ -921,6 +930,30 @@ async function fini() {
 
 // =====================================================================================================================
 /** Pause puis Reprendre depuis la notification, l'heure des positions décalée de `avance` ms sur l'horloge du téléphone. */
+/**
+ * Touche un bouton du volet quand le dernier relevé écrit par le service a moins de 1,1 s (heure GNSS), comme sur un téléphone :
+ * les `uiautomator dump` ralentissent la livraison des positions de test de 3 à 5 s (run 39708922771 : relevé suivant écrit 6 s
+ * après le précédent, autour du toucher), ce qui masquait le défaut. Le bouton est localisé d'abord, touché ensuite sans dump.
+ */
+async function toucherFrais(ns, re, nom, avance, m, cle) {
+  const b = ns.find(texteEst(re));
+  if (!b) {
+    journal(`introuvable à l'écran : ${nom}`);
+    return null;
+  }
+  let age = null;
+  for (let k = 0; k < 40; k++) {
+    const dernier = journalNatif().filter((x) => x.type === "P").at(-1);
+    age = dernier ? Number(shOk("date +%s%3N")) + avance - dernier.t : null;
+    if (age != null && age < 1100) break;
+    await pause(250);
+  }
+  sh(`input tap ${b.x} ${b.y}`);
+  m[cle] = age;
+  journal(`touché « ${b.text} » (${nom}) en ${b.x},${b.y} — dernier relevé âgé de ${age} ms (heure GNSS)`);
+  return b;
+}
+
 async function pauseDecalee(p, lect, avance, nomCapture) {
   const nom = avance > 0 ? "téléphone en retard" : "téléphone en avance";
   const tag = `${nom} de ${Math.abs(avance) / 1000} s`;
@@ -931,9 +964,8 @@ async function pauseDecalee(p, lect, avance, nomCapture) {
   const m = { avanceMs: avance, ecartDernierReleveMs: jAvant.length ? jAvant.at(-1).t - heureTel : null };
   shOk("input keyevent 3"); // l'appli derrière : seule la notification est touchée
   await pause(1500);
-  await volet();
   const n0 = noterNotif(`${tag} : avant Pause`);
-  const tap = await toucher(texteEst(/^Pause$/i), `Pause de la notification (${tag})`);
+  const tap = await toucherFrais(await volet(), /^Pause$/i, `Pause de la notification (${tag})`, avance, m, "agePause");
   const tPause = Number(shOk("date +%s%3N"));
   // 24 s de pause : en boucle (~8 s par tour sur la CI), le volet relu par uiautomator (le titre affiché) et la notification
   // par dumpsys (km) ; la capture au premier relevé passé 14 s
@@ -954,13 +986,13 @@ async function pauseDecalee(p, lect, avance, nomCapture) {
   const kms = serie.map((x) => x.km);
   m.pause = { serie, enPause: e?.enPause, kmAvant: n0?.km };
   constat(`V-3.3 ${tag} : Pause de la notification tenue ≥ 20 s (titre « Trajet en pause » dans le volet à chaque relevé, km figés)`, !!tap && serie.length >= 3 && serie.at(-1).s >= 20 && serie.every((x) => x.titreVolet && x.titre === "Trajet en pause" && /^Reprendre$/i.test(x.bouton ?? "")) && kms.every((k) => k === kms[0]) && e?.enPause === true, serie.map((x) => `+${x.s} s ${x.titreVolet ? "volet « Trajet en pause »" : "volet SANS « Trajet en pause »"} / ${x.titre} / ${x.km} km`).join(" ; ") + ` ; page enPause=${e?.enPause}`);
-  const tapR = await toucher(texteEst(/^Reprendre$/i), `Reprendre de la notification (${tag})`);
+  const tapR = await toucherFrais(await volet(), /^Reprendre$/i, `Reprendre de la notification (${tag})`, avance, m, "ageReprise");
   const tReprise = Number(shOk("date +%s%3N")); // après le toucher : les relevés mesurés après cet instant comptent
   await pause(12000);
   await volet();
   const n5 = noterNotif(`${tag} : après Reprendre`);
+  const j = journalNatif(); // lu AVANT l'état de la page : un relevé écrit entre les deux n'est pas compté absent
   const e2 = await lireEnCours(p);
-  const j = journalNatif();
   const boutons = j.filter((x) => x.type === "A");
   // relevés mesurés après la reprise (heure GNSS = heure du téléphone + avance) : tous gardés par la page
   const apres = j.filter((x) => x.type === "P" && x.t > tReprise + avance + 300);
