@@ -1,0 +1,3 @@
+Portage fidèle du `JournalTrajet` du round 2 (bouton daté `currentTimeMillis`, `rattraper` r2 :268-294), cible du JUnit rouge `../junit-journal-rouge-r2.txt`.
+Rejouer (JDK 21, junit 4.13.2 + hamcrest 1.3) : `javac -cp junit.jar -d /tmp/out tests/e2e/exploration/m6-preuves-ci/r3/r2port/JournalTrajet.java android/app/src/test/java/cloud/ingevision/pleinettrajet/JournalTrajetTest.java`
+puis `java -cp /tmp/out:junit.jar:hamcrest.jar org.junit.runner.JUnitCore cloud.ingevision.pleinettrajet.JournalTrajetTest` → 3 échecs / 5 ; avec `android/app/src/main/java/cloud/ingevision/pleinettrajet/JournalTrajet.java` à la place → 5/5.
