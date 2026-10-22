@@ -344,3 +344,16 @@ h2.route:focus-visible { outline: none; text-decoration: underline 3px; text-und
 .hist .sgrp { margin: 14px 0 4px; color: var(--muted); font: 600 12px/1 var(--f-body); text-transform: uppercase; letter-spacing: .08em; }
 .hist .hrow { grid-template-columns: minmax(0, 1fr) auto; }
 .hrow.nouveau { box-shadow: inset 3px 0 0 var(--cheap); padding-left: 10px; }
+
+/* durcissement r1 (D11) : thème sombre, texte foncé sur le vert du bouton « Démarrer » (blanc : 2,15:1 ; #0e1110 : ~8,6:1) */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .gobig { color: #0e1110; } }
+:root[data-theme="dark"] .gobig { color: #0e1110; }
+
+/* durcissement r1 (D10) : sous ~500 px de haut (zoom 200 %, paysage), la page défile et la carte rétrécit ; la liste garde une hauteur */
+@media (max-height: 500px) {
+  .app { height: auto; min-height: 100dvh; overflow: visible; }
+  .screen { min-height: auto; }
+  .scroll { flex: none; overflow: visible; min-height: 220px; }
+  .map { height: 150px; }
+  .tabs { position: sticky; bottom: 0; z-index: 5; }
+}
