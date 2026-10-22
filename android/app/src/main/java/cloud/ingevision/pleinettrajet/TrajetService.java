@@ -270,8 +270,10 @@ public class TrajetService extends Service implements LocationListener {
     private void bouton(String action) {
         if (action == null) return;
         recompter();
-        String ligne = "A;" + JournalTrajet.heureBouton(System.currentTimeMillis(), ecartGnss, dernierReleve) + ";" + action;
+        long t = JournalTrajet.heureBouton(System.currentTimeMillis(), ecartGnss, dernierReleve);
+        String ligne = "A;" + t + ";" + action;
         long n = ecrire(ligne);
+        Log.i(TAG, "bouton " + action + " daté " + t + " (écart GNSS " + ecartGnss + " ms, dernier relevé " + dernierReleve + ", ligne " + n + ")");
         // la page n'écrase pas ce bouton tant qu'elle n'a pas appliqué cette ligne (TrajetEnRoute.maj → fusionnerPage)
         prefs(this).edit().putLong("ligneBouton", n).apply();
         JSONObject o = contenu(this);
