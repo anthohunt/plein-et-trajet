@@ -374,7 +374,14 @@ export const enregistreurWeb: Enregistreur = {
     if (etat) return etat;
     const e = (await (await db()).get("en_cours", CLE_ENREGISTREMENT).catch(() => undefined)) as EnCours | undefined;
     if (!e || e.version !== 2 || !Array.isArray(e.points) || !e.voiture) return null;
-    etat = e;
+    // durcissement r1 (D2) : points GPS invalides écartés à la lecture ; un enregistrement dont plus aucun point n'est lisible est abandonné
+    const fini = (n: unknown) => typeof n === "number" && Number.isFinite(n);
+    const points = e.points.filter((p) => Array.isArray(p) && fini(p[0]) && fini(p[1]) && fini(p[2]) && fini(p[3]));
+    if (e.points.length > 0 && points.length === 0) {
+      await (await db()).delete("en_cours", CLE_ENREGISTREMENT).catch(() => undefined);
+      return null;
+    }
+    etat = points.length === e.points.length ? e : { ...e, points };
     ecouter();
     publier();
     await rattrapage?.catch(() => undefined);
