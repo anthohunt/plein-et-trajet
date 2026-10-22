@@ -295,3 +295,78 @@ Comptage en lecture seule à 21:59Z, par l'API de gestion Supabase : `public.cle
 déploiement ni de run CI.
 - 22:01Z — Auditeur round 1 : FAIL (3 HIGH : consommation gonflée par la datation des points à la réception ; V-3.2 c2, points écrits par la page et service non relancé ; optimisation de batterie absente — 2 MEDIUM, 6 LOW)
 - 22:02Z — Chef : auditeur round 1 FAIL (3 HIGH, 2 MEDIUM, 6 LOW) ; cycle 2 : bâtisseur r2 lancé (m6-batisseur-r2) avec la liste des 11 problèmes.
+
+## Builder Summary — round 2
+
+Run CI final **39701223352** (commit f2cdab1) : apk + principal + immobile + fini verts, **45 constats OK / 0 KO**, tout sur l'APK de
+RELEASE signé. Artefacts : `plein-et-trajet-apk` 12393575320, `captures-m6-principal` 12393434741, `captures-m6-immobile`
+12393963089, `captures-m6-fini` 12393642970 ; copies des rapports dans tests/e2e/exploration/m6-preuves-ci/.
+
+1. **HIGH 1 — consommation gonflée : corrigé.** (a) Le service natif date chaque relevé par l'heure du relevé (`getTime()`,
+   repli sur l'âge par l'horloge monotone si écart > 30 s) — 9d07b37, a9a80ba ; (b) roule.ts retire un relevé mal daté (pas
+   > 250 km/h) et borne l'accélération à 4 m/s² — 5af2e2c. Test tests/unit/m6-datation.test.ts : 10 rafales en 20 min
+   d'autoroute, **+229 % de litres avec le code du round 1 (rouge), −0,09 % avec le nouveau (vert)**. Émulateur, run final :
+   **trajet 1 6,43 L/100, trajet 2 6,62 → 2,9 %** (round 1 : 13,2 / 7,1) ; chacun contre roule.ts sur son tronçon du GPX aux
+   heures du GPX : −0,3 % et −0,2 %. Deux artefacts de test trouvés et corrigés en route : heures des positions de test prises
+   à l'exécution de la commande (→ `--time`), voiture tenue sur place puis lâchée à 105 km/h ; et un vrai défaut corrigé : le
+   point de départ pris par la WebView (4c5299e, tous les points viennent du service).
+2. **HIGH 2 — points écrits par la page : corrigé.** @capgo retiré (son mode `url` POSTe vers un serveur, ne garde rien) ;
+   service maison `TrajetService.java` + plugin `TrajetEnRoute.java` (9d07b37) : journal `files/trajet-en-cours.txt` écrit à
+   chaque relevé, START_STICKY, relu par la page à la réouverture. Run final : SIGKILL (adb root), **appli laissée morte 74,6 s
+   sans réouverture**, Maps devant ; processus relancé par le système en 1,23 s, service en 1,03 s (`Scheduling restart of
+   crashed service … in 1000ms`), **trou 1 s** ; 62 relevés écrits sans la page, 62 relus par la page. Fondement vérifié
+   avant d'écrire : AOSP android14 `ActiveServices.java` ne remet pas à zéro les droits while-in-use à la mort du processus.
+   stack-decisions.md § 2 : ce qui est réellement construit (Java, journal texte au lieu de SQLite, direct natif simplifié).
+3. **HIGH 3 — optimisation de batterie : corrigé** (2f6d2a3). Premier Démarrer : explication (textes.ts) puis dialogue
+   système `ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, une fois. aapt2 : `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` présente
+   (controles-apk.txt). Émulateur : « Let app always run in background? » → Allow, `deviceidle whitelist` contient l'appli.
+   Captures V-3.2-A31, A32.
+4. **MEDIUM 4 — scénario sur le debug : corrigé.** Les 3 scénarios tournent sur `release/app-release.apk` ; WebView rendue
+   inspectable par `am start … --ez pt_inspecter true` (MainActivity, réglage gardé ; seul adb peut s'y connecter) ; `adb root`
+   pour le journal et le SIGKILL.
+5. **MEDIUM 5 — écart natif / web : corrigé, et nommé.** Appli morte, le service calcule seul km (haversine) et € (table
+   L/100 au km/h, roule.ts, envoyée par la page). **Direct natif / direct de la page, GPS figé : km 4,5 / 4,5 (0 %), € 0,63 /
+   0,64 (1,56 %).** La mesure du round 1 est renommée : direct de la page (notification) / fin de trajet, deux calculs JS de
+   roule.ts : km 0,11 %, litres 0,11 %.
+6. **LOW 6 — trou mesuré depuis le dernier point d'avant : corrigé** (6369587, f2cdab1 pour la distance). Run final : 310
+   relevés du service en 341 s écran éteint + Maps, plus grand trou 12 s, 7,99 km comptés / 8,07 rejoués.
+7. **LOW 7 — corrigé ici :** run 39671788190 = **job principal en échec**, immobile vert, apk vert (le Builder Summary r1
+   ne disait que « immobile vert »).
+8. **LOW 8 — « C'est fini » joué : corrigé** (3e job « fini ») : fin = début de l'immobilité (1792630408624), durée 75 s pour
+   74,9 attendues. Captures V-3.E1-A34, A35.
+9. **LOW 9 — non rejoué sur Android** (V-1.3 c2, V-3.1 c3, V-3.5 c2/c3, V-4.7 c2/c3) : mêmes composants JS que le web, couverts
+   par m5 sur la prod (ci-dessous) ; pas de scénario Android ajouté.
+10. **LOW 10 — Maps : corrigé.** Écran de connexion passé (« Skip ») : A10, A12, A17 montrent la carte. A17 + A33 : l'appli
+    tuée n'est pas rouverte et sa notification continue (preuve aussi au journal du job).
+11. **LOW 11 — libellés en dur : corrigé.** NotifTrajet.java supprimé ; TrajetService.construire ne prend que les libellés
+    envoyés par la page (textes.ts), titre par défaut = ressource `app_name`, canal = ressource `canal_trajet`.
+
+**Captures reprises** (run final, téléchargées, regardées une à une, md5 tous distincts, livrées sous leur nom) : les 43
+captures CI — V-3.2-01..04, V-3.3-01..06 et 33 de rejeu (dont nouvelles : V-3.2-A12-reveil, A31-batterie-appli,
+A32-batterie-systeme, A33-tuee-notif, V-3.E1-A34-cest-fini-notif, A35-fin-cest-fini). V-3.2-05/06 (web, Playwright r1)
+inchangées. Liste exacte : m6-use-case.md « Captures de rejeu ». À l'œil : `V-3.2-A11` noire à dessein (identique octet pour
+octet à celle du round 1) ; `V-3.2-04-apres` affiche « GPS perdu » car le test fige le GPS 17 s pour la mesure du direct natif.
+
+**Tests** : Vitest 21 fichiers, 272/272 ; `tsc --noEmit` code 0 ; `vite build` OK. m5-explore + m5-regression sur la prod
+(Vercel READY 46709c1, dernier code web), une passe sous `lourd` : **71 passed, 2 failed** (aide de test `voitureEea` : page HTML
+de la fonction `voiture-eea` ; recherche « clio 2017 120 » > 60 s), les 2 rejoués seuls : passed. Code web inchangé depuis.
+
+**Distribution** : https://projets.ingevision.cloud/plein-et-trajet/plein-et-trajet.apk — curl `200 3558256`, sha256
+`868e7404497cb9bb068fefbce5849b8be30bdcb8d18c8d54cb8f9dc77edb400a` = artefact 12393575320 ; précédente seule gardée
+(`plein-et-trajet-precedent.apk`, 6646959d…00bb) ; page d'accueil : étape batterie, « commit f2cdab1 ».
+
+**Runs CI** (8, budget 12) : 39685929207 (annulé : en root, positions de test refusées), 39687583554 (annulé), 39687638983
+(essai sur branche : fini et immobile verts, principal 2 KO — € natif, conso), 39690690299 (principal 3 KO, immobile tué par
+gms), 39693288066 (principal 1 KO : point de départ WebView), 39696043200 (vert, 5 captures masquées par un ANR), 39698800403
+(1 KO de mesure), **39701223352 (final, vert)**.
+
+**Garde-fous relus** : Vault et cles_fournisseurs non touchés ; comptage lecture seule au début et à la fin : trajets 1 057,
+cles_fournisseurs 2, vault 3 (aucune valeur lue) ; aucun appel PTV ; l'appli Android garde ses trajets sur le téléphone (aucune
+ligne trajets écrite) ; magasin de clés jamais copié, secrets masqués ; ajouts git par chemin ; aucun pkill ; verrou de
+livraison sans objet (brief). Écart d'atomicité : la suppression de NotifTrajet.java est partie dans le commit de docs 539d2d5
+(déjà poussé, laissé tel quel).
+
+**Restes** : au téléphone d'Anthony seulement — OxygenOS (la relance par le système est prouvée sur Android 14 AOSP, pas sur
+la surcouche), vrai GPS et tunnel, Waze 30 min, écart au compteur < 2 %. Le direct natif ignore l'énergie des accélérations
+pendant que l'appli est morte (corrigé par roule.ts à la réouverture).
+- 01:10Z — Bâtisseur r2 terminé : 11 problèmes traités (3 HIGH, 2 MEDIUM, 6 LOW), run final 39701223352 vert (45/45, release), conso trajet 1/2 6,43/6,62 L/100, service relancé 1,03 s / trou 1 s appli morte 74,6 s, 43 captures reprises, APK publié (sha256 868e7404…400a).

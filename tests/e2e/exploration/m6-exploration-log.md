@@ -180,3 +180,66 @@ Pilotage par un script Node (`tests/android/m6-emulateur.mjs`) plutôt qu'un `an
 | src/lib/enregistreur-web.ts:109 `BackgroundGeolocation.stop()` | BackgroundGeolocation.java `stop` | OK |
 | src/lib/nommer.ts:7 `functions.invoke("lieux", {action:"nommer", lat, lon})` | supabase/functions/lieux/index.ts:79 | OK (titres « ALBI → FLORENTIN », « BRENS → PARISOT ») |
 | src/lib/eea.ts:11 `functions/v1/voiture-eea` (voiture du test) | supabase/functions/voiture-eea | OK (Renault Clio 5RBU0C) |
+
+## Round 2 — corrections de l'audit r1 (bâtisseur r2, 21/10)
+
+### 22:25Z — diagnostic et choix
+- HIGH 1 (litres gonflés) : reproduit en test unitaire (tests/unit/m6-datation.test.ts) — 1 200 positions d'autoroute du GPX, une rafale toutes les 120 (10,5 s de silence, relevé en retard, courant 1,9 s plus tard), datées à la réception : **+229 % de litres** avec le roule.ts du round 1. Correctifs : (a) l'appli Android date chaque point par l'heure du relevé, écrite par le service natif ; (b) roule.ts retire un relevé mal daté (pas > 250 km/h que son retrait rend possible) et borne l'accélération d'un pas à 4 m/s². Même test : **−0,09 %** ; datées au relevé : ±2 %. Suite complète 271/271.
+- HIGH 2 (points écrits par la page) : cherché d'abord si @capgo/background-geolocation sait garder les points : son mode `url` rend START_STICKY mais POSTe chaque relevé vers un serveur, sans rien garder sur le téléphone (BackgroundGeolocationService.java:99-155, LocationStore.java:769) — inutilisable sans réseau. Écrit le service prévu au plan : TrajetService.java (journal texte des relevés, START_STICKY) + plugin TrajetEnRoute.java ; @capgo retiré.
+- Risque vérifié avant d'écrire : un service `location` relancé par le système garde-t-il l'accès à la position sans ACCESS_BACKGROUND_LOCATION ? Doc Android (« restrictions-bg-start ») muette sur la relance ; lu dans AOSP android14-release `ActiveServices.java` : `resetFgsRestrictionLocked` n'est appelé qu'aux lignes 2245 (délai de startForeground), 2512 (stopForeground) et 5701 (arrêt du service) — pas dans `killServicesLocked` (mort du processus) ; `setFgsRestrictionLocked` ne retire jamais un droit accordé. À constater à l'émulateur.
+- HIGH 3 : proposition de batterie au premier Démarrer (Trajet.tsx, textes.ts), dialogue système direct.
+- MEDIUM 4 : scénarios joués sur l'APK de release ; MEDIUM 5 : direct natif réel (service seul) mesuré contre le direct de la page.
+
+### 22:25Z — run 39685929207 (6369587), job apk 119519840357 : vert
+- apksigner OK, empreinte b3a3…4c25 = magasin de clés ; aapt2 : REQUEST_IGNORE_BATTERY_OPTIMIZATIONS présente, `cloud.ingevision.pleinettrajet.TrajetService foregroundServiceType=0x00000008` seul service de localisation (le service @capgo a disparu du manifeste fusionné), ACCESS_BACKGROUND_LOCATION absente.
+
+### 22:40Z — run 39685929207 (6369587) : jobs émulateur perdus, cause trouvée
+- Job immobile 119520887807 : `adb root` OK (`uid=0(root)`), dialogue de batterie OK (« Let app always run in background? » → Allow, `deviceidle whitelist` contient l'appli) ; mais `cmd location providers add-test-provider gps` échoue en root (uid 0 n'est pas l'appli de position fictive autorisée) : aucune position de test, « GPS perdu » jamais vu. Correctif 31a9fa3 : commandes de position sous `su 2000`. Run annulé (principal sans positions), essai relancé sur une branche (39687638983) pour ne pas bloquer main.
+
+### 22:58Z — run d'essai 39687638983 (31a9fa3, branche r2-essai) : fini et immobile verts, principal 2 KO
+- **HIGH 2 constaté** : SIGKILL du processus 13231 (root) → `Scheduling restart of crashed service …TrajetService in 1000ms for start-requested` → processus 14474 relancé **1,029 s** après, `TrajetService: relancé par le système`, `GPS écouté` ; `dumpsys` : `isForeground=true types=00000008 stopIfKilled=false restartCount=1`. Appli laissée morte 74,6 s, Maps devant : **67 relevés écrits par le service**, trou 2,05 s ; à la réouverture, 67 / 67 dans la page, 48 points d'avant intacts. Notification calculée par le service seul : 2,9 km · 0,83 € → 4,2 km · 1,19 €.
+- KO 1 : € du direct natif 1,19 contre 1,06 pour la page (+12 %) — l'extrapolation par les litres/km du trajet jusque-là emportait l'accélération du départ.
+- KO 2 : trajet 1 8,58 L/100, trajet 2 11,6. Dans le journal : trou de 8,1 s puis pas à 625 km/h au lancement de Maps — l'émulateur retarde puis enchaîne les commandes `set-test-provider-location`, que LocationManager date à leur exécution (`LocationShellCommand.java:320-321`, AOSP android14) et filtre à 1 s.
+- Écran éteint : 312 relevés en 324 s, plus grand trou 8,09 s mesuré depuis le dernier point d'avant l'extinction (LOW 6). Maps : bouton « SKIP » touché, la carte s'affiche (LOW 10). « C'est fini » depuis la notification : fin = 1792622765091 = début de l'immobilité, durée 74 s (attendu 73,98 s) (LOW 8).
+
+### 23:25Z — run 39690690299 (3fad9cc) : principal 3 KO, fini vert, immobile perdu à l'ouverture
+- Positions de test avec `--time` (cadence fixe 1 s) et service datant par `getTime()` : dans le journal, tous les pas font 1,000 s sauf 9 trous de 2 à 4 s au lancement de Maps (positions filtrées, bien datées).
+- **Trajet 1 : 6,40 L/100 contre 6,41 pour roule.ts sur le même tronçon du GPX aux heures du GPX (−0,2 %)** — 13,2 L/100 au round 1.
+- Trajet 2 : 8,16 contre 6,65 (+22,7 %) ; roule.ts sur le journal seul redonne 8,16 : l'écart est dans le tracé, pas dans la page — les pas 9 à 13 montent de 28,8 à 100,8 km/h : la voiture tenue sur place pendant l'attente du Démarrer puis lâchée à 105 km/h (artefact du test, 0,063 L = ½·m·v²). Correctif : trajet 2 démarré en roulant.
+- € du direct natif 0,68 contre 0,74 (−8 %) : sur la fenêtre appli morte, roule.ts compte 0,1372 L, la table par tranches de 10 km/h 0,1080 — 104,9 km/h tombait dans la case de 100 (phase haute 5,22 L/100 au lieu de très haute 6,57). Correctif : table au km/h.
+- Job immobile 119537105303 : appli tuée à l'ouverture par le système (`Killing …pleinettrajet (adj 0): depends on provider …FontsProvider in dying proc com.google.android.gms.persistent`) — reprise ajoutée à l'ouverture (3 essais).
+
+### 23:50Z — run 39693288066 (15784cd) : immobile et fini verts, principal 1 KO
+- Direct natif contre direct de la page, GPS figé : **km 4,4 / 4,5 (2,22 %), € 0,68 / 0,69 (1,45 %)** — table au km/h.
+- Trajet 1 −0,3 % de roule.ts sur le GPX ; trajet 2 +8,3 %. roule.ts sur le seul journal du service redonne **6,64 L/100 pour 6,65** : l'écart vient du point de départ pris à part par la page (\`getCurrentPosition\` de la WebView, fournisseur « fused », daté à la réception). Correctif 4c5299e : sur Android, tous les points viennent du service.
+
+### 00:16Z — run 39696043200 (46709c1) : 4 jobs verts, 47 constats OK
+- Consommation : **trajet 1 6,39 L/100 (roule.ts sur le GPX : 6,41, −0,3 %), trajet 2 6,64 (6,65, −0,2 %) ; trajet 1 / trajet 2 : 3,8 %**.
+- Mais 5 captures du job immobile (A21, A22, A24, A25, A26) masquées par « Pixel Launcher isn't responding » (émulateur lent) : regardées une à une, non conformes. Correctif ae5ed58 : le dialogue est fermé (Attendre) avant chaque capture ; run 7 = run final.
+
+## API Contract Check — round 2 (page ↔ service natif)
+
+| Appel touché (FE) | Côté natif (BE) | Statut |
+|---|---|---|
+| src/lib/enregistreur-web.ts:161 `TrajetEnRoute.demanderPermissions()` | TrajetEnRoute.java:72 alias `localisation` (FINE, COARSE), `notifications` (POST_NOTIFICATIONS) ; rend `{localisation}` (:86) | OK (dialogue notifications natif, run final) |
+| src/lib/enregistreur-web.ts:163 `demarrer({id, contenu})` | TrajetEnRoute.java:92 → `startForegroundService` intent DEMARRER, extras `id`, `contenu` (JSON) ; TrajetService.onStartCommand : même id = journal gardé, autre id = journal neuf | OK (logcat : `Background started FGS: Allowed … uidState: TOP`, `GPS écouté`) |
+| src/lib/enregistreur-web.ts:167 `lire()` → `{texte, id, actif, contenu}` ; :169 relu seulement si `id` = trajet de la page | TrajetEnRoute.java:114-119 (mêmes 4 clés) ; TrajetService.lire | OK (réouverture : 68 relevés de la fenêtre dans la page / 68 dans le journal) |
+| src/lib/enregistreur-web.ts:85 `lireJournal` : `P;t;lat;lon;alt;kmh;précision`, `A;t;action`, `R;…` ignoré | TrajetService.java:215 (P), :241-256 (A), onStartCommand (R) | OK (test unitaire m6-datation + journal lu en CI) |
+| src/lib/enregistreur-web.ts:151 `addListener("releve", {ligne})` | TrajetEnRoute.java:37 `notifyListeners("releve", {ligne})`, appelé par TrajetService.java:221 et :256 | OK (direct à 1 Hz, km notification = fin à 0,17 %) |
+| src/lib/enregistreur-web.ts:117-119 actions `pause` / `reprendre` / `reprendre-immobile` | TrajetService.java:360 `PendingIntent.getService` BOUTON, actions 2/4 ; `bouton()` écrit `A;…` | OK (Pause, Reprendre, Reprendre immobile touchés dans le volet) |
+| src/lib/notifTrajet.ts:66 `maj(ContenuNotification)` : titre, texte, enPause, immobile, 4 libellés, titreEnCours, titrePause, gabarit, km, euros, prix, l100ParVitesse (201), tPoint | TrajetEnRoute.java:125 garde le JSON ; TrajetService.construire (:370) lit titre, texte, enPause, immobile, reprendre, cestFini, pause, arreter ; direct natif lit gabarit, km, euros, prix, l100ParVitesse, tPoint, titreEnCours, titrePause | OK (notification lue : titres et libellés de textes.ts ; direct natif à 2,3 % / 1,6 %) |
+| src/lib/notifTrajet.ts:70 `addListener("action")` : `arreter` | TrajetEnRoute.java:68 `notifyListeners("action", …, true)` sur l'intent d'ouverture (Arrêter, C'est fini) | OK (Arrêter et C'est fini depuis la notification → fin de trajet) |
+| src/lib/enregistreur-web.ts:190 `arreter()` | TrajetEnRoute.java:107 → TrajetService.arreter : préférences et journal effacés, service arrêté, notification retirée | OK (`notification effacée après Arrêter`) |
+| src/routes/Trajet.tsx:20 `batterie()` → `{horsOptimisation}` ; :50 `proposerBatterie()` | TrajetEnRoute.java:138, :145 (ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, repli ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS) | OK (dialogue système, `deviceidle whitelist` contient l'appli) |
+
+### 00:41Z — run 39698800403 (ae5ed58) : 1 KO de mesure, puis 01:08Z — run final 39701223352 (f2cdab1) : 4 jobs verts
+- Run 39698800403 (runner saturé : un dialogue « ne répond pas » fermé toutes les ~10 s) : seul KO « distance écran éteint » 7,86 km comptés / 8,19 rejoués — le trou de 14 s du lancement de Maps était à cheval sur l'extinction et sa distance (que l'appli compte) manquait à la mesure ; même règle que LOW 6 appliquée à `kmPoints` (f2cdab1).
+- **Run final 39701223352** (apk 119571005243, principal 119572297696, immobile 119572297727, fini 119572297839 ; artefacts `plein-et-trajet-apk` 12393575320, `captures-m6-principal` 12393434741, `captures-m6-immobile` 12393963089, `captures-m6-fini` 12393642970) : **45 constats OK, 0 KO** (37 + 6 + 2), APK de release partout, aucun dialogue « ne répond pas » rencontré.
+- Écran éteint + Maps 341 s : 310 relevés écrits par le service, plus grand trou 12 s (depuis le dernier point d'avant), 7,99 km comptés / 8,07 rejoués.
+- Appli tuée (SIGKILL, root) et laissée morte 74,6 s, Maps devant : processus relancé par le système en 1,23 s, service en 1,03 s ; **trou 1 s** ; 62 relevés écrits sans la page, 62 relus par la page ; notification calculée par le service : 3,3 km · 0,46 € → 4,5 km · 0,63 €.
+- **Direct natif / direct de la page** (GPS figé) : km 4,5 / 4,5 (0 %), € 0,63 / 0,64 (1,56 %). Direct de la page / fin de trajet : km 0,11 %, litres 0,11 %.
+- **Consommation : trajet 1 6,43 L/100 (roule.ts sur le GPX : 6,45, −0,3 %), trajet 2 6,62 (6,63, −0,2 %) ; trajet 1 / trajet 2 : 2,9 %** (round 1 : 13,2 contre 7,1).
+- « C'est fini » depuis la notification : fin = début de l'immobilité (1792630408624), durée 75 s pour 74,9 attendues.
+- 43 captures téléchargées et regardées une à une, md5 tous distincts ; livrées sous leur nom (`V-3.2-A11` noire à dessein ; `V-3.2-04-apres` montre « GPS perdu » parce que le test fige le GPS 17 s pour mesurer le direct natif).
+- APK publié : https://projets.ingevision.cloud/plein-et-trajet/plein-et-trajet.apk — `200 3558256 application/octet-stream`, sha256 `868e7404497cb9bb068fefbce5849b8be30bdcb8d18c8d54cb8f9dc77edb400a` = artefact 12393575320 ; version précédente gardée seule (`plein-et-trajet-precedent.apk`, 6646959d…00bb).
+- Web : m5-explore + m5-regression sur la prod (bundle index-Dbs85Leg.js = 46709c1, Vercel READY), une passe sous `lourd` : **71 passed, 2 failed** — `voitureEea` de l'aide de test reçoit une page HTML de la fonction `voiture-eea` (V-4.6) et la recherche « clio 2017 120 » dépasse 60 s (V-2.3) ; rejoués seuls : **2 passed**. Première passe (22:36Z, 6369587) : 71 + 2 `voiture-eea 502 base_injoignable`, rejoués : 2 passed. Vitest 272/272 ; `tsc --noEmit` 0 ; `vite build` OK.
