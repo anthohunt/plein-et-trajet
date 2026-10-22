@@ -36,7 +36,8 @@ jobs:
       - run: npx cap sync android
       - name: Clé de signature
         run: echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > "$RUNNER_TEMP/release.p12"
-      - run: ./gradlew assembleRelease assembleDebug --no-daemon
+      # round 3 : tests JVM des règles du journal (JournalTrajetTest : deux horloges)
+      - run: ./gradlew assembleRelease assembleDebug testReleaseUnitTest --no-daemon
         working-directory: android
         env:
           ANDROID_KEYSTORE_FILE: ${{ runner.temp }}/release.p12

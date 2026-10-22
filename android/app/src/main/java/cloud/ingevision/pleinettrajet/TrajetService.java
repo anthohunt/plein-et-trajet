@@ -39,6 +39,9 @@ import org.json.JSONObject;
 // Journal, une ligne par événement :  P;instant;lat;lon;altitude;vitesse km/h;précision   (relevé GPS)
 //                                     A;instant;action                                   (bouton de la notification)
 //                                     R;instant;redemarrage                              (relancé par le système)
+// Round 3 (audit r2, problème 1) : chaque ligne a un NUMÉRO, son rang dans le journal (1 = première), remis à la page avec la
+// ligne ; c'est lui, pas l'heure, qui dit ce qui a déjà été appliqué. Un bouton est daté sur l'horloge des relevés
+// (JournalTrajet.heureBouton) : l'heure GNSS et celle du téléphone peuvent différer de 2 s sans que l'heure automatique corrige.
 // Quand la page n'est pas là (processus relancé sans elle), le service calcule lui-même la ligne de chiffres de la notification :
 // km = km de la page à sa dernière mise à jour + distance des relevés suivants ; € = € de la page + litres de ces pas, chacun à la
 // consommation de la voiture à sa vitesse (table L/100 km par km/h, calculée par roule.ts et envoyée par la page) ×
@@ -55,7 +58,7 @@ public class TrajetService extends Service implements LocationListener {
 
     /** La page, quand elle est là (TrajetEnRoute la branche) : chaque ligne du journal lui est remise aussi. */
     interface Ecouteur {
-        void ligne(String l);
+        void ligne(String l, long numero);
     }
 
     static volatile Ecouteur ecouteur;
@@ -69,6 +72,11 @@ public class TrajetService extends Service implements LocationListener {
     private double litresNatif; // litres des pas comptés par le service depuis la dernière mise à jour de la page
     private boolean natifPret; // km du direct natif repris du journal depuis la dernière mise à jour de la page
     private long derniereNotif;
+    // journal : nombre de lignes écrites (-1 : à recompter), écart heure GNSS − heure du téléphone et instant du dernier relevé
+    private long lignes = -1;
+    private long ecartGnss; // gardé aussi dans les préférences (à 200 ms près) : un bouton touché juste après une relance
+    private long ecartGarde = Long.MIN_VALUE;
+    private long dernierReleve = Long.MIN_VALUE;
 
     static File journal(Context c) {
         return new File(c.getFilesDir(), "trajet-en-cours.txt");
@@ -108,6 +116,8 @@ public class TrajetService extends Service implements LocationListener {
                 // nouveau trajet : journal neuf (celui d'un trajet arrêté a déjà été lu par la page)
                 journal(this).delete();
                 p.edit().clear().apply();
+                lignes = 0;
+                dernierReleve = Long.MIN_VALUE;
             }
             p.edit().putBoolean("actif", true).putString("id", id).putString("contenu", intent.getStringExtra("contenu")).apply();
         } else if (intent != null && BOUTON.equals(intent.getAction())) {
@@ -181,11 +191,24 @@ public class TrajetService extends Service implements LocationListener {
     }
 
     // ---------- journal ----------
-    private synchronized void ecrire(String ligne) {
+    /** Relancé par le système : le compte des lignes et le dernier relevé reprennent là où le journal s'arrête. */
+    private synchronized void recompter() {
+        if (lignes >= 0) return;
+        JournalTrajet.Rattrapage r = JournalTrajet.rattraper(lire(this), Long.MAX_VALUE, 0, false, null);
+        lignes = r.lignes;
+        dernierReleve = Math.max(dernierReleve, r.dernierReleve);
+        if (ecartGarde == Long.MIN_VALUE) ecartGnss = prefs(this).getLong("ecartGnss", 0);
+    }
+
+    /** Écrit une ligne au journal ; rend son numéro (1 = première ligne), 0 si elle n'a pas pu être écrite. */
+    private synchronized long ecrire(String ligne) {
+        recompter();
         try (FileOutputStream f = new FileOutputStream(journal(this), true)) {
             f.write((ligne + "\n").getBytes(StandardCharsets.UTF_8));
+            return ++lignes;
         } catch (IOException e) {
             Log.e(TAG, "journal non écrit", e);
+            return 0;
         }
     }
 
@@ -212,13 +235,19 @@ public class TrajetService extends Service implements LocationListener {
         // téléphone (heure réglée à la main), l'âge du relevé pris sur l'horloge monotone
         long parAge = System.currentTimeMillis() - (SystemClock.elapsedRealtimeNanos() - l.getElapsedRealtimeNanos()) / 1_000_000L;
         long t = l.getTime() > 0 && Math.abs(l.getTime() - parAge) <= 30_000L ? l.getTime() : parAge;
+        ecartGnss = t - parAge;
+        dernierReleve = Math.max(dernierReleve, t);
+        if (Math.abs(ecartGnss - ecartGarde) > 200) {
+            ecartGarde = ecartGnss;
+            prefs(this).edit().putLong("ecartGnss", ecartGnss).apply();
+        }
         String ligne = "P;" + t + ";" + String.format(Locale.ROOT, "%.7f;%.7f", l.getLatitude(), l.getLongitude()) + ";"
             + nombre(l.hasAltitude(), l.getAltitude(), "%.1f") + ";" + nombre(l.hasSpeed(), l.getSpeed() * 3.6, "%.2f") + ";"
             + nombre(l.hasAccuracy(), l.getAccuracy(), "%.1f");
-        ecrire(ligne);
+        long n = ecrire(ligne);
         Ecouteur e = ecouteur;
         if (e != null) {
-            e.ligne(ligne);
+            e.ligne(ligne, n);
             natifPret = false;
         } else {
             if (!natifPret) rattraper();
@@ -240,8 +269,11 @@ public class TrajetService extends Service implements LocationListener {
     // ---------- boutons de la notification ----------
     private void bouton(String action) {
         if (action == null) return;
-        String ligne = "A;" + System.currentTimeMillis() + ";" + action;
-        ecrire(ligne);
+        recompter();
+        String ligne = "A;" + JournalTrajet.heureBouton(System.currentTimeMillis(), ecartGnss, dernierReleve) + ";" + action;
+        long n = ecrire(ligne);
+        // la page n'écrase pas ce bouton tant qu'elle n'a pas appliqué cette ligne (TrajetEnRoute.maj → fusionnerPage)
+        prefs(this).edit().putLong("ligneBouton", n).apply();
         JSONObject o = contenu(this);
         try {
             if ("pause".equals(action)) o.put("enPause", true);
@@ -253,42 +285,44 @@ public class TrajetService extends Service implements LocationListener {
         } catch (Exception ignore) {}
         garderContenu(this, o);
         Ecouteur e = ecouteur;
-        if (e != null) e.ligne(ligne);
+        if (e != null) e.ligne(ligne, n);
         else reposer(this);
     }
 
-    // ---------- direct natif (page absente) ----------
-    private static double distanceM(double la1, double lo1, double la2, double lo2) {
-        double r = Math.PI / 180;
-        double x = Math.pow(Math.sin((la2 - la1) * r / 2), 2) + Math.cos(la1 * r) * Math.cos(la2 * r) * Math.pow(Math.sin((lo2 - lo1) * r / 2), 2);
-        return 2 * 6371000 * Math.asin(Math.sqrt(x));
+    /**
+     * Contenu envoyé par la page (maj). Si un bouton de la notification a été écrit après la dernière ligne qu'elle a appliquée
+     * (`ligne`), son état (pause, immobile, titre) est celui du service : la page ne le connaît pas encore et ne doit pas l'écraser.
+     */
+    static JSONObject fusionnerPage(Context c, JSONObject page) {
+        long bouton = prefs(c).getLong("ligneBouton", 0);
+        if (page.optLong("ligne", 0) >= bouton) return page;
+        JSONObject s = contenu(c);
+        try {
+            page.put("enPause", s.optBoolean("enPause"));
+            page.put("immobile", s.optBoolean("immobile"));
+            page.put("titre", s.optString("titre", page.optString("titre")));
+        } catch (Exception ignore) {}
+        return page;
     }
 
-    /** Relit le journal depuis la dernière mise à jour de la page : km comptés depuis, dernier relevé. */
+    // ---------- direct natif (page absente) ----------
+    private static double[] table(JSONObject o) {
+        org.json.JSONArray t = o.optJSONArray("l100ParVitesse");
+        if (t == null) return null;
+        double[] r = new double[t.length()];
+        for (int k = 0; k < r.length; k++) r[k] = t.optDouble(k, 0);
+        return r;
+    }
+
+    /** Relit le journal après la dernière ligne appliquée par la page : km comptés depuis, pause, dernier relevé. */
     private void rattraper() {
         JSONObject o = contenu(this);
-        long depuis = o.optLong("tPoint", Long.MIN_VALUE);
-        boolean enPause = o.optBoolean("enPause");
-        kmNatif = o.optDouble("km", 0);
-        litresNatif = 0;
-        precedent = null;
-        for (String l : lire(this).split("\n")) {
-            String[] c = l.split(";", -1);
-            if (c.length < 3) continue;
-            long t;
-            try {
-                t = Long.parseLong(c[1]);
-            } catch (NumberFormatException e) {
-                continue;
-            }
-            if ("A".equals(c[0]) && t > depuis) enPause = "pause".equals(c[2]);
-            if (!"P".equals(c[0]) || c.length < 4) continue;
-            double la = Double.parseDouble(c[2]), lo = Double.parseDouble(c[3]);
-            if (t > depuis && !enPause && precedent != null && t > precedent[2]) compter(o, distanceM(precedent[0], precedent[1], la, lo), (t - precedent[2]) / 1000.0, -1);
-            precedent = new double[] { la, lo, t };
-        }
+        JournalTrajet.Rattrapage r = JournalTrajet.rattraper(lire(this), o.optLong("ligne", 0), o.optDouble("km", 0), o.optBoolean("enPause"), table(o));
+        kmNatif = r.km;
+        litresNatif = r.litres;
+        precedent = r.precedent;
         try {
-            o.put("enPause", enPause);
+            o.put("enPause", r.enPause);
         } catch (Exception ignore) {}
         garderContenu(this, o);
     }
@@ -298,7 +332,7 @@ public class TrajetService extends Service implements LocationListener {
         boolean enPause = o.optBoolean("enPause");
         double kmh = kmhGps;
         if (precedent != null && t > precedent[2]) {
-            double d = distanceM(precedent[0], precedent[1], la, lo);
+            double d = JournalTrajet.distanceM(precedent[0], precedent[1], la, lo);
             double dt = (t - precedent[2]) / 1000.0;
             if (kmh < 0) kmh = d / dt * 3.6;
             if (!enPause) compter(o, d, dt, kmh);
@@ -329,11 +363,7 @@ public class TrajetService extends Service implements LocationListener {
     /** Un pas compté sans la page : distance, et litres à la consommation de la voiture à cette vitesse. */
     private void compter(JSONObject o, double d, double dt, double kmh) {
         kmNatif += d / 1000;
-        org.json.JSONArray table = o.optJSONArray("l100ParVitesse");
-        if (table == null || table.length() == 0) return;
-        double v = kmh >= 0 ? kmh : d / dt * 3.6;
-        int k = (int) Math.min(table.length() - 1, Math.max(0, Math.floor(v)));
-        litresNatif += table.optDouble(k, 0) * d / 1000 / 100;
+        litresNatif += JournalTrajet.litresPas(table(o), d, kmh >= 0 ? kmh : d / dt * 3.6);
     }
 
     // ---------- notification ----------

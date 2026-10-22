@@ -31,9 +31,10 @@ import com.getcapacitor.annotation.PermissionCallback;
 )
 public class TrajetEnRoute extends Plugin {
 
-    private final TrajetService.Ecouteur ecouteur = (ligne) -> {
+    private final TrajetService.Ecouteur ecouteur = (ligne, numero) -> {
         JSObject o = new JSObject();
         o.put("ligne", ligne);
+        o.put("n", numero); // numéro de la ligne dans le journal (round 3) : la page n'applique une ligne qu'une fois, par ce numéro
         notifyListeners("releve", o);
     };
 
@@ -120,10 +121,11 @@ public class TrajetEnRoute extends Plugin {
         call.resolve(o);
     }
 
-    /** Contenu de la notification (textes de src/lib/textes.ts) ; gardé pour le direct natif si la page disparaît. */
+    /** Contenu de la notification (textes de src/lib/textes.ts) ; gardé pour le direct natif si la page disparaît. Un bouton de la
+     *  notification que la page n'a pas encore appliqué n'est pas écrasé (TrajetService.fusionnerPage). */
     @PluginMethod
     public void maj(PluginCall call) {
-        TrajetService.garderContenu(getContext(), call.getData());
+        TrajetService.garderContenu(getContext(), TrajetService.fusionnerPage(getContext(), call.getData()));
         TrajetService.reposer(getContext());
         call.resolve();
     }
