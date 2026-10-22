@@ -1,0 +1,195 @@
+{
+ "D1-idb-arrete-sans-depart": {
+  "racine": 0,
+  "barriere": false,
+  "chemin": "/fin",
+  "relance": {
+   "racine": 0,
+   "barriere": false,
+   "chemin": "/fin"
+  },
+  "ecranBlanc": true,
+  "erreurs": [
+   "Cannot read properties of undefined (reading 'nom')",
+   "Cannot read properties of undefined (reading 'nom')"
+  ]
+ },
+ "D2-idb-enregistrement-points-null": {
+  "racine": 0,
+  "barriere": false,
+  "chemin": "/en-route",
+  "relance": {
+   "racine": 0,
+   "barriere": false,
+   "chemin": "/en-route"
+  },
+  "ecranBlanc": true,
+  "erreurs": [
+   "Cannot read properties of null (reading '3')",
+   "Cannot read properties of null (reading '3')"
+  ]
+ },
+ "D4-eea-masse-null": {
+  "racine": 0,
+  "barriere": false,
+  "chemin": "/voiture",
+  "relance": null,
+  "ecranBlanc": true,
+  "erreurs": [
+   "Cannot read properties of null (reading 'toLocaleString')"
+  ]
+ },
+ "D4-eea-immat-absent": {
+  "racine": 0,
+  "barriere": false,
+  "chemin": "/voiture",
+  "relance": null,
+  "ecranBlanc": true,
+  "erreurs": [
+   "Cannot read properties of undefined (reading 'toLocaleString')"
+  ]
+ },
+ "D5-stations-lat-NaN": {
+  "racine": 0,
+  "barriere": false,
+  "chemin": "/stations",
+  "relance": null,
+  "ecranBlanc": true,
+  "erreurs": [
+   "Invalid LngLat object: (2.15, NaN)"
+  ],
+  "apres": {
+   "lignes": 0,
+   "pastilles": 0
+  }
+ },
+ "D5-stations-lat-200": {
+  "racine": 0,
+  "barriere": false,
+  "chemin": "/stations",
+  "relance": null,
+  "ecranBlanc": true,
+  "erreurs": [
+   "Invalid LngLat latitude value: must be between -90 and 90"
+  ],
+  "apres": {
+   "lignes": 0,
+   "pastilles": 0
+  }
+ },
+ "D6-station-sans-services-fiche": {
+  "racine": 0,
+  "barriere": false,
+  "chemin": "/stations",
+  "relance": null,
+  "ecranBlanc": true,
+  "erreurs": [
+   "Cannot read properties of undefined (reading 'filter')"
+  ],
+  "apres": {
+   "fiche": false
+  }
+ },
+ "D3-barriere-erreur": {
+  "racine": 0,
+  "barriere": false,
+  "chemin": "/voiture",
+  "relance": null,
+  "ecranBlanc": true,
+  "erreurs": [
+   "boom"
+  ],
+  "apres": {
+   "avant": {
+    "barriere": false,
+    "ls": 2,
+    "racine": 0
+   }
+  }
+ },
+ "D10-stations-195x422": {
+  "racine": 315,
+  "barriere": false,
+  "chemin": "/stations",
+  "relance": null,
+  "ecranBlanc": null,
+  "erreurs": [],
+  "apres": {
+   "scroll": {
+    "h": 0,
+    "top": 383
+   },
+   "carte": {
+    "h": 230,
+    "top": 92
+   },
+   "liste": {
+    "h": 284,
+    "top": 383
+   },
+   "pageDefile": false,
+   "tabs": {
+    "h": 44,
+    "top": 378
+   }
+  }
+ },
+ "D10-stations-640x320": {
+  "racine": 315,
+  "barriere": false,
+  "chemin": "/stations",
+  "relance": null,
+  "ecranBlanc": null,
+  "erreurs": [],
+  "apres": {
+   "scroll": {
+    "h": 0,
+    "top": 351
+   },
+   "carte": {
+    "h": 230,
+    "top": 68
+   },
+   "liste": {
+    "h": 214,
+    "top": 351
+   },
+   "pageDefile": false,
+   "tabs": {
+    "h": 44,
+    "top": 276
+   }
+  }
+ },
+ "D10-stations-390x844": {
+  "racine": 315,
+  "barriere": false,
+  "chemin": "/stations",
+  "relance": null,
+  "ecranBlanc": null,
+  "erreurs": [],
+  "apres": {
+   "scroll": {
+    "h": 415,
+    "top": 385
+   },
+   "carte": {
+    "h": 230,
+    "top": 102
+   },
+   "liste": {
+    "h": 214,
+    "top": 385
+   },
+   "pageDefile": false,
+   "tabs": {
+    "h": 44,
+    "top": 800
+   }
+  }
+ },
+ "D11-demarrer-sombre": {
+  "couleur": "rgb(255, 255, 255)",
+  "fond": "rgb(76, 199, 127)"
+ }
+}

@@ -1,0 +1,61 @@
+{
+ "base": "http://localhost:4173",
+ "carte": {
+  "canvas": 1,
+  "pastilles": 3,
+  "lignes": 3
+ },
+ "serie": [
+  {
+   "i": 0,
+   "heapMB": 7.01,
+   "nodes": 202,
+   "listeners": 206,
+   "canvasAll": 1,
+   "canvasLive": 0
+  },
+  {
+   "i": 1,
+   "heapMB": 7.32,
+   "nodes": 202,
+   "listeners": 206,
+   "canvasAll": 1,
+   "canvasLive": 0
+  },
+  {
+   "i": 2,
+   "heapMB": 7.52,
+   "nodes": 202,
+   "listeners": 206,
+   "canvasAll": 1,
+   "canvasLive": 0
+  },
+  {
+   "i": 3,
+   "heapMB": 7.58,
+   "nodes": 202,
+   "listeners": 206,
+   "canvasAll": 1,
+   "canvasLive": 0
+  },
+  {
+   "i": 4,
+   "heapMB": 7.74,
+   "nodes": 202,
+   "listeners": 206,
+   "canvasAll": 1,
+   "canvasLive": 0
+  },
+  {
+   "i": 5,
+   "heapMB": 7.76,
+   "nodes": 202,
+   "listeners": 206,
+   "canvasAll": 1,
+   "canvasLive": 0
+  }
+ ],
+ "csp": [],
+ "violationsConsole": [],
+ "erreursPage": []
+}

@@ -1,0 +1,184 @@
+{
+ "D1-idb-arrete-sans-depart": {
+  "racine": 141,
+  "barriere": false,
+  "chemin": "/",
+  "relance": {
+   "racine": 141,
+   "barriere": false,
+   "chemin": "/"
+  },
+  "ecranBlanc": false,
+  "erreurs": []
+ },
+ "D2-idb-enregistrement-points-null": {
+  "racine": 141,
+  "barriere": false,
+  "chemin": "/",
+  "relance": {
+   "racine": 141,
+   "barriere": false,
+   "chemin": "/"
+  },
+  "ecranBlanc": false,
+  "erreurs": []
+ },
+ "D4-eea-masse-null": {
+  "racine": 686,
+  "barriere": false,
+  "chemin": "/voiture",
+  "relance": null,
+  "ecranBlanc": null,
+  "erreurs": []
+ },
+ "D4-eea-immat-absent": {
+  "racine": 696,
+  "barriere": false,
+  "chemin": "/voiture",
+  "relance": null,
+  "ecranBlanc": null,
+  "erreurs": []
+ },
+ "D5-stations-lat-NaN": {
+  "racine": 200,
+  "barriere": false,
+  "chemin": "/stations",
+  "relance": null,
+  "ecranBlanc": null,
+  "erreurs": [],
+  "apres": {
+   "lignes": 1,
+   "pastilles": 1
+  }
+ },
+ "D5-stations-lat-200": {
+  "racine": 200,
+  "barriere": false,
+  "chemin": "/stations",
+  "relance": null,
+  "ecranBlanc": null,
+  "erreurs": [],
+  "apres": {
+   "lignes": 1,
+   "pastilles": 1
+  }
+ },
+ "D6-station-sans-services-fiche": {
+  "racine": 360,
+  "barriere": false,
+  "chemin": "/stations",
+  "relance": null,
+  "ecranBlanc": null,
+  "erreurs": [],
+  "apres": {
+   "fiche": true
+  }
+ },
+ "D3-barriere-erreur": {
+  "racine": 269,
+  "barriere": true,
+  "chemin": "/voiture",
+  "relance": null,
+  "ecranBlanc": null,
+  "erreurs": [],
+  "apres": {
+   "avant": {
+    "barriere": true,
+    "ls": 2,
+    "racine": 269
+   },
+   "apres": {
+    "barriere": false,
+    "ls": 0,
+    "marqueurIdb": null,
+    "chemin": "/",
+    "racine": 141
+   }
+  }
+ },
+ "D10-stations-195x422": {
+  "racine": 315,
+  "barriere": false,
+  "chemin": "/stations",
+  "relance": null,
+  "ecranBlanc": null,
+  "erreurs": [],
+  "apres": {
+   "scroll": {
+    "h": 284,
+    "top": 337
+   },
+   "carte": {
+    "h": 150,
+    "top": 126
+   },
+   "liste": {
+    "h": 284,
+    "top": 337
+   },
+   "pageDefile": true,
+   "tabs": {
+    "h": 44,
+    "top": 378
+   }
+  }
+ },
+ "D10-stations-640x320": {
+  "racine": 315,
+  "barriere": false,
+  "chemin": "/stations",
+  "relance": null,
+  "ecranBlanc": null,
+  "erreurs": [],
+  "apres": {
+   "scroll": {
+    "h": 220,
+    "top": 305
+   },
+   "carte": {
+    "h": 150,
+    "top": 102
+   },
+   "liste": {
+    "h": 214,
+    "top": 305
+   },
+   "pageDefile": true,
+   "tabs": {
+    "h": 44,
+    "top": 276
+   }
+  }
+ },
+ "D10-stations-390x844": {
+  "racine": 315,
+  "barriere": false,
+  "chemin": "/stations",
+  "relance": null,
+  "ecranBlanc": null,
+  "erreurs": [],
+  "apres": {
+   "scroll": {
+    "h": 415,
+    "top": 385
+   },
+   "carte": {
+    "h": 230,
+    "top": 102
+   },
+   "liste": {
+    "h": 214,
+    "top": 385
+   },
+   "pageDefile": false,
+   "tabs": {
+    "h": 44,
+    "top": 800
+   }
+  }
+ },
+ "D11-demarrer-sombre": {
+  "couleur": "rgb(14, 17, 16)",
+  "fond": "rgb(76, 199, 127)"
+ }
+}

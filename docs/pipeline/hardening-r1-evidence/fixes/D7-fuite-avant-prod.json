@@ -1,0 +1,61 @@
+{
+ "base": "https://plein-et-trajet.vercel.app",
+ "carte": {
+  "canvas": 1,
+  "pastilles": 3,
+  "lignes": 3
+ },
+ "serie": [
+  {
+   "i": 0,
+   "heapMB": 6.95,
+   "nodes": 202,
+   "listeners": 204,
+   "canvasAll": 1,
+   "canvasLive": 0
+  },
+  {
+   "i": 1,
+   "heapMB": 7.67,
+   "nodes": 312,
+   "listeners": 229,
+   "canvasAll": 2,
+   "canvasLive": 0
+  },
+  {
+   "i": 2,
+   "heapMB": 8.34,
+   "nodes": 422,
+   "listeners": 254,
+   "canvasAll": 3,
+   "canvasLive": 0
+  },
+  {
+   "i": 3,
+   "heapMB": 8.87,
+   "nodes": 532,
+   "listeners": 279,
+   "canvasAll": 4,
+   "canvasLive": 0
+  },
+  {
+   "i": 4,
+   "heapMB": 9.5,
+   "nodes": 642,
+   "listeners": 304,
+   "canvasAll": 5,
+   "canvasLive": 0
+  },
+  {
+   "i": 5,
+   "heapMB": 10,
+   "nodes": 752,
+   "listeners": 329,
+   "canvasAll": 6,
+   "canvasLive": 0
+  }
+ ],
+ "csp": [],
+ "violationsConsole": [],
+ "erreursPage": []
+}
