@@ -116,12 +116,45 @@ export const EVT_TRAJETS = "pt-trajets";
 const signaler = () => {
   if (typeof window !== "undefined") window.dispatchEvent(new Event(EVT_TRAJETS));
 };
+const fini = (n: unknown): n is number => typeof n === "number" && Number.isFinite(n);
+const lieuValide = (l: unknown): l is LieuTrajet => {
+  const x = l as LieuTrajet | null;
+  return !!x && typeof x === "object" && fini(x.lat) && fini(x.lon) && (x.nom == null || typeof x.nom === "string");
+};
+/**
+ * Durcissement r1 (D1) : un trajet lu dans IndexedDB peut être incomplet (écriture interrompue, autre version de l'appli).
+ * Rejeté (null) s'il manque ce sans quoi les écrans plantent (id, dates, lieux, distance, litres, carburant, voiture, courbes) ;
+ * les champs secondaires manquants sont réparés par une valeur neutre.
+ */
+export function normaliserTrajet(x: unknown): TrajetV1 | null {
+  const t = x as Partial<TrajetV1> | null;
+  if (!t || typeof t !== "object" || typeof t.id !== "string" || !t.id) return null;
+  if (!fini(t.debut) || !fini(t.fin) || !lieuValide(t.depart) || !lieuValide(t.arrivee)) return null;
+  if (!fini(t.km) || !fini(t.litres) || typeof t.carburant !== "string" || !t.carburant) return null;
+  if (!Array.isArray(t.vitesses) || !Array.isArray(t.consos) || !t.vitesses.every(fini) || !t.consos.every(fini)) return null;
+  const v = t.voiture as TrajetV1["voiture"] | undefined;
+  if (!v || typeof v !== "object" || typeof v.nom !== "string" || typeof v.carburant !== "string") return null;
+  return {
+    ...(t as TrajetV1),
+    voiture: { ...v, detail: typeof v.detail === "string" ? v.detail : "" },
+    pays_depart: typeof t.pays_depart === "string" ? t.pays_depart : "FR",
+    moyennes: t.moyennes && typeof t.moyennes === "object" ? t.moyennes : {},
+    prix_litre: fini(t.prix_litre) ? t.prix_litre : null,
+    prix_perso: fini(t.prix_perso) ? t.prix_perso : null,
+    personnes: fini(t.personnes) ? t.personnes : 1,
+    conso_max: fini(t.conso_max) ? t.conso_max : 0,
+    vitesse_moy: fini(t.vitesse_moy) ? t.vitesse_moy : 0,
+    accelerations: fini(t.accelerations) ? t.accelerations : 0,
+    duree_s: fini(t.duree_s) ? t.duree_s : 0,
+    enregistre: !!t.enregistre,
+  };
+}
 export async function listerTrajetsV1(): Promise<TrajetV1[]> {
   const d = await db();
-  return (await d.getAll("trajets")).sort((a, b) => b.debut - a.debut);
+  return (await d.getAll("trajets")).map(normaliserTrajet).filter((t): t is TrajetV1 => t !== null).sort((a, b) => b.debut - a.debut);
 }
 export async function lireTrajetV1(id: string): Promise<TrajetV1 | null> {
-  return (await (await db()).get("trajets", id)) ?? null;
+  return normaliserTrajet(await (await db()).get("trajets", id));
 }
 export async function garderTrajetV1(t: TrajetV1): Promise<void> {
   await (await db()).put("trajets", t);
@@ -136,8 +169,13 @@ export async function supprimerTrajetV1(id: string): Promise<void> {
 }
 /** Trajet arrêté pas encore tranché (rouvert au lancement de l'appli). */
 export async function lireArrete(): Promise<TrajetV1 | null> {
-  const t = (await (await db()).get("en_cours", CLE_ARRETE)) as TrajetV1 | undefined;
-  return t && typeof t.id === "string" && Array.isArray(t.vitesses) ? t : null;
+  const d = await db();
+  const brut = await d.get("en_cours", CLE_ARRETE);
+  if (brut === undefined) return null;
+  const t = normaliserTrajet(brut);
+  // un trajet arrêté inutilisable est écarté pour de bon : sinon l'appli y reviendrait (et planterait) à chaque lancement
+  if (!t) await d.delete("en_cours", CLE_ARRETE).catch(() => undefined);
+  return t;
 }
 export async function garderArrete(t: TrajetV1): Promise<void> {
   await (await db()).put("en_cours", t, CLE_ARRETE);
