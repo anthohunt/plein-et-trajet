@@ -61,7 +61,7 @@ export function FicheStation({ station, onFermer, carburantVoiture, onUtiliserPr
     .filter((m): m is string => !!m)
     .sort()
     .pop();
-  const services = [...(station.automate_24_24 ? [T.automate] : []), ...station.services.filter((x) => x !== "Automate CB 24/24")];
+  const services = [...(station.automate_24_24 ? [T.automate] : []), ...(station.services ?? []).filter((x) => x !== "Automate CB 24/24")];
   // le nom déclaré n'est montré que s'il n'est pas déjà dans le titre
   const nomEnPlus = station.nom && !station.libelle.toLowerCase().includes(station.nom.toLowerCase()) ? station.nom : null;
 
