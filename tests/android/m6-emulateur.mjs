@@ -10,7 +10,8 @@
 // native (dialogues, volet des notifications) par `uiautomator dump` + `input tap` ; la WebView par Playwright (_android, CDP),
 // qui lit l'état de la page (IndexedDB « plein-et-trajet », magasin en_cours). Les points se lisent là où le service les écrit :
 // son journal (journalNatif).
-// Usage : node tests/android/m6-emulateur.mjs principal|immobile|fini [dossier-sortie]
+// Round 3 : « horloge » (Pause / Reprendre depuis la notification, l'heure des positions décalée de ±1,5 s sur celle du téléphone).
+// Usage : node tests/android/m6-emulateur.mjs principal|immobile|fini|horloge [dossier-sortie]
 import { execFile, execFileSync, spawn } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
 import net from "node:net";
@@ -140,9 +141,12 @@ function fournisseurTest() {
 // l'heure était celle où le shell exécutait la commande : au lancement de Maps l'émulateur les retardait de plusieurs secondes
 // puis les enchaînait (run 39687638983 : trou de 8,1 s puis pas de 625 km/h), et le service datait mal ces relevés.
 let decalageAppareil = null; // horloge de l'émulateur − horloge du runner (ms)
+// round 3 (scénario « horloge ») : l'heure des positions décalée sur l'horloge du téléphone, comme un téléphone dont l'heure
+// automatique tolère jusqu'à 2 s d'écart avec l'heure GNSS (+1500 : téléphone en retard ; −1500 : en avance)
+let avanceGnssMs = 0;
 function fixTest(lon, lat, t) {
   if (decalageAppareil == null) decalageAppareil = Number(shOk("date +%s%3N")) - Date.now() || 0;
-  const heure = Math.round(t + decalageAppareil);
+  const heure = Math.round(t + decalageAppareil + avanceGnssMs);
   shellTest.stdin.write(`${prefixeTest}cmd location providers set-test-provider-location gps --location ${lat},${lon} --accuracy 5 --time ${heure}\n`);
 }
 let consoleEmu = null;
@@ -724,11 +728,17 @@ async function principal() {
   await pause(6000);
   const nPage = noterNotif("direct de la page figé (rouverte)");
   const apres = await lireEnCours(p);
-  capture("V-3.2-04-apres");
   // GPS figé au moins 17 s : au-delà de 15 s c'est un « trou » (ligne droite) ; plus court, le tracé reprendrait comme après
   // un arrêt, et l'accélération fictive qui suit compterait des litres (test, pas route)
   while (Date.now() - tGele < 17000) await pause(250);
   lect.gele = false;
+  // round 3 (audit r2, LOW 4) : la capture de la réouverture est prise après le dégel, chiffres qui avancent
+  const kmDegel = await kmApp(p);
+  await pause(8000);
+  const kmDegel2 = await kmApp(p);
+  const perduDegel = await p.locator('[data-el="gps-perdu"]').isVisible().catch(() => false);
+  capture("V-3.2-04-apres");
+  constat("V-3.2 réouverture, GPS revenu : les km avancent, plus de « GPS perdu »", kmDegel2 > kmDegel && !perduDegel, `${kmDegel} → ${kmDegel2} km en 8 s, GPS perdu affiché : ${perduDegel}`);
   const pj = jK.filter((x) => x.type === "P");
   const dernierAvant = pj.filter((x) => x.t < tKill).at(-1)?.t ?? null;
   const premierApres = pj.find((x) => x.t > tKill)?.t ?? null;
@@ -908,11 +918,81 @@ async function fini() {
   await lect.arreter();
 }
 
+// =====================================================================================================================
+/** Pause puis Reprendre depuis la notification, l'heure des positions décalée de `avance` ms sur l'horloge du téléphone. */
+async function pauseDecalee(p, lect, avance, nomCapture) {
+  const nom = avance > 0 ? "téléphone en retard" : "téléphone en avance";
+  const tag = `${nom} de ${Math.abs(avance) / 1000} s`;
+  await demarrer(p, lect);
+  await pause(40000);
+  const jAvant = journalNatif().filter((x) => x.type === "P");
+  const heureTel = Number(shOk("date +%s%3N"));
+  const m = { avanceMs: avance, ecartDernierReleveMs: jAvant.length ? jAvant.at(-1).t - heureTel : null };
+  shOk("input keyevent 3"); // l'appli derrière : seule la notification est touchée
+  await pause(1500);
+  await volet();
+  const n0 = noterNotif(`${tag} : avant Pause`);
+  const tap = await toucher(texteEst(/^Pause$/i), `Pause de la notification (${tag})`);
+  const tPause = Number(shOk("date +%s%3N"));
+  // 24 s de pause : toutes les 4 s, le volet relu par uiautomator (le titre affiché) et la notification par dumpsys (km)
+  const serie = [];
+  while (Number(shOk("date +%s%3N")) - tPause < 24000) {
+    await pause(4000);
+    const ns = await volet();
+    const n = noterNotif(`${tag} : pause +${Math.round((Number(shOk("date +%s%3N")) - tPause) / 1000)} s`);
+    serie.push({ s: Math.round((Number(shOk("date +%s%3N")) - tPause) / 1000), titreVolet: ns.some(texteEst(/^Trajet en pause$/)), titre: n?.titre, km: n?.km, bouton: n?.actions[0] });
+    if (serie.length === 5) capture(nomCapture);
+  }
+  const e = await lireEnCours(p);
+  const kms = serie.map((x) => x.km);
+  m.pause = { serie, enPause: e?.enPause, kmAvant: n0?.km };
+  constat(`V-3.3 ${tag} : Pause de la notification tenue ≥ 20 s (titre « Trajet en pause » dans le volet à chaque relevé, km figés)`, !!tap && serie.length >= 5 && serie.at(-1).s >= 20 && serie.every((x) => x.titreVolet && x.titre === "Trajet en pause" && /^Reprendre$/i.test(x.bouton ?? "")) && kms.every((k) => k === kms[0]) && e?.enPause === true, serie.map((x) => `+${x.s} s ${x.titreVolet ? "volet « Trajet en pause »" : "volet SANS « Trajet en pause »"} / ${x.titre} / ${x.km} km`).join(" ; ") + ` ; page enPause=${e?.enPause}`);
+  const tapR = await toucher(texteEst(/^Reprendre$/i), `Reprendre de la notification (${tag})`);
+  const tReprise = Number(shOk("date +%s%3N")); // après le toucher : les relevés mesurés après cet instant comptent
+  await pause(12000);
+  await volet();
+  const n5 = noterNotif(`${tag} : après Reprendre`);
+  const e2 = await lireEnCours(p);
+  const j = journalNatif();
+  const boutons = j.filter((x) => x.type === "A");
+  // relevés mesurés après la reprise (heure GNSS = heure du téléphone + avance) : tous gardés par la page
+  const apres = j.filter((x) => x.type === "P" && x.t > tReprise + avance + 300);
+  const gardes = new Set((e2?.points ?? []).map((x) => x[0]));
+  const perdus = apres.filter((x) => !gardes.has(x.t));
+  const pa = (e2?.pauses ?? []).at(-1);
+  const pendant = (e2?.points ?? []).filter((x) => pa && x[0] > pa[0] && x[0] < pa[1]);
+  m.reprise = { titre: n5?.titre, km: n5?.km, boutons: boutons.map((x) => `${x.quoi}@${x.t}`), pause: pa, relevesApresReprise: apres.length, perdus: perdus.length, pointsPendantPause: pendant.length };
+  constat(`V-3.3 ${tag} : Reprendre de la notification, km repartent`, !!tapR && n5?.titre === "Trajet en cours" && n5.km > kms[0], `${kms[0]} → ${n5?.km} km, ${n5?.titre}`);
+  constat(`V-3.3 ${tag} : aucun relevé d'après la reprise jeté par la page, aucun point gardé pendant la pause`, apres.length >= 8 && perdus.length === 0 && pendant.length === 0, `${apres.length} relevés après la reprise dans le journal, ${perdus.length} absents de la page ; ${pendant.length} point(s) dans la pause [${pa?.[0]}, ${pa?.[1]}]`);
+  mesures[avance > 0 ? "retard" : "avance"] = m;
+  lancer();
+  await pause(3000);
+  await p.locator('[data-el="bouton-arreter"]').click();
+  await p.waitForURL(/\/fin$/, { timeout: 20000 });
+  await p.locator('[data-el="supprimer-neuf"]').click();
+  await p.locator('[data-el="bouton-demarrer"]').waitFor({ timeout: 15000 });
+}
+
+async function horloge() {
+  // audit r2, problème 1 (reclassé HIGH) : relevés datés par l'heure GNSS, boutons par l'horloge du téléphone. L'heure automatique
+  // d'Android ne corrige qu'au-delà de 2 s d'écart : les deux sens sont joués, à 1,5 s.
+  journal(`ro.build.type = ${shOk("getprop ro.build.type")}`);
+  avanceGnssMs = 1500;
+  let { lect, p } = await preparer("albi-toulouse.gpx", 700, "test");
+  await pauseDecalee(p, lect, 1500, "V-3.3-A36-pause-horloge-decalee");
+  await lect.arreter();
+  avanceGnssMs = -1500;
+  lect = new Lecteur(lireGpx("albi-toulouse.gpx"), 900, "test");
+  await pauseDecalee(p, lect, -1500, "V-3.3-A37-pause-horloge-avance");
+  await lect.arreter();
+}
+
 try {
   journal(`scénario ${SCENARIO} — écran ${ecranEtat()} — Maps ${shOk(`pm path ${MAPS}`) || "absent"}`);
   journal(`adb root : ${racine ? "oui" : "non"} ; APK installé : ${shOk(`dumpsys package ${PKG} | grep -E 'versionName|pkgFlags' | head -2`).replace(/\s+/g, " ")}`);
   if (SCENARIO === "principal") await principal();
   else if (SCENARIO === "fini") await fini();
+  else if (SCENARIO === "horloge") await horloge();
   else await immobile();
 } catch (e) {
   constat("scénario sans exception", false, String(e?.stack ?? e).slice(0, 600));

@@ -7,7 +7,7 @@ on:
     inputs:
       scenarios:
         description: "Scénarios joués sur l'émulateur (liste JSON)"
-        default: '["principal","immobile","fini"]'
+        default: '["principal","immobile","fini","horloge"]'
 # un push plus récent remplace la vérification en cours (chaque run émulateur dure ~30 min)
 concurrency:
   group: android-${{ github.ref }}
@@ -67,7 +67,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scenario: ${{ fromJSON(github.event.inputs.scenarios || '["principal","immobile","fini"]') }}
+        scenario: ${{ fromJSON(github.event.inputs.scenarios || '["principal","immobile","fini","horloge"]') }}
     steps:
       # l'émulateur API 34 réserve 7,2 Go de données ; certains runners n'en laissent que 7,1 (run 39659349314 :
       # « FATAL Not enough space to create userdata partition ») : outils inutiles ici retirés, partition ramenée à 4 Go
