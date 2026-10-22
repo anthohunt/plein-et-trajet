@@ -123,20 +123,20 @@ const lieuValide = (l: unknown): l is LieuTrajet => {
 };
 /**
  * Durcissement r1 (D1) : un trajet lu dans IndexedDB peut être incomplet (écriture interrompue, autre version de l'appli).
- * Rejeté (null) s'il manque ce sans quoi les écrans plantent (id, dates, lieux, distance, litres, carburant, voiture, courbes) ;
- * les champs secondaires manquants sont réparés par une valeur neutre.
+ * Rejeté (null) s'il manque l'essentiel (id, début, lieux, distance, litres, carburant, courbes) ; ce qui est réparable l'est
+ * (fin, voiture, moyennes, prix, compteurs : valeur neutre) pour ne pas jeter un trajet que l'utilisateur peut encore enregistrer.
  */
 export function normaliserTrajet(x: unknown): TrajetV1 | null {
   const t = x as Partial<TrajetV1> | null;
   if (!t || typeof t !== "object" || typeof t.id !== "string" || !t.id) return null;
-  if (!fini(t.debut) || !fini(t.fin) || !lieuValide(t.depart) || !lieuValide(t.arrivee)) return null;
+  if (!fini(t.debut) || !lieuValide(t.depart) || !lieuValide(t.arrivee)) return null;
   if (!fini(t.km) || !fini(t.litres) || typeof t.carburant !== "string" || !t.carburant) return null;
   if (!Array.isArray(t.vitesses) || !Array.isArray(t.consos) || !t.vitesses.every(fini) || !t.consos.every(fini)) return null;
-  const v = t.voiture as TrajetV1["voiture"] | undefined;
-  if (!v || typeof v !== "object" || typeof v.nom !== "string" || typeof v.carburant !== "string") return null;
+  const v = (t.voiture && typeof t.voiture === "object" ? t.voiture : {}) as Partial<TrajetV1["voiture"]>;
   return {
     ...(t as TrajetV1),
-    voiture: { ...v, detail: typeof v.detail === "string" ? v.detail : "" },
+    fin: fini(t.fin) ? t.fin : t.debut,
+    voiture: { nom: typeof v.nom === "string" ? v.nom : "", detail: typeof v.detail === "string" ? v.detail : "", carburant: typeof v.carburant === "string" ? (v.carburant as TrajetV1["carburant"]) : t.carburant },
     pays_depart: typeof t.pays_depart === "string" ? t.pays_depart : "FR",
     moyennes: t.moyennes && typeof t.moyennes === "object" ? t.moyennes : {},
     prix_litre: fini(t.prix_litre) ? t.prix_litre : null,
