@@ -1,8 +1,9 @@
 - **Concept** : appli mobile d'abord (web + Android) : coût réel d'un trajet roulé avec ma voiture (prix officiels du jour, conso par phases EEA), partage entre passagers, historique ; prix des stations autour de moi.
-- **Prod** : https://plein-et-trajet.vercel.app (déployée au push sur main) · Supabase rglrwtkqwihdztgqlbsy (auth anonyme, 30 inscriptions/h) · github.com/anthohunt/plein-et-trajet · secrets dans .env.local. Vault cle_ptv, cle_stadia, sync_prix_secret : ne JAMAIS effacer.
-- **Jalons 1 à 4 FAITS** (prix, trajets estimés, péages, Europe, enregistrement en roulant, Royaume-Uni), puis recentrage V1.
-- **Jalon 5 FAIT (21/10)** : V1 = T1 Trajet, T2 Ma voiture (code D.2 → base EEA Discodata), T3 En route, T4 Fin de trajet (carburant, prix perso, partage), T5 Stations (fond OpenFreeMap), T6 Historique (sur le téléphone, IndexedDB). Péages hors service, 0 appel PTV en V1. 3 cycles : textes en dur, bruit GPS à l'arrêt, arrêt auto, trajet supprimé qui revenait, tous corrigés.
-- **Tests** : Vitest 265 ; Playwright m1 + m5-explore + m5-regression 96/96 sur la prod (m2-m4 = estimation retirée de la V1).
-- **Méthode** : agents par lancer-agent-claude.sh (LA_BOUCLE_SUR_VPS=1, LA_BOUCLE_MODE_P=1), attendus au premier plan ; travail lourd sous `lourd` ; une autre session (Android) pousse aussi sur main → pull --rebase. Rapport m5 : docs/delivery/outils/preparer-rapport-m5.py + generate-milestone-report-patche-v.cjs.
-- **En attente d'Anthony** : libellé Clio IV / TCe 120 ; fond OpenFreeMap ; retours sur les rapports m2-m5.
-- **Suite** : jalon 6 Android (Capacitor 8, plugin TrajetEnRoute, APK par GitHub Actions), puis durcissement.
+- **Prod** : https://plein-et-trajet.vercel.app (push sur main) · APK https://projets.ingevision.cloud/plein-et-trajet/plein-et-trajet.apk · Supabase rglrwtkqwihdztgqlbsy · github.com/anthohunt/plein-et-trajet · secrets .env.local. Vault cle_ptv, cle_stadia, sync_prix_secret : ne JAMAIS effacer.
+- **Jalons 1 à 5 FAITS** puis V1 recentrée (T1 à T6, péages hors service, 0 appel PTV).
+- **Jalon 6 FAIT (22/10)** : Capacitor 8 ; service natif TrajetService + plugin TrajetEnRoute (journal des relevés numéroté, START_STICKY, relu à la réouverture) ; notification Pause/Reprendre/Arrêter/C'est fini ; sortie de l'optimisation de batterie ; verrou d'écran web. 3 cycles : conso gonflée (datation), points écrits par la page, batterie, puis « deux horloges » (Pause perdue si l'horloge retarde sur le GNSS) — tous corrigés.
+- **Tests** : Vitest 280 ; Playwright m1 + m5 + m6-explore 102/103 sur la prod ; Android = GitHub Actions (émulateur, 3 scénarios + horloge, APK release).
+- **Bloquant** : CI GitHub arrêtée (facturation) depuis le 22/10 02:44Z.
+- **Méthode** : agents par lancer-agent-claude.sh (LA_BOUCLE_SUR_VPS=1, LA_BOUCLE_MODE_P=1), attendus AU PREMIER PLAN (une attente en arrière-plan fige le chef) ; `lourd` ; rapports via preparer-rapport-m5/m6.py.
+- **En attente d'Anthony** : facturation GitHub ; libellé Clio IV ; fond OpenFreeMap ; essais au téléphone ; retours m2-m6.
+- **Suite** : étape 5, durcissement.
