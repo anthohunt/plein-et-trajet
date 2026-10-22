@@ -1,0 +1,112 @@
+{
+ "retard": {
+  "avanceMs": 1500,
+  "ecartDernierReleveMs": 1559,
+  "agePause": -915,
+  "pause": {
+   "serie": [
+    {
+     "s": 6,
+     "titreVolet": true,
+     "titre": "Trajet en pause",
+     "km": 0.8,
+     "bouton": "Reprendre"
+    },
+    {
+     "s": 12,
+     "titreVolet": true,
+     "titre": "Trajet en pause",
+     "km": 0.8,
+     "bouton": "Reprendre"
+    },
+    {
+     "s": 18,
+     "titreVolet": true,
+     "titre": "Trajet en pause",
+     "km": 0.8,
+     "bouton": "Reprendre"
+    },
+    {
+     "s": 27,
+     "titreVolet": true,
+     "titre": "Trajet en pause",
+     "km": 0.8,
+     "bouton": "Reprendre"
+    }
+   ],
+   "enPause": true,
+   "kmAvant": 0.6
+  },
+  "ageReprise": 822,
+  "reprise": {
+   "titre": "Trajet en cours",
+   "km": 1,
+   "boutons": [
+    "pause@1792636268443",
+    "reprendre@1792636298638"
+   ],
+   "pause": [
+    1792636268443,
+    1792636298638
+   ],
+   "relevesApresReprise": 13,
+   "perdus": 0,
+   "pointsPendantPause": 0
+  }
+ },
+ "avance": {
+  "avanceMs": -1500,
+  "ecartDernierReleveMs": -852,
+  "agePause": -940,
+  "pause": {
+   "serie": [
+    {
+     "s": 6,
+     "titreVolet": true,
+     "titre": "Trajet en pause",
+     "km": 1.1,
+     "bouton": "Reprendre"
+    },
+    {
+     "s": 12,
+     "titreVolet": true,
+     "titre": "Trajet en pause",
+     "km": 1.1,
+     "bouton": "Reprendre"
+    },
+    {
+     "s": 18,
+     "titreVolet": true,
+     "titre": "Trajet en pause",
+     "km": 1.1,
+     "bouton": "Reprendre"
+    },
+    {
+     "s": 27,
+     "titreVolet": true,
+     "titre": "Trajet en pause",
+     "km": 1.1,
+     "bouton": "Reprendre"
+    }
+   ],
+   "enPause": true,
+   "kmAvant": 0.9
+  },
+  "ageReprise": 915,
+  "reprise": {
+   "titre": "Trajet en cours",
+   "km": 1.4,
+   "boutons": [
+    "pause@1792636374427",
+    "reprendre@1792636403636"
+   ],
+   "pause": [
+    1792636374427,
+    1792636403636
+   ],
+   "relevesApresReprise": 13,
+   "perdus": 0,
+   "pointsPendantPause": 0
+  }
+ }
+}

@@ -1,0 +1,106 @@
+{
+ "retard": {
+  "avanceMs": 1500,
+  "ecartDernierReleveMs": 1684,
+  "agePause": -665,
+  "pause": {
+   "serie": [
+    {
+     "s": 6,
+     "titreVolet": false,
+     "titre": "Trajet en cours",
+     "km": 0.8,
+     "bouton": "Pause"
+    },
+    {
+     "s": 12,
+     "titreVolet": false,
+     "titre": "Trajet en cours",
+     "km": 0.9,
+     "bouton": "Pause"
+    },
+    {
+     "s": 18,
+     "titreVolet": false,
+     "titre": "Trajet en cours",
+     "km": 1,
+     "bouton": "Pause"
+    },
+    {
+     "s": 28,
+     "titreVolet": false,
+     "titre": "Trajet en cours",
+     "km": 1.2,
+     "bouton": "Pause"
+    }
+   ],
+   "enPause": false,
+   "kmAvant": 0.6
+  },
+  "reprise": {
+   "titre": "Trajet en cours",
+   "km": 1.7,
+   "boutons": [
+    "pause@1792636194160"
+   ],
+   "relevesApresReprise": 13,
+   "perdus": 0,
+   "pointsPendantPause": 0
+  }
+ },
+ "avance": {
+  "avanceMs": -1500,
+  "ecartDernierReleveMs": -958,
+  "agePause": -581,
+  "pause": {
+   "serie": [
+    {
+     "s": 7,
+     "titreVolet": true,
+     "titre": "Trajet en pause",
+     "km": 1.1,
+     "bouton": "Reprendre"
+    },
+    {
+     "s": 14,
+     "titreVolet": true,
+     "titre": "Trajet en pause",
+     "km": 1.1,
+     "bouton": "Reprendre"
+    },
+    {
+     "s": 23,
+     "titreVolet": true,
+     "titre": "Trajet en pause",
+     "km": 1.1,
+     "bouton": "Reprendre"
+    },
+    {
+     "s": 30,
+     "titreVolet": true,
+     "titre": "Trajet en pause",
+     "km": 1.1,
+     "bouton": "Reprendre"
+    }
+   ],
+   "enPause": true,
+   "kmAvant": 0.9
+  },
+  "ageReprise": -798,
+  "reprise": {
+   "titre": "Trajet en cours",
+   "km": 1.3,
+   "boutons": [
+    "pause@1792636303285",
+    "reprendre@1792636340013"
+   ],
+   "pause": [
+    1792636303285,
+    1792636340013
+   ],
+   "relevesApresReprise": 14,
+   "perdus": 1,
+   "pointsPendantPause": 0
+  }
+ }
+}

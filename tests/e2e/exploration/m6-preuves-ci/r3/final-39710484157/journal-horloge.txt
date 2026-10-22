@@ -1,0 +1,39 @@
+    1s scénario horloge — écran mWakefulness=Awake — Maps package:/product/app/Maps/Maps.apk
+    1s adb root : oui ; APK installé : versionName=1.0 pkgFlags=[ HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP ]
+    1s ro.build.type = userdebug
+    3s appops set com.android.shell android:mock_location allow → ok
+    3s appops set 2000 android:mock_location allow → ok
+    3s aide : add-test-provider <PROVIDER> [--requiresNetwork] [--requiresSatellite] remove-test-provider <PROVIDER> set-test-provider-enabled <PROVIDER> true|false set-test-provider-location <PROVIDER> --location <LATITUDE>,<LONGITUDE>
+    3s add-test-provider gps → ok
+    4s set-test-provider-enabled gps → ok
+   19s dialogue système de batterie : « Let app always run in background? | Allowing Plein & Trajet to always run in the background may reduce battery life. 
+
+You can change this later from Settings > Apps. | Deny | Allow » → « Allow »
+   28s batterie proposée : Garder le trajet compté écran éteint Pour économiser la batterie, Android peut arrêter l'appli en route : le trajet ne serait plus compté. Autorise Plein & Trajet à rester active en arrière-plan ; elle n'y tourne que pendant un trajet. Plus tard Autoriser | système Let app always run in background? | Allowing Plein & Trajet to always run in the background may reduce battery life. 
+
+You can change this later from Settings > Apps. | Deny | Allow | hors optimisation true
+   70s notification [téléphone en retard de 1.5 s : avant Pause] Trajet en cours | 74 km/h · 0,6 km · 0,14 € | Pause / Arrêter
+   77s touché « Pause » (Pause de la notification (téléphone en retard de 1.5 s)) en 88,393 — dernier relevé âgé de -915 ms (heure GNSS)
+   83s notification [téléphone en retard de 1.5 s : pause +6 s] Trajet en pause | 0 km/h · 0,8 km · 0,17 € | Reprendre / Arrêter
+   89s notification [téléphone en retard de 1.5 s : pause +12 s] Trajet en pause | 0 km/h · 0,8 km · 0,17 € | Reprendre / Arrêter
+   95s notification [téléphone en retard de 1.5 s : pause +18 s] Trajet en pause | 0 km/h · 0,8 km · 0,17 € | Reprendre / Arrêter
+   98s capture V-3.3-A36-pause-horloge-decalee.png (34050 o)
+  104s notification [téléphone en retard de 1.5 s : pause +27 s] Trajet en pause | 0 km/h · 0,8 km · 0,17 € | Reprendre / Arrêter
+  104s OK  V-3.3 téléphone en retard de 1.5 s : Pause de la notification tenue ≥ 20 s (titre « Trajet en pause » dans le volet à chaque relevé, km figés) — +6 s volet « Trajet en pause » / Trajet en pause / 0.8 km ; +12 s volet « Trajet en pause » / Trajet en pause / 0.8 km ; +18 s volet « Trajet en pause » / Trajet en pause / 0.8 km ; +27 s volet « Trajet en pause » / Trajet en pause / 0.8 km ; page enPause=true
+  109s touché « Reprendre » (Reprendre de la notification (téléphone en retard de 1.5 s)) en 100,393 — dernier relevé âgé de 822 ms (heure GNSS)
+  124s notification [téléphone en retard de 1.5 s : après Reprendre] Trajet en cours | 74 km/h · 1,0 km · 0,19 € | Pause / Arrêter
+  125s OK  V-3.3 téléphone en retard de 1.5 s : Reprendre de la notification, km repartent — 0.8 → 1 km, Trajet en cours
+  125s OK  V-3.3 téléphone en retard de 1.5 s : aucun relevé d'après la reprise jeté par la page, aucun point gardé pendant la pause — 13 relevés après la reprise dans le journal, 0 absents de la page ; 0 point(s) dans la pause [1792636268443, 1792636298638]
+  180s notification [téléphone en avance de 1.5 s : avant Pause] Trajet en cours | 83 km/h · 0,9 km · 0,19 € | Pause / Arrêter
+  186s touché « Pause » (Pause de la notification (téléphone en avance de 1.5 s)) en 88,393 — dernier relevé âgé de -940 ms (heure GNSS)
+  192s notification [téléphone en avance de 1.5 s : pause +6 s] Trajet en pause | 0 km/h · 1,1 km · 0,21 € | Reprendre / Arrêter
+  198s notification [téléphone en avance de 1.5 s : pause +12 s] Trajet en pause | 0 km/h · 1,1 km · 0,21 € | Reprendre / Arrêter
+  204s notification [téléphone en avance de 1.5 s : pause +18 s] Trajet en pause | 0 km/h · 1,1 km · 0,21 € | Reprendre / Arrêter
+  207s capture V-3.3-A37-pause-horloge-avance.png (33742 o)
+  213s notification [téléphone en avance de 1.5 s : pause +27 s] Trajet en pause | 0 km/h · 1,1 km · 0,21 € | Reprendre / Arrêter
+  213s OK  V-3.3 téléphone en avance de 1.5 s : Pause de la notification tenue ≥ 20 s (titre « Trajet en pause » dans le volet à chaque relevé, km figés) — +6 s volet « Trajet en pause » / Trajet en pause / 1.1 km ; +12 s volet « Trajet en pause » / Trajet en pause / 1.1 km ; +18 s volet « Trajet en pause » / Trajet en pause / 1.1 km ; +27 s volet « Trajet en pause » / Trajet en pause / 1.1 km ; page enPause=true
+  217s touché « Reprendre » (Reprendre de la notification (téléphone en avance de 1.5 s)) en 100,393 — dernier relevé âgé de 915 ms (heure GNSS)
+  233s notification [téléphone en avance de 1.5 s : après Reprendre] Trajet en cours | 83 km/h · 1,4 km · 0,24 € | Pause / Arrêter
+  233s OK  V-3.3 téléphone en avance de 1.5 s : Reprendre de la notification, km repartent — 1.1 → 1.4 km, Trajet en cours
+  233s OK  V-3.3 téléphone en avance de 1.5 s : aucun relevé d'après la reprise jeté par la page, aucun point gardé pendant la pause — 13 relevés après la reprise dans le journal, 0 absents de la page ; 0 point(s) dans la pause [1792636374427, 1792636403636]
+  238s remove-test-provider gps → ok

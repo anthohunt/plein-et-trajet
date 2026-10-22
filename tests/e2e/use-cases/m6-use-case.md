@@ -55,9 +55,11 @@ V-1.3 (Démarrer, dialogue de localisation natif), V-3.1 (direct dans l'appli), 
 
 ## Captures de rejeu
 
-Prises de vue réelles : `adb exec-out screencap -p` dans GitHub Actions, **run 39701223352 (commit f2cdab1, round 2), APK de
-RELEASE signé**, artefacts `captures-m6-principal`, `captures-m6-immobile` et `captures-m6-fini` ; V-3.2-05/06 par Playwright sur
-la prod (round 1, écran web inchangé). Brutes dans `tests/e2e/screenshots/m6/`, livrées dans `tests/e2e/delivery/`.
+Prises de vue réelles : `adb exec-out screencap -p` dans GitHub Actions, **run 39710484157 (commit 71f19b3, round 3), APK de
+RELEASE signé** (sha256 95f2e58a…acf8, celui qui est publié), artefacts `captures-m6-principal`, `captures-m6-immobile`,
+`captures-m6-fini` et `captures-m6-horloge` ; sauf `V-1.3-A01` et `V-3.2-A10`, gardées du run 39701223352 (round 2) : au round 3
+elles sont masquées par le dialogue « Pixel Launcher isn't responding » de l'émulateur, et leur écran (premier lancement, Google
+Maps) ne dépend pas du code changé. V-3.2-05/06 par Playwright sur la prod (round 1, écran web inchangé). Brutes dans `tests/e2e/screenshots/m6/`, livrées dans `tests/e2e/delivery/`.
 
 - `V-1.3-A01-apk-release.png` — APK de RELEASE signé installé et ouvert (écran Trajet, pas encore de voiture)
 - `V-1.3-A02-dialogue-localisation.png` — dialogue natif « Allow Plein & Trajet to access this device’s location? » (à l'ouverture de l'appli)
@@ -67,11 +69,14 @@ la prod (round 1, écran web inchangé). Brutes dans `tests/e2e/screenshots/m6/`
 - `V-3.2-A10-maps-devant.png` — Google Maps au premier plan, carte affichée (écran de connexion passé par « Skip »)
 - `V-3.2-A11-ecran-eteint.png` — écran éteint (noir ; mWakefulness=Asleep au journal du job)
 - `V-3.2-A12-reveil.png` — écran rallumé après 5 min : Maps toujours devant
-- `V-3.2-A17-appli-tuee.png` — processus de l'appli tué (SIGKILL) : Maps devant, l'appli n'est pas rouverte
+- `V-3.2-04-apres.png` — appli rouverte après 74,8 s morte, GPS revenu : 105 km/h, 4,7 km, plus de « GPS perdu » (round 3, prise après le dégel)
+- `V-3.2-A17-appli-tuee.png` — processus de l'appli tué (SIGKILL) : Maps devant, l'appli n'est pas rouverte. La mort du processus ne se voit pas à l'écran (relancé par le système en moins de 1,3 s, sans fenêtre) : la preuve est au journal du job (PID avant / après, `Scheduling restart of crashed service`)
 - `V-3.2-A31-batterie-appli.png` — premier Démarrer : « Garder le trajet compté écran éteint », explication, Plus tard / Autoriser
 - `V-3.2-A32-batterie-systeme.png` — dialogue système « Let app always run in background? » (Deny / Allow)
 - `V-3.2-A33-tuee-notif.png` — appli tuée depuis 25 s, jamais rouverte : la notification continue, chiffres calculés par le service seul
 - `V-3.3-A14-reprise-notif.png` — volet : après « Reprendre », « Trajet en cours », km repartis
+- `V-3.3-A36-pause-horloge-decalee.png` — job « horloge », relevés datés en avance sur l'horloge du téléphone (téléphone en retard) : Pause touchée dans le volet, 15 s plus tard toujours « Trajet en pause », 0,8 km figés, bouton « Reprendre »
+- `V-3.3-A37-pause-horloge-avance.png` — job « horloge », relevés datés en retard sur l'horloge du téléphone (téléphone en avance) : « Trajet en pause », 1,1 km figés
 - `V-3.4-A06-pause-appli.png` — Pause touchée dans l'appli : « En pause », bouton « Reprendre »
 - `V-3.4-A07-reprise-appli.png` — Reprendre dans l'appli : la distance repart
 - `V-3.4-A13-pause-30s.png` — volet : 30 s de tracé plus tard, toujours « Trajet en pause », km figés

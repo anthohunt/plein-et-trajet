@@ -1,0 +1,68 @@
+
+ RUN  v2.1.8 /home/claude/webapp-runs/prix-carburant-trajets-2026-10-20-114307
+
+ ❯ tests/unit/m6-horloges.test.ts (8 tests | 3 failed) 29ms
+   × deux horloges : boutons de la notification et relevés GNSS (audit r2, problème 1) > téléphone en retard de 1,5 s : un bouton Pause daté AVANT le dernier relevé prend quand même 15ms
+     → expected false to be true // Object.is equality
+   × deux horloges : boutons de la notification et relevés GNSS (audit r2, problème 1) > relevé mesuré avant la Pause mais écrit APRÈS le bouton : il est gardé, ceux d'après ne comptent pas 7ms
+     → expected [ 1792600000000, 1792600001000, …(9) ] to include 1792600011000
+   × relecture du journal à la réouverture de l'appli (page morte pendant la Pause et la reprise) > téléphone en retard de 1,5 s : Pause et Reprendre de la notification (boutons datés par l'horloge du téléphone, round 2) 1ms
+     → expected [] to have a length of 1 but got +0
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/m6-horloges.test.ts > deux horloges : boutons de la notification et relevés GNSS (audit r2, problème 1) > téléphone en retard de 1,5 s : un bouton Pause daté AVANT le dernier relevé prend quand même
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/unit/m6-horloges.test.ts:30:23
+     28|     // comme au round 2 : bouton daté par l'horloge du téléphone, 0,3 …
+     29|     const e = rejouer(lignes(...releves(0, 10), A(T0 + 10_000 - 1500 +…
+     30|     expect(e.enPause).toBe(true);
+       |                       ^
+     31|     expect(e.points).toHaveLength(11); // relevés 0 à 10 ; les 20 de l…
+     32|     expect(e.pauses).toHaveLength(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/unit/m6-horloges.test.ts > deux horloges : boutons de la notification et relevés GNSS (audit r2, problème 1) > relevé mesuré avant la Pause mais écrit APRÈS le bouton : il est gardé, ceux d'après ne comptent pas
+AssertionError: expected [ 1792600000000, 1792600001000, …(9) ] to include 1792600011000
+ ❯ tests/unit/m6-horloges.test.ts:41:39
+     39|     const e = rejouer(lignes(...releves(0, 10), A(T0 + 11_300, "pause"…
+     40|     expect(e.enPause).toBe(true);
+     41|     expect(e.points.map((p) => p[0])).toContain(T0 + 11_000);
+       |                                       ^
+     42|     expect(e.points).toHaveLength(12);
+     43|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/unit/m6-horloges.test.ts > relecture du journal à la réouverture de l'appli (page morte pendant la Pause et la reprise) > téléphone en retard de 1,5 s : Pause et Reprendre de la notification (boutons datés par l'horloge du téléphone, round 2)
+AssertionError: expected [] to have a length of 1 but got +0
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ tests/unit/m6-horloges.test.ts:69:22
+     67|     const texte = lignes(...releves(0, 20), A(T0 + 20_300 - d, "pause"…
+     68|     const e = rejouer(texte, avant(texte));
+     69|     expect(e.pauses).toHaveLength(1);
+       |                      ^
+     70|     expect(e.enPause).toBe(false);
+     71|     // 20 s roulées avant la pause, 19 après (le premier relevé de la …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 5 passed (8)
+   Start at  01:49:38
+   Duration  643ms (transform 305ms, setup 0ms, collect 461ms, tests 29ms, environment 0ms, prepare 46ms)
+

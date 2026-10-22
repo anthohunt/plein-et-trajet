@@ -1,0 +1,110 @@
+{
+ "batterie": {
+  "appli": "Garder le trajet compté écran éteint Pour économiser la batterie, Android peut arrêter l'appli en route : le trajet ne serait plus compté. Autorise Plein & Trajet à rester active en arrière-plan ; elle n'y tourne que pendant un trajet. Plus tard Autoriser",
+  "systeme": "Let app always run in background? | Allowing Plein & Trajet to always run in the background may reduce battery life. \n\nYou can change this later from Settings > Apps. | Deny | Allow",
+  "horsOptimisation": true
+ },
+ "appliDevant": "Google Maps (com.google.android.apps.maps)",
+ "ecranEteint": {
+  "dureeS": 335.884,
+  "pointsJournal": 308,
+  "plusGrandTrouJournalS": 13,
+  "ou": 1792636299881,
+  "pointsPage": 308,
+  "plusGrandTrouPageS": 13,
+  "kmPoints": 8.084,
+  "kmGpx": 8.166
+ },
+ "ecart": {
+  "notification": {
+   "km": 12.2,
+   "euros": 1.7,
+   "prix": 2.155,
+   "litresDeduits": 0.7888631090487239
+  },
+  "direct": {
+   "km": 12.2,
+   "litres": 0.79
+  },
+  "fin": {
+   "km": 12.234237187626992,
+   "litres": 0.7891177706939997
+  },
+  "ecartKmPct": 0.28,
+  "ecartLitresPct": 0.03,
+  "ecartLitresDirectPct": 0.11
+ },
+ "conso": {
+  "trajet1": {
+   "km": 12.234237187626992,
+   "litres": 0.7891177706939997,
+   "l100": 6.45,
+   "reference": {
+    "km": 14.173,
+    "litres": 0.9142,
+    "l100": 6.45,
+    "points": [
+     0,
+     589
+    ]
+   },
+   "ecartReferencePct": 0
+  },
+  "trajet2": {
+   "km": 4.690220507133809,
+   "litres": 0.31055824075667926,
+   "l100": 6.62,
+   "reference": {
+    "km": 4.72,
+    "litres": 0.3128,
+    "l100": 6.63,
+    "points": [
+     589,
+     751
+    ]
+   },
+   "ecartReferencePct": -0.2
+  },
+  "ecartPct": 2.6
+ },
+ "arret": {
+  "racine": true,
+  "pidAvant": "15283",
+  "pidApresAmKill": "15283",
+  "pidRelance": "16583",
+  "processusRelanceApresS": 1.366,
+  "journal": {
+   "dernierPointAvantKill": 1792636905881,
+   "premierPointApres": 1792636906881,
+   "trouS": 1,
+   "relanceServiceApresKillS": 0.898,
+   "fenetreS": 74.795,
+   "pointsJournalFenetre": 60,
+   "pointsPageFenetre": 60
+  },
+  "points": {
+   "avant": 47,
+   "apres": 120,
+   "memeTrajet": true
+  }
+ },
+ "ecartNatif": {
+  "natif": {
+   "km": 4.4,
+   "euros": 0.63,
+   "texte": "105 km/h · 4,4 km · 0,63 €"
+  },
+  "page": {
+   "km": 4.4,
+   "euros": 0.63,
+   "texte": "105 km/h · 4,4 km · 0,63 €"
+  },
+  "pendantMort": {
+   "km": 3.2,
+   "euros": 0.45,
+   "texte": "105 km/h · 3,2 km · 0,45 €"
+  },
+  "ecartKmPct": 0,
+  "ecartEurosPct": 0
+ }
+}
