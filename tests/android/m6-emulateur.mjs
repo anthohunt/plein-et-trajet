@@ -327,9 +327,10 @@ async function page() {
 }
 const lancer = () => shOk(`am start -n ${PKG}/.MainActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER --ez pt_inspecter true`);
 const racine = shOk("id -u") === "0"; // adb root (job emulateur) : journal du service lisible, processus tuable
+const journalBrut = () => (racine ? shOk(`cat /data/data/${PKG}/files/trajet-en-cours.txt`) : shOk(`run-as ${PKG} cat files/trajet-en-cours.txt`));
 /** Journal écrit par le service natif TrajetService : relevés P (instant du relevé), boutons A, relances R. */
 function journalNatif() {
-  const txt = racine ? shOk(`cat /data/data/${PKG}/files/trajet-en-cours.txt`) : shOk(`run-as ${PKG} cat files/trajet-en-cours.txt`);
+  const txt = journalBrut();
   return txt
     .split("\n")
     .map((l) => l.trim().split(";"))
@@ -934,19 +935,25 @@ async function pauseDecalee(p, lect, avance, nomCapture) {
   const n0 = noterNotif(`${tag} : avant Pause`);
   const tap = await toucher(texteEst(/^Pause$/i), `Pause de la notification (${tag})`);
   const tPause = Number(shOk("date +%s%3N"));
-  // 24 s de pause : toutes les 4 s, le volet relu par uiautomator (le titre affiché) et la notification par dumpsys (km)
+  // 24 s de pause : en boucle (~8 s par tour sur la CI), le volet relu par uiautomator (le titre affiché) et la notification
+  // par dumpsys (km) ; la capture au premier relevé passé 14 s
   const serie = [];
+  let pris = false;
   while (Number(shOk("date +%s%3N")) - tPause < 24000) {
-    await pause(4000);
+    await pause(2000);
     const ns = await volet();
-    const n = noterNotif(`${tag} : pause +${Math.round((Number(shOk("date +%s%3N")) - tPause) / 1000)} s`);
-    serie.push({ s: Math.round((Number(shOk("date +%s%3N")) - tPause) / 1000), titreVolet: ns.some(texteEst(/^Trajet en pause$/)), titre: n?.titre, km: n?.km, bouton: n?.actions[0] });
-    if (serie.length === 5) capture(nomCapture);
+    const s = Math.round((Number(shOk("date +%s%3N")) - tPause) / 1000);
+    const n = noterNotif(`${tag} : pause +${s} s`);
+    serie.push({ s, titreVolet: ns.some(texteEst(/^Trajet en pause$/)), titre: n?.titre, km: n?.km, bouton: n?.actions[0] });
+    if (!pris && s >= 14) {
+      capture(nomCapture);
+      pris = true;
+    }
   }
   const e = await lireEnCours(p);
   const kms = serie.map((x) => x.km);
   m.pause = { serie, enPause: e?.enPause, kmAvant: n0?.km };
-  constat(`V-3.3 ${tag} : Pause de la notification tenue ≥ 20 s (titre « Trajet en pause » dans le volet à chaque relevé, km figés)`, !!tap && serie.length >= 5 && serie.at(-1).s >= 20 && serie.every((x) => x.titreVolet && x.titre === "Trajet en pause" && /^Reprendre$/i.test(x.bouton ?? "")) && kms.every((k) => k === kms[0]) && e?.enPause === true, serie.map((x) => `+${x.s} s ${x.titreVolet ? "volet « Trajet en pause »" : "volet SANS « Trajet en pause »"} / ${x.titre} / ${x.km} km`).join(" ; ") + ` ; page enPause=${e?.enPause}`);
+  constat(`V-3.3 ${tag} : Pause de la notification tenue ≥ 20 s (titre « Trajet en pause » dans le volet à chaque relevé, km figés)`, !!tap && serie.length >= 3 && serie.at(-1).s >= 20 && serie.every((x) => x.titreVolet && x.titre === "Trajet en pause" && /^Reprendre$/i.test(x.bouton ?? "")) && kms.every((k) => k === kms[0]) && e?.enPause === true, serie.map((x) => `+${x.s} s ${x.titreVolet ? "volet « Trajet en pause »" : "volet SANS « Trajet en pause »"} / ${x.titre} / ${x.km} km`).join(" ; ") + ` ; page enPause=${e?.enPause}`);
   const tapR = await toucher(texteEst(/^Reprendre$/i), `Reprendre de la notification (${tag})`);
   const tReprise = Number(shOk("date +%s%3N")); // après le toucher : les relevés mesurés après cet instant comptent
   await pause(12000);
@@ -965,6 +972,11 @@ async function pauseDecalee(p, lect, avance, nomCapture) {
   constat(`V-3.3 ${tag} : Reprendre de la notification, km repartent`, !!tapR && n5?.titre === "Trajet en cours" && n5.km > kms[0], `${kms[0]} → ${n5?.km} km, ${n5?.titre}`);
   constat(`V-3.3 ${tag} : aucun relevé d'après la reprise jeté par la page, aucun point gardé pendant la pause`, apres.length >= 8 && perdus.length === 0 && pendant.length === 0, `${apres.length} relevés après la reprise dans le journal, ${perdus.length} absents de la page ; ${pendant.length} point(s) dans la pause [${pa?.[0]}, ${pa?.[1]}]`);
   mesures[avance > 0 ? "retard" : "avance"] = m;
+  // pièces : le journal du service, numéroté, et ce que la page en a gardé (curseur, pauses, heures des points)
+  let k = 0;
+  const brut = journalBrut().split("\n").filter((l) => l.trim()).map((l) => `${++k}\t${l.trim()}`);
+  writeFileSync(`${OUT}/journal-service-${avance > 0 ? "retard" : "avance"}.txt`, brut.join("\n") + "\n");
+  writeFileSync(`${OUT}/page-${avance > 0 ? "retard" : "avance"}.json`, JSON.stringify({ ligne: e2?.ligne, lu: e2?.lu, enPause: e2?.enPause, pauses: e2?.pauses, points: (e2?.points ?? []).map((x) => [x[0], x[3]]), tPause, tReprise, heureTelephoneFin: Number(shOk("date +%s%3N")) }));
   lancer();
   await pause(3000);
   await p.locator('[data-el="bouton-arreter"]').click();
