@@ -1,9 +1,8 @@
-- **Concept** : appli mobile d'abord (web + Android) : coût réel d'un trajet roulé avec ma voiture (prix officiels du jour, conso par phases EEA), partage entre passagers, historique ; prix des stations autour de moi.
-- **Prod** : https://plein-et-trajet.vercel.app (push sur main) · APK https://projets.ingevision.cloud/plein-et-trajet/plein-et-trajet.apk · Supabase rglrwtkqwihdztgqlbsy · github.com/anthohunt/plein-et-trajet · secrets .env.local. Vault cle_ptv, cle_stadia, sync_prix_secret : ne JAMAIS effacer.
-- **Jalons 1 à 5 FAITS** puis V1 recentrée (T1 à T6, péages hors service, 0 appel PTV).
-- **Jalon 6 FAIT (22/10)** : Capacitor 8 ; service natif TrajetService + plugin TrajetEnRoute (journal des relevés numéroté, START_STICKY, relu à la réouverture) ; notification Pause/Reprendre/Arrêter/C'est fini ; sortie de l'optimisation de batterie ; verrou d'écran web. 3 cycles : conso gonflée (datation), points écrits par la page, batterie, puis « deux horloges » (Pause perdue si l'horloge retarde sur le GNSS) — tous corrigés.
-- **Tests** : Vitest 280 ; Playwright m1 + m5 + m6-explore 102/103 sur la prod ; Android = GitHub Actions (émulateur, 3 scénarios + horloge, APK release).
-- **Bloquant** : CI GitHub arrêtée (facturation) depuis le 22/10 02:44Z.
-- **Méthode** : agents par lancer-agent-claude.sh (LA_BOUCLE_SUR_VPS=1, LA_BOUCLE_MODE_P=1), attendus AU PREMIER PLAN (une attente en arrière-plan fige le chef) ; `lourd` ; rapports via preparer-rapport-m5/m6.py.
-- **En attente d'Anthony** : facturation GitHub ; libellé Clio IV ; fond OpenFreeMap ; essais au téléphone ; retours m2-m6.
-- **Suite** : étape 5, durcissement.
+- **Concept** : Plein & Trajet, coût exact de l'essence d'un trajet réellement roulé (voiture par code D.2, base EEA), partage entre passagers, historique sur le téléphone, carte des prix des stations Europe + Royaume-Uni. Web + APK Android.
+- **Prod** : https://plein-et-trajet.vercel.app · APK https://projets.ingevision.cloud/plein-et-trajet/plein-et-trajet.apk · Supabase rglrwtkqwihdztgqlbsy · github.com/anthohunt/plein-et-trajet. Vault cle_ptv, cle_stadia, sync_prix_secret : ne JAMAIS effacer.
+- **Jalons 1-6 faits** ; recentrage V1 le 21/10 (estimation avant départ et péages retirés, écran Moteurs hors navigation à /admin).
+- **Durcissement r1 fait (22/10)** : D1-D11 corrigés (écrans blancs, barrière d'erreur, maplibre 6.15, recherche EEA rapide, en-têtes de sécurité) ; P2 D12-D14, D16-D22 différés.
+- **Livraison (22/10)** : 97 histoires du plan → 40 inchangées, 18 modifiées, 39 retirées, + 4 nouvelles. Docs : spec-final.md (vérité), reconciliation-report.md, decisions-log.md, final-verification.md, final-audit.md, docs/delivery/user-journey-walkthrough.html.
+- **Bloquant** : CI GitHub (facturation) depuis le 22/10 02:44Z → l'APK publié (71f19b3) n'a pas les correctifs du durcissement ; captures Android = celles de la CI du jalon 6.
+- **En attente d'Anthony** : facturation GitHub ; libellé « Clio IV / TCe 120 » (EEA ne les porte pas) ; fond OpenFreeMap ; essais réels sur le OnePlus (écran éteint + Waze, tunnel, notification).
+- **Méthode** : E2E contre la prod réelle (tracé GPS rejoué) ; `lourd` pour le lourd ; générateur du parcours : ~/.claude/skills/pipeline-step6/generate-walkthrough.js.
