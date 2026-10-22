@@ -1,9 +1,9 @@
 # Pipeline Status
 
-- **Current step:** 4
-- **Sub-step:** jalons 1 à 6 construits ; étape 4 terminée (jalon 6 « Appli Android » coché le 2026-10-22 après 3 cycles) ; suite : étape 5 (durcissement)
-- **Last updated:** 2026-10-22T03:54:39+00:00
-- **Summary:** Jalons 1 à 6 construits et déployés. Web : https://plein-et-trajet.vercel.app (commit 2d14d34, Vercel READY). Android : APK de release signé https://projets.ingevision.cloud/plein-et-trajet/plein-et-trajet.apk (sha256 95f2e58a…acf8, run CI 39710484157). Jalon 6 = service natif TrajetService (relevés gardés côté natif, relancé par le système), notification Pause/Reprendre/Arrêter, optimisation de batterie, verrou d'écran web : 3 cycles bâtisseur → évaluateur → descripteur → auditeur → contre-évaluation, double PASS au cycle 3 (0 HIGH ; le HIGH « deux horloges » reclassé au cycle 2 est corrigé) ; Vitest 280/280, Playwright 102/103 (1 instable rejoué 3/3) ; rapport docs/delivery/m6-delivery-report.html (47 captures annotées). **Bloquant hors code : GitHub Actions ne démarre plus de job depuis le 22/10 02:44Z (facturation du compte anthohunt) — action d'Anthony requise pour reconstruire l'APK.** Restent à constater au téléphone d'Anthony : OxygenOS, vrai GPS/tunnel, Waze 30 min, écart au compteur. Décisions en attente : libellé Clio IV / 1.2 TCe 120 ; fond OpenFreeMap ; commentaires sur les rapports m2 à m6.
+- **Current step:** 5
+- **Sub-step:** hardening round 1 — correctifs et non-régression faits ; décision d'expédier en attente d'Anthony
+- **Last updated:** 2026-10-22T06:27:31+00:00
+- **Summary:** Round 1 complete. 2 critical + 9 high fixed (D1-D11, déployés 2f0d99d). 10 medium (D15 réglé au passage) + 23 low remaining (différés / acceptés). Régression : Vitest 283/283, Playwright prod 103/103, 0 violation CSP. Choix A/B/C dans docs/pipeline/hardening-r1-consolidated.md. CI Android toujours bloquée (facturation).
 
 ## Milestones
 - [x] Milestone 1 — Les prix autour de moi (journal : docs/pipeline/m1-journal.md)

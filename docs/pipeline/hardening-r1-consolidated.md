@@ -62,3 +62,21 @@ Cible : https://plein-et-trajet.vercel.app — commit 378aa46 (code 2d14d34). Qu
 ## Hors de portée de cette passe
 
 - La partie Android (APK) : la CI GitHub Actions est bloquée par la facturation. Les correctifs de `src/` n'entreront dans l'APK qu'à la prochaine construction.
+
+## Résultat de la passe r1 (correctifs + non-régression, 22/10/2026)
+
+- **D1 à D11 corrigés et vérifiés** avant/après (détail : `hardening-r1-fixes.md`, preuves : `hardening-r1-evidence/fixes/`), 13 commits 60be123..2f0d99d, déployés (Vercel READY 2f0d99d, puis 1aa41eb docs seul).
+  - Écrans blancs D1-D6 : 0 sur les rejeux d'injection ; barrière d'erreur racine en place.
+  - maplibre-gl 6.15.0 : 5 visites de Stations, nœuds 202 → 202 (avant 202 → 752), canvas 1 → 1 (avant 1 → 6) ; avis XSS refermé.
+  - Recherche voiture : « clio » 5,1 s au premier appel puis ≤ 1 s, « clio 2017 120 » 1,8 s puis ≤ 0,4 s, 0 × 502 sur 10 appels (avant 18,4 s et 502).
+  - En-têtes de sécurité en prod (CSP, frame-ancestors 'none', nosniff, Referrer-Policy, Permissions-Policy) ; **0 violation CSP sur 7 routes** ; assets en `immutable` (D15 réglé au passage).
+  - Stations à 195×422 : liste 0 → 284 px ; « Démarrer » sombre 2,15:1 → 8,84:1.
+- **Non-régression** : Vitest 283/283 (280 + 3 nouveaux), build et tsc OK, Playwright sur la prod **103/103** (base de départ 103/103 ; un échec instable V-2.E1 au premier passage, 3/3 au rejeu). Détail : `hardening-r1-regression.md`.
+- Restent : P2 D12-D14, D16-D22 (différés), P3 acceptés ; carte maplibre 6 (WebGL2 obligatoire) vue seulement sous Chromium headless, à constater sur le téléphone ; l'APK n'embarque pas ces correctifs tant que la CI GitHub Actions est bloquée.
+
+## Décision soumise à Anthony (non tranchée dans ce nœud)
+
+- **A — Expédier** vers l'étape 6 (recommandé : 0 CRITICAL / 0 HIGH ouvert, régression verte).
+- **B — Passe r2** : relancer les 4 audits pour vérifier les correctifs et chercher du neuf.
+- **C — Corriger aussi les moyens** (D12-D22) puis non-régression, sans nouveaux audits.
+- **D — Autre chose**, à préciser.
