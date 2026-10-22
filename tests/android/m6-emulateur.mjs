@@ -401,8 +401,10 @@ function plusGrandTrou(points, a, b) {
     }
   return { n: ts.length - (avant != null ? 1 : 0), maxS: max / 1000, ou, depuisAvantS: avant != null ? (a - avant) / 1000 : null };
 }
+/** Distance des points de [a, b], depuis le dernier point d'avant `a` (comme plusGrandTrou : un trou à cheval sur `a` compte). */
 function kmPoints(points, a, b) {
-  const ps = points.filter((x) => x[0] >= a && x[0] <= b);
+  const avant = points.filter((x) => x[0] < a).at(-1);
+  const ps = [...(avant ? [avant] : []), ...points.filter((x) => x[0] >= a && x[0] <= b)];
   let m = 0;
   for (let k = 1; k < ps.length; k++) if (ps[k][3] === ps[k - 1][3]) m += distM({ lat: ps[k - 1][1], lon: ps[k - 1][2] }, { lat: ps[k][1], lon: ps[k][2] });
   return m / 1000;
