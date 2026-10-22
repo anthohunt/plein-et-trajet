@@ -186,5 +186,17 @@
   "V-5.1-A09-retour-en-route.png": {
     "action": "L'utilisateur revient sur l'écran Trajet.",
     "expected": "La distance a continué : 1,2 km, 0,22 €, 74 km/h."
+  },
+  "m6-deploy-verify-01.png": {
+    "action": "L'utilisateur roule, trajet démarré dans la version web en production.",
+    "expected": "En route : 74 km/h, 6,6 km, 1,01 € ; « Garde l'écran allumé » affiché."
+  },
+  "m6-deploy-verify-02.png": {
+    "action": "L'utilisateur touche « Arrêter ».",
+    "expected": "Fin de trajet Albi → Albi : 0,47 L, 6,6 km, 7,1 L/100, 1,01 €."
+  },
+  "m6-deploy-verify-03.png": {
+    "action": "L'utilisateur touche « Enregistrer ».",
+    "expected": "L'Historique montre le trajet Albi → Albi, 6,6 km, 1,01 €, en tête."
   }
 }
