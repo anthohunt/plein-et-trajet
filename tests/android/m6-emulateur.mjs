@@ -75,6 +75,12 @@ shOk("logcat -c");
 const logcat = spawn("adb", ["logcat", "-v", "threadtime"], { stdio: ["ignore", openSync(`${OUT}/logcat-${SCENARIO}.txt`, "w"), "ignore"] });
 
 function capture(nom) {
+  // un dialogue « … isn't responding » de l'émulateur (Pixel Launcher, CI lente) masquait l'écran de 5 captures du job immobile
+  // au run 39696043200 (A21, A22, A24, A25, A26) : on le ferme (Attendre) avant la prise de vue
+  for (let k = 0; k < 3; k++) {
+    if (!sansAnr(noeuds())) break;
+    execFileSync("sleep", ["1.5"]);
+  }
   const png = execFileSync("adb", ["exec-out", "screencap", "-p"], { maxBuffer: 64 << 20 });
   writeFileSync(`${OUT}/${nom}.png`, png);
   journal(`capture ${nom}.png (${png.length} o)`);
