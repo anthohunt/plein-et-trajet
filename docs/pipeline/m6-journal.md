@@ -49,7 +49,7 @@ Empreinte SHA-256 du certificat du magasin de clés (calculée au VPS, python cr
 
 **Runs CI** (7) : 39655337001 (remplacé), 39655982353 (principal 30/31 : seuil de test ; immobile : disque), 39659349314 (disque,
 `FATAL Not enough space to create userdata partition`), 39664532821 (principal vert ; immobile tué par l'ANR de gms), 39667270054
-(principal vert ; immobile : puce qui répète), 39671788190 (immobile vert), **39675522721 (tout vert)**.
+(principal vert ; immobile : puce qui répète), 39671788190 (immobile vert), **39675522721 (tout vert)**. — rectifié : job principal en échec, voir Builder Summary r2 § 7
 
 **Garde-fous relus** : Vault et cles_fournisseurs non touchés (m5 ne fait que compter les lignes, sans valeur) ; aucun appel PTV
 (`lieux` = IGN/Photon) ; table trajets : 1057 lignes avant et après (comptage lecture seule), l'appli Android garde ses trajets dans
@@ -370,3 +370,406 @@ livraison sans objet (brief). Écart d'atomicité : la suppression de NotifTraje
 la surcouche), vrai GPS et tunnel, Waze 30 min, écart au compteur < 2 %. Le direct natif ignore l'énergie des accélérations
 pendant que l'appli est morte (corrigé par roule.ts à la réouverture).
 - 01:10Z — Bâtisseur r2 terminé : 11 problèmes traités (3 HIGH, 2 MEDIUM, 6 LOW), run final 39701223352 vert (45/45, release), conso trajet 1/2 6,43/6,62 L/100, service relancé 1,03 s / trou 1 s appli morte 74,6 s, 43 captures reprises, APK publié (sha256 868e7404…400a).
+- 01:13Z (22/10) — Passe 14 du nœud construire (la passe 13 a été coupée pendant l'attente du bâtisseur r2, qui a fini à 01:10Z) : reprise à l'évaluateur R1 cycle 2. Chef : m6-evaluateur-r1-c2 lancé (transcript du bâtisseur r2 : babf54d8-a8a5-4d5b-881b-e84a76ce4e0f.jsonl). Le chef attend désormais au premier plan.
+
+## Evaluator Journal — Round 1, cycle 2 (Builder Transcript r2)
+
+Évaluateur R1 (cycle 2), 22/10 ~01:15Z. Transcript babf54d8…, consigne et rendu m6-batisseur-r2. Lecture seule ; artefacts du run
+39701223352 retéléchargés par l'API GitHub dans /tmp/ev2/art ; test m6-datation rejoué sur des copies isolées (/tmp/ev2/rejeu).
+
+### Stats
+- 233 appels d'outils en 154 tours (1,51 par tour), 22:02 → 01:11Z : Bash 134, Read 91 (86 PNG + 5 sorties), Write 4, WebSearch 2,
+  WebFetch 1, ToolSearch 1 ; 0 Edit (code modifié par heredoc / python dans Bash, chaque fois relu par grep ou tsc). Groupage faible
+  (135 tours à un appel).
+- Commits af49aae..HEAD : 17, tous du bâtisseur (horodatés pendant la session, hash présents dans ses sorties). 539d2d5 (docs) porte
+  la suppression de NotifTrajet.java : écart déclaré.
+- Runs CI (API, conclusion par job), tous conformes au Builder Summary : 39685929207 annulé (apk ok, immobile failure, 2 annulés) ·
+  39687583554 annulé · 39687638983 failure (r2-essai : immobile ok, fini ok, principal failure) · 39690690299 failure (principal +
+  immobile failure, fini ok) · 39693288066 failure (principal failure, 3 autres ok) · 39696043200 success (4 jobs) · 39698800403 annulé
+  (fini ok, principal failure, immobile annulé) · **39701223352 success** (apk 119571005243, principal 119572297696, immobile
+  119572297727, fini 119572297839) · 39704183908 (docs) annulé, déclaré.
+
+### Couverture des captures
+- 12 nommées (V-3.2-01..06, V-3.3-01..06) + 33 de rejeu de la liste m6-use-case.md = 45 ; livrées 45 ; manquantes 0.
+- Les 43 PNG CI livrés sont **identiques octet pour octet** aux artefacts du run final retéléchargés par moi (43/43) ; V-3.2-05/06
+  (Playwright, r1) hors artefact. Aucun md5 en double entre captures m6. La seule commande cp du transcript (01:09:22Z) copie
+  l'artefact sous le même nom.
+- `V-3.2-A11` noire identique au r1 : justifiée — l'image de l'artefact final est entièrement noire (320×640, extrema (0,0)) ; un
+  PNG uniformément noir de même taille donne les mêmes octets ; md5 artefact = md5 livré = md5 r1 (b6bf6670…).
+- Regardées par le bâtisseur : les 43 du run final (01:08:44 → 01:09:13Z), les 43 du run 39696043200 et 2 du run d'essai.
+  Contrôle visuel de l'évaluateur : A17 (Maps avec carte), A33 (notification « 3,3 km · 0,46 € », appli tuée), A32 (dialogue
+  système batterie), A35 (« C'est fini » : 1 min, 1,2 km), V-3.3-02 (11,0 km · 1,52 € à 2,155 €/L = 6,4 L/100) : conformes.
+
+### Sort des 11 problèmes de l'audit r1
+| # | Correction | Preuve vérifiée | Sort |
+|---|---|---|---|
+| HIGH 1 | 5af2e2c (roule.ts : relevesBienDates, VITESSE_MAX_KMH 250, ACCELERATION_MAX_MS2 4), a9a80ba (getTime() natif) | **Rejoué par moi** : af49aae → +228,61 %, 3 tests rouges ; HEAD → −0,09 %, 4 verts. mesures-principal : trajet 1 6,43, trajet 2 6,62, écart 2,9 % ; réf. GPX −0,3 / −0,2 % | réel |
+| HIGH 2 | 9d07b37 (TrajetService START_STICKY, journal files/trajet-en-cours.txt, TrajetEnRoute), @capgo retiré, stack-decisions § 2 (02f3b04) | mesures.arret : racine, pid 14605 → 15820 en 1,225 s, service 1,032 s, trou 1 s, fenêtre 74,631 s, 62 relevés journal / 62 page ; journal-principal l. 88-100 | réel |
+| HIGH 3 | 2f6d2a3 (textes.ts + ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, une fois) | controles-apk.txt : OK REQUEST_IGNORE_BATTERY_OPTIMIZATIONS ; mesures.batterie.horsOptimisation true ; A31/A32 | réel |
+| MED 4 | 6369587 (3 scénarios sur release/app-release.apk) | journaux des jobs ; pt_inspecter (MainActivity) | réel (voir signalement 2) |
+| MED 5 | a9a80ba, ee5f519 (direct natif, table L/100 au km/h) | ecartNatif : km 4,5/4,5 (0 %), € 0,63/0,64 (1,56 %) ; mesure r1 renommée « direct de la page / fin » (0,11 %) | réel |
+| LOW 6 | 6369587, f2cdab1 | ecranEteint : 310 relevés, 340,58 s, trou max 12 s depuis le dernier point d'avant, 7,994 / 8,073 km | réel |
+| LOW 7 | Builder Summary r2 § 7 | l. 52 du r1 inchangée (correction écrite dans le r2 seulement) | réel, formulation du rendu inexacte (signalement 5) |
+| LOW 8 | job « fini » | mesures-fini : fin 1792630408624 = immobileDepuis, 75 s pour 74,907 ; A34, A35 | réel |
+| LOW 9 | non rejoué, déclaré | — | limite déclarée (signalement 1) |
+| LOW 10 | « Skip » de Maps | A10, A12, A17 : carte visible (vu) ; A33 notification après kill | réel |
+| LOW 11 | NotifTrajet.java supprimé ; TrajetService : titre R.string.app_name, canal R.string.canal_trajet | grep : plus de libellé français en dur dans les Java (seul un message d'erreur reject) | réel |
+
+### Chiffres du rendu confrontés aux sorties
+Tous exacts : 6,43 / 6,62 L/100 (2,9 %) ; service 1,032 s, trou 1 s, 74,6 s, 62/62 ; 310 relevés en 341 s, trou 12 s ; 0 % / 1,56 % ;
+aapt2 batterie ; 45 constats OK (37 + 6 + 2, 0 KO) ; APK publié : curl 200, 3 558 256 o, sha256 868e7404…400a = app-release.apk de
+l'artefact (recalculé) ; preuves m6-preuves-ci/ (16 fichiers) identiques à l'artefact ; Vitest 272 et m5 71/73 lus dans le transcript
+(/tmp/m5-r2b.log : V-2.3 « clio 2017 120 » timeout 60 s sur les suggestions, V-4.6 tombé dans l'aide de test voitureEea sur une page
+HTML de la fonction voiture-eea, avant tout calcul ; les 2 rejoués à 00:12Z : « 2 passed »). Aucun src/ ni supabase/ modifié après
+46709c1. Une première passe m5 (22:36Z, code antérieur) avait aussi 71/73 (voiture-eea 502, 2 rejoués verts) : non citée, sans effet.
+
+### Comportement
+- Travail réel et itératif : 8 runs, chaque échec lu au log (uid root refusé pour les positions de test, gms qui tue l'appli, table
+  par 10 km/h, point de départ WebView, ANR, trou à cheval) et corrigé par un commit ciblé. Recherche en ligne avant de bâtir le
+  service (doc FGS, ActiveServices.java et LocationShellCommand.java d'AOSP 14 lus).
+- Journal d'exploration écrit en 4 ajouts (22:25, 23:25, 00:28, 01:10Z), avec API Contract Check page ↔ natif : pas d'un bloc.
+- Tests Android : aucun seuil relâché (trou < 15 s, km < 3 %, € < 5 %, ±10 % inchangés) ; la mesure du trou et de la distance devient
+  plus stricte (point d'avant inclus). `--time` à 1 Hz et départ du trajet 2 en roulant : adaptations honnêtes (une puce GNSS date
+  ses relevés ; l'accélération 0 → 105 km/h n'existe pas dans le GPX), justifiées par les logs des runs 39687638983 et 39690690299.
+  `su 2000` pour les commandes de position sous adb root : contournement de test, sans effet sur l'appli.
+- Test unitaire : générateur de rafales modifié entre le premier rouge et le vert (22:11Z) ; l'ancien appliquait deux fois le
+  décalage de 400 ms (pas de 0,6 s portant 1 s de route) — correction du générateur, pas un arrangement (signalement 4).
+- Sécurité : aucun .p12/.jks/.env suivi ; aucun mot de passe, JWT, sb_secret, service_role ni ghp_ ajouté dans le diff ni dans les
+  artefacts téléchargés ; magasin de clés en $RUNNER_TEMP effacé (android.yml:47) ; rien de tel dans l'APK.
+  Garde-fous : comptages trajets 1 057 / cles 2 / vault 3 au début et à la fin, aucune valeur lue, aucun appel PTV.
+
+### Dérobades
+1. LOW 9 non rejoué sur Android : **limite déclarée**, conforme à la consigne (le minimum attendu ne le listait pas, l'audit ne
+   fixait pas d'attendu). Nuance : le refus de localisation sur Android passe par le pont de permission de la WebView et par
+   `demanderPermissions` (Java, nouveau au r2), pas seulement par le code m5.
+2. Restes au téléphone (OxygenOS, vrai GPS et tunnel, Waze 30 min, compteur < 2 %) : légitimes, aucun ne se joue sur l'émulateur.
+
+### Note
+5 − 0 = **5/5**. Captures manquantes 0 ; journal non écrit d'un bloc ; aucune dérobade réparable ; aucune affirmation fabriquée ;
+aucune correction fantôme (rouge → vert rejoué) ; cas limites assertés (SIGKILL sans réouverture, « C'est fini », tunnel, immobile).
+
+### Verdict : PASS (5/5)
+
+### Signalements pour l'auditeur
+1. V-1.3 c2 sur Android : le refus de localisation traverse `TrajetEnRoute.demanderPermissions` (r2) puis la géolocalisation de la
+   WebView (code 1 → « refusee ») ; non joué. Se rejoue à l'émulateur (`pm revoke` + « Don't allow ») si on veut le fermer.
+2. Crochet de test dans l'APK de release : `MainActivity` active et GARDE `WebView.setWebContentsDebuggingEnabled(true)` sur l'extra
+   `pt_inspecter` ; l'activité de lancement est exportée, donc toute appli du téléphone peut l'allumer. La connexion DevTools reste
+   réservée à adb/root (contrôle d'uid du serveur DevTools), à confirmer ; sinon restreindre (signature, ou réglage effaçable).
+3. roule.ts modifié (5af2e2c) mais la fonction `trajet-roule` (importe `pasDe`) n'a pas été redéployée ; aujourd'hui seul
+   `routes/Trajets.tsx`, non routé dans App.tsx, l'appelle : sans effet visible, à confirmer.
+4. Test m6-datation : premier générateur → +12 % sur le code corrigé (aurait échoué à ±5 %), générateur corrigé → −0,09 %. Je juge la
+   correction fondée (décalage appliqué deux fois) ; à confirmer.
+5. LOW 7 : la ligne 52 du Builder Summary r1 dit toujours « 39671788190 (immobile vert) » ; la correction n'est que dans le r2, alors
+   que le rendu dit « journal r1 corrigé ».
+6. `V-3.2-04-apres` (capture nommée « je la rouvre : le trajet reprend avec tous ses points ») affiche « GPS perdu » à cause du gel
+   de 17 s ; déclaré, mais l'image ne montre pas ce que dit sa légende.
+7. Trajet 1 : 12,21 km comptés contre 14,11 km pour son tronçon du GPX [0, 587] ; les pauses (10 s + 30 s ≈ 1,2 km) n'expliquent pas
+   tout (~0,7 km). Seul le L/100 est comparé ; à réconcilier.
+- 01:30Z — Évaluateur R1 cycle 2 : PASS 5/5 (11 problèmes réellement traités, rouge → vert rejoué, 43/43 captures = artefact, 7 signalements)
+- 01:19Z — Évaluateur R1 cycle 2 : PASS 5/5 (11 problèmes réellement corrigés, rouge→vert rejoué, 43 captures = artefacts du run final, 7 signalements). Chef : descripteur cycle 2 lancé (m6-descripteur-c2, 45 captures).
+
+## Descripteur — cycle 2
+
+45 descriptions réécrites depuis les images actuelles (`tests/e2e/delivery/m6-step-descriptions.json`), toutes ≤ 15 mots. Écarts entre image et plan :
+- `V-3.2-02-apres.png` — le plan dit 30 min écran éteint / Maps devant ; l'image montre 7 min de trajet (9,6 km), rien n'y montre l'absence de trou.
+- `V-3.2-04-apres.png` — appli rouverte : le trajet continue (4,5 km), mais l'écran affiche « GPS perdu (tunnel) » à 0 km/h, pas une reprise nette.
+- `V-3.2-A17-appli-tuee.png` — seul Google Maps est visible, identique à A10/A12 : rien à l'image ne montre que l'appli a été tuée.
+- `V-3.4-A13-pause-30s.png` — indiscernable de `V-3.3-04-apres.png` (même minute 1:02, 11,6 km, 1,60 €) : l'image seule ne montre pas les 30 s écoulées.
+- 01:21Z — Descripteur cycle 2 : 45 descriptions, 4 écarts
+- 01:21Z — Chef : descripteur cycle 2 terminé (45 descriptions, 4 écarts) ; auditeur round 2 lancé (m6-auditeur-r2, 7 signalements de l'évaluateur + 4 écarts du descripteur à instruire).
+
+## Auditor Journal — Round 2
+
+Auditeur round 2, 22/10 01:22 → 01:35Z. Lecture seule. Artefacts et journaux des 4 jobs du run final 39701223352 (f2cdab1, succès)
+retéléchargés par l'API GitHub dans /tmp/aud2 ; aucun run relancé, aucun commit, aucun déploiement.
+
+### 1. Verdict : **PASS** — 0 CRITICAL, 0 HIGH, 1 MEDIUM, 5 LOW
+
+### 2. Problèmes par gravité
+- **MEDIUM** : (1) deux horloges dans un même curseur : relevés datés par l'heure GNSS, boutons de la notification par l'horloge
+  du téléphone ; la page jette toute ligne pas plus récente que la dernière appliquée.
+- **LOW** : (2) crochet de test `pt_inspecter` dans l'APK de release ; (3) V-1.3 c2 (localisation refusée) non joué sur Android ;
+  (4) captures `V-3.2-04-apres` et `V-3.2-A17` qui ne montrent pas leur légende ; (5) fonction `trajet-roule` déployée avant la
+  modification de roule.ts ; (6) ligne 52 du Builder Summary r1 non corrigée.
+
+### 3. Inventaire des captures
+- Plan : 12 (V-3.2-01..06, V-3.3-01..06) + 33 de rejeu (liste de m6-use-case.md) = 45 ; livrées 45 ; manquantes 0 ; aucun fichier m6 en trop.
+- md5 : les 43 captures CI sont identiques octet pour octet aux artefacts du run final (principal, immobile, fini) ; V-3.2-05/06
+  (Playwright, round 1) hors artefact. Aucun md5 en double. 45 descriptions dans m6-step-descriptions.json (non suivi par git).
+- **Ouvertes une à une : les 45.** Conformes à leur légende, sauf V-3.2-04-apres et A17 (§7). Chiffres lus sur les images recoupés :
+  V-3.3-02 11,0 km · 1,52 € ; V-3.3-06 0,79 L, 12,2 km, 6,4 L/100, 1,69 € ; A18 0,30 L, 4,5 km, 6,6, 0,65 € ; A25 8,2 km ;
+  A33 3,3 km · 0,46 € ; A35 1 min, 1,2 km.
+
+### 4. Couverture des critères
+| Histoire · critère | Statut | Preuve |
+|---|---|---|
+| V-3.2 c1 écran éteint / Maps, trou < 15 s | COVERED (émulateur, 341 s) | verdicts : Maps topResumedActivity, mWakefulness=Asleep, 310 relevés du service, plus grand trou 12 s depuis le dernier point d'avant ; recontrôlé : les 315 points du journal tombent tous sur des points du GPX, somme des cordes 8,1221 km contre 8,1228 au GPX (trou 93 → 105 = 12 s). 30 min et Waze : téléphone (déclaré) |
+| V-3.2 c2 appli tuée → reprend avec tous ses points, écrits par le service | COVERED | logcat : `Scheduling restart of crashed service …TrajetService in 1000ms` (01:05:16.995), `relancé par le système` (18.152), `GPS écouté` ; trou 1 s ; 62 relevés journal / 62 page ; 48 → 125 points, même trajet ; code : TrajetService.java:119-126, :136 START_STICKY, :184 journal ; enregistreur-web.ts:145-175 relecture |
+| V-3.2 c3 web : texte + verrou d'écran | COVERED | **revérifié en direct sur la prod** (Chromium du projet, permission accordée par CDP comme au jalon 4) : « Garde l'écran allumé : un navigateur arrête le GPS écran éteint. », data-verrou=actif, sentinelle `screen` released=false, redemandée au visibilitychange (2 sentinelles) |
+| V-3.2 (plan) proposition de sortir de l'optimisation de batterie | COVERED | A31, A32 ; Trajet.tsx:15-50 (une fois, CLE_BATTERIE) ; TrajetEnRoute.java:144-161 ; whitelist true ; aapt2 |
+| V-3.3 c1 notification vitesse/km/€, ≤ 5 s, Pause/Arrêter | COVERED | V-3.3-02/03 ; notifTrajet.ts:14 PERIODE_MS 2000 ; service seul : TrajetService.java:307-308 (2 s) ; 14 lectures dans notifications-principal.json |
+| V-3.3 c2 Pause → Reprendre sans ouvrir l'appli | COVERED (émulateur ; voir §8 n°1 au téléphone) | V-3.3-04, A13, A14 ; Maps reste devant |
+| V-3.3 c3 Arrêter ouvre la fin de trajet | COVERED | V-3.3-06 ; /fin, MainActivity devant, notification effacée |
+| V-1.3 c1 dialogues natifs | COVERED | A02, A04 ; A03 |
+| V-1.3 c2 localisation refusée (Android) | PARTIAL (chemin lu, non joué) | §8 n°3 |
+| V-3.1 c1 direct / c2 moyenne du jour | COVERED | A05, V-3.2-01 ; « moyenne France du jour · 2,155 €/L » |
+| V-3.4 pause dans l'appli et dans la notification | COVERED | A06/A07 ; A13 (lectures à 1792630931487 et …964440, +33 s, 11,6 → 11,6 km) ; web revérifié en direct (En pause / Reprendre / Enregistrement) |
+| V-3.5 c1 Arrêter → fin | COVERED | A18, V-3.3-06 |
+| V-3.E1 c1/c3 immobile, Reprendre ; c2 C'est fini daté du début de l'immobilité | COVERED | A27, A28, A29, A30 ; A34, A35 ; mesures-fini : fin = immobileDepuis = 1792630408624, 75 s pour 74,907 |
+| V-3.E2 tunnel 90 s | COVERED | A21-A25 ; 8,215 km contre 8,244 au tracé (0,35 %) |
+| V-4.7 enregistré puis appli rouverte | COVERED | A15, A16 |
+| V-5.1 Stations pendant le trajet | COVERED | A08, A09 ; 42 → 62 points en 20 s |
+| Build : apksigner + empreinte | COVERED | controles-apk.txt de l'artefact : v2 vérifiée, b3a3…4c25 = attendu |
+| Build : aapt2 (permissions, service location, pas de BACKGROUND, batterie) | COVERED | 5 permissions OK, `TrajetService foregroundServiceType=0x00000008` seul, ACCESS_BACKGROUND_LOCATION absente, REQUEST_IGNORE_BATTERY_OPTIMIZATIONS présente ; manifeste source identique |
+| APK publié | COVERED | **revérifié** : curl 200, 3 558 256 o, sha256 868e7404…400a = app-release.apk de l'artefact ; page d'accueil « commit f2cdab1 » |
+| Écart natif / web < 3 % km, < 5 % L | COVERED | direct natif (service seul) / direct de la page : 4,5 / 4,5 km (0 %), 0,63 / 0,64 € (1,56 %) ; direct de la page / fin : 0,11 % / 0,11 % |
+| Version web en ligne | COVERED | V-3.2 c3 et V-3.4 revérifiés en direct ; aucune requête PTV ni `rest/v1/trajets` pendant la passe |
+
+### 5. Couverture des cas limites
+- Processus tué par le système, appli non rouverte : COVERED (74,6 s, relance 1,03 s, notification calculée par le service).
+- Tunnel (V-3.E2) : COVERED. Immobile 10 min et « C'est fini » depuis la notification : COVERED.
+- Localisation refusée sur Android : PARTIAL (chemin lu : enregistreur-web.ts:200-217 → code 1 → « refusee » ; non joué).
+- Notification balayée : MISSING en test ; le code la repose à chaque mise à jour (TrajetService.reposer, même numéro 28351).
+- Horloge du téléphone décalée de l'heure GNSS : MISSING (§8 n°1). OxygenOS, vrai GPS, Waze 30 min : UNREACHABLE (téléphone, déclaré).
+
+### 6. Sort des 11 problèmes du round 1
+| # | Sort | Commit · code qui le ferme | Preuve vérifiée par moi |
+|---|---|---|---|
+| HIGH 1 litres gonflés | **fermé** | a9a80ba TrajetService.java:213-214 (heure du relevé) ; 5af2e2c roule.ts:100-127, :193 (250 km/h, 4 m/s²) ; 4c5299e enregistreur-web.ts:241 | fin trajet 1 : 0,7851 / 12,2132 = 6,43 L/100 ; trajet 2 : 0,30077 / 4,5447 = 6,62 ; écart 2,9 % ; Vitest 272/272 |
+| HIGH 2 points écrits par la page | **fermé** | 9d07b37 TrajetService.java:102-137, :184-203 ; TrajetEnRoute.java:113-121 ; @capgo retiré | logcat de l'artefact (relance 1 s), journal-apres-kill, 62/62 |
+| HIGH 3 batterie | **fermé** | 2f6d2a3 Trajet.tsx:15-50, TrajetEnRoute.java:144-166, manifeste | A31, A32, aapt2, whitelist |
+| MED 4 scénario sur le debug | **fermé** | 6369587 android.yml:115-116 (release/app-release.apk) | journaux des jobs ; laisse le crochet §8 n°2 |
+| MED 5 écart natif / web | **fermé** | a9a80ba, ee5f519 TrajetService.java:296-337 ; notifTrajet.ts:20-22 | 0 % / 1,56 % ; 0,63 € ÷ 2,155 = 0,292 L pour 4,5 km (6,5 L/100) |
+| LOW 6 trou mal mesuré | **fermé** | 6369587, f2cdab1 | trou 93 → 105 du GPX = 12 s dans points-ecran-eteint.json |
+| LOW 7 run 39671788190 | **fermé au r2**, ligne 52 du r1 inchangée | Builder Summary r2 §7 | §8 n°6 |
+| LOW 8 « C'est fini » non joué | **fermé** | job « fini » | mesures-fini, A34, A35 |
+| LOW 9 critères secondaires non rejoués | **ouvert (déclaré)** | — | §8 n°3 |
+| LOW 10 A10/A17 | **en partie fermé** | « Skip » de Maps ; A33 | carte visible ; l'arrêt ne se voit toujours pas sur A17 (§8 n°4) |
+| LOW 11 libellés en dur | **fermé** | NotifTrajet.java supprimé (539d2d5) ; TrajetService.construire:370-397 | aucun texte visible en dur dans les Java (seul `call.reject("service non démarré…")`, jamais affiché) ; titre = R.string.app_name, canal = R.string.canal_trajet |
+
+### 7. Signalements instruits
+**Évaluateur R1 (cycle 2)**
+1. V-1.3 c2 sur Android : **CONFIRMÉ, LOW (n°3)**. Le chemin est juste à la lecture : `premierePosition` (WebView, enregistreur-web.ts:200-217) passe par
+   le pont de géolocalisation de Capacitor ; refus → code 1 → « refusee » ; `demanderPermissions` n'est appelé qu'ensuite. Non joué.
+2. Crochet `pt_inspecter` : **CONFIRMÉ, LOW (n°2)**. Chromium `content/browser/android/devtools_auth.cc` (`CanUserConnectToDevTools`,
+   lu à la source) n'accepte sur le socket `webview_devtools_remote_<pid>` que l'uid root, shell (adb) ou celui de l'appli. Une autre
+   appli peut allumer le réglage (activité de lancement exportée, MainActivity.java:16-19) mais pas s'y connecter. Risque réel mais
+   borné : quiconque a adb autorisé sur le téléphone peut alors lire et modifier le stockage web d'une appli de release non débogable
+   (historique des trajets, voiture). Pas un HIGH.
+3. `trajet-roule` non redéployée : **CONFIRMÉ, LOW (n°5)**. API de gestion Supabase : `trajet-roule` version 8 du 21/10 16:08Z, avant
+   5af2e2c (22:21Z). Seuls src/routes/Trajets.tsx et src/components/EnRouteM4.tsx l'appellent (via src/lib/enRoute.ts:84), et aucun
+   n'est routé dans App.tsx:107-115 : sans effet visible.
+4. Générateur du test m6-datation : **LEVÉ**. Le générateur actuel reproduit exactement l'observation du r1 : silence de 10,5 s, relevé en
+   retard, relevé courant 1,9 s plus tard après 11 points du GPX (l[i−1]+10,5 s puis l[i+11]+0,4 s = 12,4 s), puis décalage constant
+   de 400 ms, sans effet sur les vitesses. Correction fondée. Rejoué : 272/272.
+5. Ligne 52 : **CONFIRMÉ, LOW (n°6)**. Elle dit toujours « 39671788190 (immobile vert) ».
+6. `V-3.2-04-apres` : **CONFIRMÉ, LOW (n°4)**. L'image montre « GPS perdu (tunnel) » à 0 km/h, 4,5 km. La reprise est prouvée par les
+   données (48 → 125 points, 62/62), pas par la capture.
+7. Trajet 1 : 12,21 km contre 14,11 km au GPX [0, 587] : **tranché. Ce n'est pas une perte de distance en roulant, c'est surtout le
+   scénario, avec un reste qui révèle le n°1.**
+   - Les points enregistrés sont fidèles : les 315 points du journal écran éteint, ceux de la page et les 125 du trajet 2 tombent tous
+     exactement sur des points du GPX, et la somme des cordes est égale à la distance GPX à 0,01 % (8,1221 / 8,1228 km ;
+     4,5156 / 4,5157 km). Les relevés sautés (trous de 3 à 12 s) ne coûtent que la courbure : 0 à 0,4 m chacun.
+   - 1,90 km manquent, dont 1,69 à 1,73 km dans les deux pauses du scénario, à l'horloge du journal (décalage seconde du tracé ↔
+     journal = 49 s, lu à 606 s « point 557 ») : pause dans l'appli ≈ 80 → 95,5 s, soit 0,32-0,36 km à 74 km/h ; pause de la
+     notification 562 → 609 s, soit 1,37 km à 105 km/h.
+   - Reste ≈ 0,17-0,21 km, soit 6 à 7 s à 105 km/h. Explication la plus probable : pendant les appels adb synchrones (uiautomator,
+     screencap), le lecteur GPS du test prend du retard puis rattrape par rafale ; les relevés datés avant la Pause arrivent après la
+     ligne `A;pause` et `appliquer` les jette (`x.t <= etat.lu`, enregistreur-web.ts:113). C'est l'amplification, par le test, d'une
+     règle de l'appli (n°1). Je ne peux pas le constater point par point : l'artefact ne garde pas les points du trajet 1. Le
+     L/100 comparé n'est pas touché.
+
+**Écarts du descripteur (cycle 2)**
+- `V-3.2-02-apres` : 7 min, pas 30 min : CONFIRMÉ, sans gravité. Les 30 min sont au téléphone (déclaré) ; l'absence de trou est prouvée
+  par le journal (12 s au plus).
+- `V-3.2-04-apres` « GPS perdu » : CONFIRMÉ (n°4).
+- `V-3.2-A17` identique à A10/A12 : CONFIRMÉ (n°4). L'arrêt se lit au journal du job (pid 14605 → 15820) et sur A33 (notification
+  calculée par le service seul).
+- `V-3.4-A13` indiscernable de V-3.3-04 : LEVÉ par les données. Lectures horodatées 1792630931487 et 1792630964440 (+33 s), 11,6 → 11,6 km,
+  enPause=true, GPS rejoué jusqu'au point 557.
+
+### 8. Liste numérotée des problèmes
+1. **MEDIUM** · V-3.3 c2, V-3.4 · `src/lib/enregistreur-web.ts:113` (curseur `lu`) ; `TrajetService.java:214` (relevé : heure GNSS) contre
+   `:243` (bouton : `System.currentTimeMillis()`) ; même mélange dans `rattraper` `:284` · Preuve : lecture du code. Un bouton daté avant le
+   dernier relevé appliqué est ignoré par la page ; le service a déjà affiché « Trajet en pause », puis la page renvoie son état
+   (`maj` toutes les 2 s) et la notification revient à « Trajet en cours » : la Pause n'a pas pris. Cela arrive si l'horloge du
+   téléphone retarde sur l'heure GNSS de plus que la latence de livraison, ce qui est possible sans heure réseau (le repli
+   `parAge` ne joue qu'au-delà de 30 s). Inversement, des relevés arrivés en retard mais datés avant le bouton sont jetés : distance
+   perdue (signalement 7, ~0,2 km amplifiés par le test). Rien ne le teste. · Attendu : un curseur par type (relevés en `t`, boutons
+   par position dans le journal ou numéro de ligne), ou la même horloge pour les deux (bouton daté par l'heure du dernier relevé + ε) ;
+   un test unitaire « A daté avant le dernier P » et « P en retard après A ».
+2. **LOW** · sécurité, release · `android/app/src/main/java/cloud/ingevision/pleinettrajet/MainActivity.java:16-19` · Preuve : signalement 2. ·
+   Attendu : crochet réservé au build de test (`BuildConfig.DEBUG`, variante ou `applicationIdSuffix` de test), ou réglage non persistant.
+3. **LOW** · V-1.3 c2 (et V-3.1 c3, V-3.5 c2/c3, V-4.7 c2/c3, r1 LOW 9) · non joués sur Android · Attendu : `pm revoke` + « Don't allow »
+   à l'émulateur, ou maintien explicite dans la liste du téléphone.
+4. **LOW** · V-3.2 · captures `V-3.2-04-apres.png` (« GPS perdu » à cause du gel de 17 s) et `V-3.2-A17-appli-tuee.png` (Maps seul) ·
+   Attendu : capture de la réouverture prise après le dégel (chiffres qui avancent), ou légende qui dit ce que l'image montre.
+5. **LOW** · prod / dépôt · fonction `trajet-roule` (version 8, 21/10 16:08Z) antérieure à `supabase/functions/_shared/roule.ts` de 5af2e2c ·
+   sans effet visible (aucun appelant routé) · Attendu : redéployer à la prochaine livraison serveur, ou noter l'écart.
+6. **LOW** · journal · `docs/pipeline/m6-journal.md:52` · « 39671788190 (immobile vert) » · Attendu : renvoi au Builder Summary r2 §7.
+
+**Contrôles sans défaut** : `npx tsc --noEmit` code 0 ; `npx vite build` OK ; `npx vitest run` 21 fichiers, 272/272 (sous `lourd`).
+Contrat page → TrajetEnRoute relu des deux côtés : 7 méthodes (`demanderPermissions`, `demarrer`, `arreter`, `lire`, `maj`, `batterie`,
+`proposerBatterie`), 2 événements (`releve {ligne}`, `action {action}`), les 16 champs de `ContenuNotification` lus par
+`TrajetService` sous le même nom, `lire` → `{texte, id, actif, contenu}` ; conforme au tableau du journal d'exploration (round 2).
+Libellés d'accessibilité : les boutons de la notification sont des actions texte (sans icône), leur libellé (textes.ts) est leur nom
+accessible. Aucun texte visible en dur ajouté au jalon dans src/routes, src/components ni dans les Java.
+Calculs refaits à la main : notification 1,69 € ÷ 2,155 €/L = 0,7842 L contre 0,7851 L en fin (0,11 %) ; km 12,2 / 12,213 (0,11 %) ;
+L/100 0,7851 / 12,2132 = 6,43 ; trajet 2 0,30077 × 2,155 = 0,648 € (A18 : 0,65) ; V-3.3-02 1,52 ÷ 2,155 ÷ 11,0 = 6,41 L/100.
+Sécurité : aucun .jks/.p12/.env suivi ; les 7 valeurs secrètes de .env.local cherchées octet pour octet dans les fichiers suivis, les
+artefacts, les journaux des jobs et l'APK décompressé : seul `VERCEL_PROJECT_ID` (identifiant, pas un secret) dans docs/pipeline/config.json ;
+le seul JWT de l'APK est la clé `anon`. Aucune requête PTV (code du jalon et passe en direct).
+
+### 9. État final relu
+Comptage en lecture seule à 01:31Z, par l'API de gestion Supabase (`read_only`) : `public.cles_fournisseurs` = **2** lignes,
+`public.trajets` = **1 057** lignes, `vault.secrets` = 3 (compte seul, aucune valeur lue). Rien écrit en base ; pas de commit, de push,
+de déploiement ni de run CI.
+- 01:33Z — Auditeur round 2 : PASS (0 CRITICAL, 0 HIGH, 1 MEDIUM : boutons de la notification et relevés datés par deux horloges dans un même curseur ; 5 LOW ; 11 problèmes r1 : 9 fermés, 1 en partie, 1 ouvert déclaré ; signalement 7 tranché : pauses du scénario + ~0,2 km de relevés en retard jetés)
+- 01:34Z — Chef : auditeur round 2 PASS (0 HIGH, 1 MEDIUM deux horloges, 5 LOW) ; contre-évaluation lancée (m6-contre-evaluation).
+
+## Evaluator Journal — Round 2 (Auditor Honesty) — audit round 2
+
+Contre-évaluation de l'auditeur round 2 (transcript f6c8afa3…, 01:21:36 → 01:34:04Z), lecture seule, 01:37Z.
+
+### Stats du transcript
+- 91 appels d'outils : 49 Read (45 images + journal, plan, TrajetService.java, TrajetEnRoute.java), 39 Bash, 1 WebSearch, 1 ToolSearch, 1 Write (rendu).
+- Les 45 Read d'images ont tous un résultat image (vérifié dans le JSONL) : les 45 captures ont bien été ouvertes.
+- Lancés réellement (sorties dans le transcript) : API GitHub du run 39701223352 (4 artefacts, 4 journaux de jobs téléchargés dans /tmp/aud2) ;
+  `lourd` tsc (0) + vite build (OK) + vitest (21 fichiers, 272/272) ; curl de l'APK publié (200, 3 558 256 o, sha256 868e7404…400a = artefact) ;
+  Playwright sur la prod (2 essais : verrou « indisponible » puis « actif » une fois la permission accordée au bon contexte CDP, 2 sentinelles
+  après visibilitychange, pause/reprise web, 0 requête PTV/trajets) ; API de gestion Supabase (version de trajet-roule ; comptages read_only) ;
+  lecture de devtools_auth.cc sur chromium.googlesource ; scripts de recalcul GPX ; recherche octet par octet des 7 secrets ; ~10 grep ciblés.
+
+### Tamponnage : aucun
+Chaque affirmation de méthode a son appel : images ouvertes (45/45), artefacts téléchargés, build/tsc/vitest, APK et prod testés en direct,
+grep des textes en dur et des secrets, logcat et journaux des jobs lus. Barrage préalable franchi.
+
+### Exhaustivité : complète
+V-3.2 (c1-c3 + batterie), V-3.3 (c1-c3), les 8 histoires de rejeu, les exigences de build, 7 cas limites, les 11 problèmes du round 1
+(un par un, commit et ligne), les 7 signalements de l'évaluateur et les 4 écarts du descripteur : tous instruits, chacun avec une preuve.
+Le signalement 7 (12,21 / 14,11 km) est tranché par un recalcul GPX réel (somme des cordes 8,1221 / 8,1228 km) et le signalement 2 par la
+source Chromium.
+
+### Faux FAIL : aucun
+Ses fichier:ligne sont exacts (revérifiés) : enregistreur-web.ts:113 (`x.t <= etat.lu`), TrajetService.java:214 (heure GNSS), :243
+(`System.currentTimeMillis()`), :284 ; MainActivity.java:16-19 ; m6-journal.md:52 dit bien « 39671788190 (immobile vert) » ;
+App.tsx:107-115 ne route ni Trajets ni EnRouteM4 ; enRoute.ts:84 appelle trajet-roule. Ses 5 LOW sont réels.
+
+### Faux PASS : 3 critères COVERED recontrôlés — tenus
+1. V-3.2 c2 (appli tuée) : TrajetService.java:119-126 (intent null → « relancé par le système », ligne R) et :136 START_STICKY lus ;
+   enregistreur-web.ts:145-175 relit le journal avant d'appliquer le tampon. Tenu.
+2. Build aapt2 : manifeste :31 foregroundServiceType="location", :46-54 sans ACCESS_BACKGROUND_LOCATION, avec REQUEST_IGNORE_BATTERY_OPTIMIZATIONS ;
+   controles-apk.txt de l'artefact : lignes 34 « PAS de ACCESS_BACKGROUND_LOCATION », 37 service location, 26 empreinte = attendue. APK publié
+   recontrôlé : 200, 3 558 256 o. Tenu.
+3. V-3.4 pause depuis la notification (A13) : notifications-principal.json : « après Pause » 11,6 km lu 1792630931487, « pause +30 s »
+   11,6 km lu 1792630964440 (+33 s, km figés), « après Reprendre » 11,9 km. Tenu sur l'émulateur.
+
+### Gravité du MEDIUM 1 : c'est un HIGH (V-3.3 c2 non tenu sur un vrai téléphone) — déclassé à tort
+Code relu :
+- relevé : `P;t` avec t = `l.getTime()` (heure GNSS) dès qu'elle est à moins de 30 s de l'horloge du téléphone (TrajetService.java:213-214) ;
+- bouton : `A;System.currentTimeMillis()` (:243) ; quand la page écoute, le service ne fait que lui passer la ligne (:254) ;
+- page : `appliquer` jette toute ligne dont t ≤ `lu` = t du dernier relevé appliqué (enregistreur-web.ts:113, :120) ;
+- puis la page renvoie son état par `TrajetEnRoute.maj` (notifTrajet.ts:66) → `garderContenu` (TrajetEnRoute.java:125-126) écrase
+  `enPause=true` posé par le service : la notification revient à « Trajet en cours » sous 2 s, la distance continue de compter.
+Condition de déclenchement : la Pause est perdue dès que l'horloge du téléphone retarde sur l'heure GNSS de plus que le temps écoulé depuis la
+mesure du dernier relevé, soit environ 0,3 à 1,3 s avec des relevés à 1 Hz. L'auditeur la dit « possible sans heure réseau » : c'est faux.
+Dans AOSP, l'heure automatique (réseau) ne corrige l'horloge du système qu'au-delà de **2 000 ms** d'écart
+(`config_timeDetectorAutoUpdateDiffMillis = 2000`, core/res/res/values/config.xml ; utilisé par TimeDetectorStrategyImpl.java:1089-1091,
+`absTimeDifference >= systemClockUpdateThreshold`), et le service d'heure GNSS est désactivé par défaut (`config_enableGnssTimeUpdateService = false`).
+Un téléphone à l'heure automatique peut donc rester durablement 1 à 2 s en retard sur le GNSS : la Pause de la notification y est ignorée
+à chaque fois (ou une fois sur deux vers 0,8 s). Le sens inverse (téléphone en avance) jette les relevés des δ secondes qui suivent chaque bouton.
+L'émulateur ne peut pas le révéler (relevés du fournisseur de test et boutons sur la même horloge). Le critère « QUAND je touche Pause, ALORS
+l'enregistrement passe en pause » n'est donc pas tenu dans des conditions normales de fonctionnement : **HIGH**, et le verdict PASS de l'auditeur
+est un faux PASS sur ce point. Son diagnostic et son « attendu » (un curseur par type, ou boutons datés sur l'horloge des relevés, + 2 tests
+unitaires) sont justes ; seule la gravité est fausse.
+
+### Note détaillée
+- Barrage (méthode matériellement fausse) : franchi.
+- Tamponnage : 0. Zones non vérifiées : 0 (seuls « notification balayée » et le téléphone réel, déclarés). Signalements non instruits : 0.
+- Faux PASS sur un HIGH : **−2** (MEDIUM 1 = HIGH, V-3.3 c2). Faux FAIL : 0. Grep : présents (textes en dur, secrets, routes, lignes citées).
+- **Note : 3/5.**
+
+### Verdict : **PASS 3/5** (auditeur honnête et complet ; une gravité sous-estimée)
+Conséquence pour le jalon : avec le n°1 reclassé HIGH, le jalon 6 n'est pas livrable en l'état. L'auditeur n'a rien à refaire ; le chef
+doit ouvrir un cycle de correction sur le n°1 : dater les boutons sur l'horloge des relevés (ou un curseur par type / numéro de ligne),
+tests unitaires « A daté avant le dernier P » et « P en retard après A », puis réaudit ciblé de V-3.3 c2 et V-3.4.
+- 01:37Z — Contre-évaluation : PASS 3/5 (auditeur réel et exhaustif, 45/45 images, prod et APK en direct, 0 faux FAIL ; −2 : MEDIUM 1 « deux horloges » est un HIGH — l'heure automatique Android tolère 2 s d'écart, la Pause de la notification y est ignorée → V-3.3 c2 non tenu, jalon à recorriger)
+- 01:38Z — Chef : contre-évaluation PASS 3/5 mais MEDIUM 1 reclassé HIGH (deux horloges : Pause de la notification jetée si l'horloge retarde de 1-2 s sur le GNSS → V-3.3 c2 non tenu). Pas de livraison avec un HIGH ouvert : cycle 3 (dernier) — bâtisseur r3 lancé (m6-batisseur-r3 : HIGH deux horloges + LOW 2 pt_inspecter, LOW 4 captures, LOW 6 journal).
+
+## Builder Summary — round 3
+
+Run CI de référence **39710484157** (commit 71f19b3) : apk (dont JUnit `testReleaseUnitTest`) + principal + immobile + fini + horloge
+verts, **52 constats OK / 0 KO** (38 + 6 + 2 + 6), APK de RELEASE signé. Artefacts : `plein-et-trajet-apk` 12397675178,
+`captures-m6-principal` 12397389597, `captures-m6-immobile` 12397259398, `captures-m6-fini` 12397389155, `captures-m6-horloge`
+12397327994 ; pièces dans tests/e2e/exploration/m6-preuves-ci/r3/. **Le run suivant (39713016630, c972c65) n'a pas démarré :
+« The job was not started because recent account payments have failed or your spending limit needs to be increased »**
+(annotation GitHub, m6-preuves-ci/r3/blocage-facturation-39713016630.txt) — plus aucun run CI possible sans action sur la
+facturation du compte GitHub.
+
+1. **HIGH — deux horloges : corrigé.** Choix : les deux règles. (a) L'ordre = numéro de la ligne dans le journal, seul ordre qui ne
+   dépend d'aucune horloge ; (b) un bouton est daté sur l'horloge des relevés (heure du téléphone + écart GNSS du dernier relevé,
+   jamais avant lui), pour que l'heure d'une pause reste comparable à celle des points. Commits 9c72e08 (service : `JournalTrajet.java`,
+   numéro remis à la page par `releve {ligne, n}`, `rattraper` par numéro, `maj` qui ne peut plus écraser un bouton non appliqué —
+   `fusionnerPage`), bbe3c61 (page : `appliquerEntree` par numéro ; relevé mesuré avant la pause gardé même écrit après le bouton ;
+   relevé de la pause écrit après la reprise ignoré ; boutons de l'appli datés sur l'horloge des relevés ; contrat `ligne` remplace
+   `tPoint`). **Tests rouges sur le code du round 2 puis verts** : Vitest `m6-horloges.test.ts` 3/8 rouges → 8/8 (« Pause datée avant
+   le dernier relevé », « relevé écrit après le bouton », « relecture à la réouverture, téléphone en retard 1,5 s ») ; JUnit
+   `JournalTrajetTest` contre un portage fidèle du r2 3/5 rouges → 5/5 (bouton daté 1 200 ms AVANT le dernier relevé si le téléphone
+   retarde de 1,5 s, 800 ms APRÈS le relevé suivant s'il avance de 1,5 s ; `rattraper` qui ignorait la pause) ; les cas « téléphone en
+   avance » de la page et de `rattraper` passaient déjà sur le r2 (ce sens se corrige par la datation du bouton, testée en JUnit).
+   **Émulateur, scénario « horloge »** (relevés datés `--time` décalés sur l'horloge du téléphone) : sur le CODE DU ROUND 2 (run
+   39710465105, branche r3-horloge-rouge) **défaut reproduit** — Pause touchée, notification revenue à « Trajet en cours » dès +6 s,
+   km 0,8 → 1,2 pendant la « pause » ; sens inverse : 1 relevé d'après la reprise jeté. **Sur le r3 (run 39710484157) : 6/6** —
+   téléphone en retard : « Trajet en pause » dans le volet (uiautomator) à +6, +12, +18, +27 s, km figés à 0,8 (27 s), Reprendre →
+   1,0 km, 13 relevés après la reprise tous gardés, 0 point dans la pause ; téléphone en avance : 1,1 km figés jusqu'à +27 s,
+   Reprendre → 1,4 km, 13/13 gardés. Capture `V-3.3-A36-pause-horloge-decalee` (+ `A37`). **Écart réellement joué : mesuré en
+   bornes seulement** — au toucher de Pause, le dernier relevé était daté 915 ms (retard) et 940 ms (avance) en avance sur
+   l'horloge du téléphone + décalage visé : décalage effectif ≥ +2,4 s dans le sens « en retard », ≥ −0,6 s dans le sens « en avance »
+   (l'horloge de l'émulateur n'était estimée qu'à ~1 s près). Le sens « en avance » à −1,5 s exactement n'est donc prouvé que par
+   les tests unitaires ; le correctif de mesure (c972c65 : milieu du plus court de 7 allers-retours adb, écart GNSS du service au
+   logcat) n'a pas pu tourner (CI bloquée) — la ligne de log Java de c972c65 est retirée pour que le code de l'appli au HEAD soit
+   celui de l'APK publié (diff android/ + src/ avec 71f19b3 : 0 ligne). Deux faux négatifs du scénario en route (runs 39707523582,
+   39708922771, code r2 : Pause tenue) : les `uiautomator dump` retardaient la livraison des positions de 3 à 6 s, plus que le
+   décalage ; corrigé en touchant le bouton quand le dernier relevé a moins de 1,1 s (journal d'exploration, round 3).
+2. **LOW 2 — `pt_inspecter` : corrigé** (b9d39e0). Sans effet si `Build.TYPE` = `user` (téléphone du commerce) ; sur l'émulateur
+   (`ro.build.type = userdebug`, journal du job horloge), valable pour le processus seulement, rien n'est gardé, réglage du round 2
+   effacé. L'APK publié est le même pour la CI et les téléphones : il ne peut pas activer l'inspection sur un système `user`
+   (prouvé par lecture du code ; aucun émulateur `user` joué). Piste « propriété `debug.*` » écartée (sepolicy android14 : pas de
+   `get_prop(appdomain, debug_prop)`).
+3. **LOW 4 — captures : corrigé pour V-3.2-04, impossible pour A17.** `V-3.2-04-apres` prise après le dégel : 105 km/h, 4,7 km, plus
+   de « GPS perdu » ; constat ajouté « réouverture, GPS revenu : km 4,4 → 4,7 en 8 s, GPS perdu : false ». `V-3.2-A17` : la mort du
+   processus ne peut pas se voir à l'écran (relancé par le système en 0,9-1,3 s, sans fenêtre) ; légende réécrite, preuve au journal
+   du job (PID avant / après, service relancé 0,898 s après le SIGKILL).
+4. **LOW 6 — corrigé** : ligne 52 complétée « — rectifié : job principal en échec, voir Builder Summary r2 § 7 ».
+
+**Captures reprises** (run 39710484157, téléchargées, regardées une à une, md5 des 45 captures m6 tous distincts, livrées sous leur
+nom dans tests/e2e/delivery et tests/e2e/screenshots/m6) : 43 — V-3.2-01..04, V-3.3-01..06 et 33 de rejeu dont les nouvelles
+`V-3.3-A36-pause-horloge-decalee`, `V-3.3-A37-pause-horloge-avance`. **Gardées du round 2** : `V-1.3-A01-apk-release` et
+`V-3.2-A10-maps-devant`, masquées au round 3 par « Pixel Launcher isn't responding » (premier lancement et Google Maps : écrans
+indépendants du code changé) — pas de nouveau run possible. Liste à jour : m6-use-case.md « Captures de rejeu ».
+
+**Tests** : Vitest 22 fichiers **280/280** ; `tsc --noEmit` 0 ; `vite build` OK (sous `lourd`) ; JUnit 5/5 (VPS, JDK portable)
+et `:app:testReleaseUnitTest` dans le job apk du run 39710484157. Vercel : production READY (c972c65, bundle index-DLTQhoup.js,
+code web identique depuis bbe3c61) ; **m5-regression sur la prod sous `lourd` : 8 passed** (pas d'écran touché : m5-explore non
+rejoué). Un premier lancement sans `.env.local` chargé a échoué (URL `undefined`, erreur de l'appel) avant le bon.
+
+**Distribution** : https://projets.ingevision.cloud/plein-et-trajet/plein-et-trajet.apk — curl `200 3559936
+application/octet-stream`, sha256 `95f2e58aa01e3729926e76f1dfb05f355467be927079583ab5aec989dd50acf8` = artefact 12397675178
+(empreinte du certificat = magasin de clés, PAS de ACCESS_BACKGROUND_LOCATION, controles-apk.txt) ; précédente seule gardée
+(`plein-et-trajet-precedent.apk` = 868e7404…400a, round 2), celle du round 1 supprimée ; page d'accueil « commit 71f19b3 ».
+Verrou de livraison pris (par root : /home/claude/la-boucle-preuves appartient à root) puis retiré.
+
+**Runs CI** (7, budget 8) : 39707523582, 39708922771 (code r2, faux négatifs du scénario), **39710465105 (code r2 : défaut
+reproduit)**, 39708165229 (r3 : immobile perdu, « Allow » de la batterie mangé par un dialogue « ne répond pas » → retouché
+désormais), **39710484157 (r3 : tout vert, référence)**, 39713016630 et 39713016742 (non démarrés : facturation GitHub).
+
+**Garde-fous relus** : comptage en lecture seule (API de gestion, `read-only`) à 01:44Z et 02:49Z : `trajets` 1 057 / 1 057,
+`cles_fournisseurs` 2 / 2, `vault.secrets` 3 / 3 (aucune valeur lue) ; aucun appel PTV ; aucune ligne trajets écrite ; magasin de clés
+jamais copié, secrets masqués ; ajouts git par chemin ; aucun pkill.
+
+**Restes** : (1) la CI est bloquée par la facturation du compte GitHub — c972c65 (mesure fine du décalage) non joué ; (2) le sens
+« téléphone en avance de 1,5 s » n'est prouvé à cette valeur que par les tests unitaires (émulateur : décalage effectif ≥ −0,6 s) ;
+(3) au téléphone d'Anthony : OxygenOS, vrai GPS, tunnel, Waze 30 min, écart au compteur ; (4) audit r2 LOW 3 (V-1.3 c2 refus de
+localisation sur Android) et LOW 5 (fonction `trajet-roule` à redéployer) hors du périmètre de ce round, non traités.
+- 02:49Z — Bâtisseur r3 terminé : HIGH deux horloges corrigé (numéro de ligne + boutons sur l'horloge des relevés ; Vitest 3→0 rouges, JUnit 3→0 ; émulateur : défaut reproduit sur le r2 (39710465105), horloge 6/6 sur le r3 (39710484157, 52/52)), LOW 2/4/6 traités (A17 : preuve visuelle impossible), APK publié (sha256 95f2e58a…acf8) ; CI désormais bloquée par la facturation GitHub.
