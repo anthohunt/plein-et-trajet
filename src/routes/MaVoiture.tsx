@@ -7,7 +7,7 @@ import { chevaux, enregistrerVoiture, nomVoiture, versionTexte, type VoitureV1 }
 import { T } from "../lib/textes";
 
 const ATTENTE_MS = 400;
-const nombre = (n: number) => n.toLocaleString("fr-FR");
+const nombre = (n?: number | null) => (typeof n === "number" && Number.isFinite(n) ? n.toLocaleString("fr-FR") : T.vide);
 
 type EtatCode = { e: "vide" } | { e: "chargement" } | { e: "ok"; versions: VoitureV1[] } | { e: "erreur"; code: CodeErreurEea };
 type EtatRecherche = { e: "vide" } | { e: "chargement" } | { e: "ok"; versions: VoitureV1[] } | { e: "erreur"; code: CodeErreurEea };
