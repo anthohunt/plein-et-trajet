@@ -29,8 +29,8 @@ En tant que conducteur, j'ouvre l'appli et je tombe sur l'onglet Trajet : ma voi
 
 En tant que conducteur, je vois la voiture que j'ai enregistrée une fois pour toutes, et je peux la changer. (élément `ma-voiture`)
 
-1. Partir de : la Renault Clio IV 1.2 TCe 120 de 2017 enregistrée (écran Trajet) — capture `V-1.2-01-avant.png`
-2. Faire : l'accueil s'affiche ; constater : je lis « Renault Clio IV » et « 1.2 TCe 120 · 2017 · SP95-E10 » — capture `V-1.2-02-apres.png`
+1. Partir de : la Renault Clio 1.2 (118 ch) de 2017, code 5RBU0C, enregistrée (écran Trajet) — capture `V-1.2-01-avant.png`
+2. Faire : l'accueil s'affiche ; constater : je lis « Renault Clio » et « 1.2 · 118 ch · 2017 · SP95-E10 » (noms de la base EEA) — capture `V-1.2-02-apres.png`
 3. Partir de : l'accueil (écran Trajet) — capture `V-1.2-03-avant.png`
 4. Faire : je touche « Changer » (changer-voiture) ; constater : l'écran Ma voiture s'ouvre avec ses champs vides — capture `V-1.2-04-apres.png`
 5. Partir de : l'appli fermée puis rouverte (écran Trajet) — capture `V-1.2-05-avant.png`
@@ -50,7 +50,7 @@ En tant que conducteur, je touche Démarrer en partant pour que tout le trajet s
 En tant que conducteur, je recopie le code D.2 de ma carte grise pour que l'appli connaisse exactement ma version de moteur. (élément `champ-d2`)
 
 1. Partir de : l'écran Ma voiture (écran Ma voiture) — capture `V-2.1-01-avant.png`
-2. Faire : je tape « 5RBU0C » ou « R 5RBU 5RBU0C » dans le champ D.2 ; constater : la fiche Renault Clio 1.2 TCe 120 s'affiche avec les données de la base européenne EEA : 2017, 87 kW (118 ch), 1 197 cm³, 1 165 kg, SP95-E10, 118 g/km — capture `V-2.1-02-apres.png`
+2. Faire : je tape « 5RBU0C » ou « R 5RBU 5RBU0C » dans le champ D.2 ; constater : la fiche Renault Clio 1.2 · 118 ch s'affiche avec les données de la base européenne EEA : 2017, 87 kW (118 ch), 1 197 cm³, 1 165 kg, SP95-E10, 118 g/km — capture `V-2.1-02-apres.png`
 3. Partir de : un code partagé par plusieurs versions (marques, années ou masses différentes) (écran Ma voiture) — capture `V-2.1-03-avant.png`
 4. Faire : je le tape ; constater : l'appli liste les versions correspondantes (marque, modèle, année, puissance, masse), la plus immatriculée en tête, et je choisis la mienne — capture `V-2.1-04-apres.png`
 5. Partir de : un code tapé en minuscules ou avec des espaces (écran Ma voiture) — capture `V-2.1-05-avant.png`
@@ -315,3 +315,18 @@ Rejouées sur les écrans V1 (statut `maintenue_v1` dans `stories.json`), avec l
 2. Faire : parcourir T1 → T6 et un trajet complet ; constater : aucune requête vers PTV ni vers une fonction de péages, aucun écran ni texte « péage », « itinéraire », « départ / arrivée » à saisir, aucun lien vers l'écran Moteurs ; l'onglet bar ne porte que Trajet, Stations, Historique — capture `V1-retraits-02-apres.png`
 3. Partir de : la table `public.moteurs` lue par l'API Supabase (rôle service) (écran Trajet) — capture `V1-retraits-03-avant.png`
 4. Faire : lire la ligne du service péages ; constater : `actif = false` (ou équivalent), et `public.cles_fournisseurs` comme Vault ont le même nombre de lignes qu'avant le jalon (aucune clé effacée) — capture `V1-retraits-04-apres.png`
+
+## US-NEW-1 — Écran d'erreur récupérable
+
+En tant que conducteur, si un écran plante, je vois un message et deux boutons au lieu d'une page blanche. (durcissement D3)
+
+1. Partir de : une exception de rendu provoquée sur l'écran Ma voiture (injection, marquée MOCKED) (écran Ma voiture) — capture `US-NEW-1-01-avant.png`
+2. Faire : l'écran s'affiche ; constater : « Un problème est survenu — L'écran n'a pas pu s'afficher » avec « Recharger » et « Effacer les données locales de l'appli », pas de page blanche — capture `US-NEW-1-02-apres.png`
+3. Faire : je touche « Effacer les données locales de l'appli » ; constater : l'accueil s'ouvre sans voiture enregistrée — capture `US-NEW-1-03-apres.png`
+
+## US-NEW-2 — Stations sur un écran bas
+
+En tant que conducteur qui tient son téléphone en paysage, je lis encore la liste des stations. (durcissement D10)
+
+1. Partir de : un écran de 844 × 390 (paysage) (écran Stations) — capture `US-NEW-2-01-avant.png`
+2. Faire : j'ouvre Stations ; constater : la page défile, la carte est réduite et la liste des stations reste visible, barre d'onglets en bas — capture `US-NEW-2-02-apres.png`

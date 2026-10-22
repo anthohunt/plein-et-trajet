@@ -36,7 +36,7 @@ En tant que conducteur guidé par Waze ou Google Maps, je laisse l'appli enregis
 3. Partir de : l'appli Android tuée par le système pendant un trajet (écran En route) — capture `V-3.2-03-avant.png`
 4. Faire : je la rouvre ; constater : le trajet en cours reprend avec tous ses points (enregistrés par le service Android, pas par la page) — capture `V-3.2-04-apres.png`
 5. Partir de : la version web dans un navigateur (écran En route) — capture `V-3.2-05-avant.png`
-6. Faire : un trajet est démarré ; constater : le texte dit que l'écran doit rester allumé et l'écran est gardé allumé par le verrou d'écran — capture `V-3.2-06-apres.png`
+6. Faire : un trajet est démarré ; constater : « Garde l'écran allumé : un navigateur arrête le GPS écran éteint. » et l'écran est gardé allumé par le verrou d'écran — capture `V-3.2-06-apres.png`
 
 ## V-3.3 — Piloter depuis la barre du téléphone
 
@@ -97,3 +97,17 @@ Maps) ne dépend pas du code changé. V-3.2-05/06 par Playwright sur la prod (ro
 - `V-4.7-A16-historique-rouvert.png` — appli arrêtée puis rouverte : le trajet est toujours dans l'historique
 - `V-5.1-A08-stations.png` — Stations pendant l'enregistrement : bandeau « Trajet en cours · … € »
 - `V-5.1-A09-retour-en-route.png` — retour sur Trajet : la distance a continué
+
+## US-NEW-3 — Autorisations Android au premier trajet
+
+En tant que conducteur sur Android, l'appli me demande ce dont elle a besoin pour enregistrer écran éteint. (captures de la CI du jalon 6, run 39710484157 ; non refaites : CI bloquée)
+
+1. Faire : je touche « Démarrer » la première fois ; constater : le dialogue de localisation d'Android s'affiche — capture `V-1.3-A02-dialogue-localisation.png`
+2. Faire : j'autorise ; constater : le dialogue des notifications s'affiche — capture `V-1.3-A04-dialogue-notifications.png`
+3. Faire : j'autorise ; constater : l'appli demande la sortie de l'optimisation de batterie — capture `V-3.2-A31-batterie-appli.png`
+
+## US-NEW-4 — Installer l'appli Android par un lien
+
+En tant que conducteur, j'installe l'appli Android depuis un lien, hors Play Store. (capture de la CI du jalon 6, run 39701223352)
+
+1. Faire : j'installe l'APK de release signé ; constater : l'appli « Plein & Trajet » est installée et s'ouvre — capture `V-1.3-A01-apk-release.png`

@@ -6,87 +6,14 @@
 
 Référence visuelle : `docs/pipeline/design/mockup.html` (écran nommé à chaque étape). Exécuté sur l'appli DÉPLOYÉE, données réelles (prix officiels, IGN, ADEME). Captures dans `tests/e2e/screenshots/m3/`.
 
-
-## US-3.8 — Partir à l'étranger
-
-En tant que conducteur, je saisis une arrivée à l'étranger et l'appli calcule le trajet à travers l'Europe.
-
-1. Partir de : le champ arrivée (écran Trajets) — capture `US-3.8-01-partir-l-tranger-avant.png`
-2. Faire : je tape « Barce » et choisis Barcelone, Espagne ; constater : le calcul aboutit avec un itinéraire qui traverse la France puis l'Espagne — capture `US-3.8-02-partir-l-tranger-apres.png`
-
-
-## US-4.4 — Voir les péages
-
-En tant que conducteur, je vois le détail des péages du trajet et leur total, inclus dans le coût.
-
-1. Partir de : un trajet Albi → Barcelone calculé (écran Résultat du trajet) — capture `US-4.4-01-voir-les-pages-avant.png`
-2. Faire : je lis le détail des péages ; constater : chaque section payante affiche son montant TTC en euros (« gratuit » si 0), le total des péages est affiché et ajouté au coût total — capture `US-4.4-02-voir-les-pages-apres.png`
-3. Partir de : un trajet sans autoroute payante (écran Résultat du trajet) — capture `US-4.4-03-voir-les-pages-avant.png`
-4. Faire : le résultat s'affiche ; constater : le détail des péages indique « Aucun péage sur cet itinéraire » et 0,00 € — capture `US-4.4-04-voir-les-pages-apres.png`
-
-
-## US-4.5 — Voir les pays traversés
-
-En tant que conducteur, je vois pour chaque pays traversé les km, les litres et le prix moyen du jour appliqué.
-
-1. Partir de : un trajet Albi → Milan calculé (écran Résultat du trajet) — capture `US-4.5-01-voir-les-pays-traverss-avant.png`
-2. Faire : je lis les pays traversés ; constater : chaque pays affiche km, litres, prix moyen du jour de son carburant et coût, et la somme des coûts pays égale le coût carburant — capture `US-4.5-02-voir-les-pays-traverss-apres.png`
-3. Partir de : un trajet dans un seul pays (Albi → Castres) ; constater : pas de section « Pays traversés », le prix dit « Moyenne France du jour »
-
-
-## US-4.E4 — Péages indisponibles
-
-En tant que conducteur, si le calcul des péages échoue, j'obtiens quand même le coût carburant.
-
-**Cas limite.** Mise en place : page.route('**/functions/v1/estimer-trajet', r => r.fulfill({status:200, body: corps_sans_peages_avec_erreur_peages}))
-
-1. Mettre en place : le service de péages en erreur (écran Résultat du trajet) — capture `US-4.E4-E1-01-declencheur.png`
-2. Action : je lance un calcul — capture `US-4.E4-E1-02-resultat.png`
-3. Vérifier : le coût carburant s'affiche et le détail des péages indique « Péages non disponibles pour l'instant » sans les ajouter au total ; puis rétablir le réseau / les données et vérifier le retour à l'état normal — capture `US-4.E4-E1-03-retour.png`
-
-**Cas limite 2 — quota du jour du fournisseur atteint** (ajout round 5). Mise en place : réelle, PTV répond 403 `GENERAL_QUOTA_EXCEEDED` (« Daily Quota Exceeded »).
-
-1. Vérifier : sur un trajet à péages (Albi → Barcelone), le coût carburant s'affiche et le détail des péages indique « PTV : quota du jour atteint — péages indisponibles jusqu'à <heure> », sans total de péages — capture `US-4.E4-E2-01-quota-ptv.png`
-
-
-## US-4.E5 — Vignette sur le trajet
-
-En tant que conducteur traversant la Suisse ou l'Autriche, je suis prévenu qu'une vignette est exigée.
-
-**Cas limite.** Mise en place : trajet réel Albi → Milan via Genève (traverse la Suisse)
-
-1. Mettre en place : un trajet qui traverse la Suisse (écran Résultat du trajet) — capture `US-4.E5-E1-01-declencheur.png`
-2. Action : le résultat s'affiche — capture `US-4.E5-E1-02-resultat.png`
-3. Vérifier : le détail des péages porte la ligne « Vignette suisse obligatoire (non comptée) » ; puis rétablir le réseau / les données et vérifier le retour à l'état normal — capture `US-4.E5-E1-03-retour.png`
-
-
-## US-4.E6 — Pays sans prix moyen
-
-En tant que conducteur, si un pays traversé n'a pas de prix moyen connu, je le sais.
-
-**Cas limite.** Mise en place : trajet réel vers Belgrade (Serbie, hors Bulletin pétrolier UE)
-
-1. Mettre en place : un pays traversé absent des moyennes (ex. Serbie) (écran Résultat du trajet) — capture `US-4.E6-E1-01-declencheur.png`
-2. Action : le résultat s'affiche — capture `US-4.E6-E1-02-resultat.png`
-3. Vérifier : sa ligne dans les pays traversés porte « prix non publié — moyenne européenne appliquée » et le prix utilisé ; puis rétablir le réseau / les données et vérifier le retour à l'état normal — capture `US-4.E6-E1-03-retour.png`
-
-
-## US-1.8 — Stations hors de France
-
-En tant que conducteur à l'étranger, je vois les stations du pays où je suis s'il publie ses prix.
-
-1. Partir de : ma position à Barcelone (écran Prix) — capture `US-1.8-01-stations-hors-de-france-avant.png`
-2. Faire : j'ouvre l'onglet Prix ; constater : la carte des stations et la liste affichent les stations espagnoles avec leurs prix officiels — capture `US-1.8-02-stations-hors-de-france-apres.png`
-3. Partir de : ma position dans un pays qui ne publie pas ses prix (écran Prix) — capture `US-1.8-03-stations-hors-de-france-avant.png`
-4. Faire : j'ouvre l'onglet Prix ; constater : un message indique « Ce pays ne publie pas les prix station par station » et affiche le prix moyen national — capture `US-1.8-04-stations-hors-de-france-apres.png`
-
+> **Livraison (2026-10-22)** : les histoires retirées de la V1 ont été ôtées de ce plan (liste et raisons : `docs/pipeline/reconciliation-report.md` ; plan d'origine dans l'historique git). Les étapes restantes ont été rejouées sur l'appli finale ; captures de livraison dans `tests/e2e/final/`.
 
 ## US-5.1 — Ouvrir les moteurs
 
-En tant qu'administrateur, j'ouvre l'écran Moteurs depuis le bouton ⚙.
+En tant qu'administrateur, j'ouvre l'écran Moteurs à l'adresse /moteurs (plus de bouton ⚙ dans l'appli en V1).
 
 1. Partir de : je suis connecté comme administrateur (écran Moteurs) — capture `US-5.1-01-ouvrir-les-moteurs-avant.png`
-2. Faire : je touche le bouton moteurs ⚙ ; constater : l'écran Moteurs liste les 6 services avec leur fournisseur et leur état — capture `US-5.1-02-ouvrir-les-moteurs-apres.png`
+2. Faire : j'ouvre l'adresse /moteurs (aucun bouton dans l'appli en V1) ; constater : l'écran Moteurs liste les 7 services avec leur fournisseur et leur état — capture `US-5.1-02-ouvrir-les-moteurs-apres.png`
 
 
 ## US-5.2 — Choisir le fournisseur
@@ -115,14 +42,6 @@ En tant qu'administrateur, je teste la connexion d'un moteur avant de l'enregist
 2. Faire : je touche Tester la connexion ; constater : un vrai calcul de test est envoyé à PTV et l'état affiche « Connecté » — capture `US-5.4-02-tester-la-connexion-apres.png`
 
 
-## US-5.5 — Enregistrer le moteur
-
-En tant qu'administrateur, j'enregistre un moteur et l'appli l'utilise aussitôt.
-
-1. Partir de : le moteur péages basculé sur HERE et enregistré (écran Moteurs) — capture `US-5.5-01-enregistrer-le-moteur-avant.png`
-2. Faire : je calcule Albi → Barcelone ; constater : les péages viennent de HERE sans redéploiement de l'appli — capture `US-5.5-02-enregistrer-le-moteur-apres.png`
-
-
 ## US-5.E1 — Moteurs invisibles aux visiteurs
 
 En tant que simple utilisateur, je ne vois ni n'atteins l'écran Moteurs.
@@ -131,7 +50,7 @@ En tant que simple utilisateur, je ne vois ni n'atteins l'écran Moteurs.
 
 1. Mettre en place : un appareil non administrateur (écran Moteurs) — capture `US-5.E1-E1-01-declencheur.png`
 2. Action : l'appli s'ouvre — capture `US-5.E1-E1-02-resultat.png`
-3. Vérifier : le bouton moteurs n'est pas affiché et toute lecture ou écriture de la table des moteurs est refusée par le serveur ; puis rétablir le réseau / les données et vérifier le retour à l'état normal — capture `US-5.E1-E1-03-retour.png`
+3. Vérifier : aucun bouton ni lien vers les moteurs n'existe et toute lecture ou écriture de la table des moteurs est refusée par le serveur ; puis rétablir le réseau / les données et vérifier le retour à l'état normal — capture `US-5.E1-E1-03-retour.png`
 
 
 ## US-5.E2 — Clé refusée
@@ -148,25 +67,6 @@ En tant qu'administrateur, une clé invalide est signalée et n'est pas enregist
 
 1. Vérifier : Tester la connexion sur PTV affiche « PTV : quota du jour atteint — péages indisponibles jusqu'à <heure> », jamais « Clé refusée » — capture `US-5.E2-E2-01-quota-ptv.png`
 
-
-## US-5.E3 — Bascule de secours
-
-En tant que conducteur, si le moteur principal tombe, le calcul passe par le moteur de secours.
-
-**Cas limite.** Mise en place : page.route('**/ptv**', r => r.fulfill({status:503})) côté fonction : fournisseur principal coupé
-
-1. Mettre en place : PTV en panne et HERE enregistré en secours (écran Moteurs) — capture `US-5.E3-E1-01-declencheur.png`
-2. Action : je calcule un trajet — capture `US-5.E3-E1-02-resultat.png`
-3. Vérifier : les péages viennent de HERE et l'écran Moteurs note la bascule avec l'heure ; puis rétablir le réseau / les données et vérifier le retour à l'état normal — capture `US-5.E3-E1-03-retour.png`
-
-
-## Histoires transverses vérifiées sur ce jalon
-
-- **US-A11Y-001 — Navigation au clavier** : 1. sur chaque écran du jalon, j'utilise Tab et Maj+Tab — capture `US-A11Y-001-01-m3.png` ; 2. constater : chaque contrôle reçoit le focus dans l'ordre de lecture avec un contour visible — capture `US-A11Y-001-02-m3.png`
-- **US-A11Y-002 — Focus de la fiche** : 1. sur chaque écran du jalon, elle s'ouvre — capture `US-A11Y-002-01-m3.png` ; 2. constater : le focus va sur son titre ; à la fermeture il revient sur l'élément qui l'a ouverte — capture `US-A11Y-002-02-m3.png`
-- **US-A11Y-003 — Touche Échap** : 1. sur chaque écran du jalon, j'appuie sur Échap — capture `US-A11Y-003-01-m3.png` ; 2. constater : la fiche se ferme — capture `US-A11Y-003-02-m3.png`
-- **US-A11Y-004 — Libellés lisibles** : 1. sur chaque écran du jalon, je parcours les pastilles et les prix — capture `US-A11Y-004-01-m3.png` ; 2. constater : chaque pastille annonce station et prix en euros, chaque bouton icône a un libellé — capture `US-A11Y-004-02-m3.png`
-- **US-PERF-001 — Ouverture rapide** : 1. sur chaque écran du jalon, j'ouvre l'appli — capture `US-PERF-001-01-m3.png` ; 2. constater : la liste des stations est affichée en moins de 2,5 s — capture `US-PERF-001-02-m3.png`
 
 ## US-5.6 — Où trouver ma clé (correction d'Anthony, 2026-10-21)
 
