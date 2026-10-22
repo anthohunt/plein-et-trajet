@@ -98,6 +98,33 @@ export function requeteRecherche(table: string, r: Recherche): string {
   return `SELECT TOP 800 ${COLONNES} FROM ${table} WHERE ${ou.join(" AND ")} GROUP BY ${GROUPE} ORDER BY n DESC`;
 }
 
+/**
+ * Requêtes d'une recherche par nom (durcissement r1, D8). Le « (Cn LIKE … OR Mk LIKE …) » de requeteRecherche prend 5 à 30 s sur
+ * Discodata (le serveur sérialise les requêtes) ; sans OR, chaque requête répond en 0,2 à 0,5 s. Même résultat, en plusieurs requêtes :
+ * A = tous les mots dans le modèle (Cn) ; B(i) = le mot i est la marque (Mk, début de nom) et les autres sont dans le modèle.
+ * Les lignes sont à dédoublonner par l'appelant (une ligne peut sortir de A et de B).
+ */
+export function requetesRecherche(table: string, r: Recherche): string[] {
+  if (!tableValide(table)) throw new Error("table refusée");
+  if (r.mots.length === 0 || r.mots.some((m) => !RE_MOT.test(m))) throw new Error("mot refusé");
+  const filtres: string[] = [];
+  if (r.annee != null) {
+    if (!Number.isInteger(r.annee)) throw new Error("année refusée");
+    filtres.push(`Year=${r.annee}`);
+  }
+  if (r.kwMin != null && r.kwMax != null) {
+    if (!Number.isInteger(r.kwMin) || !Number.isInteger(r.kwMax)) throw new Error("puissance refusée");
+    filtres.push(`[Ep (KW)] BETWEEN ${r.kwMin} AND ${r.kwMax}`);
+  }
+  const sql = (ou: string[]) => `SELECT TOP 800 ${COLONNES} FROM ${table} WHERE ${[...ou, ...filtres].join(" AND ")} GROUP BY ${GROUPE} ORDER BY n DESC`;
+  const modele = (m: string) => `Cn LIKE '%${m}%'`;
+  const requetes = [sql(r.mots.map(modele))];
+  new Set(r.mots).forEach((marque) => {
+    requetes.push(sql([`Mk LIKE '${marque}%'`, ...r.mots.filter((m) => m !== marque).map(modele)]));
+  });
+  return requetes;
+}
+
 /** URL Discodata d'une requête (page 1). */
 export function urlDiscodata(base: string, sql: string, lignes = 800): string {
   return `${base}?query=${encodeURIComponent(sql)}&p=1&nrOfHits=${lignes}`;
