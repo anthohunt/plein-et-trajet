@@ -211,8 +211,12 @@ async function page() {
   }
   for (let k = 0; k < 60; k++) {
     const pid = Number(pidof()) || null;
-    const vue = pid && appareil.webViews().find((w) => w.pkg() === PKG && w.pid() === pid);
-    if (vue) return vue.page();
+    // la DERNIÈRE vue du processus : après la perte du moteur de rendu, l'ancienne page fermée reste listée (scénario rendu, 24/10)
+    const vue = pid && appareil.webViews().filter((w) => w.pkg() === PKG && w.pid() === pid).at(-1);
+    if (vue) {
+      const pg = await vue.page();
+      if (await pg.evaluate(() => 1).then(() => true, () => false)) return pg;
+    }
     await pause(1000);
   }
   throw new Error("WebView de l'appli introuvable");
