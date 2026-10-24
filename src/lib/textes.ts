@@ -433,4 +433,9 @@ export const T = {
   batterieTexte: "Pour économiser la batterie, Android peut arrêter l'appli en route : le trajet ne serait plus compté. Autorise Plein & Trajet à rester active en arrière-plan ; elle n'y tourne que pendant un trajet.",
   batterieAutoriser: "Autoriser",
   batteriePlusTard: "Plus tard",
+  // --- plan de robustesse (24/10) : localisation « Toujours autoriser », sans quoi Android 14+ ne relance pas un trajet tué en route
+  toujoursTitre: "Compter le trajet même si Android ferme l'appli",
+  toujoursTexte: "Android ferme parfois l'appli en route pour économiser la batterie. Pour qu'elle reprenne le trajet toute seule, choisis « Toujours autoriser » pour la localisation sur l'écran qui va s'ouvrir. Elle ne s'en sert que pendant un trajet.",
+  toujoursAutoriser: "Ouvrir le réglage",
+  toujoursPlusTard: "Pas maintenant",
 };

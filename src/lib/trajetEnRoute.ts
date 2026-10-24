@@ -33,6 +33,12 @@ export interface TrajetEnRoutePlugin {
   maj(o: ContenuNotification): Promise<void>;
   batterie(): Promise<{ horsOptimisation: boolean }>;
   proposerBatterie(): Promise<{ horsOptimisation: boolean }>;
+  // localisation « Toujours autoriser » : sans elle, Android 14+ refuse de relancer le service tué en route (plan de robustesse)
+  localisationToujours(): Promise<{ toujours: boolean }>;
+  demanderToujours(): Promise<{ toujours: boolean }>;
+  // observatoire (Diagnostic.java) : texte pas encore envoyé, position de fin à acquitter une fois l'envoi réussi
+  diagnostic(o: { occasion: string }): Promise<{ texte: string; fin: number; etat: string; version: string }>;
+  acquitterDiagnostic(o: { fin: number }): Promise<void>;
   addListener(evt: "releve", f: (e: { ligne: string; n: number }) => void): Promise<PluginListenerHandle>;
   addListener(evt: "action", f: (e: { action: string }) => void): Promise<PluginListenerHandle>;
 }

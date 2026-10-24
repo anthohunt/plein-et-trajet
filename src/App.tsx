@@ -16,6 +16,7 @@ import { lireArrete } from "./lib/historique";
 import { useEnregistrement, useVoitureV1 } from "./lib/useEnregistrement";
 import { T } from "./lib/textes";
 import { brancherNotification } from "./lib/notifTrajet";
+import { envoyerDiagnostic } from "./lib/diagnostic";
 
 const CLE_CARBURANT = "pt-carburant";
 
@@ -51,6 +52,7 @@ export default function App() {
   useEffect(() => {
     if (lance.current) return;
     lance.current = true;
+    void envoyerDiagnostic("ouverture");
     (async () => {
       const e = await enregistreur().restaurer().catch(() => null);
       if (e) {

@@ -15,6 +15,7 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.os.SystemClock;
@@ -50,6 +51,8 @@ public class TrajetService extends Service implements LocationListener {
 
     static final String TAG = "TrajetService";
     static final String CANAL = "trajet-en-cours";
+    static final String CANAL_ALERTE = "trajet-alerte";
+    static final int NUMERO_ALERTE = 28352;
     static final int NUMERO = 28351;
     static final String DEMARRER = "cloud.ingevision.pleinettrajet.DEMARRER";
     static final String BOUTON = "cloud.ingevision.pleinettrajet.BOUTON";
@@ -77,6 +80,18 @@ public class TrajetService extends Service implements LocationListener {
     private long ecartGnss; // gardé aussi dans les préférences (à 200 ms près) : un bouton touché juste après une relance
     private long ecartGarde = Long.MIN_VALUE;
     private long dernierReleve = Long.MIN_VALUE;
+    // observatoire (Diagnostic.java) : battement de vie toutes les 60 s et trous entre deux relevés reçus
+    private final Handler battement = new Handler(Looper.getMainLooper());
+    private long recuPrecedent = -1; // horloge monotone du relevé précédent
+    private int recusMinute;
+    private final Runnable vie = new Runnable() {
+        @Override
+        public void run() {
+            Diagnostic.noter(TrajetService.this, "VIE", "releves60s=" + recusMinute + " pageLa=" + (ecouteur != null));
+            recusMinute = 0;
+            battement.postDelayed(this, 60_000L);
+        }
+    };
 
     static File journal(Context c) {
         return new File(c.getFilesDir(), "trajet-en-cours.txt");
@@ -104,12 +119,16 @@ public class TrajetService extends Service implements LocationListener {
             NotificationChannel c = new NotificationChannel(CANAL, getString(R.string.canal_trajet), NotificationManager.IMPORTANCE_LOW);
             c.setShowBadge(false);
             m.createNotificationChannel(c);
+            NotificationChannel a = new NotificationChannel(CANAL_ALERTE, getString(R.string.canal_alerte), NotificationManager.IMPORTANCE_HIGH);
+            m.createNotificationChannel(a);
         }
+        Diagnostic.noter(this, "SERVICE", "creation actif=" + actif(this));
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         SharedPreferences p = prefs(this);
+        Diagnostic.noter(this, "SERVICE", "demarrage action=" + (intent == null ? "RELANCE_SYSTEME" : intent.getAction()) + " flags=" + flags + " n=" + startId);
         if (intent != null && DEMARRER.equals(intent.getAction())) {
             String id = intent.getStringExtra("id");
             if (id == null || !id.equals(p.getString("id", null))) {
@@ -139,9 +158,13 @@ public class TrajetService extends Service implements LocationListener {
             return START_NOT_STICKY;
         }
         if (!premierPlan()) {
+            // Android refuse le premier plan (typiquement : relance après une mort du processus, appli en arrière-plan, sans la
+            // localisation « Toujours »). Le trajet reste actif et gardé ; on prévient pour qu'un toucher le reprenne.
+            if (actif(this)) alerter(this);
             stopSelf();
             return START_NOT_STICKY;
         }
+        annulerAlerte(this);
         ecouterGps();
         return START_STICKY;
     }
@@ -152,6 +175,8 @@ public class TrajetService extends Service implements LocationListener {
             return true;
         } catch (Exception e) {
             Log.e(TAG, "premier plan refusé", e);
+            Diagnostic.noter(this, "ERREUR", "premierPlan " + e.getClass().getName() + " : " + e.getMessage()
+                + " toujours=" + (Diagnostic.localisationToujours(this) ? "oui" : "non"));
             return false;
         }
     }
@@ -167,18 +192,72 @@ public class TrajetService extends Service implements LocationListener {
         try {
             gps.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, this, Looper.getMainLooper());
             Log.i(TAG, "GPS écouté");
+            Diagnostic.noter(this, "GPS", "ecoute " + Diagnostic.etat(this));
         } catch (SecurityException | IllegalArgumentException e) {
             Log.e(TAG, "GPS indisponible", e);
+            Diagnostic.noter(this, "ERREUR", "gps " + e);
         }
+        battement.removeCallbacks(vie);
+        battement.postDelayed(vie, 60_000L);
     }
 
     @Override
     public void onDestroy() {
+        Diagnostic.noter(this, "SERVICE", "destruction actif=" + actif(this));
+        battement.removeCallbacks(vie);
         if (gps != null) gps.removeUpdates(this);
         gps = null;
         if (verrou != null && verrou.isHeld()) verrou.release();
         if (enCours == this) enCours = null;
         super.onDestroy();
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        Diagnostic.noter(this, "SERVICE", "tache-retiree");
+        super.onTaskRemoved(rootIntent);
+    }
+
+    @Override
+    public void onTrimMemory(int level) {
+        Diagnostic.noter(this, "MEMOIRE", "trim=" + level);
+        super.onTrimMemory(level);
+    }
+
+    @Override
+    public void onLowMemory() {
+        Diagnostic.noter(this, "MEMOIRE", "basse");
+        super.onLowMemory();
+    }
+
+    @Override
+    public void onTimeout(int startId, int fgsType) {
+        Diagnostic.noter(this, "SERVICE", "delai-depasse type=" + fgsType);
+        super.onTimeout(startId, fgsType);
+    }
+
+    // ---------- alerte : enregistrement interrompu ----------
+    /** Android a refusé de relancer le trajet en fond : notification qui sonne, un toucher rouvre l'appli et reprend le trajet. */
+    static void alerter(Context c) {
+        Diagnostic.noter(c, "ALERTE", "interrompu");
+        NotificationManager m = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (m == null) return;
+        Notification n = new NotificationCompat.Builder(c, CANAL_ALERTE)
+            .setSmallIcon(c.getApplicationInfo().icon)
+            .setContentTitle(c.getString(R.string.alerte_titre))
+            .setContentText(c.getString(R.string.alerte_texte))
+            .setStyle(new NotificationCompat.BigTextStyle().bigText(c.getString(R.string.alerte_texte)))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_ERROR)
+            .setAutoCancel(true)
+            .setContentIntent(ouvrir(c, null, 6))
+            .build();
+        m.notify(NUMERO_ALERTE, n);
+    }
+
+    static void annulerAlerte(Context c) {
+        NotificationManager m = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (m != null) m.cancel(NUMERO_ALERTE);
     }
 
     /** Fin du trajet (la page a tout lu) : le service s'arrête, le journal est effacé. */
@@ -187,7 +266,10 @@ public class TrajetService extends Service implements LocationListener {
         journal(c).delete();
         c.stopService(new Intent(c, TrajetService.class));
         NotificationManager m = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (m != null) m.cancel(NUMERO);
+        if (m != null) {
+            m.cancel(NUMERO);
+            m.cancel(NUMERO_ALERTE);
+        }
     }
 
     // ---------- journal ----------
@@ -231,6 +313,11 @@ public class TrajetService extends Service implements LocationListener {
 
     @Override
     public void onLocationChanged(@NonNull Location l) {
+        long recu = SystemClock.elapsedRealtime();
+        if (recuPrecedent >= 0 && recu - recuPrecedent > 5_000L) Diagnostic.noter(this, "TROU", "secondes=" + (recu - recuPrecedent) / 1000);
+        if (recuPrecedent < 0) Diagnostic.noter(this, "GPS", "premier-releve");
+        recuPrecedent = recu;
+        recusMinute++;
         // heure du relevé (getTime : horloge du GNSS), pas l'heure de réception ; si elle s'écarte de plus de 30 s de l'horloge du
         // téléphone (heure réglée à la main), l'âge du relevé pris sur l'horloge monotone
         long parAge = System.currentTimeMillis() - (SystemClock.elapsedRealtimeNanos() - l.getElapsedRealtimeNanos()) / 1_000_000L;
@@ -261,10 +348,14 @@ public class TrajetService extends Service implements LocationListener {
     public void onStatusChanged(String provider, int status, Bundle extras) {}
 
     @Override
-    public void onProviderDisabled(@NonNull String provider) {}
+    public void onProviderDisabled(@NonNull String provider) {
+        Diagnostic.noter(this, "GPS", "coupe " + provider);
+    }
 
     @Override
-    public void onProviderEnabled(@NonNull String provider) {}
+    public void onProviderEnabled(@NonNull String provider) {
+        Diagnostic.noter(this, "GPS", "rallume " + provider);
+    }
 
     // ---------- boutons de la notification ----------
     private void bouton(String action) {

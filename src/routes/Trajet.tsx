@@ -23,6 +23,17 @@ async function proposerBatterieUneFois(): Promise<boolean> {
   }
 }
 
+// Localisation « Toujours autoriser » (plan de robustesse, 24/10) : sans elle, Android 14+ refuse de relancer le service quand il a
+// tué l'appli en route, et l'enregistrement s'arrête sans bruit. Redemandée à chaque Démarrer tant qu'elle manque.
+async function manqueToujours(): Promise<boolean> {
+  if (!Capacitor.isNativePlatform()) return false;
+  try {
+    return !(await TrajetEnRoute.localisationToujours()).toujours;
+  } catch {
+    return false;
+  }
+}
+
 export default function Trajet() {
   const nav = useNavigate();
   const voiture = useVoitureV1();
@@ -30,24 +41,34 @@ export default function Trajet() {
   const [attente, setAttente] = useState(false);
   const [erreur, setErreur] = useState<ErreurDemarrage | null>(null);
   const [batterie, setBatterie] = useState(false);
+  const [toujours, setToujours] = useState(false);
   const message = useRef<HTMLDivElement>(null);
   const dialogue = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (erreur) message.current?.focus();
   }, [erreur]);
   useEffect(() => {
-    if (batterie) dialogue.current?.focus();
-  }, [batterie]);
+    if (batterie || toujours) dialogue.current?.focus();
+  }, [batterie, toujours]);
   if (etat) return <Navigate to="/en-route" replace />;
 
   const demarrer = async () => {
     if (!voiture) return nav("/voiture");
     if (await proposerBatterieUneFois()) return setBatterie(true);
-    lancer();
+    suite();
   };
   const repondreBatterie = async (autoriser: boolean) => {
     setBatterie(false);
     if (autoriser) await TrajetEnRoute.proposerBatterie().catch(() => undefined);
+    suite();
+  };
+  const suite = async () => {
+    if (await manqueToujours()) return setToujours(true);
+    lancer();
+  };
+  const repondreToujours = async (autoriser: boolean) => {
+    setToujours(false);
+    if (autoriser) await TrajetEnRoute.demanderToujours().catch(() => undefined);
     lancer();
   };
   const lancer = async () => {
@@ -71,7 +92,7 @@ export default function Trajet() {
             <div className="sp">{T.sansVoitureDetail}</div>
           </div>
         )}
-        <button type="button" className="btn gobig" data-el="bouton-demarrer" onClick={demarrer} disabled={attente || batterie} aria-busy={attente}>
+        <button type="button" className="btn gobig" data-el="bouton-demarrer" onClick={demarrer} disabled={attente || batterie || toujours} aria-busy={attente}>
           {attente ? <span className="gobig-attente">{T.demarrageAttente}</span> : T.demarrer}
         </button>
         {batterie && (
@@ -84,6 +105,20 @@ export default function Trajet() {
               </button>
               <button className="btn" type="button" data-el="batterie-autoriser" onClick={() => repondreBatterie(true)}>
                 {T.batterieAutoriser}
+              </button>
+            </div>
+          </div>
+        )}
+        {toujours && (
+          <div className="alert" role="alertdialog" aria-labelledby="titre-toujours" aria-describedby="texte-toujours" tabIndex={-1} ref={dialogue} data-el="proposer-toujours">
+            <b id="titre-toujours">{T.toujoursTitre}</b>
+            <span id="texte-toujours">{T.toujoursTexte}</span>
+            <div className="r">
+              <button className="btn ghost" type="button" data-el="toujours-plus-tard" onClick={() => repondreToujours(false)}>
+                {T.toujoursPlusTard}
+              </button>
+              <button className="btn" type="button" data-el="toujours-autoriser" onClick={() => repondreToujours(true)}>
+                {T.toujoursAutoriser}
               </button>
             </div>
           </div>

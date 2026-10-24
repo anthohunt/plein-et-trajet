@@ -27,6 +27,7 @@ import com.getcapacitor.annotation.PermissionCallback;
     permissions = {
         @Permission(alias = "localisation", strings = { Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION }),
         @Permission(alias = "notifications", strings = { "android.permission.POST_NOTIFICATIONS" }),
+        @Permission(alias = "arrierePlan", strings = { "android.permission.ACCESS_BACKGROUND_LOCATION" }),
     }
 )
 public class TrajetEnRoute extends Plugin {
@@ -41,6 +42,8 @@ public class TrajetEnRoute extends Plugin {
     @Override
     public void load() {
         TrajetService.ecouteur = ecouteur;
+        Diagnostic.morts(getContext());
+        Diagnostic.noter(getContext(), "APPLI", "ouverture trajetActif=" + TrajetService.actif(getContext()) + " " + Diagnostic.etat(getContext()));
         Intent i = getActivity() != null ? getActivity().getIntent() : null;
         if (i != null && i.hasExtra(TrajetService.EXTRA)) {
             transmettre(i.getStringExtra(TrajetService.EXTRA));
@@ -127,6 +130,56 @@ public class TrajetEnRoute extends Plugin {
     public void maj(PluginCall call) {
         TrajetService.garderContenu(getContext(), TrajetService.fusionnerPage(getContext(), call.getData()));
         TrajetService.reposer(getContext());
+        call.resolve();
+    }
+
+    // ---------- localisation « Toujours autoriser » (plan de robustesse, 24/10) ----------
+    @PluginMethod
+    public void localisationToujours(PluginCall call) {
+        JSObject o = new JSObject();
+        o.put("toujours", Diagnostic.localisationToujours(getContext()));
+        call.resolve(o);
+    }
+
+    /** Android 11+ : la demande ouvre l'écran des réglages de localisation de l'appli, où choisir « Toujours autoriser ». */
+    @PluginMethod
+    public void demanderToujours(PluginCall call) {
+        if (Diagnostic.localisationToujours(getContext()) || getPermissionState("localisation") != PermissionState.GRANTED) {
+            localisationToujours(call);
+            return;
+        }
+        requestPermissionForAlias("arrierePlan", call, "retourToujours");
+    }
+
+    @PermissionCallback
+    private void retourToujours(PluginCall call) {
+        Diagnostic.noter(getContext(), "APPLI", "toujours=" + (Diagnostic.localisationToujours(getContext()) ? "oui" : "non"));
+        localisationToujours(call);
+    }
+
+    // ---------- observatoire (Diagnostic.java) ----------
+    @PluginMethod
+    public void diagnostic(PluginCall call) {
+        Context c = getContext();
+        Diagnostic.morts(c);
+        String etat = Diagnostic.etat(c);
+        Diagnostic.noter(c, "ENVOI", call.getString("occasion", "?"));
+        String[] d = Diagnostic.aEnvoyer(c);
+        JSObject o = new JSObject();
+        o.put("texte", d[0]);
+        o.put("fin", Long.parseLong(d[1]));
+        o.put("etat", etat);
+        try {
+            o.put("version", c.getPackageManager().getPackageInfo(c.getPackageName(), 0).versionName);
+        } catch (Exception e) {
+            o.put("version", "?");
+        }
+        call.resolve(o);
+    }
+
+    @PluginMethod
+    public void acquitterDiagnostic(PluginCall call) {
+        Diagnostic.acquitter(getContext(), call.getLong("fin", 0L));
         call.resolve();
     }
 

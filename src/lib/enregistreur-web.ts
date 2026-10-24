@@ -15,6 +15,7 @@ import { moyennesDuPays } from "./prixDuJour";
 import { garderPrixChoisi, lirePrixChoisi } from "./prixChoisi";
 import { Capacitor, type PluginListenerHandle } from "@capacitor/core";
 import { T } from "./textes";
+import { envoyerDiagnostic } from "./diagnostic";
 import { TrajetEnRoute, type ContenuNotification } from "./trajetEnRoute";
 
 // Appli Android (jalon 6) : le GPS passe par le service de premier plan TrajetService (notification permanente), qui continue
@@ -318,6 +319,7 @@ export const enregistreurWeb: Enregistreur = {
     const e = etat;
     if (!e) return { tropCourt: 0 };
     taire();
+    void envoyerDiagnostic("fin-trajet");
     const fin = e.immobile ?? Math.max(e.points[e.points.length - 1]?.[0] ?? e.debut, e.enPause ? e.pauses[e.pauses.length - 1]?.[0] ?? e.debut : Date.now());
     const pauses = e.pauses.map(([a, b]) => [a, b ?? fin] as [number, number]);
     const points = e.points.filter((p) => p[0] <= fin);
