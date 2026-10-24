@@ -170,7 +170,10 @@ const alerte = () => notifs().find((n) => ALERTE.test(n.titre ?? ""));
 const notifTrajet = () => notifs().find((n) => !ALERTE.test(n.titre ?? ""));
 const pidof = () => {
   const r = shOk(`pidof ${PKG}`);
-  return /^\d+$/.test(r.split(" ")[0]) ? r.split(" ")[0] : "";
+  if (/^\d+$/.test(r.split(" ")[0])) return r.split(" ")[0];
+  // pidof est revenu vide alors que le processus vivait (Android 14, scénario rendu, 24/10) : on relit la table des processus
+  const l = shOk("ps -A -o PID,NAME").split("\n").find((x) => x.trim().endsWith(" " + PKG));
+  return l ? l.trim().split(/\s+/)[0] : "";
 };
 const serviceVivant = () => /TrajetService/.test(shOk(`dumpsys activity services ${PKG}`));
 const lire = (f) => shOk(`cat /data/data/${PKG}/files/${f} 2>/dev/null`);
@@ -212,10 +215,17 @@ async function page() {
   for (let k = 0; k < 60; k++) {
     const pid = Number(pidof()) || null;
     // la DERNIÈRE vue du processus : après la perte du moteur de rendu, l'ancienne page fermée reste listée (scénario rendu, 24/10)
-    const vue = pid && appareil.webViews().filter((w) => w.pkg() === PKG && w.pid() === pid).at(-1);
+    const vues = appareil.webViews().filter((w) => w.pkg() === PKG);
+    const vue = (pid && vues.filter((w) => w.pid() === pid).at(-1)) || vues.at(-1);
     if (vue) {
       const pg = await vue.page();
       if (await pg.evaluate(() => 1).then(() => true, () => false)) return pg;
+    }
+    // toutes les 15 s sans page vivante : nouvelle connexion à l'appareil (la liste des vues peut rester figée sur l'ancienne)
+    if (k % 15 === 14) {
+      await appareil.close().catch(() => undefined);
+      const tous = await _android.devices();
+      appareil = tous.find((x) => !process.env.ANDROID_SERIAL || x.serial() === process.env.ANDROID_SERIAL) ?? tous[0];
     }
     await pause(1000);
   }
