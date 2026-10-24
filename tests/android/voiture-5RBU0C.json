@@ -1,0 +1,25 @@
+{
+ "cle": "RENAULT·R·5RBU·5RBU0C·2017",
+ "marque": "Renault",
+ "modele": "Clio",
+ "t": "R",
+ "va": "5RBU",
+ "ve": "5RBU0C",
+ "annee": 2017,
+ "masse_kg": 1165,
+ "puissance_kw": 87,
+ "cylindree_cm3": 1197,
+ "carburant": "SP95-E10",
+ "co2_nedc": 118,
+ "co2_wltp": null,
+ "conso_officielle_l100": 6.128,
+ "procedure": "NEDC",
+ "immatriculations": 13864,
+ "conso_phases": {
+  "basse": 7.727,
+  "haute": 5.222,
+  "moyenne": 5.688,
+  "tres_haute": 6.568
+ },
+ "maj": "2026-10-21T10:04:46.748+00:00"
+}
