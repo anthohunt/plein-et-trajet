@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.PowerManager;
+import android.provider.Settings;
 import androidx.core.content.ContextCompat;
 import java.io.File;
 import java.io.FileInputStream;
@@ -149,6 +150,7 @@ final class Diagnostic {
 
     /** Morts du processus depuis la dernière ouverture, telles qu'Android les a enregistrées. */
     static void morts(Context c) {
+        redemarrage(c);
         if (Build.VERSION.SDK_INT < 30) return;
         ActivityManager am = (ActivityManager) c.getSystemService(Context.ACTIVITY_SERVICE);
         if (am == null) return;
@@ -167,5 +169,22 @@ final class Diagnostic {
             noter(c, "ERREUR", "morts " + e);
         }
         prefs(c).edit().putLong("derniereMort", plusRecente).apply();
+    }
+
+    /** Redémarrage du téléphone depuis la dernière ouverture : Android ne l'enregistre pas comme une mort du processus
+     *  (scénario reboot du banc, 24/10), on compare donc le compteur de démarrages de l'appareil. */
+    private static void redemarrage(Context c) {
+        int n;
+        try {
+            n = Settings.Global.getInt(c.getContentResolver(), Settings.Global.BOOT_COUNT);
+        } catch (Exception e) {
+            return;
+        }
+        int vu = prefs(c).getInt("demarrages", -1);
+        if (vu >= 0 && n > vu) {
+            long depuis = System.currentTimeMillis() - android.os.SystemClock.elapsedRealtime();
+            noter(c, "MORT", "le=" + depuis + " raison=REDEMARRAGE demarrages=" + vu + "->" + n);
+        }
+        if (n != vu) prefs(c).edit().putInt("demarrages", n).apply();
     }
 }
