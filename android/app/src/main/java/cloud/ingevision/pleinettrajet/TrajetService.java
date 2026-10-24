@@ -84,10 +84,22 @@ public class TrajetService extends Service implements LocationListener {
     private final Handler battement = new Handler(Looper.getMainLooper());
     private long recuPrecedent = -1; // horloge monotone du relevé précédent
     private int recusMinute;
+    private boolean bridageSignale;
     private final Runnable vie = new Runnable() {
         @Override
         public void run() {
             Diagnostic.noter(TrajetService.this, "VIE", "releves60s=" + recusMinute + " pageLa=" + (ecouteur != null));
+            // Scénario « restreint » du 24/10 : appli bridée en arrière-plan sans « Toujours autoriser », le service vit mais Android ne
+            // lui donne plus aucune position (10 min perdues sans bruit). Une minute entière sans relevé, hors pause, sans « Toujours » :
+            // on le dit, et le toucher ouvre les réglages de l'appli. Avec « Toujours », le même bridage ne coupe rien (constaté).
+            boolean sansReleve = recusMinute == 0 && actif(TrajetService.this) && !contenu(TrajetService.this).optBoolean("enPause");
+            if (sansReleve && !bridageSignale && !Diagnostic.localisationToujours(TrajetService.this)) {
+                bridageSignale = true;
+                alerterBridage(TrajetService.this);
+            } else if (recusMinute > 0 && bridageSignale) {
+                bridageSignale = false;
+                annulerAlerte(TrajetService.this);
+            }
             recusMinute = 0;
             battement.postDelayed(this, 60_000L);
         }
@@ -251,6 +263,26 @@ public class TrajetService extends Service implements LocationListener {
             .setCategory(NotificationCompat.CATEGORY_ERROR)
             .setAutoCancel(true)
             .setContentIntent(ouvrir(c, null, 6))
+            .build();
+        m.notify(NUMERO_ALERTE, n);
+    }
+
+    /** Plus aucune position en arrière-plan et pas de « Toujours autoriser » : l'alerte ouvre les réglages de l'appli. */
+    static void alerterBridage(Context c) {
+        Diagnostic.noter(c, "ALERTE", "sans-position " + Diagnostic.etat(c));
+        NotificationManager m = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (m == null) return;
+        Intent reglages = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:" + c.getPackageName()))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        Notification n = new NotificationCompat.Builder(c, CANAL_ALERTE)
+            .setSmallIcon(c.getApplicationInfo().icon)
+            .setContentTitle(c.getString(R.string.bridage_titre))
+            .setContentText(c.getString(R.string.bridage_texte))
+            .setStyle(new NotificationCompat.BigTextStyle().bigText(c.getString(R.string.bridage_texte)))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_ERROR)
+            .setAutoCancel(true)
+            .setContentIntent(PendingIntent.getActivity(c, 7, reglages, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE))
             .build();
         m.notify(NUMERO_ALERTE, n);
     }
