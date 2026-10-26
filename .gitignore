@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+coverage/
+supabase/.temp/
+supabase/.branches/
+android/app/build/
+android/.gradle/
+android/local.properties
+*.p12
+*.jks
+*.keystore

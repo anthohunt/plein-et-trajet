@@ -1,0 +1,29 @@
+/* Généré depuis docs/pipeline/design/tokens.json — rôles de couleur seulement. */
+:root {
+  --ground: #eceeea; --surface: #f9faf7; --ink: #15181a; --muted: #5d635f; --line: #cfd3cc;
+  --panel: #111413; --accent: #5ff08c; --cheap: #1f8a4c; --dear: #c2491d;
+  --f-display: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+  --f-body: 'Barlow', 'Segoe UI', sans-serif;
+  --f-digits: 'Chivo Mono', ui-monospace, monospace;
+  --fs-xs: 12px; --fs-sm: 14px; --fs-md: 16px; --fs-lg: 20px; --fs-xl: 28px; --fs-xxl: 44px; --fs-hero: 64px;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;
+  --r-sm: 4px; --r-md: 8px; --r-sheet: 18px;
+  --me: #2f7de1;
+  --on-panel: color-mix(in srgb, var(--surface) 80%, var(--panel));
+  --on-panel-muted: color-mix(in srgb, var(--surface) 58%, var(--panel));
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0e1110; --surface: #171b19; --ink: #e8ebe6; --muted: #8d948f; --line: #2a302d;
+    --panel: #050706; --accent: #63f392; --cheap: #4cc77f; --dear: #f07a4a;
+    --on-panel: color-mix(in srgb, var(--ink) 80%, var(--panel)); --on-panel-muted: color-mix(in srgb, var(--ink) 58%, var(--panel));
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #0e1110; --surface: #171b19; --ink: #e8ebe6; --muted: #8d948f; --line: #2a302d;
+  --panel: #050706; --accent: #63f392; --cheap: #4cc77f; --dear: #f07a4a;
+  --on-panel: color-mix(in srgb, var(--ink) 80%, var(--panel)); --on-panel-muted: color-mix(in srgb, var(--ink) 58%, var(--panel));
+  color-scheme: dark;
+}

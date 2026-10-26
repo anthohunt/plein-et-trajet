@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Plein &amp; Trajet</string>
+    <string name="title_activity_main">Plein &amp; Trajet</string>
+    <string name="package_name">org.example.pleinettrajet</string>
+    <string name="custom_url_scheme">org.example.pleinettrajet</string>
+    <string name="canal_trajet">Trajet en cours</string>
+    <string name="canal_alerte">Trajet interrompu</string>
+    <string name="alerte_titre">Trajet interrompu</string>
+    <string name="alerte_texte">Android a arrêté l\'enregistrement en arrière-plan. Touche ici pour reprendre le trajet.</string>
+    <string name="bridage_titre">Trajet non compté : position bloquée</string>
+    <string name="bridage_texte">Android ne donne plus la position à l\'appli en arrière-plan. Touche ici, puis Autorisations → Localisation → « Toujours autoriser ».</string>
+</resources>
