@@ -1,0 +1,15 @@
+plein-et-trajet
+Copyright 2026 Anthony Hunt
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+Documentation and text are licensed under the Creative Commons Attribution 4.0
+International license (see LICENSE-docs).
+
+Third-party components are used as dependencies installed by npm (see package.json
+and package-lock.json): React, React Router, Supabase JS, idb, Capacitor, MapLibre GL
+(BSD-3-Clause), Vite, Vitest, TypeScript (Apache-2.0 / MIT / BSD / ISC). No GPL, AGPL
+or SSPL dependency was found in a scan of the installed tree.
+Fonts (Big Shoulders Display, Barlow, Chivo Mono, JetBrains Mono) are loaded at run time from
+Google Fonts under the SIL Open Font License; they are not redistributed here.
+Map tiles: OpenFreeMap, map data (c) OpenStreetMap contributors (ODbL).
+Data sources and their licences: see docs/SOURCES-DONNEES.md.

@@ -1,0 +1,46 @@
+// Pont vers le service natif du trajet (jalon 6, round 2 : android/…/TrajetEnRoute.java et TrajetService.java). Le service lit
+// le GPS, écrit chaque relevé dans un journal (daté par l'heure du relevé) et tient la notification ; la page lit ce journal à sa
+// réouverture et reçoit chaque nouvelle ligne en direct (« releve »). Sans effet dans le navigateur.
+import { registerPlugin, type PluginListenerHandle } from "@capacitor/core";
+
+/** Ce que montre la notification : tous les textes viennent de textes.ts ; `gabarit` et les nombres servent au direct natif. */
+export interface ContenuNotification {
+  titre: string;
+  texte: string;
+  enPause: boolean;
+  immobile: boolean;
+  reprendre: string;
+  cestFini: string;
+  pause: string;
+  arreter: string;
+  // direct natif, quand la page n'est plus là : km et € de la page à cet instant, puis le service ajoute la distance des relevés
+  titreEnCours: string;
+  titrePause: string;
+  gabarit: string; // ligne de chiffres avec {v}, {km}, {eur}
+  km: number;
+  euros: number | null;
+  prix: number | null;
+  l100ParVitesse: number[]; // consommation de la voiture (L/100 km) à 0, 1, 2… 200 km/h, pour les pas comptés par le service
+  ligne: number; // numéro de la dernière ligne du journal appliquée par la page : le service rejoue les suivantes, et ne laisse pas
+  // la page écraser un bouton de la notification qu'elle n'a pas encore appliqué (round 3)
+}
+
+export interface TrajetEnRoutePlugin {
+  demanderPermissions(): Promise<{ localisation?: boolean }>;
+  demarrer(o: { id: string; contenu: ContenuNotification }): Promise<void>;
+  arreter(): Promise<void>;
+  lire(): Promise<{ texte: string; id: string | null; actif: boolean; contenu: string }>;
+  maj(o: ContenuNotification): Promise<void>;
+  batterie(): Promise<{ horsOptimisation: boolean }>;
+  proposerBatterie(): Promise<{ horsOptimisation: boolean }>;
+  // localisation « Toujours autoriser » : sans elle, Android 14+ refuse de relancer le service tué en route (plan de robustesse)
+  localisationToujours(): Promise<{ toujours: boolean }>;
+  demanderToujours(): Promise<{ toujours: boolean }>;
+  // observatoire (Diagnostic.java) : texte pas encore envoyé, position de fin à acquitter une fois l'envoi réussi
+  diagnostic(o: { occasion: string }): Promise<{ texte: string; fin: number; etat: string; version: string }>;
+  acquitterDiagnostic(o: { fin: number }): Promise<void>;
+  addListener(evt: "releve", f: (e: { ligne: string; n: number }) => void): Promise<PluginListenerHandle>;
+  addListener(evt: "action", f: (e: { action: string }) => void): Promise<PluginListenerHandle>;
+}
+
+export const TrajetEnRoute = registerPlugin<TrajetEnRoutePlugin>("TrajetEnRoute");

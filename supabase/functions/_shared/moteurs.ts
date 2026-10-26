@@ -1,0 +1,110 @@
+// Registre des moteurs (jalon 3) : chaque Edge Function lit son fournisseur actif et sa clé à CHAQUE appel
+// (table `moteurs` + Supabase Vault) — aucun fournisseur ni clé dans le code, bascule sans redéploiement.
+// deno-lint-ignore-file no-explicit-any
+
+export interface Moteur {
+  service: string;
+  actif: string;
+  secours: string | null;
+  incident_le?: string | null;
+  bascule_le?: string | null;
+  retabli_le?: string | null;
+}
+export interface Essai<T> {
+  fournisseur: string;
+  appel: () => Promise<T>;
+}
+export interface Echec {
+  fournisseur: string;
+  message: string;
+}
+export interface SortieChaine<T> {
+  resultat: T | null;
+  fournisseur: string | null; // celui qui a répondu
+  bascule: boolean; // le secours a répondu après l'échec de l'actif
+  echecs: Echec[];
+}
+
+/** Essaie les fournisseurs dans l'ordre (actif puis secours) ; le premier qui répond gagne. Pur : testé sans réseau. */
+export async function executerChaine<T>(essais: Essai<T>[]): Promise<SortieChaine<T>> {
+  const echecs: Echec[] = [];
+  for (let i = 0; i < essais.length; i++) {
+    try {
+      const resultat = await essais[i].appel();
+      return { resultat, fournisseur: essais[i].fournisseur, bascule: i > 0, echecs };
+    } catch (e) {
+      echecs.push({ fournisseur: essais[i].fournisseur, message: e instanceof Error ? e.message : String(e) });
+    }
+  }
+  return { resultat: null, fournisseur: null, bascule: false, echecs };
+}
+
+export async function lireMoteur(db: any, service: string): Promise<Moteur> {
+  const { data, error } = await db.from("moteurs").select("service,actif,secours,incident_le,bascule_le,retabli_le").eq("service", service).maybeSingle();
+  if (error || !data) throw new Error(`moteur ${service} illisible`);
+  return data as Moteur;
+}
+
+/** Clé d'un fournisseur (déchiffrée côté serveur par Vault) ; null si aucune n'est enregistrée. */
+export async function lireCle(db: any, fournisseur: string): Promise<string | null> {
+  const { data, error } = await db.rpc("moteur_cle", { p_fournisseur: fournisseur });
+  if (error) throw new Error(`clé ${fournisseur} illisible`);
+  return typeof data === "string" && data.length > 0 ? data : null;
+}
+
+export async function noterIncident(db: any, service: string, message: string): Promise<void> {
+  await db.from("moteurs").update({ incident_le: new Date().toISOString(), incident_message: message }).eq("service", service);
+}
+export async function noterBascule(db: any, service: string, de: string, vers: string): Promise<void> {
+  await db.from("moteurs").update({ bascule_le: new Date().toISOString(), bascule_de: de, bascule_vers: vers }).eq("service", service);
+}
+/** Le fournisseur actif a répondu : un incident ou une bascule antérieurs sont marqués résolus (une écriture seulement s'il y en a un d'ouvert). */
+export async function noterRetabli(db: any, service: string, m: Moteur): Promise<void> {
+  const dernier = [m.incident_le, m.bascule_le].filter(Boolean).map((x) => new Date(x as string).getTime());
+  if (dernier.length === 0) return;
+  if (m.retabli_le && new Date(m.retabli_le).getTime() >= Math.max(...dernier)) return;
+  await db.from("moteurs").update({ retabli_le: new Date().toISOString() }).eq("service", service);
+}
+/** Issue d'une chaîne qui a abouti : bascule si le secours a répondu ; « rétabli » seulement si le fournisseur actif a VRAIMENT répondu.
+ *  Une réponse tirée du cache ne prouve rien sur le fournisseur (audit round 4, MEDIUM 1) : l'incident ou la bascule restent ouverts. */
+export async function noterIssue(db: any, service: string, m: Moteur, s: SortieChaine<unknown>, reponseFournisseur: boolean): Promise<void> {
+  if (!s.resultat) return;
+  if (s.bascule) await noterBascule(db, service, m.actif, s.fournisseur!);
+  else if (reponseFournisseur) await noterRetabli(db, service, m);
+}
+/** Quota du jour dépassé chez le fournisseur : plus aucun appel avant la remise à zéro attendue (00:00 UTC suivant).
+ *  Si le quota est encore dépassé juste après une remise à zéro attendue (`ancien` échu), on réessaie dans 30 min plutôt que demain. */
+export async function noterQuotaFournisseur(db: any, fournisseur: string, ancien: string | null): Promise<string> {
+  const maintenant = new Date();
+  const minuit = new Date(Date.UTC(maintenant.getUTCFullYear(), maintenant.getUTCMonth(), maintenant.getUTCDate() + 1));
+  const echu = ancien ? maintenant.getTime() - new Date(ancien).getTime() : -1; // > 0 : la remise à zéro attendue est passée
+  const jusqua = echu >= 0 && echu < 3600e3 ? new Date(maintenant.getTime() + 30 * 60e3) : minuit;
+  await db.from("fournisseurs").update({ quota_epuise_jusqua: jusqua.toISOString() }).eq("id", fournisseur);
+  return jusqua.toISOString();
+}
+
+/** Codes d'incident (`fournisseur : code …`) qui disent l'état du fournisseur ; « aucun itinéraire » ou « trajet trop long » n'en disent rien. */
+const CODE_INCIDENT: Record<string, string> = { cle_refusee: "cle_refusee", cle_manquante: "cle_manquante", quota: "quota", indisponible: "injoignable", reponse_invalide: "reponse_illisible" };
+export interface EtatAffiche {
+  etat: string;
+  code: string;
+  params: Record<string, string | number>;
+}
+/** État montré sur l'écran Moteurs : le plus récent du dernier test et du dernier incident (P8, streamline R2).
+ *  Un incident du fournisseur actif, non résolu et postérieur au dernier test, l'emporte sur un « Connecté » plus ancien. */
+export function etatAffiche(
+  m: { actif: string; dernier_test?: string | null; incident_le?: string | null; incident_message?: string | null; retabli_le?: string | null },
+  base: EtatAffiche,
+): EtatAffiche {
+  if (!m.incident_le || !m.incident_message) return base;
+  const incident = new Date(m.incident_le).getTime();
+  if (m.retabli_le && new Date(m.retabli_le).getTime() > incident) return base; // résolu depuis
+  if (m.dernier_test && new Date(m.dernier_test).getTime() >= incident) return base; // un test plus récent fait foi
+  const [fournisseur, ...reste] = m.incident_message.split(" : ");
+  if (fournisseur.trim() !== m.actif) return base;
+  const detail = reste.join(" : ").trim();
+  const code = CODE_INCIDENT[detail.split(/[\s(]/)[0]];
+  if (!code) return base;
+  const http = detail.match(/\b(\d{3})\b/)?.[1];
+  return { etat: "ko", code, params: { fournisseur: m.actif, ...(http ? { http: Number(http) } : {}) } };
+}
