@@ -1,4 +1,6 @@
-# Sources des données
+# Data sources
+
+> This document is in French.
 
 L'application n'invente aucune donnée : chaque chiffre vient d'une source ouverte, affichée avec sa provenance.
 
