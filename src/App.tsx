@@ -117,6 +117,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <BarreOnglets />
+      <a className="auteur" href="https://ingevision.cloud/" target="_blank" rel="noopener">Anthony Hunt · ingevision.cloud</a>
     </div>
   );
 }

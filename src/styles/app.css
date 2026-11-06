@@ -98,7 +98,7 @@ h2.sec { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spaci
 .note { font-size: 12px; color: var(--muted); margin: 0 16px 14px; }
 
 /* onglets */
-.tabs { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); background: var(--surface); flex: none; padding-bottom: env(safe-area-inset-bottom, 0px); }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); background: var(--surface); flex: none; }
 .tab { border: 0; background: transparent; padding: 12px 0 14px; font: 800 17px/1 var(--f-display); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); position: relative; }
 .tab[aria-selected="true"] { color: var(--ink); }
 .tab[aria-selected="true"]::before { content: ""; position: absolute; top: -1px; left: 30%; right: 30%; height: 3px; background: var(--ink); border-radius: 0 0 3px 3px; }
@@ -280,6 +280,7 @@ h2.route:focus-visible { outline: none; text-decoration: underline 3px; text-und
 
 /* ===== V1 recentrée (jalon 5) — repris de la maquette V1 validée (docs/pipeline/design/mockup.html) ===== */
 .tabs.tabs3 { grid-template-columns: 1fr 1fr 1fr; }
+.auteur { flex: none; display: block; text-align: center; font-size: 11px; line-height: 1; padding: 4px 8px calc(4px + env(safe-area-inset-bottom, 0px)); color: var(--muted); background: var(--surface); }
 .carcard { margin: 4px 16px 0; border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; }
 .carcard .nm { font: 800 22px/1.05 var(--f-display); text-transform: uppercase; }
 .carcard .sp { font-size: 13px; color: var(--muted); grid-column: 1; }
