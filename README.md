@@ -1,5 +1,7 @@
 **English** · [Français](README.fr.md)
 
+**Anthony Hunt** · [Project page on ingevision.cloud](https://ingevision.cloud/?lang=en&p=plein-et-trajet) · [LinkedIn](https://www.linkedin.com/in/anthony-hunt-3948a9196) · [GitHub profile](https://github.com/anthohunt)
+
 # Plein & Trajet
 
 Web and Android application that shows **official fuel prices around you** and estimates **the cost of a trip** for your car (consumption, tolls, elevation). It can also record your trips in the background on Android and work out the real cost on arrival.

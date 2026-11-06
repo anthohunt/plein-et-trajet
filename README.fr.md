@@ -1,5 +1,7 @@
 [English](README.md) · **Français**
 
+**Anthony Hunt** · [Fiche du projet sur ingevision.cloud](https://ingevision.cloud/?p=plein-et-trajet) · [LinkedIn](https://www.linkedin.com/in/anthony-hunt-3948a9196) · [Profil GitHub](https://github.com/anthohunt)
+
 # Plein & Trajet
 
 Application web et Android qui montre **les prix officiels des carburants autour de vous** et estime **le coût d'un trajet** selon votre voiture (consommation, péages, dénivelé). Elle peut aussi enregistrer vos trajets en arrière-plan sur Android et calculer le coût réel à l'arrivée.
