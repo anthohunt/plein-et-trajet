@@ -19,7 +19,13 @@
 
 ## Architecture
 
-![Plein & Trajet architecture: scheduled syncs fetch fuel prices from open data in 11 countries and write them to the Supabase database; the app, loaded from Vercel, reads prices nearby and calls functions that name places (IGN, Photon) and look up the car (EEA register); trips stay on the phone](docs/architecture.en.svg)
+![Plein & Trajet architecture: scheduled syncs fetch fuel prices from open data in 11 countries and write them to the Supabase database; the app, loaded from Vercel, reads prices nearby and calls functions that name places (IGN, Photon) and look up the car (EEA register); trips stay on the phone](docs/architecture.svg)
+
+<details><summary>French version</summary>
+
+![Architecture de Plein & Trajet : un relevé planifié lit les prix des carburants en données ouvertes dans 11 pays et les écrit dans la base Supabase ; l'appli, chargée depuis Vercel, lit les prix autour et appelle des fonctions qui nomment les lieux (IGN, Photon) et trouvent la voiture (registre EEA) ; les trajets restent sur le téléphone](docs/architecture.fr.svg)
+
+</details>
 
 ## Deployment
 

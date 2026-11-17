@@ -21,6 +21,12 @@
 
 ![Architecture de Plein & Trajet : un relevé planifié lit les prix des carburants en données ouvertes dans 11 pays et les écrit dans la base Supabase ; l'appli, chargée depuis Vercel, lit les prix autour et appelle des fonctions qui nomment les lieux (IGN, Photon) et trouvent la voiture (registre EEA) ; les trajets restent sur le téléphone](docs/architecture.svg)
 
+<details><summary>Diagramme en français</summary>
+
+![Architecture de Plein & Trajet : un relevé planifié lit les prix des carburants en données ouvertes dans 11 pays et les écrit dans la base Supabase ; l'appli, chargée depuis Vercel, lit les prix autour et appelle des fonctions qui nomment les lieux (IGN, Photon) et trouvent la voiture (registre EEA) ; les trajets restent sur le téléphone](docs/architecture.fr.svg)
+
+</details>
+
 ## Déploiement
 
 - **Web.** [plein-et-trajet.vercel.app](https://plein-et-trajet.vercel.app) ; prix français relevés toutes les 10 minutes, dix autres pays plusieurs fois par jour.
