@@ -2,20 +2,20 @@
 
 # Plein & Trajet
 
-**Les prix officiels des carburants autour de vous, et ce que chaque trajet a coûté en carburant, calculé d'après votre voiture et votre conduite.**
+**Les prix officiels des carburants autour de vous, et le coût en carburant de chaque trajet, selon votre voiture et votre conduite.**
 
 [![Sur l'appli en ligne : les stations autour d'Albi, la voiture trouvée par son code de carte grise, un trajet enregistré sur un tracé GPS rejoué jusqu'à Toulouse, puis le coût à l'arrivée (cliquer pour la vidéo complète)](docs/demo.gif)](https://drive.google.com/file/d/1jcwdR7MaJ6Lg29hxW9j394Rkp16EhwIH/view)
 
-*L'appli en ligne, avec un tracé GPS Albi → Toulouse rejoué dans le navigateur. [Vidéo complète (1:21)](https://drive.google.com/file/d/1jcwdR7MaJ6Lg29hxW9j394Rkp16EhwIH/view)*
+*L'appli en ligne, avec un tracé GPS Albi → Toulouse rejoué dans le navigateur. [Vidéo complète (1 min 38)](https://drive.google.com/file/d/1jcwdR7MaJ6Lg29hxW9j394Rkp16EhwIH/view)*
 
-## Ce qu'on fait avec
+## Utilisation
 
 - **Stations.** Carte et liste des stations autour de vous pour six carburants, la moins chère ou la plus proche d'abord. Chaque prix indique son âge et son écart à la moyenne nationale ; la fiche d'une station donne tous ses carburants.
 - **Votre voiture.** Le code D.2 de la carte grise suffit : l'appli trouve ses versions dans le registre européen des voitures neuves (EEA) et garde masse, puissance et consommation officielle.
-- **En route.** *Démarrer* enregistre le tracé GPS ; vitesse, kilomètres, litres et euros s'affichent en direct. Les litres viennent de la consommation officielle de la voiture pour chaque plage de vitesse, plus chaque accélération.
-- **À l'arrivée.** Coût, litres, L/100 km, courbes de vitesse et de consommation, partage entre passagers. Le prix est la moyenne nationale du jour, celui d'une station ou le vôtre. Une voiture garée 10 minutes arrête le trajet, après confirmation.
+- **En route.** *Démarrer* enregistre le tracé GPS ; vitesse, kilomètres, litres et euros s'affichent en direct. Les litres viennent de la consommation officielle de la voiture, répartie sur quatre plages de vitesse, plus l'énergie de chaque accélération et de chaque montée. Après 10 minutes sans bouger, le trajet cesse de compter et demande s'il est fini.
+- **À l'arrivée.** Coût, litres, L/100 km, courbes de vitesse et de consommation, partage entre passagers. Le prix est la moyenne nationale du jour, celui d'une station ou le vôtre.
 - **Historique.** Trajets par mois avec totaux, gardés sur le téléphone ; aucun compte.
-- **Android.** La même appli, avec un service de premier plan qui continue d'enregistrer écran éteint, derrière un GPS ou après qu'Android a tué l'appli.
+- **Android.** La même appli ; elle continue d'enregistrer, avec une notification, écran éteint, derrière Waze ou Maps, ou après qu'Android l'a fermée.
 
 ## Architecture
 
@@ -24,7 +24,8 @@
 ## Déploiement
 
 - **Web.** [plein-et-trajet.vercel.app](https://plein-et-trajet.vercel.app) ; prix français relevés toutes les 10 minutes, dix autres pays plusieurs fois par jour.
-- **Android.** [APK 1.2.1](https://projets.ingevision.cloud/plein-et-trajet/plein-et-trajet.apk) (24 octobre 2026), hors Play Store. Enregistrement testé sur émulateurs Android 16 et 14 : appli tuée, restrictions de batterie, mise en veille, GPS perdu, redémarrage.
+- **Android.** [APK 1.2.1](https://projets.ingevision.cloud/plein-et-trajet/plein-et-trajet.apk) (24 octobre 2026), hors Play Store. Enregistrement testé par l'auteur sur émulateurs Android 16 et 14 : appli tuée, restrictions de batterie, mise en veille, GPS perdu, redémarrage. L'appli envoie un journal technique à la base à son ouverture et à chaque fin de trajet.
+- **Recherche de voiture.** En panne pour les codes jamais cherchés : le registre EEA refuse les requêtes du serveur (constaté le 17 novembre 2026).
 - **Technique.** React 18, TypeScript, Vite, MapLibre GL ; Capacitor avec un service Java ; Supabase (PostgreSQL, fonctions Deno, pg_cron) ; Vercel.
 
 <details><summary>L'installer chez soi</summary>
@@ -37,7 +38,7 @@ Prérequis : Node.js 20 ou plus et un projet [Supabase](https://supabase.com) (l
 4. `npm run dev`, ou `npm run build` pour `dist/` chez n'importe quel hébergeur statique (`vercel.json` pose les en-têtes de sécurité).
 5. En option : `api/` sur Vercel pour les relais espagnol et roumain (`RELAIS_BASE_URL`) ; `scripts/build-apk.sh` pour Android (JDK 21, SDK Android, votre propre magasin de clés ; changer d'abord l'identifiant `org.example.pleinettrajet`).
 
-`npm test` lance les tests unitaires (Vitest) ; certains appellent le géocodeur public de l'IGN. Sources de données et conditions : [`docs/SOURCES-DONNEES.md`](docs/SOURCES-DONNEES.md).
+`npm test` lance les 283 tests unitaires (Vitest) ; certains appellent le géocodeur public de l'IGN. Sources de données et conditions : [`docs/SOURCES-DONNEES.md`](docs/SOURCES-DONNEES.md).
 
 </details>
 
