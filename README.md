@@ -4,15 +4,15 @@
 
 **Official fuel prices nearby, and the fuel cost of each trip, from your car and your driving.**
 
-[![On the live app: stations around Albi, the car found from its registration code, a trip recorded on a replayed GPS track to Toulouse, then the cost on arrival (click for the full video)](docs/demo.webp)](https://drive.google.com/file/d/1jcwdR7MaJ6Lg29hxW9j394Rkp16EhwIH/view)
+![On the live app: stations around Albi, the car found from its registration code, a trip recorded on a replayed GPS track to Toulouse, then the cost on arrival](docs/demo.webp)
 
 <details><summary>French version</summary>
 
-[![Sur l'appli en ligne : les stations autour d'Albi, la voiture trouvée par son code de carte grise, un trajet enregistré sur un tracé GPS rejoué jusqu'à Toulouse, puis le coût à l'arrivée (cliquer pour la vidéo complète)](docs/demo.fr.webp)](https://drive.google.com/file/d/1cXqVdgcqSiiZ9891ikjm1pgPRaDLSed9/view)
+![Sur l'appli en ligne : les stations autour d'Albi, la voiture trouvée par son code de carte grise, un trajet enregistré sur un tracé GPS rejoué jusqu'à Toulouse, puis le coût à l'arrivée](docs/demo.fr.webp)
 
 </details>
 
-*The live app, with a GPS track from Albi to Toulouse replayed in the browser. [Full video (1:38)](https://drive.google.com/file/d/1jcwdR7MaJ6Lg29hxW9j394Rkp16EhwIH/view)*
+*The live app, with a GPS track from Albi to Toulouse replayed in the browser.*
 
 ## Using it
 

@@ -4,15 +4,15 @@
 
 **Les prix officiels des carburants autour de vous, et le coût en carburant de chaque trajet, selon votre voiture et votre conduite.**
 
-[![Sur l'appli en ligne : les stations autour d'Albi, la voiture trouvée par son code de carte grise, un trajet enregistré sur un tracé GPS rejoué jusqu'à Toulouse, puis le coût à l'arrivée (version anglaise, cliquer pour la vidéo complète)](docs/demo.webp)](https://drive.google.com/file/d/1jcwdR7MaJ6Lg29hxW9j394Rkp16EhwIH/view)
+![Sur l'appli en ligne : les stations autour d'Albi, la voiture trouvée par son code de carte grise, un trajet enregistré sur un tracé GPS rejoué jusqu'à Toulouse, puis le coût à l'arrivée (version anglaise)](docs/demo.webp)
 
 <details><summary>Version française</summary>
 
-[![Sur l'appli en ligne : les stations autour d'Albi, la voiture trouvée par son code de carte grise, un trajet enregistré sur un tracé GPS rejoué jusqu'à Toulouse, puis le coût à l'arrivée (cliquer pour la vidéo complète)](docs/demo.fr.webp)](https://drive.google.com/file/d/1cXqVdgcqSiiZ9891ikjm1pgPRaDLSed9/view)
+![Sur l'appli en ligne : les stations autour d'Albi, la voiture trouvée par son code de carte grise, un trajet enregistré sur un tracé GPS rejoué jusqu'à Toulouse, puis le coût à l'arrivée](docs/demo.fr.webp)
 
 </details>
 
-*L'appli en ligne, avec un tracé GPS Albi → Toulouse rejoué dans le navigateur. [Vidéo complète (1 min 38)](https://drive.google.com/file/d/1cXqVdgcqSiiZ9891ikjm1pgPRaDLSed9/view)*
+*L'appli en ligne, avec un tracé GPS Albi → Toulouse rejoué dans le navigateur.*
 
 ## Utilisation
 
